@@ -1,0 +1,89 @@
+name: Keyameleon
+
+options:
+  deploymentTarget:
+    macOS: "15.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: YES
+    ENABLE_HARDENED_RUNTIME: YES
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGNING_REQUIRED: NO
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SYMROOT: build
+
+targets:
+  Keyameleon:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon
+        PRODUCT_NAME: Keyameleon
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Keyameleon
+        INFOPLIST_KEY_LSUIElement: YES
+    dependencies:
+      - sdk: AppKit.framework
+      - sdk: SwiftUI.framework
+
+  KeyameleonSwiftTesting:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/SwiftTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.swift-testing
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Keyameleon
+
+  KeyameleonXCTest:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/XCTest
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.xctest
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Keyameleon
+
+  KeyameleonUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - Tests/UITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.ui
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Keyameleon
+
+schemes:
+  Keyameleon:
+    build:
+      targets:
+        Keyameleon: all
+        KeyameleonSwiftTesting: [test]
+        KeyameleonXCTest: [test]
+        KeyameleonUITests: [test]
+    test:
+      targets:
+        - KeyameleonSwiftTesting
+        - KeyameleonXCTest
+        - KeyameleonUITests

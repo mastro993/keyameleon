@@ -1,0 +1,683 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09A8E2280F073308A73D54C1 /* KeyameleonLifecycleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC7358858FE9ED01078060A /* KeyameleonLifecycleUITests.swift */; };
+		68B0BFAA11F7BEDA4AC8975D /* KeyameleonApplicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02455F8A5A118EF76B787E5D /* KeyameleonApplicationTests.swift */; };
+		6A55073B7C935715A040BE0E /* KeyameleonAppMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = E866BDFB5D4377E15825F6E8 /* KeyameleonAppMetadata.swift */; };
+		6D67ADBC82EE41FDDA9A5B8E /* KeyameleonRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6034CBE585B5BDE6DABD1D7 /* KeyameleonRootView.swift */; };
+		84C64FB9DA6AC5FFCA575DE3 /* KeyameleonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925B8730799DFF8411FF94FF /* KeyameleonApp.swift */; };
+		8EACA5A3486235A102A93F44 /* KeyameleonApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8390A0559D913FCE3B8443D0 /* KeyameleonApplicationDelegate.swift */; };
+		91E6DD5CBEB5B2DAE4AC91F1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAF64CA3A3802AD87234A325 /* SwiftUI.framework */; };
+		C8FA0F1AE962C4AEC32A0A92 /* KeyameleonWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F9918A3CBD5830F8FB513A /* KeyameleonWindowController.swift */; };
+		CC4D4CD3FDBEABF26DFD8779 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2F89B01FA50D2E2724A74C3 /* AppKit.framework */; };
+		F86C0383C89A4A0E94C568D0 /* KeyameleonAppMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A6D03C52349B7198BF3887 /* KeyameleonAppMetadataTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		62FB124316A61CE353FCFE6C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 17F49B025803125E5ABBCD4C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7B1A298244D4331D2678655;
+			remoteInfo = Keyameleon;
+		};
+		D07789ECD894B6BCEB9EA519 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 17F49B025803125E5ABBCD4C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7B1A298244D4331D2678655;
+			remoteInfo = Keyameleon;
+		};
+		FB198F04415ABEB102418C3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 17F49B025803125E5ABBCD4C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7B1A298244D4331D2678655;
+			remoteInfo = Keyameleon;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		02455F8A5A118EF76B787E5D /* KeyameleonApplicationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonApplicationTests.swift; sourceTree = "<group>"; };
+		07F9918A3CBD5830F8FB513A /* KeyameleonWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonWindowController.swift; sourceTree = "<group>"; };
+		10A6D03C52349B7198BF3887 /* KeyameleonAppMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonAppMetadataTests.swift; sourceTree = "<group>"; };
+		7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8390A0559D913FCE3B8443D0 /* KeyameleonApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonApplicationDelegate.swift; sourceTree = "<group>"; };
+		925B8730799DFF8411FF94FF /* KeyameleonApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonApp.swift; sourceTree = "<group>"; };
+		967B7E1070DD4601582EE6C6 /* Keyameleon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keyameleon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6034CBE585B5BDE6DABD1D7 /* KeyameleonRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonRootView.swift; sourceTree = "<group>"; };
+		D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonSwiftTesting.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonXCTest.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E866BDFB5D4377E15825F6E8 /* KeyameleonAppMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonAppMetadata.swift; sourceTree = "<group>"; };
+		EEC7358858FE9ED01078060A /* KeyameleonLifecycleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonLifecycleUITests.swift; sourceTree = "<group>"; };
+		F2F89B01FA50D2E2724A74C3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		FAF64CA3A3802AD87234A325 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3DFAEBEB2F554425B022A83B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC4D4CD3FDBEABF26DFD8779 /* AppKit.framework in Frameworks */,
+				91E6DD5CBEB5B2DAE4AC91F1 /* SwiftUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0FBEA2F3C13CDFD006D682CC /* XCTest */ = {
+			isa = PBXGroup;
+			children = (
+				02455F8A5A118EF76B787E5D /* KeyameleonApplicationTests.swift */,
+			);
+			path = XCTest;
+			sourceTree = "<group>";
+		};
+		417F71DE12F09AD13001B515 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F2F89B01FA50D2E2724A74C3 /* AppKit.framework */,
+				FAF64CA3A3802AD87234A325 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		53C95B12FF24EACFD405BBEB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				967B7E1070DD4601582EE6C6 /* Keyameleon.app */,
+				D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */,
+				7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */,
+				DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		54FC5C45679D80C154ECCC61 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				B6034CBE585B5BDE6DABD1D7 /* KeyameleonRootView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		6D27DD524F53C9F5FAFBBC8A = {
+			isa = PBXGroup;
+			children = (
+				BF3878F1C20B19C018283AA5 /* Sources */,
+				AA13A857CCEB8354237B20DE /* Tests */,
+				417F71DE12F09AD13001B515 /* Frameworks */,
+				53C95B12FF24EACFD405BBEB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7164BA534929CE29C1EACE17 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				925B8730799DFF8411FF94FF /* KeyameleonApp.swift */,
+				8390A0559D913FCE3B8443D0 /* KeyameleonApplicationDelegate.swift */,
+				07F9918A3CBD5830F8FB513A /* KeyameleonWindowController.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		7CEF334DA8BDA8BB2B9CBAB8 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				E866BDFB5D4377E15825F6E8 /* KeyameleonAppMetadata.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		A04569F39B68F25EDADE4039 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				EEC7358858FE9ED01078060A /* KeyameleonLifecycleUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		AA13A857CCEB8354237B20DE /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				F86EC0BFB9FD4FC6CCEA2463 /* SwiftTesting */,
+				A04569F39B68F25EDADE4039 /* UITests */,
+				0FBEA2F3C13CDFD006D682CC /* XCTest */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		BF3878F1C20B19C018283AA5 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				7164BA534929CE29C1EACE17 /* App */,
+				7CEF334DA8BDA8BB2B9CBAB8 /* Domain */,
+				54FC5C45679D80C154ECCC61 /* UI */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		F86EC0BFB9FD4FC6CCEA2463 /* SwiftTesting */ = {
+			isa = PBXGroup;
+			children = (
+				10A6D03C52349B7198BF3887 /* KeyameleonAppMetadataTests.swift */,
+			);
+			path = SwiftTesting;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		40DDE6048205B37DA81AF2F4 /* KeyameleonXCTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8342BE87378712D004A55937 /* Build configuration list for PBXNativeTarget "KeyameleonXCTest" */;
+			buildPhases = (
+				1667DF31532B9F76F7F42188 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				35D7537BF190FEFCF68CDCC8 /* PBXTargetDependency */,
+			);
+			name = KeyameleonXCTest;
+			packageProductDependencies = (
+			);
+			productName = KeyameleonXCTest;
+			productReference = DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9E7EDED31AFEE7EDAE98DE54 /* KeyameleonUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D62A17E11D80376E13289228 /* Build configuration list for PBXNativeTarget "KeyameleonUITests" */;
+			buildPhases = (
+				D0555ED5DAECE538FDBA874E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				12E91BE96366BD983B9DB67C /* PBXTargetDependency */,
+			);
+			name = KeyameleonUITests;
+			packageProductDependencies = (
+			);
+			productName = KeyameleonUITests;
+			productReference = 7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		BC118DDA889522C04EAB366C /* KeyameleonSwiftTesting */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEABDCF50BD0B7FBE7504D5F /* Build configuration list for PBXNativeTarget "KeyameleonSwiftTesting" */;
+			buildPhases = (
+				1A030A717CD420EC1FFE6D11 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE4BB9F28A6C1FE9F8BD8A62 /* PBXTargetDependency */,
+			);
+			name = KeyameleonSwiftTesting;
+			packageProductDependencies = (
+			);
+			productName = KeyameleonSwiftTesting;
+			productReference = D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D7B1A298244D4331D2678655 /* Keyameleon */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 81AF15269B0CE5F92C7A4ACF /* Build configuration list for PBXNativeTarget "Keyameleon" */;
+			buildPhases = (
+				0EAE7CB37FFE17480F40FBA4 /* Sources */,
+				3DFAEBEB2F554425B022A83B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Keyameleon;
+			packageProductDependencies = (
+			);
+			productName = Keyameleon;
+			productReference = 967B7E1070DD4601582EE6C6 /* Keyameleon.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		17F49B025803125E5ABBCD4C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					40DDE6048205B37DA81AF2F4 = {
+						ProvisioningStyle = Manual;
+					};
+					9E7EDED31AFEE7EDAE98DE54 = {
+						ProvisioningStyle = Manual;
+						TestTargetID = D7B1A298244D4331D2678655;
+					};
+					BC118DDA889522C04EAB366C = {
+						ProvisioningStyle = Manual;
+					};
+					D7B1A298244D4331D2678655 = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 7638AEB52380FF81AE7DDDF1 /* Build configuration list for PBXProject "Keyameleon" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6D27DD524F53C9F5FAFBBC8A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 53C95B12FF24EACFD405BBEB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D7B1A298244D4331D2678655 /* Keyameleon */,
+				BC118DDA889522C04EAB366C /* KeyameleonSwiftTesting */,
+				9E7EDED31AFEE7EDAE98DE54 /* KeyameleonUITests */,
+				40DDE6048205B37DA81AF2F4 /* KeyameleonXCTest */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0EAE7CB37FFE17480F40FBA4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				84C64FB9DA6AC5FFCA575DE3 /* KeyameleonApp.swift in Sources */,
+				6A55073B7C935715A040BE0E /* KeyameleonAppMetadata.swift in Sources */,
+				8EACA5A3486235A102A93F44 /* KeyameleonApplicationDelegate.swift in Sources */,
+				6D67ADBC82EE41FDDA9A5B8E /* KeyameleonRootView.swift in Sources */,
+				C8FA0F1AE962C4AEC32A0A92 /* KeyameleonWindowController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1667DF31532B9F76F7F42188 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68B0BFAA11F7BEDA4AC8975D /* KeyameleonApplicationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A030A717CD420EC1FFE6D11 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F86C0383C89A4A0E94C568D0 /* KeyameleonAppMetadataTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0555ED5DAECE538FDBA874E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				09A8E2280F073308A73D54C1 /* KeyameleonLifecycleUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		12E91BE96366BD983B9DB67C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7B1A298244D4331D2678655 /* Keyameleon */;
+			targetProxy = D07789ECD894B6BCEB9EA519 /* PBXContainerItemProxy */;
+		};
+		35D7537BF190FEFCF68CDCC8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7B1A298244D4331D2678655 /* Keyameleon */;
+			targetProxy = 62FB124316A61CE353FCFE6C /* PBXContainerItemProxy */;
+		};
+		CE4BB9F28A6C1FE9F8BD8A62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7B1A298244D4331D2678655 /* Keyameleon */;
+			targetProxy = FB198F04415ABEB102418C3F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		129D3100D43ECD4BEB65FA8C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.fedemas.keyameleon.tests.swift-testing";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon.app/Contents/MacOS/Keyameleon";
+			};
+			name = Debug;
+		};
+		1326138679CFD48417856D1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Keyameleon;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon;
+				PRODUCT_NAME = Keyameleon;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		2D06E286C10696E74C1E7222 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
+				SWIFT_VERSION = 6.0;
+				SYMROOT = build;
+			};
+			name = Release;
+		};
+		4315D0892B9A889F3B24E20B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
+				SWIFT_VERSION = 6.0;
+				SYMROOT = build;
+			};
+			name = Debug;
+		};
+		56BD1B3EA091D02346B5C763 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.fedemas.keyameleon.tests.swift-testing";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon.app/Contents/MacOS/Keyameleon";
+			};
+			name = Release;
+		};
+		573ED7C061495B1BDBF4B002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.xctest;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon.app/Contents/MacOS/Keyameleon";
+			};
+			name = Debug;
+		};
+		6395F854E8D0DE5F7B229CAF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.ui;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Keyameleon;
+			};
+			name = Release;
+		};
+		69C35E70D354FBF23A976F7E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Keyameleon;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon;
+				PRODUCT_NAME = Keyameleon;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		C41CDAF41A6D55837067C37C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.xctest;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon.app/Contents/MacOS/Keyameleon";
+			};
+			name = Release;
+		};
+		CAC42CDB4BA14BF34095B331 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.ui;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Keyameleon;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7638AEB52380FF81AE7DDDF1 /* Build configuration list for PBXProject "Keyameleon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4315D0892B9A889F3B24E20B /* Debug */,
+				2D06E286C10696E74C1E7222 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		81AF15269B0CE5F92C7A4ACF /* Build configuration list for PBXNativeTarget "Keyameleon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				69C35E70D354FBF23A976F7E /* Debug */,
+				1326138679CFD48417856D1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8342BE87378712D004A55937 /* Build configuration list for PBXNativeTarget "KeyameleonXCTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				573ED7C061495B1BDBF4B002 /* Debug */,
+				C41CDAF41A6D55837067C37C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CEABDCF50BD0B7FBE7504D5F /* Build configuration list for PBXNativeTarget "KeyameleonSwiftTesting" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				129D3100D43ECD4BEB65FA8C /* Debug */,
+				56BD1B3EA091D02346B5C763 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D62A17E11D80376E13289228 /* Build configuration list for PBXNativeTarget "KeyameleonUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAC42CDB4BA14BF34095B331 /* Debug */,
+				6395F854E8D0DE5F7B229CAF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 17F49B025803125E5ABBCD4C /* Project object */;
+}
