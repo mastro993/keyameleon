@@ -7,17 +7,17 @@ final class KeyameleonApplicationTests: XCTestCase {
     func testMenuContainsOpenAndQuitActions() {
         let delegate = KeyameleonApplicationDelegate()
         let menu = delegate.makeMenu()
+        let titles = menu.items.map(\.title)
 
-        XCTAssertEqual(
-            menu.items.map(\.title),
-            [
-                KeyameleonAppMetadata.openMenuItemTitle,
-                "",
-                KeyameleonAppMetadata.quitMenuItemTitle,
-            ]
-        )
-        XCTAssertTrue(menu.items[0].target === delegate)
-        XCTAssertTrue(menu.items[2].target === delegate)
+        XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.switchingStatusMenuItemPrefix) })
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.openMenuItemTitle))
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle))
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.checkAgainMenuItemTitle))
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.quitMenuItemTitle))
+        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.openMenuItemTitle)?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.openSystemSettingsMenuItemTitle)?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.checkAgainMenuItemTitle)?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.quitMenuItemTitle)?.target === delegate)
     }
 
     @MainActor

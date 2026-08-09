@@ -8,11 +8,18 @@ final class KeyameleonLifecycleUITests: XCTestCase {
 
     func testLaunchOpenCloseReopenAndQuit() {
         let app = XCUIApplication(bundleIdentifier: "dev.fedemas.keyameleon")
+        app.launchArguments = ["--reset-guided-setup"]
         app.launch()
 
         let statusItem = app.menuBars.statusItems["Keyameleon"]
         XCTAssertTrue(statusItem.waitForExistence(timeout: launchTimeout))
-        XCTAssertEqual(app.windows.count, 0)
+
+        let initialWindow = app.windows["Keyameleon"]
+        XCTAssertTrue(initialWindow.waitForExistence(timeout: windowTimeout))
+        XCTAssertTrue(app.staticTexts["Guided setup"].waitForExistence(timeout: menuTimeout))
+        XCTAssertTrue(app.buttons["Request Permission"].waitForExistence(timeout: menuTimeout))
+        initialWindow.buttons["Close"].click()
+        XCTAssertFalse(initialWindow.waitForExistence(timeout: menuTimeout))
 
         statusItem.click()
         menuItem("Open Keyameleon…", in: app).click()
