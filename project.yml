@@ -36,6 +36,7 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
     dependencies:
       - sdk: AppKit.framework
+      - sdk: IOKit.framework
       - sdk: SwiftUI.framework
 
   KeyameleonSwiftTesting:
@@ -70,6 +71,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.ui
+        ENABLE_HARDENED_RUNTIME: NO
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Keyameleon

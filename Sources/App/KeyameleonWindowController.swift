@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 final class KeyameleonWindowController: NSWindowController {
-    init() {
+    init(model: KeyameleonSetupModel) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 360),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -15,7 +15,7 @@ final class KeyameleonWindowController: NSWindowController {
         window.isRestorable = false
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 460, height: 280)
-        window.contentView = NSHostingView(rootView: KeyameleonRootView())
+        window.contentView = NSHostingView(rootView: KeyameleonRootView(model: model))
 
         super.init(window: window)
     }

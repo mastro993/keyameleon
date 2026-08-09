@@ -8,35 +8,43 @@ final class KeyameleonLifecycleUITests: XCTestCase {
 
     func testLaunchOpenCloseReopenAndQuit() {
         let app = XCUIApplication(bundleIdentifier: "dev.fedemas.keyameleon")
+        app.launchArguments = ["--reset-guided-setup"]
         app.launch()
 
         let statusItem = app.menuBars.statusItems["Keyameleon"]
         XCTAssertTrue(statusItem.waitForExistence(timeout: launchTimeout))
-        XCTAssertEqual(app.windows.count, 0)
+
+        let initialWindow = app.windows["Keyameleon"]
+        XCTAssertTrue(initialWindow.waitForExistence(timeout: windowTimeout))
+        XCTAssertTrue(app.staticTexts["Guided setup"].waitForExistence(timeout: menuTimeout))
+        XCTAssertTrue(app.buttons["Request Permission"].waitForExistence(timeout: menuTimeout))
+        closeWindow(initialWindow)
 
         statusItem.click()
-        menuItem("Open Keyameleon…", in: app).click()
+        menuItem("Open Keyameleon…", in: statusItem).click()
 
         let window = app.windows["Keyameleon"]
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
-
-        let closeButton = window.buttons["Close"]
-        XCTAssertTrue(closeButton.waitForExistence(timeout: menuTimeout))
-        closeButton.click()
-        XCTAssertFalse(window.waitForExistence(timeout: menuTimeout))
+        closeWindow(window)
 
         statusItem.click()
-        menuItem("Open Keyameleon…", in: app).click()
+        menuItem("Open Keyameleon…", in: statusItem).click()
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
 
         statusItem.click()
-        menuItem("Quit Keyameleon", in: app).click()
+        menuItem("Quit Keyameleon", in: statusItem).click()
         XCTAssertTrue(app.wait(for: .notRunning, timeout: launchTimeout))
     }
 
-    private func menuItem(_ title: String, in app: XCUIApplication) -> XCUIElement {
-        let item = app.menuItems[title]
+    private func menuItem(_ title: String, in statusItem: XCUIElement) -> XCUIElement {
+        let item = statusItem.menuItems[title]
         XCTAssertTrue(item.waitForExistence(timeout: menuTimeout))
         return item
+    }
+
+    private func closeWindow(_ window: XCUIElement) {
+        window.click()
+        window.typeKey("w", modifierFlags: .command)
+        XCTAssertFalse(window.waitForExistence(timeout: menuTimeout))
     }
 }
