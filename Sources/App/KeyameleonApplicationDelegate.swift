@@ -5,6 +5,7 @@ import AppKit
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let setupModel: KeyameleonSetupModel
     private let updateChecker: any UpdateChecking
+    private let lifecycleObserver: any KeyameleonLifecycleObserving
     private let startsUpdaterOnLaunch: Bool
     let generalSettingsModel: KeyameleonGeneralSettingsModel
     private var statusItem: NSStatusItem?
@@ -85,6 +86,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     init(
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
+        protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
         systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
@@ -96,6 +98,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: any InputSourceChangeObserving = SystemInputSourceChangeObserver(),
+        lifecycleObserver: any KeyameleonLifecycleObserving = SystemKeyameleonLifecycleObserver(),
         diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
             store: InMemoryDiagnosticDataStore()
         ),
@@ -108,9 +111,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         self.modelContainer = modelContainer
         self.diagnosticModelContainer = diagnosticModelContainer
         self.updateChecker = updateChecker
+        self.lifecycleObserver = lifecycleObserver
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         setupModel = KeyameleonSetupModel(
             permissionProvider: permissionProvider,
+            protectedStateProvider: protectedStateProvider,
             setupStore: setupStore,
             systemSettingsOpener: systemSettingsOpener,
             inputSourceProvider: inputSourceProvider,
@@ -137,6 +142,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        lifecycleObserver.start { [weak self] event in
+            self?.setupModel.handleLifecycleEvent(event)
+        }
         setupModel.refreshPermission()
         statusItem = makeStatusItem()
         refreshMenuBarPresentation()
@@ -154,6 +162,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationDidBecomeActive(_ notification: Notification) {
         setupModel.refreshPermission()
         refreshMenuBarPresentation()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        lifecycleObserver.stop()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -180,6 +192,26 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         statusItem.setAccessibilityLabel("Switching Status")
         statusItem.setAccessibilityValue(setupModel.switchingStatus.displayName)
         menu.addItem(statusItem)
+
+        if let reason = setupModel.temporaryUnavailableReason {
+            let reasonItem = NSMenuItem(
+                title: KeyameleonAppMetadata.switchingStatusReasonMenuItemTitle(reason),
+                action: nil,
+                keyEquivalent: ""
+            )
+            reasonItem.isEnabled = false
+            reasonItem.setAccessibilityLabel(KeyameleonAppMetadata.switchingStatusReasonMenuItemPrefix)
+            reasonItem.setAccessibilityValue(reason.displayName)
+            menu.addItem(reasonItem)
+
+            let recoveryItem = NSMenuItem(
+                title: KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery,
+                action: nil,
+                keyEquivalent: ""
+            )
+            recoveryItem.isEnabled = false
+            menu.addItem(recoveryItem)
+        }
 
         let activeKeyboardItem = NSMenuItem(
             title: KeyameleonAppMetadata.activePhysicalKeyboardMenuItemTitle(
@@ -291,21 +323,23 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
-        let openSystemSettingsItem = NSMenuItem(
-            title: KeyameleonAppMetadata.openSystemSettingsMenuItemTitle,
-            action: #selector(openSystemSettings(_:)),
-            keyEquivalent: ""
-        )
-        openSystemSettingsItem.target = self
-        menu.addItem(openSystemSettingsItem)
+        if setupModel.switchingStatus != .temporarilyUnavailable {
+            let openSystemSettingsItem = NSMenuItem(
+                title: KeyameleonAppMetadata.openSystemSettingsMenuItemTitle,
+                action: #selector(openSystemSettings(_:)),
+                keyEquivalent: ""
+            )
+            openSystemSettingsItem.target = self
+            menu.addItem(openSystemSettingsItem)
 
-        let checkAgainItem = NSMenuItem(
-            title: KeyameleonAppMetadata.checkAgainMenuItemTitle,
-            action: #selector(checkAgain(_:)),
-            keyEquivalent: ""
-        )
-        checkAgainItem.target = self
-        menu.addItem(checkAgainItem)
+            let checkAgainItem = NSMenuItem(
+                title: KeyameleonAppMetadata.checkAgainMenuItemTitle,
+                action: #selector(checkAgain(_:)),
+                keyEquivalent: ""
+            )
+            checkAgainItem.target = self
+            menu.addItem(checkAgainItem)
+        }
 
         menu.addItem(.separator())
 

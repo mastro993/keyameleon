@@ -91,6 +91,7 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
 @MainActor
 final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var switchingStatus: SwitchingStatus
+    @Published private(set) var temporarilyUnavailableReasons: [SwitchingUnavailableReason] = []
     @Published private(set) var isSetupComplete: Bool
     @Published private(set) var hasStartedGuidedSetup: Bool
     @Published private(set) var guidedSetupStep: GuidedSetupStep
@@ -118,6 +119,7 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var isActivityTriggeredSwitchingPaused: Bool
 
     private let permissionProvider: any ListenPermissionProviding
+    private let protectedStateProvider: any ProtectedStateProviding
     private let setupStore: any SetupDecisionStoring
     private let systemSettingsOpener: any SystemSettingsOpening
     private let physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering
@@ -134,8 +136,7 @@ final class KeyameleonSetupModel: ObservableObject {
     private var isDiscoveryStarted = false
     private var isEventObservationStarted = false
     private var isInputSourceChangeObservationStarted = false
-    /// Session protected state (sleep/lock). Issue #11 owns full recovery; #7 keeps priority slot.
-    private var isTemporarilyUnavailable = false
+    private var eventProtectedDataUnavailable = false
     private var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
 
     var onChange: (@MainActor () -> Void)?
@@ -150,6 +151,10 @@ final class KeyameleonSetupModel: ObservableObject {
 
     var canDiscoverPhysicalKeyboards: Bool {
         switchingStatus.allowsPhysicalKeyboardDiscovery
+    }
+
+    var temporaryUnavailableReason: SwitchingUnavailableReason? {
+        temporarilyUnavailableReasons.first
     }
 
     var showsAssignmentSetup: Bool {
@@ -242,6 +247,7 @@ final class KeyameleonSetupModel: ObservableObject {
 
     init(
         permissionProvider: any ListenPermissionProviding,
+        protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring,
         systemSettingsOpener: any SystemSettingsOpening,
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = SystemPhysicalKeyboardDiscoverer(),
@@ -259,6 +265,7 @@ final class KeyameleonSetupModel: ObservableObject {
         )
     ) {
         self.permissionProvider = permissionProvider
+        self.protectedStateProvider = protectedStateProvider
         self.setupStore = setupStore
         self.systemSettingsOpener = systemSettingsOpener
         self.physicalKeyboardDiscoverer = physicalKeyboardDiscoverer
@@ -274,14 +281,22 @@ final class KeyameleonSetupModel: ObservableObject {
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
         self.guidedSetupStep = setupStore.guidedSetupStep
+
+        let initialProtectedState = protectedStateProvider.currentProtectedState()
+        let initialUnavailableReasons = Self.unavailableReasons(
+            protectedState: initialProtectedState,
+            eventProtectedDataUnavailable: false
+        )
+        self.temporarilyUnavailableReasons = initialUnavailableReasons
         self.switchingStatus = SwitchingStatus.resolve(
             listenPermission: permissionProvider.checkListenPermission(),
-            isTemporarilyUnavailable: false,
+            isTemporarilyUnavailable: !initialUnavailableReasons.isEmpty,
             isPaused: setupStore.isActivityTriggeredSwitchingPaused
         )
     }
 
     func refreshPermission() {
+        reconcileProtectedState()
         applySwitchingStatus(
             listenPermission: permissionProvider.checkListenPermission()
         )
@@ -290,6 +305,27 @@ final class KeyameleonSetupModel: ObservableObject {
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
         updateInputSourceChangeObservation()
+    }
+
+    func handleLifecycleEvent(_ event: KeyameleonLifecycleEvent) {
+        switch event {
+        case .willSleep:
+            updateUnavailableReason(.sleeping, isActive: true)
+        case .didWake:
+            updateUnavailableReason(.sleeping, isActive: false)
+        case .sessionDidResignActive:
+            updateUnavailableReason(.inactiveSession, isActive: true)
+        case .sessionDidBecomeActive:
+            updateUnavailableReason(.inactiveSession, isActive: false)
+        case .protectedDataWillBecomeUnavailable:
+            eventProtectedDataUnavailable = true
+            updateUnavailableReason(.protectedDataUnavailable, isActive: true)
+        case .protectedDataDidBecomeAvailable:
+            eventProtectedDataUnavailable = false
+            updateUnavailableReason(.protectedDataUnavailable, isActive: false)
+        }
+
+        refreshPermission()
     }
 
     func pauseActivityTriggeredSwitching() {
@@ -329,6 +365,13 @@ final class KeyameleonSetupModel: ObservableObject {
 
     /// Serial activity consumer entry. Observation order only.
     func handlePhysicalKeyboardEvent(_ event: PhysicalKeyboardEvent) {
+        let protectedState = protectedStateProvider.currentProtectedState()
+        if protectedState.isSecureInputEnabled || !protectedState.isProtectedDataAvailable {
+            // Positive public-API evidence stops processing. Missing activity never does.
+            refreshPermission()
+            return
+        }
+
         guard switchingStatus.allowsActivityTriggeredSwitching else {
             return
         }
@@ -997,6 +1040,75 @@ final class KeyameleonSetupModel: ObservableObject {
         }
     }
 
+    private static let unavailableReasonPriority: [SwitchingUnavailableReason] = [
+        .sleeping,
+        .inactiveSession,
+        .secureInput,
+        .protectedDataUnavailable,
+    ]
+
+    private static func unavailableReasons(
+        protectedState: ProtectedStateSnapshot,
+        eventProtectedDataUnavailable: Bool
+    ) -> [SwitchingUnavailableReason] {
+        var reasons = Set<SwitchingUnavailableReason>()
+        if protectedState.isSecureInputEnabled {
+            reasons.insert(.secureInput)
+        }
+        if !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable {
+            reasons.insert(.protectedDataUnavailable)
+        }
+
+        return unavailableReasonPriority.filter { reasons.contains($0) }
+    }
+
+    @discardableResult
+    private func updateUnavailableReason(
+        _ reason: SwitchingUnavailableReason,
+        isActive: Bool
+    ) -> Bool {
+        var reasons = Set(temporarilyUnavailableReasons)
+        if isActive {
+            reasons.insert(reason)
+        } else {
+            reasons.remove(reason)
+        }
+
+        let orderedReasons = Self.unavailableReasonPriority.filter { reasons.contains($0) }
+        guard orderedReasons != temporarilyUnavailableReasons else {
+            return false
+        }
+
+        temporarilyUnavailableReasons = orderedReasons
+        onChange?()
+        return true
+    }
+
+    private func reconcileProtectedState() {
+        let protectedState = protectedStateProvider.currentProtectedState()
+        var reasons = Set(temporarilyUnavailableReasons)
+
+        if protectedState.isSecureInputEnabled {
+            reasons.insert(.secureInput)
+        } else {
+            reasons.remove(.secureInput)
+        }
+
+        if !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable {
+            reasons.insert(.protectedDataUnavailable)
+        } else {
+            reasons.remove(.protectedDataUnavailable)
+        }
+
+        let orderedReasons = Self.unavailableReasonPriority.filter { reasons.contains($0) }
+        guard orderedReasons != temporarilyUnavailableReasons else {
+            return
+        }
+
+        temporarilyUnavailableReasons = orderedReasons
+        onChange?()
+    }
+
     /// Exact saved Input Source identifier return ends unavailable; substitute names never clear it.
     @discardableResult
     private func reevaluateUnavailableKeyboardAssignments() -> Bool {
@@ -1055,7 +1167,7 @@ final class KeyameleonSetupModel: ObservableObject {
     private func applySwitchingStatus(listenPermission: ListenPermissionState) {
         let newStatus = SwitchingStatus.resolve(
             listenPermission: listenPermission,
-            isTemporarilyUnavailable: isTemporarilyUnavailable,
+            isTemporarilyUnavailable: !temporarilyUnavailableReasons.isEmpty,
             isPaused: isActivityTriggeredSwitchingPaused
         )
         if switchingStatus != newStatus {
