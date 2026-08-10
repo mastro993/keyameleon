@@ -39,6 +39,7 @@ targets:
       - sdk: Carbon.framework
       - sdk: CoreHID.framework
       - sdk: IOKit.framework
+      - sdk: SwiftData.framework
       - sdk: SwiftUI.framework
 
   KeyameleonSwiftTesting:
