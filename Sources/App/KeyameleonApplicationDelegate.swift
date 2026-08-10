@@ -28,6 +28,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             fatalError("SwiftData container failed for Physical Keyboard records: \(error)")
         }
 
+        let modelContext = ModelContext(modelContainer)
         let inputSources = SystemInputSourceProvider()
         let isUITesting = ProcessInfo.processInfo.arguments.contains(
             KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
@@ -37,8 +38,12 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             setupStore: setupStore,
             systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
             physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(
-                modelContext: ModelContext(modelContainer)
+                modelContext: modelContext
             ),
+            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(
+                modelContext: modelContext
+            ),
+            integrityKeyProvider: KeychainInstallationIntegrityKeyProvider(),
             inputSourceProvider: inputSources,
             inputSourceSelector: inputSources,
             physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
@@ -53,6 +58,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
         systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
+        designationStore: any ManualPhysicalKeyboardDesignationStoring =
+            InMemoryManualPhysicalKeyboardDesignationStore(),
+        integrityKeyProvider: any InstallationIntegrityKeyProviding =
+            InMemoryInstallationIntegrityKeyProvider(),
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
@@ -71,7 +80,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceProvider: inputSourceProvider,
             inputSourceSelector: inputSourceSelector,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
-            physicalKeyboardEventObserver: physicalKeyboardEventObserver
+            physicalKeyboardEventObserver: physicalKeyboardEventObserver,
+            designationStore: designationStore,
+            integrityKeyProvider: integrityKeyProvider
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,

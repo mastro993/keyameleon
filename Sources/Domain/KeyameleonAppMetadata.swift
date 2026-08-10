@@ -48,6 +48,18 @@ enum KeyameleonAppMetadata {
         "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
     static let criticalUpdateWarningExplanation =
         "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
+    static let manualDesignationButtonTitle = "Manual Physical Keyboard Designation…"
+    static let manualDesignationConfirmNameButtonTitle = "Confirm Physical Keyboard Name"
+    static let manualDesignationCancelButtonTitle = "Cancel Designation"
+    static let manualDesignationAwaitingRemovalMessage =
+        "Unplug or turn off this Physical Keyboard, then return it."
+    static let manualDesignationAwaitingReturnMessage =
+        "Return the same Physical Keyboard to continue."
+    static let manualDesignationAwaitingNameMessage =
+        "Confirm the Physical Keyboard Name to save Manual Physical Keyboard Designation."
+    static let manualDesignationNameFieldLabel = "Physical Keyboard Name"
+    static let manualDesignationExplanation =
+        "Keyameleon can save this external identity group as a Physical Keyboard only after it leaves, returns, and you confirm its name."
 
     static func switchingStatusMenuItemTitle(_ status: SwitchingStatus) -> String {
         "\(switchingStatusMenuItemPrefix) \(status.displayName)"
