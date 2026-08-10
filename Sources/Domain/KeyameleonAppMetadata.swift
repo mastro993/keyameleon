@@ -24,6 +24,20 @@ enum KeyameleonAppMetadata {
     static let assignmentSearchPrompt = "Search Input Sources"
     static let systemSettingsURL = "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
     static let uiTestingResetSetupLaunchArgument = "--reset-guided-setup"
+    static let settingsMenuItemTitle = "Settings…"
+    static let checkForUpdatesMenuItemTitle = "Check for Updates…"
+    static let generalSettingsTitle = "General"
+    static let launchAtLoginToggleTitle = "Launch at Login"
+    static let launchAtLoginFooter =
+        "Starts Keyameleon when you log in. Uses Service Management for the main app only."
+    static let launchAtLoginErrorMessage =
+        "Could not change Launch at Login. Open System Settings → General → Login Items if macOS requires approval."
+    static let updatesSettingsSectionTitle = "Updates"
+    static let checkForUpdatesButtonTitle = "Check for Updates…"
+    static let updateApprovalExplanation =
+        "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
+    static let criticalUpdateWarningExplanation =
+        "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
 
     static func switchingStatusMenuItemTitle(_ status: SwitchingStatus) -> String {
         "\(switchingStatusMenuItemPrefix) \(status.displayName)"
