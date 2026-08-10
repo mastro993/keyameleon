@@ -83,6 +83,9 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var guidedSetupStep: GuidedSetupStep
     @Published private(set) var physicalKeyboards: [PhysicalKeyboard] = []
     @Published private(set) var eligibleInputSources: [EligibleInputSource] = []
+    @Published private(set) var activePhysicalKeyboardID: PhysicalKeyboardRecordID?
+    @Published private(set) var inputSourceSelectionRequestCount = 0
+    @Published private(set) var warningEpisodeCount = 0
 
     private let permissionProvider: any ListenPermissionProviding
     private let setupStore: any SetupDecisionStoring
@@ -91,6 +94,7 @@ final class KeyameleonSetupModel: ObservableObject {
     private let inputSourceProvider: any InputSourceProviding
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
+    private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var isDiscoveryStarted = false
 
     var onChange: (@MainActor () -> Void)?
@@ -245,6 +249,128 @@ final class KeyameleonSetupModel: ObservableObject {
         onChange?()
     }
 
+    func noteActivationActivity(for physicalKeyboardID: PhysicalKeyboardRecordID) {
+        guard physicalKeyboards.contains(where: { $0.id == physicalKeyboardID }) else {
+            return
+        }
+
+        // Active stays across disconnect. Input Source selection belongs to #5; counters stay 0.
+        activePhysicalKeyboardID = physicalKeyboardID
+        publishPhysicalKeyboards()
+        onChange?()
+    }
+
+    func canForgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
+        physicalKeyboardID.isIdentityBased
+            && physicalKeyboardRecordStore.record(forIdentityKey: physicalKeyboardID.rawValue) != nil
+    }
+
+    func replaceCandidates(
+        for physicalKeyboardID: PhysicalKeyboardRecordID
+    ) -> [PhysicalKeyboard] {
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
+              physicalKeyboard.connectionState == .connected,
+              physicalKeyboard.isAssignable,
+              physicalKeyboard.id.isIdentityBased
+        else {
+            return []
+        }
+
+        return physicalKeyboards.filter { candidate in
+            candidate.connectionState == .disconnected
+                && candidate.id.isIdentityBased
+                && candidate.id != physicalKeyboardID
+        }
+    }
+
+    func replaceSavedPhysicalKeyboard(
+        _ disconnectedID: PhysicalKeyboardRecordID,
+        with connectedID: PhysicalKeyboardRecordID
+    ) {
+        guard let connected = physicalKeyboards.first(where: { $0.id == connectedID }),
+              connected.connectionState == .connected,
+              connected.isAssignable,
+              connected.id.isIdentityBased
+        else {
+            return
+        }
+
+        guard let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
+              disconnected.connectionState == .disconnected,
+              disconnected.id.isIdentityBased,
+              physicalKeyboardRecordStore.record(forIdentityKey: disconnectedID.rawValue) != nil
+        else {
+            return
+        }
+
+        physicalKeyboardRecordStore.transferRecord(
+            fromIdentityKey: disconnectedID.rawValue,
+            toIdentityKey: connectedID.rawValue,
+            productName: connected.productName
+        )
+        lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
+
+        if activePhysicalKeyboardID == disconnectedID {
+            activePhysicalKeyboardID = connectedID
+        }
+
+        publishPhysicalKeyboards()
+        onChange?()
+    }
+
+    func forgetConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
+        else {
+            return ""
+        }
+
+        let removedData =
+            "This removes the saved Physical Keyboard Name and Keyboard Assignment for \(physicalKeyboard.name)."
+        let reconnectResult =
+            switch physicalKeyboard.connectionState {
+            case .connected:
+                "This connected Physical Keyboard reappears as new and unassigned."
+            case .disconnected:
+                "This disconnected Physical Keyboard disappears."
+            }
+
+        return "\(removedData) \(reconnectResult)"
+    }
+
+    func replaceConfirmationMessage(
+        replacing disconnectedID: PhysicalKeyboardRecordID,
+        with connectedID: PhysicalKeyboardRecordID
+    ) -> String {
+        guard let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
+              let connected = physicalKeyboards.first(where: { $0.id == connectedID })
+        else {
+            return ""
+        }
+
+        return """
+        Move the Physical Keyboard Name and Keyboard Assignment from \(disconnected.name) to \(connected.name)? \
+        The old saved record is removed. If the old hardware returns later, it appears as new and unassigned.
+        """
+    }
+
+    func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
+        guard physicalKeyboards.contains(where: { $0.id == physicalKeyboardID }),
+              physicalKeyboardID.isIdentityBased
+        else {
+            return
+        }
+
+        physicalKeyboardRecordStore.deleteRecord(identityKey: physicalKeyboardID.rawValue)
+        lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
+
+        if activePhysicalKeyboardID == physicalKeyboardID {
+            activePhysicalKeyboardID = nil
+        }
+
+        publishPhysicalKeyboards()
+        onChange?()
+    }
+
     func assignmentDisplayName(for physicalKeyboard: PhysicalKeyboard) -> String? {
         guard let identifier = physicalKeyboard.keyboardAssignment?.inputSourceIdentifier else {
             return nil
@@ -277,13 +403,14 @@ final class KeyameleonSetupModel: ObservableObject {
     private func updatePhysicalKeyboardDiscovery() {
         guard switchingStatus.allowsActivityTriggeredSwitching else {
             guard isDiscoveryStarted else {
+                publishPhysicalKeyboards()
                 return
             }
 
             physicalKeyboardDiscoverer.stop()
             isDiscoveryStarted = false
             physicalKeyboardCatalog = PhysicalKeyboardCatalog()
-            physicalKeyboards = []
+            publishPhysicalKeyboards()
             onChange?()
             return
         }
@@ -296,6 +423,7 @@ final class KeyameleonSetupModel: ObservableObject {
         physicalKeyboardDiscoverer.start { [weak self] change in
             self?.apply(change)
         }
+        publishPhysicalKeyboards()
     }
 
     private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
@@ -304,21 +432,58 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         physicalKeyboardCatalog.apply(change)
+        // Disconnect never rewrites Active Physical Keyboard and never requests Input Sources.
         publishPhysicalKeyboards()
         onChange?()
     }
 
     private func publishPhysicalKeyboards() {
-        physicalKeyboards = physicalKeyboardCatalog.physicalKeyboards.map { keyboard in
+        let connected = physicalKeyboardCatalog.physicalKeyboards.map { keyboard in
             guard keyboard.id.isIdentityBased else {
-                return keyboard
+                return keyboard.markingActive(keyboard.id == activePhysicalKeyboardID)
             }
 
-            return keyboard.applying(
-                savedRecord: physicalKeyboardRecordStore.record(
-                    forIdentityKey: keyboard.id.rawValue
+            let published = keyboard
+                .applying(
+                    savedRecord: physicalKeyboardRecordStore.record(
+                        forIdentityKey: keyboard.id.rawValue
+                    )
                 )
-            )
+                .markingActive(keyboard.id == activePhysicalKeyboardID)
+            lastKnownPhysicalKeyboards[keyboard.id.rawValue] = published.markingActive(false)
+            return published
         }
+
+        let connectedIdentityKeys = Set(
+            connected
+                .filter(\.id.isIdentityBased)
+                .map(\.id.rawValue)
+        )
+
+        var disconnected = physicalKeyboardRecordStore
+            .allRecords()
+            .filter { !connectedIdentityKeys.contains($0.identityKey) }
+            .map { savedRecord in
+                PhysicalKeyboard
+                    .disconnected(from: savedRecord)
+                    .markingActive(savedRecord.recordID == activePhysicalKeyboardID)
+            }
+
+        let disconnectedIdentityKeys = Set(disconnected.map(\.id.rawValue))
+
+        // Active stays visible as disconnected even when no saved name/assignment yet.
+        if let activePhysicalKeyboardID,
+           activePhysicalKeyboardID.isIdentityBased,
+           !connectedIdentityKeys.contains(activePhysicalKeyboardID.rawValue),
+           !disconnectedIdentityKeys.contains(activePhysicalKeyboardID.rawValue),
+           let lastKnown = lastKnownPhysicalKeyboards[activePhysicalKeyboardID.rawValue]
+        {
+            disconnected.append(lastKnown.asDisconnected().markingActive(true))
+        }
+
+        physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
+            connected + disconnected,
+            activeID: activePhysicalKeyboardID
+        )
     }
 }
