@@ -1,5 +1,23 @@
 # Choices
 
+## 2026-08-10 — Issue #12 Bounded operational notifications
+
+### Seams under test
+- `OperationalNotificationProviding` — alert authorization state, explicit alert request, and operational notification delivery.
+- `OperationalNotificationEpisodeStoring` — persistent episode, sent, and recovery state.
+- `NotificationSetupDecisionStoring` — one optional setup offer after the first Keyboard Assignment.
+- `NotificationSettingsOpening` — General Settings access to notification settings.
+- `KeyameleonSetupModel` — permission and Unavailable Keyboard Assignment episode boundaries.
+
+### Defaults
+- Request authorization only after an explicit Enable Operational Notifications action.
+- Request `.alert` only. Do not request sound or icon badge access.
+- Send only for revoked listen permission and a newly Unavailable Keyboard Assignment.
+- Persist hashed episode tokens and sent state. Keep exact Physical Keyboard Identity and Input Source identifiers out of UserDefaults.
+- Mark an episode sent before delivery. Recovery removes its sent state so a later recurrence can send once.
+- Pause suppresses delivery. Notification denial never changes Activity-Triggered Switching.
+- General Settings shows the current authorization state and opens System Settings without requesting again.
+
 ## 2026-08-10 — Issue #16 Official Release artifacts
 
 ### Seams under test

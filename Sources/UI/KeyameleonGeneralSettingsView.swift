@@ -30,6 +30,31 @@ struct KeyameleonGeneralSettingsView: View {
             }
 
             Section {
+                Text(model.notificationAuthorizationState.displayName)
+                    .font(.callout)
+                    .accessibilityLabel(KeyameleonAppMetadata.notificationAuthorizationLabel)
+                    .accessibilityValue(model.notificationAuthorizationState.displayName)
+
+                if model.notificationAuthorizationState == .notDetermined {
+                    Button(KeyameleonAppMetadata.enableOperationalNotificationsButtonTitle) {
+                        model.requestOperationalNotificationAuthorization()
+                    }
+                    .accessibilityLabel(KeyameleonAppMetadata.enableOperationalNotificationsButtonTitle)
+                }
+
+                Button(KeyameleonAppMetadata.openNotificationSettingsButtonTitle) {
+                    model.openNotificationSettings()
+                }
+                .accessibilityLabel(KeyameleonAppMetadata.openNotificationSettingsButtonTitle)
+            } header: {
+                Text(KeyameleonAppMetadata.operationalNotificationSetupTitle)
+            } footer: {
+                Text(KeyameleonAppMetadata.notificationAuthorizationFooter)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 Button(KeyameleonAppMetadata.checkForUpdatesButtonTitle) {
                     model.checkForUpdates()
                 }
