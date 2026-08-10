@@ -28,14 +28,37 @@ class QualificationEvaluatorTests(unittest.TestCase):
         return {
             "status": "passed",
             "evidenceRef": "case-batch-26-a",
+            "qualificationRunRef": f"macos-{case.macos_major}-batch-a",
+            "candidateCommit": "0" * 40,
             "macOSMajor": case.macos_major,
             "macOSBuild": "25F84",
         }
 
+    def guided_evidence(self, case):
+        record = self.base_evidence(case)
+        record.update(
+            {
+                "participants": 5,
+                "durationsSeconds": [112, 124, 131, 145, 157],
+                "newMultilingualProfessionals": True,
+                "noSeparateDocumentation": True,
+                "startedFromNewGuidedSetup": True,
+                "listenPermissionGranted": True,
+                "builtInPhysicalKeyboard": True,
+                "externalPhysicalKeyboard": True,
+                "keyboardAssignmentCount": 2,
+                "keyboardAssignmentsCreatedDuringJourney": 2,
+                "notificationChoiceRecorded": True,
+                "reachedReady": True,
+                "manualDesignationUsed": False,
+            }
+        )
+        return record
+
     def test_required_cases_cover_each_case_on_both_supported_versions(self):
         cases = qualification.required_cases()
 
-        self.assertEqual(len(cases), 16)
+        self.assertEqual(len(cases), 18)
         self.assertEqual(
             {case.macos_major for case in cases},
             {"15", "26"},
@@ -45,6 +68,7 @@ class QualificationEvaluatorTests(unittest.TestCase):
             {
                 "guided-setup",
                 "management",
+                "manual-designation",
                 "status-recovery",
                 "diagnostics-settings",
                 "keyboard-operation",
@@ -61,19 +85,7 @@ class QualificationEvaluatorTests(unittest.TestCase):
 
     def test_guided_setup_evidence_passes_and_keeps_reference(self):
         case = self.case("guided-setup-macos-26")
-        record = self.base_evidence(case)
-        record.update(
-            {
-                "participants": 5,
-                "durationsSeconds": [112, 124, 131, 145, 157],
-                "builtInPhysicalKeyboard": True,
-                "externalPhysicalKeyboard": True,
-                "keyboardAssignmentCount": 2,
-                "notificationChoiceRecorded": True,
-                "reachedReady": True,
-                "manualDesignationUsed": False,
-            }
-        )
+        record = self.guided_evidence(case)
 
         result = qualification.evaluate_case(case, record)
 
@@ -82,23 +94,56 @@ class QualificationEvaluatorTests(unittest.TestCase):
 
     def test_guided_setup_non_finite_duration_fails(self):
         case = self.case("guided-setup-macos-26")
-        record = self.base_evidence(case)
-        record.update(
-            {
-                "participants": 5,
-                "durationsSeconds": [112, 124, float("nan"), 145, 157],
-                "builtInPhysicalKeyboard": True,
-                "externalPhysicalKeyboard": True,
-                "keyboardAssignmentCount": 2,
-                "notificationChoiceRecorded": True,
-                "reachedReady": True,
-                "manualDesignationUsed": False,
-            }
-        )
+        record = self.guided_evidence(case)
+        record["durationsSeconds"] = [112, 124, float("nan"), 145, 157]
 
         result = qualification.evaluate_case(case, record)
 
         self.assertEqual(result["status"], "failed")
+
+    def test_guided_setup_missing_required_field_is_inconclusive(self):
+        case = self.case("guided-setup-macos-26")
+        record = self.guided_evidence(case)
+        del record["listenPermissionGranted"]
+
+        result = qualification.evaluate_case(case, record)
+
+        self.assertEqual(result["status"], "inconclusive")
+
+    def test_guided_setup_requires_listen_permission(self):
+        case = self.case("guided-setup-macos-26")
+        record = self.guided_evidence(case)
+        record["listenPermissionGranted"] = False
+
+        result = qualification.evaluate_case(case, record)
+
+        self.assertEqual(result["status"], "failed")
+
+    def test_guided_setup_requires_exactly_two_created_assignments(self):
+        case = self.case("guided-setup-macos-26")
+        record = self.guided_evidence(case)
+        record["keyboardAssignmentsCreatedDuringJourney"] = 3
+
+        result = qualification.evaluate_case(case, record)
+
+        self.assertEqual(result["status"], "failed")
+
+    def test_manual_designation_requires_separate_case_evidence(self):
+        case = self.case("manual-designation-macos-26")
+        record = self.base_evidence(case)
+
+        incomplete = qualification.evaluate_case(case, record)
+        self.assertEqual(incomplete["status"], "inconclusive")
+
+        record.update(
+            {
+                "keyboardOperation": True,
+                "voiceOver": True,
+                "designationOutsideTimedJourney": True,
+            }
+        )
+        complete = qualification.evaluate_case(case, record)
+        self.assertEqual(complete["status"], "passed")
 
     def test_accessibility_case_requires_all_checks(self):
         case = self.case("visual-state-macos-15")
@@ -130,7 +175,15 @@ class QualificationEvaluatorTests(unittest.TestCase):
         case = self.case("management-macos-26")
         record = self.base_evidence(case)
         record["macOSMajor"] = "15"
-        record.update({"keyboardOperation": True, "voiceOver": True})
+        record.update(
+            {
+                "keyboardOperation": True,
+                "voiceOver": True,
+                "physicalKeyboardNaming": True,
+                "keyboardAssignmentManagement": True,
+                "replacementAndForget": True,
+            }
+        )
 
         result = qualification.evaluate_case(case, record)
 
@@ -153,7 +206,7 @@ class QualificationEvaluatorTests(unittest.TestCase):
         )
 
         self.assertEqual(report["verdict"], "inconclusive")
-        self.assertEqual(len(report["requiredCases"]), 16)
+        self.assertEqual(len(report["requiredCases"]), 18)
 
 
 if __name__ == "__main__":

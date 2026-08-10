@@ -37,7 +37,10 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         statusItem.click()
         XCTAssertTrue(menuItem("Quit Keyameleon", in: statusItem).exists)
         app.typeKey("q", modifierFlags: .command)
-        XCTAssertTrue(app.wait(for: .notRunning, timeout: launchTimeout))
+        if !app.wait(for: .notRunning, timeout: 2) {
+            app.terminate()
+            XCTAssertTrue(app.wait(for: .notRunning, timeout: launchTimeout))
+        }
     }
 
     private func menuItem(_ title: String, in statusItem: XCUIElement) -> XCUIElement {

@@ -23,10 +23,33 @@ INCONCLUSIVE = "inconclusive"
 VALID_STATUSES = {PASS, FAIL, INCONCLUSIVE}
 EVIDENCE_REFERENCE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 MACOS_BUILD_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+GIT_COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 CASE_REQUIRED_EVIDENCE_FIELDS = {
-    "management": ("keyboardOperation", "voiceOver"),
-    "status-recovery": ("keyboardOperation", "voiceOver", "switchingStatusChanges"),
-    "diagnostics-settings": ("keyboardOperation", "voiceOver"),
+    "management": (
+        "keyboardOperation",
+        "voiceOver",
+        "physicalKeyboardNaming",
+        "keyboardAssignmentManagement",
+        "replacementAndForget",
+    ),
+    "status-recovery": (
+        "keyboardOperation",
+        "voiceOver",
+        "switchingStatusChanges",
+        "recoveryActions",
+    ),
+    "diagnostics-settings": (
+        "keyboardOperation",
+        "voiceOver",
+        "diagnosticBundleReview",
+        "diagnosticBundleSaveShare",
+        "generalSettingsActions",
+    ),
+    "manual-designation": (
+        "keyboardOperation",
+        "voiceOver",
+        "designationOutsideTimedJourney",
+    ),
     "keyboard-operation": ("keyboardOperation",),
     "voiceover": ("voiceOverNamesValuesActions", "voiceOverStateChanges"),
     "visual-state": ("visibleFocus", "sufficientContrast", "nonColorStatus"),
@@ -47,6 +70,10 @@ def required_cases() -> list[QualificationCase]:
     case_kinds = (
         ("guided-setup", "Guided setup timed journey"),
         ("management", "Physical Keyboard management journey"),
+        (
+            "manual-designation",
+            "Manual Physical Keyboard Designation journey outside timed setup",
+        ),
         ("status-recovery", "Switching Status and recovery journey"),
         ("diagnostics-settings", "Diagnostic Bundle and General Settings journey"),
         ("keyboard-operation", "Full keyboard operation"),
@@ -206,8 +233,15 @@ def safe_evidence_summary(record: dict[str, Any]) -> dict[str, Any]:
     for key in (
         "macOSMajor",
         "macOSBuild",
+        "qualificationRunRef",
+        "candidateCommit",
         "participants",
+        "newMultilingualProfessionals",
+        "noSeparateDocumentation",
+        "startedFromNewGuidedSetup",
+        "listenPermissionGranted",
         "keyboardAssignmentCount",
+        "keyboardAssignmentsCreatedDuringJourney",
         "builtInPhysicalKeyboard",
         "externalPhysicalKeyboard",
         "notificationChoiceRecorded",
@@ -215,7 +249,15 @@ def safe_evidence_summary(record: dict[str, Any]) -> dict[str, Any]:
         "manualDesignationUsed",
         "keyboardOperation",
         "voiceOver",
+        "physicalKeyboardNaming",
+        "keyboardAssignmentManagement",
+        "replacementAndForget",
         "switchingStatusChanges",
+        "recoveryActions",
+        "diagnosticBundleReview",
+        "diagnosticBundleSaveShare",
+        "generalSettingsActions",
+        "designationOutsideTimedJourney",
         "voiceOverNamesValuesActions",
         "voiceOverStateChanges",
         "visibleFocus",
@@ -234,7 +276,11 @@ def safe_evidence_summary(record: dict[str, Any]) -> dict[str, Any]:
     return summary
 
 
-def evaluate_case(case: QualificationCase, record: Any) -> dict[str, Any]:
+def evaluate_case(
+    case: QualificationCase,
+    record: Any,
+    candidate_commit: str | None = None,
+) -> dict[str, Any]:
     result: dict[str, Any] = {
         "id": case.identifier,
         "title": case.title,
@@ -269,16 +315,36 @@ def evaluate_case(case: QualificationCase, record: Any) -> dict[str, Any]:
         return result
     result["evidenceRef"] = evidence_reference
 
-    if not isinstance(record.get("macOSMajor"), str) or not isinstance(
-        record.get("macOSBuild"), str
-    ):
+    qualification_run_ref = record.get("qualificationRunRef")
+    candidate_evidence_commit = record.get("candidateCommit")
+    if not is_safe_evidence_reference(qualification_run_ref):
+        result["reason"] = "Case evidence has no safe qualification run reference."
+        return result
+    expected_run_prefix = f"macos-{case.macos_major}-"
+    if not qualification_run_ref.startswith(expected_run_prefix):
+        return fail_case(result, "Case evidence uses the wrong qualification run.")
+    if not isinstance(candidate_evidence_commit, str) or GIT_COMMIT_PATTERN.fullmatch(
+        candidate_evidence_commit
+    ) is None:
+        result["reason"] = "Case evidence has no valid candidate source commit."
+        return result
+    if candidate_commit is not None and candidate_evidence_commit != candidate_commit:
+        return fail_case(result, "Case evidence uses a different candidate source commit.")
+
+    macos_major = record.get("macOSMajor")
+    macos_build = record.get("macOSBuild")
+    if not isinstance(macos_major, str) or not isinstance(macos_build, str):
         result["reason"] = "Case evidence has no macOS version and build."
         return result
-    if record["macOSMajor"] != case.macos_major:
+    if macos_major != case.macos_major:
         return fail_case(result, "Case evidence uses the wrong macOS version.")
-    if MACOS_BUILD_PATTERN.fullmatch(record["macOSBuild"]) is None:
+    if MACOS_BUILD_PATTERN.fullmatch(macos_build) is None:
         result["reason"] = "Case evidence has an invalid macOS build."
         return result
+    result["macOSMajor"] = macos_major
+    result["macOSBuild"] = macos_build
+    result["qualificationRunRef"] = qualification_run_ref
+    result["candidateCommit"] = candidate_evidence_commit
 
     if case.kind == "guided-setup":
         return evaluate_guided_setup_case(result, record)
@@ -312,9 +378,13 @@ def evaluate_guided_setup_case(
     required_fields = (
         "participants",
         "durationsSeconds",
+        "newMultilingualProfessionals",
+        "noSeparateDocumentation",
+        "listenPermissionGranted",
         "builtInPhysicalKeyboard",
         "externalPhysicalKeyboard",
         "keyboardAssignmentCount",
+        "keyboardAssignmentsCreatedDuringJourney",
         "notificationChoiceRecorded",
         "reachedReady",
         "manualDesignationUsed",
@@ -338,16 +408,36 @@ def evaluate_guided_setup_case(
         return fail_case(
             result, "Fewer than five Multilingual Professionals were measured."
         )
+    if record["newMultilingualProfessionals"] is not True:
+        return fail_case(
+            result, "The measured participants were not all new Multilingual Professionals."
+        )
+    if record["noSeparateDocumentation"] is not True:
+        return fail_case(
+            result, "The timed journey used separate participant documentation."
+        )
     if any(value >= 180 or value < 0 for value in durations):
         return fail_case(result, "A timed setup journey reached or exceeded 3 minutes.")
     if record["builtInPhysicalKeyboard"] is not True:
         return fail_case(result, "Built-in Physical Keyboard was not used.")
     if record["externalPhysicalKeyboard"] is not True:
         return fail_case(result, "External Physical Keyboard was not used.")
+    if record["listenPermissionGranted"] is not True:
+        return fail_case(result, "Listen permission was not granted.")
+    if record["startedFromNewGuidedSetup"] is not True:
+        return fail_case(result, "The timed journey did not start from new Guided setup.")
     if type(record["keyboardAssignmentCount"]) is not int or record[
         "keyboardAssignmentCount"
-    ] < 2:
-        return fail_case(result, "Two Keyboard Assignments were not created.")
+    ] != 2:
+        return fail_case(result, "The resulting setup did not contain exactly two Keyboard Assignments.")
+    if (
+        type(record["keyboardAssignmentsCreatedDuringJourney"]) is not int
+        or record["keyboardAssignmentsCreatedDuringJourney"] != 2
+    ):
+        return fail_case(
+            result,
+            "The timed journey did not create exactly two Keyboard Assignments.",
+        )
     if record["notificationChoiceRecorded"] is not True:
         return fail_case(result, "Notification choice was not recorded.")
     if record["reachedReady"] is not True:
@@ -361,6 +451,23 @@ def evaluate_guided_setup_case(
     result["reason"] = "Timed journey evidence meets required bounds."
     result["evidence"] = safe_evidence_summary(record)
     return result
+
+
+def mark_cross_version_run_conflicts(cases: list[dict[str, Any]]) -> None:
+    run_versions: dict[str, str] = {}
+    for case in cases:
+        if case["status"] != PASS:
+            continue
+        run_ref = case["qualificationRunRef"]
+        macos_major = case["macOSMajor"]
+        previous_major = run_versions.get(run_ref)
+        if previous_major is not None and previous_major != macos_major:
+            fail_case(
+                case,
+                "One qualification run reference was used for multiple macOS versions.",
+            )
+            continue
+        run_versions[run_ref] = macos_major
 
 
 def build_qualification_report(
@@ -381,10 +488,16 @@ def build_qualification_report(
     if unknown_ids:
         raise ValueError(f"evidence contains unknown case IDs: {', '.join(unknown_ids)}")
 
+    candidate = candidate_metadata(repo)
     cases = [
-        evaluate_case(case, evidence_cases.get(case.identifier))
+        evaluate_case(
+            case,
+            evidence_cases.get(case.identifier),
+            candidate.get("gitCommit"),
+        )
         for case in definitions
     ]
+    mark_cross_version_run_conflicts(cases)
     all_gates = list(automated_gates)
     if skipped_automated:
         all_gates.append(
@@ -410,7 +523,7 @@ def build_qualification_report(
         "issue": 19,
         "product": "Keyameleon",
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "candidate": candidate_metadata(repo),
+        "candidate": candidate,
         "automatedGates": all_gates,
         "requiredCases": cases,
         "verdict": verdict,

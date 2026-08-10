@@ -32,13 +32,20 @@ Create a JSON file with aggregate, privacy-safe evidence:
     "guided-setup-macos-26": {
       "status": "passed",
       "evidenceRef": "case-batch-26-a",
+      "qualificationRunRef": "macos-26-batch-a",
+      "candidateCommit": "0123456789abcdef0123456789abcdef01234567",
       "macOSMajor": "26",
       "macOSBuild": "25F84",
       "participants": 5,
       "durationsSeconds": [112, 124, 131, 145, 157],
+      "newMultilingualProfessionals": true,
+      "noSeparateDocumentation": true,
+      "startedFromNewGuidedSetup": true,
+      "listenPermissionGranted": true,
       "builtInPhysicalKeyboard": true,
       "externalPhysicalKeyboard": true,
       "keyboardAssignmentCount": 2,
+      "keyboardAssignmentsCreatedDuringJourney": 2,
       "notificationChoiceRecorded": true,
       "reachedReady": true,
       "manualDesignationUsed": false
@@ -55,17 +62,22 @@ Evaluate it with:
 
 Only a safe `evidenceRef` matching `A-Za-z0-9` followed by up to 127 `A-Za-z0-9._-` characters and aggregate values belong in this file. Keep participant identity and raw observations outside the repository, under the approved qualification process.
 
-Every passed case also includes `macOSMajor` and `macOSBuild`. The value of `macOSMajor` must match the case ID. Additional checks are required for each case:
+Every passed case also includes a safe `qualificationRunRef`, the 40-character `candidateCommit`, `macOSMajor`, and `macOSBuild`. The candidate commit must match the report candidate. Use a different `qualificationRunRef` for macOS 15 and macOS 26. The value of `macOSMajor` must match the case ID. Additional checks are required for each case:
 
 - management: `keyboardOperation` and `voiceOver`;
+- management also requires `physicalKeyboardNaming`, `keyboardAssignmentManagement`, and `replacementAndForget`;
+- manual-designation: `keyboardOperation`, `voiceOver`, and `designationOutsideTimedJourney`;
 - status-recovery: `keyboardOperation`, `voiceOver`, and `switchingStatusChanges`;
-- diagnostics-settings: `keyboardOperation` and `voiceOver`;
+- status-recovery also requires `recoveryActions`;
+- diagnostics-settings: `keyboardOperation`, `voiceOver`, `diagnosticBundleReview`, `diagnosticBundleSaveShare`, and `generalSettingsActions`;
 - keyboard-operation: `keyboardOperation`;
 - voiceover: `voiceOverNamesValuesActions` and `voiceOverStateChanges`;
 - visual-state: `visibleFocus`, `sufficientContrast`, and `nonColorStatus`;
 - reduce-motion: `reduceMotion`.
 
 Each additional check must be boolean `true` for a passed case. A missing or invalid check is `inconclusive`; an explicit `false` is `failed`.
+
+Guided setup evidence also requires `newMultilingualProfessionals`, `noSeparateDocumentation`, `startedFromNewGuidedSetup`, and `listenPermissionGranted` to be boolean `true`. `keyboardAssignmentsCreatedDuringJourney` and `keyboardAssignmentCount` must each equal `2`.
 
 ## Timed Guided setup journey
 
@@ -79,7 +91,7 @@ Start from a new Guided setup state. Start the timer before the first user actio
 6. reach `Ready`;
 7. finish in less than 3 minutes for every participant.
 
-Manual Physical Keyboard Designation is not part of this timed journey. Qualify it separately through its removal, return, and confirmation flow.
+Manual Physical Keyboard Designation is not part of this timed journey. Qualify it separately through its removal, return, and confirmation flow. The separate `manual-designation-macos-15` and `manual-designation-macos-26` cases are required.
 
 ## Accessibility matrix
 
