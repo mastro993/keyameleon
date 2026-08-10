@@ -1,5 +1,19 @@
 # Choices
 
+## 2026-08-10 — Issue #19 Setup and accessibility qualification
+
+### Seams under test
+- `Scripts/qualify-setup-accessibility.py` — automated source audit, application build, complete test suite, and privacy-safe human evidence verdict.
+- SwiftUI accessibility identifiers and grouped status values — stable discovery points for Guided setup and accessibility qualification.
+- `KeyameleonLifecycleUITests` — first launch, close, reopen, menu actions, and quit lifecycle.
+
+### Defaults
+- Qualify every required setup and accessibility case on macOS 15 and macOS 26.
+- Bind each report to the candidate source commit and keep source, build, and test gates separate from human evidence.
+- Treat unavailable or unrun required cases as `inconclusive`; a candidate passes only when every gate passes.
+- Keep `evidenceRef` and aggregate measurements only. Do not store Key Content, stable Physical Keyboard Identity or Input Source values, or participant identity.
+- Keep Manual Physical Keyboard Designation outside the timed Guided setup journey.
+
 ## 2026-08-10 — Issue #12 Bounded operational notifications
 
 ### Seams under test

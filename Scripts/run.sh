@@ -19,6 +19,7 @@ generate_project() {
 }
 
 run_tests() {
+    python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
     xcodebuild test \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
@@ -56,12 +57,16 @@ case "${1:-test}" in
         build_app
         open "${PRODUCTS_PATH}/Keyameleon.app"
         ;;
+    qualify)
+        shift
+        exec python3 "${0:A:h}/qualify-setup-accessibility.py" "$@"
+        ;;
     release-tag)
         shift
         exec "${0:A:h}/verify-official-release-tag.sh" "$@"
         ;;
     *)
-        print -u2 'usage: run.sh audit|generate|build|test|open|release-tag'
+        print -u2 'usage: run.sh audit|generate|build|test|open|qualify|release-tag'
         exit 64
         ;;
 esac

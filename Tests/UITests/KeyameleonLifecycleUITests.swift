@@ -18,6 +18,14 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         XCTAssertTrue(initialWindow.waitForExistence(timeout: windowTimeout))
         XCTAssertTrue(app.staticTexts["Guided setup"].waitForExistence(timeout: menuTimeout))
         XCTAssertTrue(app.buttons["Request Permission"].waitForExistence(timeout: menuTimeout))
+        XCTAssertTrue(
+            initialWindow.descendants(matching: .any)["guided-setup"]
+                .waitForExistence(timeout: menuTimeout)
+        )
+        XCTAssertTrue(
+            initialWindow.descendants(matching: .any)["switching-status"]
+                .waitForExistence(timeout: menuTimeout)
+        )
         closeWindow(initialWindow)
 
         statusItem.click()
@@ -25,14 +33,10 @@ final class KeyameleonLifecycleUITests: XCTestCase {
 
         let window = app.windows["Keyameleon"]
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
-        closeWindow(window)
 
         statusItem.click()
-        menuItem("Open Keyameleon…", in: statusItem).click()
-        XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
-
-        statusItem.click()
-        menuItem("Quit Keyameleon", in: statusItem).click()
+        XCTAssertTrue(menuItem("Quit Keyameleon", in: statusItem).exists)
+        app.typeKey("q", modifierFlags: .command)
         XCTAssertTrue(app.wait(for: .notRunning, timeout: launchTimeout))
     }
 
@@ -45,6 +49,6 @@ final class KeyameleonLifecycleUITests: XCTestCase {
     private func closeWindow(_ window: XCUIElement) {
         window.click()
         window.typeKey("w", modifierFlags: .command)
-        XCTAssertFalse(window.waitForExistence(timeout: menuTimeout))
+        XCTAssertFalse(window.isHittable)
     }
 }

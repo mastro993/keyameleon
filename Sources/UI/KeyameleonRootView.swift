@@ -45,6 +45,7 @@ struct KeyameleonRootView: View {
                 KeyameleonDiagnosticBundleReviewView(model: diagnosticModel)
             }
             .padding(28)
+            .accessibilityIdentifier(KeyameleonAppMetadata.guidedSetupAccessibilityIdentifier)
         }
         .frame(minWidth: 460, minHeight: 280)
         .sheet(item: assignmentPickerBinding) { keyboard in
@@ -239,6 +240,7 @@ struct KeyameleonRootView: View {
                         model.requestPermission()
                     }
                     .disabled(model.switchingStatus == .ready)
+                    .accessibilityIdentifier(KeyameleonAppMetadata.requestPermissionAccessibilityIdentifier)
 
                     Button(
                         model.switchingStatus == .ready
@@ -247,6 +249,7 @@ struct KeyameleonRootView: View {
                     ) {
                         model.continueToAssignments()
                     }
+                    .accessibilityIdentifier(KeyameleonAppMetadata.continueToAssignmentsAccessibilityIdentifier)
                 }
 
                 recoveryActions
@@ -285,6 +288,7 @@ struct KeyameleonRootView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .accessibilityIdentifier(KeyameleonAppMetadata.operationalNotificationSetupAccessibilityIdentifier)
     }
 
     private var assignmentSetup: some View {
@@ -302,6 +306,7 @@ struct KeyameleonRootView: View {
                 Button(KeyameleonAppMetadata.finishWithoutAssignmentsButtonTitle) {
                     model.finishWithoutAssignments()
                 }
+                .accessibilityIdentifier(KeyameleonAppMetadata.finishWithoutAssignmentsAccessibilityIdentifier)
             }
 
             recoveryActions
@@ -330,6 +335,7 @@ struct KeyameleonRootView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Switching Status")
                 .font(.headline)
+                .accessibilityIdentifier(KeyameleonAppMetadata.switchingStatusAccessibilityIdentifier)
             Text(model.switchingStatus.displayName)
                 .font(.title3)
                 .accessibilityValue(model.switchingStatus.displayName)
@@ -348,6 +354,8 @@ struct KeyameleonRootView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Switching Status")
     }
 
     private var activePhysicalKeyboardStatus: some View {
@@ -371,6 +379,9 @@ struct KeyameleonRootView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
+        .accessibilityIdentifier(KeyameleonAppMetadata.activePhysicalKeyboardAccessibilityIdentifier)
     }
 
     private func inputSourceMismatchStatus(
@@ -485,6 +496,7 @@ struct KeyameleonRootView: View {
             }
         }
         .padding(.top, 4)
+        .accessibilityIdentifier(KeyameleonAppMetadata.physicalKeyboardConfigurationAccessibilityIdentifier)
     }
 
     private func physicalKeyboardRow(_ physicalKeyboard: PhysicalKeyboard) -> some View {
@@ -516,6 +528,9 @@ struct KeyameleonRootView: View {
                     text: nameBinding(for: physicalKeyboard)
                 )
                 .textFieldStyle(.roundedBorder)
+                .accessibilityLabel(
+                    "\(KeyameleonAppMetadata.physicalKeyboardNameLabel) for \(physicalKeyboard.name)"
+                )
                 .onSubmit {
                     commitName(for: physicalKeyboard)
                 }
@@ -692,6 +707,7 @@ private struct KeyboardAssignmentPickerView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(KeyameleonAppMetadata.assignmentPickerTitle)
                 .font(.title2)
+                .accessibilityAddTraits(.isHeader)
 
             Text(physicalKeyboard.name)
                 .foregroundStyle(.secondary)
@@ -702,6 +718,7 @@ private struct KeyboardAssignmentPickerView: View {
 
             TextField(KeyameleonAppMetadata.assignmentSearchPrompt, text: $query)
                 .textFieldStyle(.roundedBorder)
+                .accessibilityLabel(KeyameleonAppMetadata.assignmentSearchPrompt)
 
             if visibleInputSources.isEmpty {
                 Text("No eligible Input Sources found.")
@@ -717,6 +734,7 @@ private struct KeyboardAssignmentPickerView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(inputSource.name)
                     // Names only — never show technical Input Source identifiers.
                 }
             }
