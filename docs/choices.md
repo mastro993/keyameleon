@@ -1,5 +1,23 @@
 # Choices
 
+## 2026-08-10 — Issue #9 Manual Physical Keyboard Designation
+
+### Seams under test
+- `ManualPhysicalKeyboardDesignationEvidenceRules` — offer eligibility + return accept + confirmed name.
+- `ManualPhysicalKeyboardDesignationAuthenticator` — CryptoKit HMAC over identityKey/productName/confirmedName only (no Key Content).
+- `InstallationIntegrityKeyProviding` — Keychain-backed SymmetricKey (in-memory for tests).
+- `ManualPhysicalKeyboardDesignationStoring` — authenticated evidence persistence (SwiftData + in-memory).
+- `KeyameleonSetupModel` session: start → leave → return → confirm name; other Physical Keyboards stay assignable.
+
+### Defaults
+- Eligible only: external, identity-based, `.unsupported(.ambiguousIdentity)`. Missing/unstable/shared never offered.
+- Ambiguous multi-interface return still valid (approved exceptional case). Shared/unstable/missing return not accepted.
+- Save name + designation evidence only; no Keyboard Assignment from the flow.
+- Integrity key: Keychain generic password, service `dev.fedemas.keyameleon.installation-integrity`.
+- Designation model lives in `PhysicalKeyboardSchemaV1` container (additive model). Tampered HMAC → stay unsupported.
+- Identity change: no auto migrate/delete of designation or records.
+- Forget deletes designation for that identityKey.
+
 ## 2026-08-10 — Issue #7 Menu first + pause
 
 - **Pause persist**: `SetupDecisionStoring.isActivityTriggeredSwitchingPaused` / UserDefaults key `keyameleon.activityTriggeredSwitching.paused`.

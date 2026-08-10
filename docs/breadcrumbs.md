@@ -1,5 +1,15 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #9 Manual Physical Keyboard Designation
+
+- Issue #9: leave/return/name confirmation for eligible ambiguous external identity groups.
+- Domain: evidence rules + CryptoKit authenticator + phase enum.
+- App: Keychain integrity key, designation store, SetupModel session + elevation on publish/event.
+- UI: start button, status banner, name confirmation sheet.
+- Tests: `KeyameleonManualDesignationTests.swift` (eligibility, auth, flow, shared reject, empty name, no migrate, tamper).
+- Suite green.
+- Merged main: keep #6 converge + #7 menu first / pause.
+
 ## 2026-08-10 — Issue #7
 
 - Menu first daily surface: Switching Status, Active PK, Keyboard Assignment, Current Input Source, action items, Pause/Resume.

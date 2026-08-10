@@ -9,6 +9,7 @@ struct KeyameleonRootView: View {
     @State private var replaceTargetDisconnectedID: PhysicalKeyboardRecordID?
     @State private var forgetCandidateID: PhysicalKeyboardRecordID?
     @State private var nameDrafts: [String: String] = [:]
+    @State private var designationNameDraft = ""
 
     init(model: KeyameleonSetupModel) {
         _model = ObservedObject(wrappedValue: model)
@@ -120,6 +121,41 @@ struct KeyameleonRootView: View {
                 )
             }
         }
+        .sheet(isPresented: designationNameConfirmationPresented) {
+            ManualPhysicalKeyboardDesignationNameSheet(
+                nameDraft: $designationNameDraft,
+                onConfirm: {
+                    model.confirmManualDesignationName(designationNameDraft)
+                    designationNameDraft = ""
+                },
+                onCancel: {
+                    model.cancelManualDesignation()
+                    designationNameDraft = ""
+                }
+            )
+            .onAppear {
+                if case let .awaitingNameConfirmation(_, productName) = model.manualDesignationPhase {
+                    designationNameDraft = productName
+                }
+            }
+        }
+    }
+
+    private var designationNameConfirmationPresented: Binding<Bool> {
+        Binding(
+            get: {
+                if case .awaitingNameConfirmation = model.manualDesignationPhase {
+                    return true
+                }
+                return false
+            },
+            set: { isPresented in
+                if !isPresented, case .awaitingNameConfirmation = model.manualDesignationPhase {
+                    model.cancelManualDesignation()
+                    designationNameDraft = ""
+                }
+            }
+        )
     }
 
     private var forgetConfirmationPresented: Binding<Bool> {
@@ -315,6 +351,19 @@ struct KeyameleonRootView: View {
             Text("Physical Keyboards")
                 .font(.headline)
 
+            if let designationStatus = model.manualDesignationStatusText() {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(designationStatus)
+                        .foregroundStyle(.secondary)
+                    Button(KeyameleonAppMetadata.manualDesignationCancelButtonTitle) {
+                        model.cancelManualDesignation()
+                    }
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+            }
+
             if model.physicalKeyboards.isEmpty {
                 Text("No Physical Keyboards found.")
                     .foregroundStyle(.secondary)
@@ -418,6 +467,15 @@ struct KeyameleonRootView: View {
                         Button(KeyameleonAppMetadata.forgetPhysicalKeyboardButtonTitle, role: .destructive) {
                             forgetCandidateID = physicalKeyboard.id
                         }
+                    }
+                }
+            } else if model.canStartManualDesignation(for: physicalKeyboard.id) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(KeyameleonAppMetadata.manualDesignationExplanation)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Button(KeyameleonAppMetadata.manualDesignationButtonTitle) {
+                        model.startManualDesignation(for: physicalKeyboard.id)
                     }
                 }
             }
@@ -612,5 +670,45 @@ private struct ReplaceSavedPhysicalKeyboardPickerView: View {
         }
         .padding(20)
         .frame(minWidth: 360, minHeight: 360)
+    }
+}
+
+@MainActor
+private struct ManualPhysicalKeyboardDesignationNameSheet: View {
+    @Binding var nameDraft: String
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(KeyameleonAppMetadata.manualDesignationConfirmNameButtonTitle)
+                .font(.title2)
+
+            Text(KeyameleonAppMetadata.manualDesignationExplanation)
+                .foregroundStyle(.secondary)
+
+            Text(KeyameleonAppMetadata.manualDesignationNameFieldLabel)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            TextField(
+                KeyameleonAppMetadata.physicalKeyboardNameLabel,
+                text: $nameDraft
+            )
+            .textFieldStyle(.roundedBorder)
+
+            HStack {
+                Spacer()
+                Button(KeyameleonAppMetadata.manualDesignationCancelButtonTitle, action: onCancel)
+                    .keyboardShortcut(.cancelAction)
+                Button(KeyameleonAppMetadata.manualDesignationConfirmNameButtonTitle) {
+                    onConfirm()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 360)
     }
 }

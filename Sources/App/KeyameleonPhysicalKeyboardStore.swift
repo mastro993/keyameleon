@@ -29,7 +29,10 @@ enum PhysicalKeyboardSchemaV1: VersionedSchema {
     }
 
     static var models: [any PersistentModel.Type] {
-        [PhysicalKeyboardRecordModel.self]
+        [
+            PhysicalKeyboardRecordModel.self,
+            ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel.self,
+        ]
     }
 
     @Model

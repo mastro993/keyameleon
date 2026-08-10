@@ -108,6 +108,7 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var observedCurrentInputSourceIdentifier: String?
     @Published private(set) var inputSourceSelectionRequestCount = 0
     @Published private(set) var warningEpisodeCount = 0
+    @Published private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     /// Persists across restart. Pause only Activity-Triggered Switching.
     @Published private(set) var isActivityTriggeredSwitchingPaused: Bool
 
@@ -120,6 +121,8 @@ final class KeyameleonSetupModel: ObservableObject {
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving
     private let inputSourceChangeObserver: any InputSourceChangeObserving
+    private let designationStore: any ManualPhysicalKeyboardDesignationStoring
+    private let integrityKeyProvider: any InstallationIntegrityKeyProviding
     private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var isDiscoveryStarted = false
@@ -239,7 +242,11 @@ final class KeyameleonSetupModel: ObservableObject {
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = NoOpPhysicalKeyboardEventObserver(),
-        inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver()
+        inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
+        designationStore: any ManualPhysicalKeyboardDesignationStoring =
+            InMemoryManualPhysicalKeyboardDesignationStore(),
+        integrityKeyProvider: any InstallationIntegrityKeyProviding =
+            InMemoryInstallationIntegrityKeyProvider()
     ) {
         self.permissionProvider = permissionProvider
         self.setupStore = setupStore
@@ -250,6 +257,8 @@ final class KeyameleonSetupModel: ObservableObject {
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
         self.physicalKeyboardEventObserver = physicalKeyboardEventObserver
         self.inputSourceChangeObserver = inputSourceChangeObserver
+        self.designationStore = designationStore
+        self.integrityKeyProvider = integrityKeyProvider
         self.isActivityTriggeredSwitchingPaused = setupStore.isActivityTriggeredSwitchingPaused
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
@@ -322,14 +331,8 @@ final class KeyameleonSetupModel: ObservableObject {
             return
         }
 
-        // Resolve saved assignment onto the catalog record.
-        let physicalKeyboard = attributed.id.isIdentityBased
-            ? attributed.applying(
-                savedRecord: physicalKeyboardRecordStore.record(
-                    forIdentityKey: attributed.id.rawValue
-                )
-            )
-            : attributed
+        // Resolve designation elevation + saved assignment onto the catalog record.
+        let physicalKeyboard = resolvePublishedPhysicalKeyboard(attributed)
 
         let activeChanged = activePhysicalKeyboardID != physicalKeyboard.id
         if activeChanged {
@@ -603,7 +606,7 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         let removedData =
-            "This removes the saved Physical Keyboard Name and Keyboard Assignment for \(physicalKeyboard.name)."
+            "This removes the saved Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard Designation for \(physicalKeyboard.name)."
         let reconnectResult =
             switch physicalKeyboard.connectionState {
             case .connected:
@@ -639,7 +642,9 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         physicalKeyboardRecordStore.deleteRecord(identityKey: physicalKeyboardID.rawValue)
+        designationStore.delete(identityKey: physicalKeyboardID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
+        cancelManualDesignationIfMatching(physicalKeyboardID)
 
         if activePhysicalKeyboardID == physicalKeyboardID {
             activePhysicalKeyboardID = nil
@@ -647,6 +652,102 @@ final class KeyameleonSetupModel: ObservableObject {
 
         publishPhysicalKeyboards()
         onChange?()
+    }
+
+    func canStartManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
+        guard manualDesignationPhase == .idle else {
+            return false
+        }
+
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
+              physicalKeyboard.connectionState == .connected
+        else {
+            return false
+        }
+
+        return ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(
+            for: physicalKeyboard
+        )
+    }
+
+    func startManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) {
+        guard canStartManualDesignation(for: physicalKeyboardID) else {
+            return
+        }
+
+        manualDesignationPhase = .awaitingRemoval(physicalKeyboardID)
+        onChange?()
+    }
+
+    func cancelManualDesignation() {
+        guard manualDesignationPhase != .idle else {
+            return
+        }
+
+        manualDesignationPhase = .idle
+        onChange?()
+    }
+
+    func confirmManualDesignationName(_ name: String) {
+        guard case let .awaitingNameConfirmation(recordID, productName) = manualDesignationPhase
+        else {
+            return
+        }
+
+        guard ManualPhysicalKeyboardDesignationEvidenceRules.acceptsConfirmedName(name) else {
+            return
+        }
+
+        // Re-validate same identity group evidence before save.
+        guard
+            ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
+                connected: physicalKeyboardCatalog.physicalKeyboards,
+                expectedID: recordID
+            ) != nil
+        else {
+            manualDesignationPhase = .idle
+            publishPhysicalKeyboards()
+            onChange?()
+            return
+        }
+
+        let confirmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let integrityKey = integrityKeyProvider.integrityKey()
+        let tag = ManualPhysicalKeyboardDesignationAuthenticator.authenticationTag(
+            identityKey: recordID.rawValue,
+            productName: productName,
+            confirmedName: confirmedName,
+            integrityKey: integrityKey
+        )
+        let designation = SavedManualPhysicalKeyboardDesignation(
+            identityKey: recordID.rawValue,
+            productName: productName,
+            confirmedName: confirmedName,
+            authenticationTag: tag
+        )
+        designationStore.save(designation)
+        // Designation alone: name only. No Keyboard Assignment and no Key Content.
+        physicalKeyboardRecordStore.saveName(
+            identityKey: recordID.rawValue,
+            productName: productName,
+            customName: confirmedName
+        )
+        manualDesignationPhase = .idle
+        publishPhysicalKeyboards()
+        onChange?()
+    }
+
+    func manualDesignationStatusText() -> String? {
+        switch manualDesignationPhase {
+        case .idle:
+            nil
+        case .awaitingRemoval:
+            KeyameleonAppMetadata.manualDesignationAwaitingRemovalMessage
+        case .awaitingReturn:
+            KeyameleonAppMetadata.manualDesignationAwaitingReturnMessage
+        case .awaitingNameConfirmation:
+            KeyameleonAppMetadata.manualDesignationAwaitingNameMessage
+        }
     }
 
     func assignmentDisplayName(for physicalKeyboard: PhysicalKeyboard) -> String? {
@@ -781,24 +882,62 @@ final class KeyameleonSetupModel: ObservableObject {
 
         physicalKeyboardCatalog.apply(change)
         // Disconnect never rewrites Active Physical Keyboard and never requests Input Sources.
+        advanceManualDesignationSession()
         publishPhysicalKeyboards()
         onChange?()
     }
 
-    private func publishPhysicalKeyboards() {
-        let connected = physicalKeyboardCatalog.physicalKeyboards.map { keyboard in
-            guard keyboard.id.isIdentityBased else {
-                return keyboard.markingActive(keyboard.id == activePhysicalKeyboardID)
+    private func advanceManualDesignationSession() {
+        switch manualDesignationPhase {
+        case .idle, .awaitingNameConfirmation:
+            return
+        case let .awaitingRemoval(recordID):
+            let stillConnected = physicalKeyboardCatalog.physicalKeyboards.contains {
+                $0.id == recordID
+            }
+            if !stillConnected {
+                manualDesignationPhase = .awaitingReturn(recordID)
+            }
+        case let .awaitingReturn(recordID):
+            let connected = physicalKeyboardCatalog.physicalKeyboards
+            if let returned = ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
+                connected: connected,
+                expectedID: recordID
+            ) {
+                manualDesignationPhase = .awaitingNameConfirmation(
+                    recordID,
+                    productName: returned.productName
+                )
+                return
             }
 
-            let published = keyboard
-                .applying(
-                    savedRecord: physicalKeyboardRecordStore.record(
-                        forIdentityKey: keyboard.id.rawValue
-                    )
-                )
+            // Invalid, incomplete, shared, or other rejected evidence aborts with no save.
+            if connected.contains(where: { $0.id == recordID }) {
+                manualDesignationPhase = .idle
+            }
+        }
+    }
+
+    private func cancelManualDesignationIfMatching(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
+        switch manualDesignationPhase {
+        case .idle:
+            return
+        case let .awaitingRemoval(id),
+            let .awaitingReturn(id),
+            let .awaitingNameConfirmation(id, _):
+            if id == physicalKeyboardID {
+                manualDesignationPhase = .idle
+            }
+        }
+    }
+
+    private func publishPhysicalKeyboards() {
+        let connected = physicalKeyboardCatalog.physicalKeyboards.map { keyboard in
+            let published = resolvePublishedPhysicalKeyboard(keyboard)
                 .markingActive(keyboard.id == activePhysicalKeyboardID)
-            lastKnownPhysicalKeyboards[keyboard.id.rawValue] = published.markingActive(false)
+            if keyboard.id.isIdentityBased {
+                lastKnownPhysicalKeyboards[keyboard.id.rawValue] = published.markingActive(false)
+            }
             return published
         }
 
@@ -833,5 +972,37 @@ final class KeyameleonSetupModel: ObservableObject {
             connected + disconnected,
             activeID: activePhysicalKeyboardID
         )
+    }
+
+    private func resolvePublishedPhysicalKeyboard(
+        _ keyboard: PhysicalKeyboard
+    ) -> PhysicalKeyboard {
+        guard keyboard.id.isIdentityBased else {
+            return keyboard
+        }
+
+        let savedRecord = physicalKeyboardRecordStore.record(
+            forIdentityKey: keyboard.id.rawValue
+        )
+
+        if keyboard.isAssignable {
+            return keyboard.applying(savedRecord: savedRecord)
+        }
+
+        guard
+            let designation = designationStore.designation(
+                forIdentityKey: keyboard.id.rawValue
+            ),
+            ManualPhysicalKeyboardDesignationAuthenticator.isAuthentic(
+                designation,
+                integrityKey: integrityKeyProvider.integrityKey()
+            )
+        else {
+            return keyboard
+        }
+
+        return keyboard
+            .elevatingWithManualDesignation(confirmedName: designation.confirmedName)
+            .applying(savedRecord: savedRecord)
     }
 }
