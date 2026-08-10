@@ -71,6 +71,26 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testMenuShowsDismissibleUncleanExitNoticeAndReviewAction() {
+        let uncleanExitState = ApplicationTestUncleanExitStateStore(hasNotice: true)
+        let delegate = KeyameleonApplicationDelegate(
+            uncleanExitStateStore: uncleanExitState
+        )
+        let menu = delegate.makeMenu()
+        let titles = menu.items.map(\.title)
+
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.uncleanExitNoticeTitle))
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.reviewDiagnosticsMenuItemTitle))
+        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.dismissDiagnosticsNoticeMenuItemTitle))
+        XCTAssertTrue(
+            menu.item(withTitle: KeyameleonAppMetadata.reviewDiagnosticsMenuItemTitle)?.target === delegate
+        )
+        XCTAssertTrue(
+            menu.item(withTitle: KeyameleonAppMetadata.dismissDiagnosticsNoticeMenuItemTitle)?.target === delegate
+        )
+    }
+
+    @MainActor
     func testApplicationStartsUpdateCheckerOnLaunch() {
         let updates = ApplicationTestUpdateChecker()
         let delegate = KeyameleonApplicationDelegate(
@@ -191,5 +211,26 @@ private final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
         isActivityTriggeredSwitchingPaused = paused
+    }
+}
+
+@MainActor
+private final class ApplicationTestUncleanExitStateStore: UncleanExitStateStoring {
+    private(set) var hasPendingUncleanExitNotice: Bool
+
+    init(hasNotice: Bool) {
+        hasPendingUncleanExitNotice = hasNotice
+    }
+
+    func beginLaunch() {}
+
+    func markCleanTermination() {}
+
+    func dismissUncleanExitNotice() {
+        hasPendingUncleanExitNotice = false
+    }
+
+    func resetForUITesting() {
+        hasPendingUncleanExitNotice = false
     }
 }

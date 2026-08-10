@@ -2,27 +2,21 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class KeyameleonWindowController: NSWindowController {
-    init(
-        model: KeyameleonSetupModel,
-        diagnosticModel: KeyameleonGeneralSettingsModel
-    ) {
+final class KeyameleonDiagnosticWindowController: NSWindowController {
+    init(model: KeyameleonGeneralSettingsModel) {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 360),
+            contentRect: NSRect(x: 0, y: 0, width: 620, height: 500),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
-        window.title = KeyameleonAppMetadata.mainWindowTitle
-        window.identifier = NSUserInterfaceItemIdentifier("keyameleon.main-window")
+        window.title = KeyameleonAppMetadata.diagnosticBundleReviewTitle
+        window.identifier = NSUserInterfaceItemIdentifier("keyameleon.diagnostic-review-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 460, height: 280)
+        window.minSize = NSSize(width: 520, height: 380)
         window.contentView = NSHostingView(
-            rootView: KeyameleonRootView(
-                model: model,
-                diagnosticModel: diagnosticModel
-            )
+            rootView: KeyameleonDiagnosticBundleReviewView(model: model)
         )
 
         super.init(window: window)

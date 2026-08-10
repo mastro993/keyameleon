@@ -108,6 +108,8 @@ struct KeyameleonGeneralSettingsView: View {
                 }
                 .disabled(model.diagnosticRecordCount == 0)
                 .accessibilityLabel(KeyameleonAppMetadata.clearAllDiagnosticDataButtonTitle)
+
+                KeyameleonDiagnosticBundleReviewView(model: model)
             } header: {
                 Text(KeyameleonAppMetadata.diagnosticsSettingsSectionTitle)
             } footer: {

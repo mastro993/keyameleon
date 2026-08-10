@@ -8,6 +8,21 @@ enum DiagnosticCategory: String, Equatable, Sendable, CaseIterable {
     case observationOrder
     case inputSourceSelectionResult
     case sessionLifecycle
+
+    var displayName: String {
+        switch self {
+        case .operationalError:
+            "Operational errors"
+        case .operationalStateChange:
+            "Operational state changes"
+        case .observationOrder:
+            "Observation order"
+        case .inputSourceSelectionResult:
+            "Input Source selection results"
+        case .sessionLifecycle:
+            "Diagnostic Session lifecycle"
+        }
+    }
 }
 
 /// Closed Diagnostic Data event codes. No free-form message strings.
@@ -229,6 +244,97 @@ enum DiagnosticDataExclusion {
         "path",
         "user name",
         "application name",
+        "macOS crash report",
         "Key Content",
     ]
+}
+
+struct DiagnosticBundleDateRange: Equatable, Sendable {
+    let start: Date
+    let end: Date
+}
+
+struct DiagnosticBundleSummary: Equatable, Sendable {
+    let includedCategories: [DiagnosticCategory]
+    let excludedSensitiveData: [String]
+    let dateRange: DiagnosticBundleDateRange?
+    let recordCount: Int
+    let byteCount: Int
+}
+
+struct DiagnosticBundle: Equatable, Sendable {
+    let data: Data
+    let summary: DiagnosticBundleSummary
+}
+
+enum DiagnosticBundleBuilder {
+    private static let formatVersion = 1
+
+    static func make(records: [DiagnosticRecord], createdAt: Date) -> DiagnosticBundle {
+        let orderedRecords = records.sorted(by: DiagnosticRecord.oldestFirst)
+        let payload = Payload(
+            formatVersion: formatVersion,
+            createdAt: createdAt,
+            records: orderedRecords.map(ExportRecord.init)
+        )
+        let data = encode(payload)
+        let includedCategories = DiagnosticCategory.allCases.filter { category in
+            orderedRecords.contains { $0.category == category }
+        }
+        let dateRange = orderedRecords.first.map { first in
+            DiagnosticBundleDateRange(
+                start: first.recordedAt,
+                end: orderedRecords.last?.recordedAt ?? first.recordedAt
+            )
+        }
+
+        return DiagnosticBundle(
+            data: data,
+            summary: DiagnosticBundleSummary(
+                includedCategories: includedCategories,
+                excludedSensitiveData: DiagnosticDataExclusion.forbiddenFieldLabels,
+                dateRange: dateRange,
+                recordCount: orderedRecords.count,
+                byteCount: data.count
+            )
+        )
+    }
+
+    private static func encode(_ payload: Payload) -> Data {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+        do {
+            return try encoder.encode(payload)
+        } catch {
+            fatalError("Diagnostic Bundle encoding failed: \(error)")
+        }
+    }
+
+    private struct Payload: Encodable {
+        let formatVersion: Int
+        let createdAt: Date
+        let records: [ExportRecord]
+    }
+
+    private struct ExportRecord: Encodable {
+        let recordedAt: Date
+        let category: String
+        let code: String
+        let temporaryPhysicalKeyboardToken: String?
+        let sequenceNumber: UInt64?
+        let relativeMilliseconds: Int64?
+        let switchingStatus: String?
+
+        init(record: DiagnosticRecord) {
+            recordedAt = record.recordedAt
+            category = record.category.rawValue
+            code = record.code.rawValue
+            temporaryPhysicalKeyboardToken = record.physicalKeyboardToken?.rawValue.uuidString
+            sequenceNumber = record.sequenceNumber
+            relativeMilliseconds = record.relativeMilliseconds
+            switchingStatus = record.switchingStatus?.rawValue
+        }
+    }
 }

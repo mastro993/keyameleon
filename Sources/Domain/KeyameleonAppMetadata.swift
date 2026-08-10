@@ -103,6 +103,27 @@ enum KeyameleonAppMetadata {
     static let diagnosticSessionStatusLabel = "Diagnostic Session"
     static let diagnosticSessionActiveStatus = "Active (ends automatically after 10 minutes)"
     static let diagnosticSessionInactiveStatus = "Inactive"
+    static let diagnosticBundleReviewTitle = "Review Diagnostic Bundle"
+    static let diagnosticBundleReviewExplanation =
+        "Review included Diagnostic Data and exclusions before you save or share. Each action is explicit."
+    static let diagnosticBundleIncludedCategoriesLabel = "Included categories"
+    static let diagnosticBundleExcludedDataLabel = "Excluded sensitive data"
+    static let diagnosticBundleNoIncludedCategories = "None"
+    static let diagnosticBundleDateRangeLabel = "Date range"
+    static let diagnosticBundleRecordCountLabel = "Record count"
+    static let diagnosticBundleSizeLabel = "Size"
+    static let diagnosticBundleNoData = "No Diagnostic Data retained."
+    static let diagnosticBundleNoDateRange = "No records"
+    static let saveDiagnosticBundleButtonTitle = "Save Diagnostic Bundle…"
+    static let shareDiagnosticBundleButtonTitle = "Share Diagnostic Bundle…"
+    static let diagnosticBundleDefaultFilename = "Keyameleon-Diagnostic-Bundle"
+    static let diagnosticBundleSaveFailedMessage = "Could not save Diagnostic Bundle."
+    static let diagnosticBundleSharePreviewTitle = "Diagnostic Bundle"
+    static let uncleanExitNoticeTitle = "Keyameleon did not exit cleanly."
+    static let uncleanExitNoticeMessage =
+        "Review local Diagnostic Data. Keyameleon sends no notification for an unclean exit."
+    static let reviewDiagnosticsMenuItemTitle = "Review Diagnostics…"
+    static let dismissDiagnosticsNoticeMenuItemTitle = "Dismiss Diagnostics Notice"
     static let diagnosticsSettingsFooter =
         "Diagnostic Data uses a closed allowlist. It never includes Key Content, exact Physical Keyboard Identity values, serial numbers, custom names, Keyboard Assignments, Input Source identifiers, paths, user names, or application names. Retention stops at 7 days or 5 MB."
 

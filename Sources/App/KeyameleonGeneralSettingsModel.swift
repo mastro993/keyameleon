@@ -11,6 +11,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var diagnosticEstimatedByteCount: Int
     @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
     var onNotificationAuthorizationChange: (@MainActor () -> Void)?
+    @Published private(set) var diagnosticBundle: DiagnosticBundle
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
@@ -43,6 +44,10 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
         self.notificationAuthorizationState = operationalNotificationProvider.authorizationState
         self.onNotificationAuthorizationChange = nil
+        self.diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
+        diagnosticDataController.onChange = { [weak self] in
+            self?.publishDiagnosticState()
+        }
     }
 
     func refresh() {
@@ -106,10 +111,15 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         publishDiagnosticState()
     }
 
+    func refreshDiagnosticBundle() {
+        publishDiagnosticState()
+    }
+
     private func publishDiagnosticState() {
         isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         diagnosticRecordCount = diagnosticDataController.recordCount
         diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
+        diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
     }
 
     private func refreshNotificationAuthorization() {

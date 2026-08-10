@@ -7,9 +7,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let updateChecker: any UpdateChecking
     private let lifecycleObserver: any KeyameleonLifecycleObserving
     private let startsUpdaterOnLaunch: Bool
+    private let uncleanExitStateStore: any UncleanExitStateStoring
     let generalSettingsModel: KeyameleonGeneralSettingsModel
     private var statusItem: NSStatusItem?
     private var windowController: KeyameleonWindowController?
+    private var diagnosticReviewWindowController: KeyameleonDiagnosticWindowController?
     private let modelContainer: ModelContainer?
     private let diagnosticModelContainer: ModelContainer?
     /// Avoid replacing the opening menu while `menuNeedsUpdate` repopulates it.
@@ -35,8 +37,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     override convenience init() {
         let setupStore = UserDefaultsSetupDecisionStore()
+        let uncleanExitStateStore = UserDefaultsUncleanExitStateStore()
         if ProcessInfo.processInfo.arguments.contains(KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument) {
             setupStore.resetForUITesting()
+            uncleanExitStateStore.resetForUITesting()
         }
 
         let modelContainer: ModelContainer
@@ -91,6 +95,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             notificationEpisodeStore: notificationEpisodeStore,
             notificationSetupStore: notificationSetupStore,
             notificationSettingsOpener: NSWorkspaceNotificationSettingsOpener(),
+            uncleanExitStateStore: uncleanExitStateStore,
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
             startsUpdaterOnLaunch: !isUITesting,
             modelContainer: modelContainer,
@@ -124,6 +129,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             InMemoryNotificationSetupDecisionStore(),
         notificationSettingsOpener: any NotificationSettingsOpening =
             NoOpNotificationSettingsOpener(),
+        uncleanExitStateStore: any UncleanExitStateStoring = UserDefaultsUncleanExitStateStore(),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
@@ -135,6 +141,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         self.updateChecker = updateChecker
         self.lifecycleObserver = lifecycleObserver
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
+        self.uncleanExitStateStore = uncleanExitStateStore
         setupModel = KeyameleonSetupModel(
             permissionProvider: permissionProvider,
             protectedStateProvider: protectedStateProvider,
@@ -163,6 +170,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         super.init()
 
         setupModel.onChange = { [weak self] in
+            self?.generalSettingsModel.refresh()
             self?.refreshMenuBarPresentation()
         }
         generalSettingsModel.onNotificationAuthorizationChange = { [weak self] in
@@ -172,6 +180,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        uncleanExitStateStore.beginLaunch()
         lifecycleObserver.start { [weak self] event in
             self?.setupModel.handleLifecycleEvent(event)
         }
@@ -196,6 +205,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        uncleanExitStateStore.markCleanTermination()
         lifecycleObserver.stop()
     }
 
@@ -243,6 +253,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             recoveryItem.isEnabled = false
             menu.addItem(recoveryItem)
         }
+
+        addUncleanExitNoticeIfNeeded(to: menu)
 
         let activeKeyboardItem = NSMenuItem(
             title: KeyameleonAppMetadata.activePhysicalKeyboardMenuItemTitle(
@@ -405,11 +417,35 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     @objc
     private func openKeyameleon(_ sender: Any?) {
         if windowController == nil {
-            windowController = KeyameleonWindowController(model: setupModel)
+            windowController = KeyameleonWindowController(
+                model: setupModel,
+                diagnosticModel: generalSettingsModel
+            )
         }
 
         windowController?.showWindow(sender)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc
+    private func reviewDiagnostics(_ sender: Any?) {
+        uncleanExitStateStore.dismissUncleanExitNotice()
+        generalSettingsModel.refresh()
+        if diagnosticReviewWindowController == nil {
+            diagnosticReviewWindowController = KeyameleonDiagnosticWindowController(
+                model: generalSettingsModel
+            )
+        }
+
+        diagnosticReviewWindowController?.showWindow(sender)
+        NSApp.activate(ignoringOtherApps: true)
+        refreshMenuBarPresentation()
+    }
+
+    @objc
+    private func dismissDiagnosticsNotice(_ sender: Any?) {
+        uncleanExitStateStore.dismissUncleanExitNotice()
+        refreshMenuBarPresentation()
     }
 
     @objc
@@ -506,6 +542,40 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         button.image = image
         button.toolTip = mark.accessibilityDescription
         button.setAccessibilityLabel(KeyameleonAppMetadata.menuBarAccessibilityLabel)
+    }
+
+    private func addUncleanExitNoticeIfNeeded(to menu: NSMenu) {
+        guard uncleanExitStateStore.hasPendingUncleanExitNotice else {
+            return
+        }
+
+        menu.addItem(.separator())
+
+        let noticeItem = NSMenuItem(
+            title: KeyameleonAppMetadata.uncleanExitNoticeTitle,
+            action: nil,
+            keyEquivalent: ""
+        )
+        noticeItem.isEnabled = false
+        noticeItem.setAccessibilityLabel(KeyameleonAppMetadata.uncleanExitNoticeTitle)
+        noticeItem.setAccessibilityValue(KeyameleonAppMetadata.uncleanExitNoticeMessage)
+        menu.addItem(noticeItem)
+
+        let reviewItem = NSMenuItem(
+            title: KeyameleonAppMetadata.reviewDiagnosticsMenuItemTitle,
+            action: #selector(reviewDiagnostics(_:)),
+            keyEquivalent: ""
+        )
+        reviewItem.target = self
+        menu.addItem(reviewItem)
+
+        let dismissItem = NSMenuItem(
+            title: KeyameleonAppMetadata.dismissDiagnosticsNoticeMenuItemTitle,
+            action: #selector(dismissDiagnosticsNotice(_:)),
+            keyEquivalent: ""
+        )
+        dismissItem.target = self
+        menu.addItem(dismissItem)
     }
 }
 

@@ -51,7 +51,21 @@
 - Separate SwiftData container for Diagnostic Data (no PK schema migration risk).
 - Session auto-stop checked on access/record + MainActor timer while active.
 - Forget confirmation copy includes Diagnostic Data removal.
-- UI: General Settings → Diagnostics (start/stop session, clear all). Bundle export is #14.
+- UI: General Settings → Diagnostics (start/stop session, clear all). Diagnostic Bundle review, save, and share is #14.
+
+## 2026-08-10 — Issue #14 Review, save, and share Diagnostic Bundles
+
+### Seams under test
+- **`DiagnosticBundleBuilder`**: stable JSON export from the closed Diagnostic Data schema, with category, date range, count, size, and exclusion summary.
+- **`KeyameleonDiagnosticBundleReviewView`**: Guided setup and General Settings review surface with explicit Save and Share actions.
+- **`UserDefaultsUncleanExitStateStore`**: local active-launch marker and one dismissible Menu first notice after an unclean exit.
+
+### Defaults
+- Save uses SwiftUI `fileExporter` so the user selects the destination.
+- Share uses SwiftUI `ShareLink` and the macOS share interface.
+- Bundle records contain only closed allowlist fields and temporary Physical Keyboard tokens; no Physical Keyboard Identity, Key Content, crash report, or path data.
+- The unclean-exit notice is local, sends no notification, and clears only after Review Diagnostics… or Dismiss Diagnostics Notice.
+- Controlled sensitive sentinels are tested as absent from generated bundles.
 
 ## 2026-08-10 — Issue #10 selection failure + Unavailable Keyboard Assignment seams
 

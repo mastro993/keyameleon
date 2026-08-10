@@ -58,6 +58,7 @@ protocol DiagnosticDataStoring: AnyObject {
 
 @MainActor
 protocol DiagnosticDataControlling: AnyObject {
+    var onChange: (@MainActor () -> Void)? { get set }
     var isDiagnosticSessionActive: Bool { get }
     var diagnosticSessionStartedAt: Date? { get }
     var recordCount: Int { get }
@@ -77,6 +78,7 @@ protocol DiagnosticDataControlling: AnyObject {
         identityKey: String?,
         switchingStatus: SwitchingStatus?
     )
+    func makeDiagnosticBundle() -> DiagnosticBundle
     func allRecords() -> [DiagnosticRecord]
     func enforceRetention()
 }
@@ -85,6 +87,7 @@ protocol DiagnosticDataControlling: AnyObject {
 
 @MainActor
 final class KeyameleonDiagnosticDataService: DiagnosticDataControlling {
+    var onChange: (@MainActor () -> Void)?
     private let store: any DiagnosticDataStoring
     private let clock: any ClockProviding
     private var sessionStartedAt: Date?
@@ -185,6 +188,7 @@ final class KeyameleonDiagnosticDataService: DiagnosticDataControlling {
 
     func clearAllDiagnosticData() {
         store.deleteAll()
+        onChange?()
     }
 
     func deleteDiagnosticData(forIdentityKey identityKey: String) {
@@ -192,6 +196,7 @@ final class KeyameleonDiagnosticDataService: DiagnosticDataControlling {
         if let token = store.token(forLinkageKey: linkageKey) {
             store.delete(matchingToken: token)
             store.removeToken(forLinkageKey: linkageKey)
+            onChange?()
         }
     }
 
@@ -255,6 +260,13 @@ final class KeyameleonDiagnosticDataService: DiagnosticDataControlling {
         return store.allRecords().sorted(by: DiagnosticRecord.oldestFirst)
     }
 
+    func makeDiagnosticBundle() -> DiagnosticBundle {
+        DiagnosticBundleBuilder.make(
+            records: allRecords(),
+            createdAt: clock.now()
+        )
+    }
+
     func enforceRetention() {
         let records = store.allRecords()
         let ids = DiagnosticRetention.recordIDsToDelete(records: records, now: clock.now())
@@ -287,6 +299,7 @@ final class KeyameleonDiagnosticDataService: DiagnosticDataControlling {
     private func insertRecord(_ record: DiagnosticRecord) {
         store.insert(record)
         enforceRetention()
+        onChange?()
     }
 
     private func scheduleSessionExpiry(from startedAt: Date) {

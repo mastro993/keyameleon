@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 struct KeyameleonRootView: View {
     @ObservedObject private var model: KeyameleonSetupModel
+    @ObservedObject private var diagnosticModel: KeyameleonGeneralSettingsModel
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var replacePickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var pendingReplaceConnectedID: PhysicalKeyboardRecordID?
@@ -11,8 +12,12 @@ struct KeyameleonRootView: View {
     @State private var nameDrafts: [String: String] = [:]
     @State private var designationNameDraft = ""
 
-    init(model: KeyameleonSetupModel) {
+    init(
+        model: KeyameleonSetupModel,
+        diagnosticModel: KeyameleonGeneralSettingsModel
+    ) {
         _model = ObservedObject(wrappedValue: model)
+        _diagnosticModel = ObservedObject(wrappedValue: diagnosticModel)
     }
 
     var body: some View {
@@ -37,6 +42,7 @@ struct KeyameleonRootView: View {
                 if model.shouldOfferOperationalNotificationSetup {
                     operationalNotificationSetup
                 }
+                KeyameleonDiagnosticBundleReviewView(model: diagnosticModel)
             }
             .padding(28)
         }
