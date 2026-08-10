@@ -1,0 +1,4 @@
+SPDX-License-Identifier: GPL-3.0-only
+
+Keyameleon is licensed under the GNU General Public License version 3 only
+(not "or later"). The full license text is in the LICENSE file.

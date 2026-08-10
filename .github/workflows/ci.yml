@@ -2,10 +2,20 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
+    name: Build and test
     runs-on: macos-15
 
     steps:
@@ -14,8 +24,40 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Audit forbidden surfaces
+        run: ./Scripts/run.sh audit
+
+      - name: Verify release policy helpers
+        run: |
+          chmod +x Scripts/*.sh
+          test "$(./Scripts/verify-official-release-tag.sh v0.1.0)" = "0.1.0"
+          if ./Scripts/verify-official-release-tag.sh 0.1.0; then
+            echo "expected non-v tag to fail" >&2
+            exit 1
+          fi
+          if ./Scripts/verify-official-release-tag.sh v1.2.3-beta.1; then
+            echo "expected pre-release tag to fail" >&2
+            exit 1
+          fi
+
       - name: Build application
         run: ./Scripts/run.sh build
 
       - name: Run tests
         run: ./Scripts/run.sh test
+
+      - name: Check license and third-party notices
+        run: |
+          set -euo pipefail
+          test -f LICENSE
+          grep -q "GNU GENERAL PUBLIC LICENSE" LICENSE
+          grep -q "Version 3" LICENSE
+          test -f LICENSE-SPDX.txt
+          grep -q "GPL-3.0-only" LICENSE-SPDX.txt
+          test -f THIRD_PARTY_NOTICES.md
+          grep -q "Sparkle" THIRD_PARTY_NOTICES.md
+          grep -q "GPL-3.0-only" README.md
+          test -f SECURITY.md
+          grep -q "Supported Release" SECURITY.md
+          test -f CONTRIBUTING.md
+          grep -qi "Developer Certificate of Origin" CONTRIBUTING.md

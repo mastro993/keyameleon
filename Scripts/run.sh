@@ -56,8 +56,12 @@ case "${1:-test}" in
         build_app
         open "${PRODUCTS_PATH}/Keyameleon.app"
         ;;
+    release-tag)
+        shift
+        exec "${0:A:h}/verify-official-release-tag.sh" "$@"
+        ;;
     *)
-        print -u2 'usage: run.sh audit|generate|build|test|open'
+        print -u2 'usage: run.sh audit|generate|build|test|open|release-tag'
         exit 64
         ;;
 esac
