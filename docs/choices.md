@@ -1,5 +1,22 @@
 # Choices
 
+## 2026-08-10
+
+### Issue #5 Activity-Triggered Switching seams
+
+- **Activation Activity classification** (domain pure): `PhysicalKeyboardEventKind` press/repeat/release; release not Activation Activity.
+- **Switching coordinator** via `KeyameleonSetupModel`: Active Physical Keyboard, request exact Keyboard Assignment, exact identifier readback.
+- **Input Source select/verify** protocol: `InputSourceSelecting` (TIS boundary).
+- **Event observe** protocol: `PhysicalKeyboardEventObserving` (CoreHID listen-only; no seize).
+- **Catalog**: serviceID → Physical Keyboard for attribution.
+
+Defaults:
+
+- Coalesce select when wanted assignment already verified active (story 57 minimal).
+- Failures leave input unchanged (restore prior Input Source on readback mismatch); no toast (#5); no retry loop.
+- Active Physical Keyboard not persisted across restart.
+- Lifecycle list merge from #8 stays authoritative in `publishPhysicalKeyboards`.
+
 ## 2026-08-10 — Issue #15 Launch at Login + updates
 
 ### Seams under test
@@ -21,7 +38,7 @@
 ## 2026-08-10 — Issue #8 Physical Keyboard lifecycle
 
 - **Seams under test**: `PhysicalKeyboardRecordStoring` and `KeyameleonSetupModel` (application-service seam from parent #1). Catalog unit rules stay in domain tests.
-- **Active Physical Keyboard**: in-memory only on `KeyameleonSetupModel`; not persisted across app restart. `noteActivationActivity` is the seam for later Activity-Triggered Switching (#5). Lifecycle slice never increments Input Source selection requests.
+- **Active Physical Keyboard**: in-memory only on `KeyameleonSetupModel`; not persisted across app restart. `noteActivationActivity` remains a test/manual seam; real switching uses `handlePhysicalKeyboardEvent`. Lifecycle slice never increments Input Source selection requests.
 - **Disconnected list merge**: saved SwiftData records whose identity is not in the live catalog publish as `connectionState == .disconnected`. Catalog still drops disconnected HID services.
 - **Replace**: explicit model API + confirmation UI; candidates are disconnected saved identity-based records only.
 - **Forget**: deletes store record only. Connected hardware republishes as new unassigned from catalog; disconnected vanishes.

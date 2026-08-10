@@ -10,6 +10,7 @@ final class KeyameleonApplicationTests: XCTestCase {
         let titles = menu.items.map(\.title)
 
         XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.switchingStatusMenuItemPrefix) })
+        XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.activePhysicalKeyboardMenuItemPrefix) })
         XCTAssertTrue(titles.contains(KeyameleonAppMetadata.openMenuItemTitle))
         XCTAssertTrue(titles.contains(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle))
         XCTAssertTrue(titles.contains(KeyameleonAppMetadata.checkAgainMenuItemTitle))

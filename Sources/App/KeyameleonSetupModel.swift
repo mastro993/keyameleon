@@ -83,7 +83,10 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var guidedSetupStep: GuidedSetupStep
     @Published private(set) var physicalKeyboards: [PhysicalKeyboard] = []
     @Published private(set) var eligibleInputSources: [EligibleInputSource] = []
+    /// Not persisted across app restart. Nil until first Activation Activity.
     @Published private(set) var activePhysicalKeyboardID: PhysicalKeyboardRecordID?
+    /// Last Keyboard Assignment verified active via exact identifier readback.
+    @Published private(set) var verifiedKeyboardAssignmentIdentifier: String?
     @Published private(set) var inputSourceSelectionRequestCount = 0
     @Published private(set) var warningEpisodeCount = 0
 
@@ -92,10 +95,13 @@ final class KeyameleonSetupModel: ObservableObject {
     private let systemSettingsOpener: any SystemSettingsOpening
     private let physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering
     private let inputSourceProvider: any InputSourceProviding
+    private let inputSourceSelector: any InputSourceSelecting
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
+    private let physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving
     private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var isDiscoveryStarted = false
+    private var isEventObservationStarted = false
 
     var onChange: (@MainActor () -> Void)?
 
@@ -111,20 +117,32 @@ final class KeyameleonSetupModel: ObservableObject {
         isSetupComplete || guidedSetupStep == .assignments
     }
 
+    var activePhysicalKeyboard: PhysicalKeyboard? {
+        guard let activePhysicalKeyboardID else {
+            return nil
+        }
+
+        return physicalKeyboards.first { $0.id == activePhysicalKeyboardID }
+    }
+
     init(
         permissionProvider: any ListenPermissionProviding,
         setupStore: any SetupDecisionStoring,
         systemSettingsOpener: any SystemSettingsOpening,
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = SystemPhysicalKeyboardDiscoverer(),
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
-        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore()
+        inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
+        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
+        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = NoOpPhysicalKeyboardEventObserver()
     ) {
         self.permissionProvider = permissionProvider
         self.setupStore = setupStore
         self.systemSettingsOpener = systemSettingsOpener
         self.physicalKeyboardDiscoverer = physicalKeyboardDiscoverer
         self.inputSourceProvider = inputSourceProvider
+        self.inputSourceSelector = inputSourceSelector
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
+        self.physicalKeyboardEventObserver = physicalKeyboardEventObserver
         self.switchingStatus = permissionProvider.checkListenPermission().switchingStatus
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
@@ -140,6 +158,69 @@ final class KeyameleonSetupModel: ObservableObject {
 
         refreshInputSources()
         updatePhysicalKeyboardDiscovery()
+        updatePhysicalKeyboardEventObservation()
+    }
+
+    /// Serial activity consumer entry. Observation order only.
+    func handlePhysicalKeyboardEvent(_ event: PhysicalKeyboardEvent) {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            return
+        }
+
+        guard ActivationActivityClassification.isActivationActivity(event) else {
+            return
+        }
+
+        guard let attributed = physicalKeyboardCatalog.physicalKeyboard(forServiceID: event.serviceID)
+        else {
+            return
+        }
+
+        // Resolve saved assignment onto the catalog record.
+        let physicalKeyboard = attributed.id.isIdentityBased
+            ? attributed.applying(
+                savedRecord: physicalKeyboardRecordStore.record(
+                    forIdentityKey: attributed.id.rawValue
+                )
+            )
+            : attributed
+
+        let activeChanged = activePhysicalKeyboardID != physicalKeyboard.id
+        if activeChanged {
+            activePhysicalKeyboardID = physicalKeyboard.id
+        }
+
+        var didVerify = false
+
+        switch physicalKeyboard.assignmentState {
+        case let .assigned(assignment):
+            // Coalesce when this exact Keyboard Assignment is already verified.
+            if verifiedKeyboardAssignmentIdentifier == assignment.inputSourceIdentifier,
+               inputSourceSelector.currentInputSourceIdentifier() == assignment.inputSourceIdentifier
+            {
+                break
+            }
+
+            inputSourceSelectionRequestCount += 1
+            if inputSourceSelector.selectAndVerifyInputSource(
+                identifier: assignment.inputSourceIdentifier
+            ) {
+                verifiedKeyboardAssignmentIdentifier = assignment.inputSourceIdentifier
+                didVerify = true
+            } else if verifiedKeyboardAssignmentIdentifier == assignment.inputSourceIdentifier {
+                // Wanted assignment no longer verified after this Activation Activity.
+                verifiedKeyboardAssignmentIdentifier = nil
+            }
+            // Selection failure restores prior Input Source when possible. No toast. No retry.
+        case .unassigned, .unsupported:
+            // No Input Source request for unassigned or unsupported Physical Keyboards.
+            break
+        }
+
+        if activeChanged || didVerify {
+            publishPhysicalKeyboards()
+            onChange?()
+        }
     }
 
     func requestPermission() {
@@ -254,7 +335,8 @@ final class KeyameleonSetupModel: ObservableObject {
             return
         }
 
-        // Active stays across disconnect. Input Source selection belongs to #5; counters stay 0.
+        // Test/manual seam: set Active without Input Source request.
+        // Real Activity-Triggered Switching uses handlePhysicalKeyboardEvent.
         activePhysicalKeyboardID = physicalKeyboardID
         publishPhysicalKeyboards()
         onChange?()
@@ -424,6 +506,27 @@ final class KeyameleonSetupModel: ObservableObject {
             self?.apply(change)
         }
         publishPhysicalKeyboards()
+    }
+
+    private func updatePhysicalKeyboardEventObservation() {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            guard isEventObservationStarted else {
+                return
+            }
+
+            physicalKeyboardEventObserver.stop()
+            isEventObservationStarted = false
+            return
+        }
+
+        guard !isEventObservationStarted else {
+            return
+        }
+
+        isEventObservationStarted = true
+        physicalKeyboardEventObserver.start { [weak self] event in
+            self?.handlePhysicalKeyboardEvent(event)
+        }
     }
 
     private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
