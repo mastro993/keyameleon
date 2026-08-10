@@ -106,6 +106,7 @@ struct KeyameleonRootView: View {
                 .foregroundStyle(.secondary)
 
             switchingStatus
+            activePhysicalKeyboardStatus
 
             HStack {
                 Button(KeyameleonAppMetadata.finishWithoutAssignmentsButtonTitle) {
@@ -123,12 +124,16 @@ struct KeyameleonRootView: View {
                 .foregroundStyle(.secondary)
 
             switchingStatus
+            activePhysicalKeyboardStatus
 
             Text(
                 model.switchingStatus == .ready
                     ? "Activity-Triggered Switching can observe Activation Activity."
                     : "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
             )
+
+            Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
+                .foregroundStyle(.secondary)
 
             recoveryActions
         }
@@ -141,6 +146,25 @@ struct KeyameleonRootView: View {
             Text(model.switchingStatus.displayName)
                 .font(.title3)
                 .accessibilityValue(model.switchingStatus.displayName)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var activePhysicalKeyboardStatus: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
+                .font(.headline)
+            Text(
+                model.activePhysicalKeyboard?.name
+                    ?? KeyameleonAppMetadata.noActivityObservedYet
+            )
+            .font(.title3)
+            .accessibilityValue(
+                model.activePhysicalKeyboard?.name
+                    ?? KeyameleonAppMetadata.noActivityObservedYet
+            )
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -246,9 +270,30 @@ struct KeyameleonRootView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
+        .background(
+            model.activePhysicalKeyboardID == physicalKeyboard.id
+                ? Color.accentColor.opacity(0.15)
+                : Color.clear,
+            in: RoundedRectangle(cornerRadius: 8)
+        )
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(alignment: .topTrailing) {
+            if model.activePhysicalKeyboardID == physicalKeyboard.id {
+                Text("Active")
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.tint.opacity(0.2), in: Capsule())
+                    .padding(8)
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(physicalKeyboard.name)
+        .accessibilityValue(
+            model.activePhysicalKeyboardID == physicalKeyboard.id
+                ? KeyameleonAppMetadata.activePhysicalKeyboardLabel
+                : physicalKeyboard.statusDescription
+        )
     }
 
     private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {

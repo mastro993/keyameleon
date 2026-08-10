@@ -25,6 +25,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             fatalError("SwiftData container failed for Physical Keyboard records: \(error)")
         }
 
+        let inputSources = SystemInputSourceProvider()
         self.init(
             permissionProvider: SystemListenPermissionProvider(),
             setupStore: setupStore,
@@ -32,6 +33,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(
                 modelContext: ModelContext(modelContainer)
             ),
+            inputSourceProvider: inputSources,
+            inputSourceSelector: inputSources,
+            physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
             modelContainer: modelContainer
         )
     }
@@ -41,6 +45,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
         systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
+        inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
+        inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
+        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
         modelContainer: ModelContainer? = nil
     ) {
         self.modelContainer = modelContainer
@@ -48,7 +55,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             permissionProvider: permissionProvider,
             setupStore: setupStore,
             systemSettingsOpener: systemSettingsOpener,
-            physicalKeyboardRecordStore: physicalKeyboardRecordStore
+            inputSourceProvider: inputSourceProvider,
+            inputSourceSelector: inputSourceSelector,
+            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
+            physicalKeyboardEventObserver: physicalKeyboardEventObserver
         )
 
         super.init()
@@ -90,6 +100,21 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         statusItem.setAccessibilityLabel("Switching Status")
         statusItem.setAccessibilityValue(setupModel.switchingStatus.displayName)
         menu.addItem(statusItem)
+
+        let activeKeyboardItem = NSMenuItem(
+            title: KeyameleonAppMetadata.activePhysicalKeyboardMenuItemTitle(
+                setupModel.activePhysicalKeyboard?.name
+            ),
+            action: nil,
+            keyEquivalent: ""
+        )
+        activeKeyboardItem.isEnabled = false
+        activeKeyboardItem.setAccessibilityLabel(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
+        activeKeyboardItem.setAccessibilityValue(
+            setupModel.activePhysicalKeyboard?.name
+                ?? KeyameleonAppMetadata.noActivityObservedYet
+        )
+        menu.addItem(activeKeyboardItem)
 
         menu.addItem(.separator())
 

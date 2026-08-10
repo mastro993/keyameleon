@@ -269,6 +269,7 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
 
 struct PhysicalKeyboardCatalog: Sendable {
     private var services: [UInt64: PhysicalKeyboardHardwareFacts] = [:]
+    private var serviceToRecordID: [UInt64: PhysicalKeyboardRecordID] = [:]
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
 
     mutating func apply(_ change: PhysicalKeyboardDiscoveryChange) {
@@ -279,25 +280,49 @@ struct PhysicalKeyboardCatalog: Sendable {
             services.removeValue(forKey: serviceID)
         }
 
-        physicalKeyboards = makePhysicalKeyboards(from: services.values)
+        rebuild()
+    }
+
+    func physicalKeyboard(forServiceID serviceID: UInt64) -> PhysicalKeyboard? {
+        guard let recordID = serviceToRecordID[serviceID] else {
+            return nil
+        }
+
+        return physicalKeyboards.first { $0.id == recordID }
+    }
+
+    private mutating func rebuild() {
+        let records = makePhysicalKeyboards(from: services.values)
+        physicalKeyboards = records.records
+        serviceToRecordID = records.serviceToRecordID
     }
 
     private func makePhysicalKeyboards(
         from services: Dictionary<UInt64, PhysicalKeyboardHardwareFacts>.Values
-    ) -> [PhysicalKeyboard] {
+    ) -> (records: [PhysicalKeyboard], serviceToRecordID: [UInt64: PhysicalKeyboardRecordID]) {
+        var serviceToRecordID: [UInt64: PhysicalKeyboardRecordID] = [:]
+
         let missingIdentityRecords = services
             .filter { $0.identity == nil }
-            .map { makeUnsupportedRecord(for: [$0], reason: .missingIdentity) }
+            .map { facts -> PhysicalKeyboard in
+                let record = makeUnsupportedRecord(for: [facts], reason: .missingIdentity)
+                serviceToRecordID[facts.serviceID] = record.id
+                return record
+            }
 
         let identityGroups = Dictionary(grouping: services.compactMap { facts in
             facts.identity == nil ? nil : facts
         }, by: { $0.identity!.groupingKey })
 
-        let identityRecords = identityGroups.values.map { group in
-            makeIdentityRecord(for: Array(group))
+        let identityRecords = identityGroups.values.map { group -> PhysicalKeyboard in
+            let record = makeIdentityRecord(for: Array(group))
+            for facts in group {
+                serviceToRecordID[facts.serviceID] = record.id
+            }
+            return record
         }
 
-        return (missingIdentityRecords + identityRecords).sorted { left, right in
+        let records = (missingIdentityRecords + identityRecords).sorted { left, right in
             let nameComparison = left.name.localizedCaseInsensitiveCompare(right.name)
             if nameComparison != .orderedSame {
                 return nameComparison == .orderedAscending
@@ -305,6 +330,8 @@ struct PhysicalKeyboardCatalog: Sendable {
 
             return left.id.rawValue < right.id.rawValue
         }
+
+        return (records, serviceToRecordID)
     }
 
     private func makeIdentityRecord(

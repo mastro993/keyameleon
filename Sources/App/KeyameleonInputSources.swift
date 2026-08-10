@@ -7,10 +7,70 @@ protocol InputSourceProviding: AnyObject {
 }
 
 @MainActor
-final class SystemInputSourceProvider: InputSourceProviding {
+protocol InputSourceSelecting: AnyObject {
+    /// Exact Input Source identifier currently selected for keyboard input.
+    func currentInputSourceIdentifier() -> String?
+
+    /// Request selection of the exact Input Source. Does not guarantee First-Key timing.
+    /// Returns `true` only when the post-select readback matches the requested identifier.
+    func selectAndVerifyInputSource(identifier: String) -> Bool
+}
+
+@MainActor
+final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelecting {
     func eligibleInputSources() -> [EligibleInputSource] {
+        inputSourceFacts().map { facts in
+            EligibleInputSourceCatalog.eligible(from: facts)
+        } ?? []
+    }
+
+    func currentInputSourceIdentifier() -> String? {
+        guard let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue() else {
+            return nil
+        }
+
+        return stringProperty(source, kTISPropertyInputSourceID)
+    }
+
+    func selectAndVerifyInputSource(identifier: String) -> Bool {
+        let normalized = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else {
+            return false
+        }
+
+        if currentInputSourceIdentifier() == normalized {
+            return true
+        }
+
+        // Capture prior Input Source so a failed exact readback can restore it.
+        let previousIdentifier = currentInputSourceIdentifier()
+
+        guard let source = inputSource(withIdentifier: normalized) else {
+            return false
+        }
+
+        let status = TISSelectInputSource(source)
+        guard status == noErr else {
+            return false
+        }
+
+        if currentInputSourceIdentifier() == normalized {
+            return true
+        }
+
+        // Exact verification failed: restore prior Input Source when possible.
+        if let previousIdentifier,
+           let previousSource = inputSource(withIdentifier: previousIdentifier)
+        {
+            _ = TISSelectInputSource(previousSource)
+        }
+
+        return false
+    }
+
+    private func inputSourceFacts() -> [InputSourceFacts]? {
         guard let unmanagedList = TISCreateInputSourceList(nil, false) else {
-            return []
+            return nil
         }
 
         let list = unmanagedList.takeRetainedValue()
@@ -41,7 +101,21 @@ final class SystemInputSourceProvider: InputSourceProviding {
             )
         }
 
-        return EligibleInputSourceCatalog.eligible(from: facts)
+        return facts
+    }
+
+    private func inputSource(withIdentifier identifier: String) -> TISInputSource? {
+        let properties = [kTISPropertyInputSourceID as String: identifier] as CFDictionary
+        guard let unmanagedList = TISCreateInputSourceList(properties, true) else {
+            return nil
+        }
+
+        let list = unmanagedList.takeRetainedValue()
+        guard CFArrayGetCount(list) > 0 else {
+            return nil
+        }
+
+        return unsafeBitCast(CFArrayGetValueAtIndex(list, 0), to: TISInputSource.self)
     }
 
     private func stringProperty(_ source: TISInputSource, _ key: CFString) -> String? {

@@ -22,10 +22,18 @@ enum KeyameleonAppMetadata {
     static let assignmentAppliesAfterActivation = "Applies after next Activation Activity"
     static let assignmentPickerTitle = "Choose Input Source"
     static let assignmentSearchPrompt = "Search Input Sources"
+    static let activePhysicalKeyboardMenuItemPrefix = "Active Physical Keyboard:"
+    static let noActivityObservedYet = "No activity observed yet"
+    static let activePhysicalKeyboardLabel = "Active Physical Keyboard"
     static let systemSettingsURL = "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
     static let uiTestingResetSetupLaunchArgument = "--reset-guided-setup"
 
     static func switchingStatusMenuItemTitle(_ status: SwitchingStatus) -> String {
         "\(switchingStatusMenuItemPrefix) \(status.displayName)"
+    }
+
+    static func activePhysicalKeyboardMenuItemTitle(_ name: String?) -> String {
+        let value = name ?? noActivityObservedYet
+        return "\(activePhysicalKeyboardMenuItemPrefix) \(value)"
     }
 }
