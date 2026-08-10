@@ -9,6 +9,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var isDiagnosticSessionActive: Bool
     @Published private(set) var diagnosticRecordCount: Int
     @Published private(set) var diagnosticEstimatedByteCount: Int
+    @Published private(set) var diagnosticBundle: DiagnosticBundle
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
@@ -30,6 +31,10 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         self.diagnosticRecordCount = diagnosticDataController.recordCount
         self.diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
+        self.diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
+        diagnosticDataController.onChange = { [weak self] in
+            self?.publishDiagnosticState()
+        }
     }
 
     func refresh() {
@@ -73,5 +78,6 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         diagnosticRecordCount = diagnosticDataController.recordCount
         diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
+        diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
     }
 }
