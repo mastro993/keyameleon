@@ -102,7 +102,53 @@ func diagnosticRecordsUseTemporaryTokensNotIdentityValues() {
     #expect(record.physicalKeyboardToken == token)
     #expect(record.category == .operationalStateChange)
     // Closed schema: no free-form identity/name/path fields exist on the type.
-    #expect(DiagnosticDataExclusion.forbiddenFieldLabels.count == 11)
+    #expect(DiagnosticDataExclusion.forbiddenFieldLabels.count == 12)
+}
+
+@MainActor
+@Test("Diagnostic Bundle preview lists categories, range, count, and size")
+func diagnosticBundlePreviewListsIncludedData() {
+    let clock = ManualClock(now: Date(timeIntervalSince1970: 2_000))
+    let service = KeyameleonDiagnosticDataService(
+        store: InMemoryDiagnosticDataStore(),
+        clock: clock
+    )
+
+    service.record(code: .switchingStatusChanged, identityKey: "identity-sentinel")
+    clock.advance(by: 2)
+    service.record(code: .discoveryFailed, identityKey: nil)
+
+    let bundle = service.makeDiagnosticBundle()
+
+    #expect(bundle.summary.includedCategories == [.operationalError, .operationalStateChange])
+    #expect(bundle.summary.dateRange?.start == Date(timeIntervalSince1970: 2_000))
+    #expect(bundle.summary.dateRange?.end == Date(timeIntervalSince1970: 2_002))
+    #expect(bundle.summary.recordCount == 2)
+    #expect(bundle.summary.byteCount == bundle.data.count)
+    #expect(bundle.summary.excludedSensitiveData == DiagnosticDataExclusion.forbiddenFieldLabels)
+}
+
+@MainActor
+@Test("Generated Diagnostic Bundle excludes controlled sensitive sentinels")
+func generatedDiagnosticBundleExcludesControlledSensitiveSentinels() {
+    let sensitiveSentinel = "physical-identity-sensitive-sentinel|Key Content sensitive sentinel|macOS crash report sensitive sentinel|/Users/sensitive-sentinel"
+    let service = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
+    service.startDiagnosticSession()
+    service.record(
+        code: .activationActivityAttributed,
+        identityKey: sensitiveSentinel,
+        switchingStatus: nil
+    )
+
+    let bundle = service.makeDiagnosticBundle()
+    let output = String(decoding: bundle.data, as: UTF8.self)
+
+    #expect(!output.contains(sensitiveSentinel))
+    #expect(!output.contains("physical-identity-sensitive-sentinel"))
+    #expect(!output.contains("Key Content sensitive sentinel"))
+    #expect(!output.contains("macOS crash report sensitive sentinel"))
+    #expect(!output.contains("/Users/sensitive-sentinel"))
+    #expect(output.contains("activationActivityAttributed"))
 }
 
 // MARK: - Service
@@ -381,6 +427,53 @@ func generalSettingsStartsStopsAndClearsDiagnosticData() {
     model.clearAllDiagnosticData()
     #expect(model.diagnosticRecordCount == 0)
     #expect(diagnostic.recordCount == 0)
+}
+
+@MainActor
+@Test("General settings exposes current Diagnostic Bundle review")
+func generalSettingsExposesCurrentDiagnosticBundleReview() {
+    let diagnostic = KeyameleonDiagnosticDataService(
+        store: InMemoryDiagnosticDataStore()
+    )
+    diagnostic.record(code: .discoveryFailed, identityKey: nil, switchingStatus: nil)
+
+    let model = KeyameleonGeneralSettingsModel(
+        launchAtLoginController: FakeLaunchAtLoginController(isEnabled: false),
+        updateChecker: FakeUpdateChecker(canCheck: false),
+        diagnosticDataController: diagnostic
+    )
+
+    #expect(model.diagnosticBundle.summary.recordCount == 1)
+
+    diagnostic.record(code: .permissionDenied, identityKey: nil, switchingStatus: nil)
+    model.refresh()
+
+    #expect(model.diagnosticBundle.summary.recordCount == 2)
+}
+
+@MainActor
+@Test("Diagnostic Bundle review updates when a Diagnostic Session expires")
+func diagnosticBundleReviewUpdatesWhenSessionExpires() {
+    let clock = ManualClock()
+    let diagnostic = KeyameleonDiagnosticDataService(
+        store: InMemoryDiagnosticDataStore(),
+        clock: clock
+    )
+    let model = KeyameleonGeneralSettingsModel(
+        launchAtLoginController: FakeLaunchAtLoginController(isEnabled: false),
+        updateChecker: FakeUpdateChecker(canCheck: false),
+        diagnosticDataController: diagnostic
+    )
+
+    model.startDiagnosticSession()
+    #expect(model.diagnosticBundle.summary.recordCount == 1)
+
+    clock.advance(by: DiagnosticDataPolicy.maximumSessionDuration)
+    diagnostic.enforceSessionLimit()
+
+    #expect(!model.isDiagnosticSessionActive)
+    #expect(model.diagnosticBundle.summary.recordCount == 2)
+    #expect(model.diagnosticBundle.summary.includedCategories == [.sessionLifecycle])
 }
 
 @MainActor

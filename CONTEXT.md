@@ -50,6 +50,10 @@ _Avoid_: Debug mode, logging mode
 A user-created export of Diagnostic Data for bug investigation. The user can save it or send it through the macOS share interface.
 _Avoid_: Log archive, debug dump
 
+**Unclean Exit**:
+A launch condition where the previous Keyameleon process did not complete normal termination. Keyameleon keeps one local notice for the user to review or dismiss.
+_Avoid_: Crash report, automatic crash notice
+
 **Active Physical Keyboard**:
 The Physical Keyboard that produced the last Activation Activity that Keyameleon observed. Keyameleon does not carry this condition across an app restart; after restart, there is no Active Physical Keyboard until new Activation Activity.
 _Avoid_: Current keyboard, last keyboard

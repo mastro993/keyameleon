@@ -12,7 +12,15 @@
 - Service: `KeyameleonDiagnosticDataService` + `InMemory`/`SwiftData` store; `ClockProviding`.
 - Wire: SetupModel records operational state/errors; session-only detailed codes; forget deletes linked diagnostics.
 - UI: General Settings → Diagnostics (start/stop session, clear all).
-- Tests: `KeyameleonDiagnosticDataTests.swift`. Bundle export = #14.
+- Tests: `KeyameleonDiagnosticDataTests.swift`. Diagnostic Bundle review, save, and share = #14.
+
+## 2026-08-10 — Issue #14 Review, save, and share Diagnostic Bundles
+
+- Domain: `DiagnosticBundleBuilder` produces closed-schema JSON and a review summary.
+- UI: Guided setup and General Settings show categories, exclusions, date range, record count, and size before explicit Save or Share.
+- Save: user-selected destination through `fileExporter`; Share: macOS share interface through `ShareLink`.
+- Lifecycle: local unclean-exit marker adds one dismissible Menu first notice with Review Diagnostics…; no notification.
+- Tests: sensitive sentinel exclusion and unclean-exit/menu notice coverage.
 
 ## 2026-08-10 — Issue #10
 
