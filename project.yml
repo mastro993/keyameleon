@@ -22,6 +22,7 @@ settings:
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
     CODE_SIGNING_REQUIRED: NO
+    # Official Release overrides these from the vMAJOR.MINOR.PATCH tag.
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 
@@ -42,6 +43,8 @@ targets:
       path: Sources/App/Info.plist
       properties:
         CFBundleDisplayName: Keyameleon
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         # Sparkle 2: user-approved, 24h-bounded checks; no auto-install; no system profiling.
         SUFeedURL: https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml

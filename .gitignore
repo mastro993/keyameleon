@@ -127,3 +127,19 @@ fastlane/test_output
 # Local agent work
 /.scratch/
 /.superpowers/
+
+# Official Release secrets and local key material (never commit)
+secrets/
+*.p12
+*.p8
+*.cer
+*.certSigningRequest
+AuthKey_*.p8
+sparkle_eddsa_private.key
+sparkle_private_key
+*.pem
+!**/Package.resolved
+
+# Official Release local output
+dist/
+build/official-release/

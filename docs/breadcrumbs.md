@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #16
+
+- Implement Official Release path: SemVer tag workflow, sign/notarize/staple script, Sparkle appcast, evidence JSON, GPL-3.0-only + notices, SECURITY Supported Release, DCO/CONTRIBUTING.
+- Host limits: private free tier cannot set environment required reviewers or branch protection via API — documented for lead maintainer.
+- Env `official-release` created empty; secrets still must be added by maintainer before first real release.
+
 ## 2026-08-10 — Issue #5
 
 - Issue #5: implement Activity-Triggered Switching.
