@@ -1,5 +1,12 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #6
+
+- Issue #6: converge after rapid activity + external Input Source changes.
+- Parent #1; blocked-by #5 closed.
+- Shipped: wanted generation, stale-readback discard, external change observer (no fight), mismatch UI/menu, A-B-A + rapid-order tests.
+- Out of scope: Pause (#7), Retry Now (#10 failure recovery).
+
 ## 2026-08-10 — Issue #5
 
 - Issue #5: implement Activity-Triggered Switching.
