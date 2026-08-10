@@ -36,10 +36,12 @@ class QualificationEvaluatorTests(unittest.TestCase):
 
     def guided_evidence(self, case):
         record = self.base_evidence(case)
+        durations = [112, 124, 131, 145, 157]
         record.update(
             {
                 "participants": 5,
-                "durationsSeconds": [112, 124, 131, 145, 157],
+                "durationsSeconds": durations,
+                "participantRuns": [self.participant_run(duration) for duration in durations],
                 "newMultilingualProfessionals": True,
                 "noSeparateDocumentation": True,
                 "startedFromNewGuidedSetup": True,
@@ -54,6 +56,23 @@ class QualificationEvaluatorTests(unittest.TestCase):
             }
         )
         return record
+
+    def participant_run(self, duration, **overrides):
+        run = {
+            "durationSeconds": duration,
+            "newMultilingualProfessional": True,
+            "noSeparateDocumentation": True,
+            "startedFromNewGuidedSetup": True,
+            "listenPermissionGranted": True,
+            "builtInPhysicalKeyboard": True,
+            "externalPhysicalKeyboardCount": 1,
+            "keyboardAssignmentsCreated": 2,
+            "notificationChoiceRecorded": True,
+            "reachedReady": True,
+            "manualDesignationUsed": False,
+        }
+        run.update(overrides)
+        return run
 
     def test_required_cases_cover_each_case_on_both_supported_versions(self):
         cases = qualification.required_cases()
@@ -96,6 +115,33 @@ class QualificationEvaluatorTests(unittest.TestCase):
         case = self.case("guided-setup-macos-26")
         record = self.guided_evidence(case)
         record["durationsSeconds"] = [112, 124, float("nan"), 145, 157]
+
+        result = qualification.evaluate_case(case, record)
+
+        self.assertEqual(result["status"], "failed")
+
+    def test_guided_setup_requires_five_individual_runs(self):
+        case = self.case("guided-setup-macos-26")
+        record = self.guided_evidence(case)
+        record["participantRuns"] = record["participantRuns"][:4]
+
+        result = qualification.evaluate_case(case, record)
+
+        self.assertEqual(result["status"], "inconclusive")
+
+    def test_guided_setup_requires_each_run_to_start_from_new_guided_setup(self):
+        case = self.case("guided-setup-macos-26")
+        record = self.guided_evidence(case)
+        record["participantRuns"][2]["startedFromNewGuidedSetup"] = False
+
+        result = qualification.evaluate_case(case, record)
+
+        self.assertEqual(result["status"], "failed")
+
+    def test_guided_setup_requires_each_run_to_use_one_external_keyboard(self):
+        case = self.case("guided-setup-macos-26")
+        record = self.guided_evidence(case)
+        record["participantRuns"][1]["externalPhysicalKeyboardCount"] = 2
 
         result = qualification.evaluate_case(case, record)
 

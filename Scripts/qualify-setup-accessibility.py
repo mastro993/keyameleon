@@ -24,6 +24,19 @@ VALID_STATUSES = {PASS, FAIL, INCONCLUSIVE}
 EVIDENCE_REFERENCE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 MACOS_BUILD_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 GIT_COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+PARTICIPANT_RUN_FIELDS = (
+    "durationSeconds",
+    "newMultilingualProfessional",
+    "noSeparateDocumentation",
+    "startedFromNewGuidedSetup",
+    "listenPermissionGranted",
+    "builtInPhysicalKeyboard",
+    "externalPhysicalKeyboardCount",
+    "keyboardAssignmentsCreated",
+    "notificationChoiceRecorded",
+    "reachedReady",
+    "manualDesignationUsed",
+)
 CASE_REQUIRED_EVIDENCE_FIELDS = {
     "management": (
         "keyboardOperation",
@@ -378,8 +391,10 @@ def evaluate_guided_setup_case(
     required_fields = (
         "participants",
         "durationsSeconds",
+        "participantRuns",
         "newMultilingualProfessionals",
         "noSeparateDocumentation",
+        "startedFromNewGuidedSetup",
         "listenPermissionGranted",
         "builtInPhysicalKeyboard",
         "externalPhysicalKeyboard",
@@ -400,14 +415,95 @@ def evaluate_guided_setup_case(
     if type(participants) is not int or not isinstance(durations, list):
         result["reason"] = "Timed journey evidence has invalid measurements."
         return result
-    if len(durations) < participants or any(
-        not is_number(value) for value in durations
-    ):
-        return fail_case(result, "Timed journey duration evidence is invalid.")
-    if participants < 5 or len(durations) < 5:
+    if participants != 5:
+        return fail_case(result, "Exactly five Multilingual Professionals are required.")
+    participant_runs = record["participantRuns"]
+    if not isinstance(participant_runs, list) or len(participant_runs) < 5:
+        result["reason"] = "Five individual timed journeys were not supplied."
+        return result
+    if len(participant_runs) != participants:
         return fail_case(
-            result, "Fewer than five Multilingual Professionals were measured."
+            result, "The participant run count does not match the participant count."
         )
+    if len(durations) != participants:
+        result["reason"] = "Timed journey duration evidence is incomplete or invalid."
+        return result
+    if any(not is_number(value) for value in durations):
+        return fail_case(result, "Timed journey duration evidence is invalid.")
+    for index, participant_run in enumerate(participant_runs, start=1):
+        if not isinstance(participant_run, dict):
+            result["reason"] = f"Participant run {index} is not an object."
+            return result
+        missing_run_fields = [
+            field for field in PARTICIPANT_RUN_FIELDS if field not in participant_run
+        ]
+        if missing_run_fields:
+            result["reason"] = f"Participant run {index} is incomplete."
+            result["missingFields"] = missing_run_fields
+            return result
+        if not is_number(participant_run["durationSeconds"]):
+            return fail_case(result, f"Participant run {index} has an invalid duration.")
+        if participant_run["durationSeconds"] >= 180 or participant_run[
+            "durationSeconds"
+        ] < 0:
+            return fail_case(
+                result, f"Participant run {index} reached or exceeded 3 minutes."
+            )
+        boolean_fields = (
+            "newMultilingualProfessional",
+            "noSeparateDocumentation",
+            "startedFromNewGuidedSetup",
+            "listenPermissionGranted",
+            "builtInPhysicalKeyboard",
+            "notificationChoiceRecorded",
+            "reachedReady",
+            "manualDesignationUsed",
+        )
+        if any(type(participant_run[field]) is not bool for field in boolean_fields):
+            result["reason"] = f"Participant run {index} has invalid checks."
+            return result
+        if participant_run["newMultilingualProfessional"] is not True:
+            return fail_case(
+                result, f"Participant run {index} was not a new Multilingual Professional."
+            )
+        if participant_run["noSeparateDocumentation"] is not True:
+            return fail_case(result, f"Participant run {index} used separate documentation.")
+        if participant_run["startedFromNewGuidedSetup"] is not True:
+            return fail_case(
+                result, f"Participant run {index} did not start from new Guided setup."
+            )
+        if participant_run["listenPermissionGranted"] is not True:
+            return fail_case(result, f"Participant run {index} did not grant listen permission.")
+        if participant_run["builtInPhysicalKeyboard"] is not True:
+            return fail_case(
+                result, f"Participant run {index} did not use the built-in Physical Keyboard."
+            )
+        if type(participant_run["externalPhysicalKeyboardCount"]) is not int or participant_run[
+            "externalPhysicalKeyboardCount"
+        ] != 1:
+            return fail_case(
+                result,
+                f"Participant run {index} did not use exactly one external Physical Keyboard.",
+            )
+        if type(participant_run["keyboardAssignmentsCreated"]) is not int or participant_run[
+            "keyboardAssignmentsCreated"
+        ] != 2:
+            return fail_case(
+                result,
+                f"Participant run {index} did not create exactly two Keyboard Assignments.",
+            )
+        if participant_run["notificationChoiceRecorded"] is not True:
+            return fail_case(result, f"Participant run {index} did not record the notification choice.")
+        if participant_run["reachedReady"] is not True:
+            return fail_case(result, f"Participant run {index} did not reach Ready.")
+        if participant_run["manualDesignationUsed"] is not False:
+            return fail_case(
+                result,
+                f"Participant run {index} entered Manual Physical Keyboard Designation.",
+            )
+    if durations != [participant_run["durationSeconds"] for participant_run in participant_runs]:
+        result["reason"] = "Timed journey durations do not match individual run evidence."
+        return result
     if record["newMultilingualProfessionals"] is not True:
         return fail_case(
             result, "The measured participants were not all new Multilingual Professionals."

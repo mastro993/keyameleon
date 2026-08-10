@@ -38,6 +38,73 @@ Create a JSON file with aggregate, privacy-safe evidence:
       "macOSBuild": "25F84",
       "participants": 5,
       "durationsSeconds": [112, 124, 131, 145, 157],
+      "participantRuns": [
+        {
+          "durationSeconds": 112,
+          "newMultilingualProfessional": true,
+          "noSeparateDocumentation": true,
+          "startedFromNewGuidedSetup": true,
+          "listenPermissionGranted": true,
+          "builtInPhysicalKeyboard": true,
+          "externalPhysicalKeyboardCount": 1,
+          "keyboardAssignmentsCreated": 2,
+          "notificationChoiceRecorded": true,
+          "reachedReady": true,
+          "manualDesignationUsed": false
+        },
+        {
+          "durationSeconds": 124,
+          "newMultilingualProfessional": true,
+          "noSeparateDocumentation": true,
+          "startedFromNewGuidedSetup": true,
+          "listenPermissionGranted": true,
+          "builtInPhysicalKeyboard": true,
+          "externalPhysicalKeyboardCount": 1,
+          "keyboardAssignmentsCreated": 2,
+          "notificationChoiceRecorded": true,
+          "reachedReady": true,
+          "manualDesignationUsed": false
+        },
+        {
+          "durationSeconds": 131,
+          "newMultilingualProfessional": true,
+          "noSeparateDocumentation": true,
+          "startedFromNewGuidedSetup": true,
+          "listenPermissionGranted": true,
+          "builtInPhysicalKeyboard": true,
+          "externalPhysicalKeyboardCount": 1,
+          "keyboardAssignmentsCreated": 2,
+          "notificationChoiceRecorded": true,
+          "reachedReady": true,
+          "manualDesignationUsed": false
+        },
+        {
+          "durationSeconds": 145,
+          "newMultilingualProfessional": true,
+          "noSeparateDocumentation": true,
+          "startedFromNewGuidedSetup": true,
+          "listenPermissionGranted": true,
+          "builtInPhysicalKeyboard": true,
+          "externalPhysicalKeyboardCount": 1,
+          "keyboardAssignmentsCreated": 2,
+          "notificationChoiceRecorded": true,
+          "reachedReady": true,
+          "manualDesignationUsed": false
+        },
+        {
+          "durationSeconds": 157,
+          "newMultilingualProfessional": true,
+          "noSeparateDocumentation": true,
+          "startedFromNewGuidedSetup": true,
+          "listenPermissionGranted": true,
+          "builtInPhysicalKeyboard": true,
+          "externalPhysicalKeyboardCount": 1,
+          "keyboardAssignmentsCreated": 2,
+          "notificationChoiceRecorded": true,
+          "reachedReady": true,
+          "manualDesignationUsed": false
+        }
+      ],
       "newMultilingualProfessionals": true,
       "noSeparateDocumentation": true,
       "startedFromNewGuidedSetup": true,
@@ -77,7 +144,7 @@ Every passed case also includes a safe `qualificationRunRef`, the 40-character `
 
 Each additional check must be boolean `true` for a passed case. A missing or invalid check is `inconclusive`; an explicit `false` is `failed`.
 
-Guided setup evidence also requires `newMultilingualProfessionals`, `noSeparateDocumentation`, `startedFromNewGuidedSetup`, and `listenPermissionGranted` to be boolean `true`. `keyboardAssignmentsCreatedDuringJourney` and `keyboardAssignmentCount` must each equal `2`.
+Guided setup evidence also requires five `participantRuns`. Each run must include a duration below 180 seconds, a new Multilingual Professional, no separate documentation, new Guided setup start, listen permission, the built-in Physical Keyboard, exactly one external Physical Keyboard, exactly two created Keyboard Assignments, the notification choice, `Ready`, and no Manual Physical Keyboard Designation. The top-level `durationsSeconds` list must match the five run durations. Aggregate fields `newMultilingualProfessionals`, `noSeparateDocumentation`, `startedFromNewGuidedSetup`, and `listenPermissionGranted` must be boolean `true`. `keyboardAssignmentsCreatedDuringJourney` and `keyboardAssignmentCount` must each equal `2`.
 
 ## Timed Guided setup journey
 
