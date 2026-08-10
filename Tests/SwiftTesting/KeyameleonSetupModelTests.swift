@@ -199,6 +199,7 @@ final class SetupModelTestSetupDecisionStore: SetupDecisionStoring {
     private(set) var hasStartedGuidedSetup = false
     private(set) var hasCompletedGuidedSetup = false
     private(set) var guidedSetupStep: GuidedSetupStep = .permission
+    private(set) var isActivityTriggeredSwitchingPaused = false
 
     func markGuidedSetupStarted() {
         hasStartedGuidedSetup = true
@@ -216,6 +217,10 @@ final class SetupModelTestSetupDecisionStore: SetupDecisionStoring {
         hasStartedGuidedSetup = true
         hasCompletedGuidedSetup = true
         guidedSetupStep = .assignments
+    }
+
+    func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
+        isActivityTriggeredSwitchingPaused = paused
     }
 }
 

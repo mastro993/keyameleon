@@ -295,8 +295,11 @@ func catalogResolvesPhysicalKeyboardByServiceIDForAttribution() {
 final class SetupModelTestInputSourceSelector: InputSourceSelecting {
     var current: String?
     var verifySuccess: Bool
+    var onSelect: ((String) -> Void)?
     private(set) var selectCount = 0
+    private(set) var readbackCount = 0
     private(set) var lastRequestedIdentifier: String?
+    private(set) var requestedIdentifiers: [String] = []
 
     init(current: String? = nil, verifySuccess: Bool = true) {
         self.current = current
@@ -310,6 +313,10 @@ final class SetupModelTestInputSourceSelector: InputSourceSelecting {
     func selectAndVerifyInputSource(identifier: String) -> Bool {
         selectCount += 1
         lastRequestedIdentifier = identifier
+        requestedIdentifiers.append(identifier)
+        onSelect?(identifier)
+        // Exact-identifier readback after selection request.
+        readbackCount += 1
         guard verifySuccess else {
             return false
         }

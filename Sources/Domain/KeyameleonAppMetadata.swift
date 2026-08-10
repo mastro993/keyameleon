@@ -5,6 +5,14 @@ enum KeyameleonAppMetadata {
     static let menuBarAccessibilityLabel = "Keyameleon"
     static let guidedSetupTitle = "Guided setup"
     static let switchingStatusMenuItemPrefix = "Switching Status:"
+    static let activePhysicalKeyboardMenuItemPrefix = "Active Physical Keyboard:"
+    static let keyboardAssignmentMenuItemPrefix = "Keyboard Assignment:"
+    static let currentInputSourceMenuItemPrefix = "Current Input Source:"
+    static let needsActionMenuItemPrefix = "Needs action:"
+    static let noActivityObservedYet = "No activity observed yet"
+    static let menuValueUnavailable = "—"
+    static let pauseActivityTriggeredSwitchingMenuItemTitle = "Pause Activity-Triggered Switching"
+    static let resumeActivityTriggeredSwitchingMenuItemTitle = "Resume Activity-Triggered Switching"
     static let openMenuItemTitle = "Open Keyameleon…"
     static let continueSetupMenuItemTitle = "Continue Setup…"
     static let openSystemSettingsMenuItemTitle = "Open System Settings"
@@ -27,10 +35,12 @@ enum KeyameleonAppMetadata {
     static let physicalKeyboardNameLabel = "Physical Keyboard Name"
     static let keyboardAssignmentLabel = "Keyboard Assignment"
     static let assignmentAppliesAfterActivation = "Applies after next Activation Activity"
+    static let currentInputSourceLabel = "Current Input Source"
+    static let assignedInputSourceLabel = "Assigned Input Source"
+    static let inputSourceRestoresAfterActivation =
+        "Later Activation Activity restores the Keyboard Assignment."
     static let assignmentPickerTitle = "Choose Input Source"
     static let assignmentSearchPrompt = "Search Input Sources"
-    static let activePhysicalKeyboardMenuItemPrefix = "Active Physical Keyboard:"
-    static let noActivityObservedYet = "No activity observed yet"
     static let replaceSavedPhysicalKeyboardPickerTitle = "Replace Saved Physical Keyboard"
     static let systemSettingsURL = "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
     static let uiTestingResetSetupLaunchArgument = "--reset-guided-setup"
@@ -54,13 +64,32 @@ enum KeyameleonAppMetadata {
         "Normal input is unchanged. Retry Now retries the current wanted Keyboard Assignment. Later Activation Activity can also start a new request."
     static let unavailableKeyboardAssignmentRecoveryExplanation =
         "The saved Keyboard Assignment remains. Change Assignment or Remove Assignment. Switching restores automatically only when the exact saved Input Source identifier returns."
+    static let manualDesignationButtonTitle = "Manual Physical Keyboard Designation…"
+    static let manualDesignationConfirmNameButtonTitle = "Confirm Physical Keyboard Name"
+    static let manualDesignationCancelButtonTitle = "Cancel Designation"
+    static let manualDesignationAwaitingRemovalMessage =
+        "Unplug or turn off this Physical Keyboard, then return it."
+    static let manualDesignationAwaitingReturnMessage =
+        "Return the same Physical Keyboard to continue."
+    static let manualDesignationAwaitingNameMessage =
+        "Confirm the Physical Keyboard Name to save Manual Physical Keyboard Designation."
+    static let manualDesignationNameFieldLabel = "Physical Keyboard Name"
+    static let manualDesignationExplanation =
+        "Keyameleon can save this external identity group as a Physical Keyboard only after it leaves, returns, and you confirm its name."
 
     static func switchingStatusMenuItemTitle(_ status: SwitchingStatus) -> String {
         "\(switchingStatusMenuItemPrefix) \(status.displayName)"
     }
 
-    static func activePhysicalKeyboardMenuItemTitle(_ name: String?) -> String {
-        let value = name ?? noActivityObservedYet
-        return "\(activePhysicalKeyboardMenuItemPrefix) \(value)"
+    static func activePhysicalKeyboardMenuItemTitle(_ value: String) -> String {
+        "\(activePhysicalKeyboardMenuItemPrefix) \(value)"
+    }
+
+    static func keyboardAssignmentMenuItemTitle(_ value: String) -> String {
+        "\(keyboardAssignmentMenuItemPrefix) \(value)"
+    }
+
+    static func currentInputSourceMenuItemTitle(_ value: String) -> String {
+        "\(currentInputSourceMenuItemPrefix) \(value)"
     }
 }

@@ -292,6 +292,21 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
         )
     }
 
+    /// Elevates unsupported identity groups after authentic Manual Physical Keyboard Designation.
+    func elevatingWithManualDesignation(confirmedName: String) -> PhysicalKeyboard {
+        PhysicalKeyboard(
+            id: id,
+            productName: productName,
+            customName: confirmedName,
+            transport: transport,
+            isBuiltIn: isBuiltIn,
+            assignmentState: .unassigned,
+            connectedServiceCount: connectedServiceCount,
+            connectionState: connectionState,
+            isActive: isActive
+        )
+    }
+
     func markingActive(_ isActive: Bool) -> PhysicalKeyboard {
         PhysicalKeyboard(
             id: id,
