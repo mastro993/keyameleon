@@ -20,6 +20,8 @@ struct KeyameleonRootView: View {
                 } else {
                     guidedSetup
                 }
+
+                configuration
             }
             .padding(28)
         }
@@ -97,5 +99,66 @@ struct KeyameleonRootView: View {
                 model.refreshPermission()
             }
         }
+    }
+
+    private var configuration: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Physical Keyboards")
+                .font(.headline)
+
+            if model.physicalKeyboards.isEmpty {
+                Text("No Physical Keyboards found.")
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(model.physicalKeyboards) { physicalKeyboard in
+                        physicalKeyboardRow(physicalKeyboard)
+                    }
+                }
+            }
+
+            Text("Input Sources")
+                .font(.headline)
+
+            if model.eligibleInputSources.isEmpty {
+                Text("No eligible Input Sources found.")
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(model.eligibleInputSources) { inputSource in
+                        Text(inputSource.name)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func physicalKeyboardRow(_ physicalKeyboard: PhysicalKeyboard) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(physicalKeyboard.name)
+                .font(.body.weight(.medium))
+
+            Text(
+                physicalKeyboard.isBuiltIn
+                    ? "Built-in"
+                    : physicalKeyboard.transport.displayName
+            )
+            .foregroundStyle(.secondary)
+
+            Text(physicalKeyboard.statusDescription)
+                .foregroundStyle(
+                    physicalKeyboard.isAssignable ? Color.secondary : Color.orange
+                )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(physicalKeyboard.name)
+        .accessibilityValue(
+            "\(physicalKeyboard.isBuiltIn ? "Built-in" : physicalKeyboard.transport.displayName), \(physicalKeyboard.statusDescription)"
+        )
     }
 }
