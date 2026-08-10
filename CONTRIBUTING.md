@@ -11,26 +11,8 @@ Changes land on `main` only through pull requests. Direct pushes to `main` are
 not the contribution path. Each PR must:
 
 1. Pass required CI (`CI` workflow: audit, build, tests, license checks)
-2. Pass the `DCO` workflow (Developer Certificate of Origin)
-3. Include applicable tests for the behavior change
-4. Use glossary terms from `CONTEXT.md` when naming domain concepts
-
-## Developer Certificate of Origin
-
-Every commit must include a sign-off:
-
-```sh
-git commit -s -m "feat: describe change"
-```
-
-This adds:
-
-```
-Signed-off-by: Your Name <you@example.com>
-```
-
-The sign-off certifies the [Developer Certificate of Origin](https://developercertificate.org/).
-Use your real name; anonymous or pseudonymous sign-off is not accepted.
+2. Include applicable tests for the behavior change
+3. Use glossary terms from `CONTEXT.md` when naming domain concepts
 
 ## Tests
 

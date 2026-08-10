@@ -30,7 +30,7 @@
 - Secrets: Developer ID p12, notarytool API key, Sparkle EdDSA private+public — env/repo secrets only; `.gitignore` for local key material + `dist/`.
 - Sparkle public key injected at Official Release build (`SUPublicEDKey`); debug builds may omit (existing #15 behavior).
 - Artifacts on one GitHub Releases channel: zip, source tar.gz, `appcast.xml`, `release-evidence.json`.
-- DCO required via workflow + CONTRIBUTING; CI required checks documented for `main` protection.
+- CI required checks documented for `main` protection.
 - `SKIP_NOTARIZE=1` local path is not an Official Release.
 
 ## 2026-08-10 — Issue #13 Diagnostic Data + Diagnostic Sessions
