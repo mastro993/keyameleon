@@ -270,11 +270,7 @@ struct KeyameleonRootView: View {
             switchingStatus
             activePhysicalKeyboardStatus
 
-            Text(
-                model.switchingStatus == .ready
-                    ? "Activity-Triggered Switching can observe Activation Activity."
-                    : "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
-            )
+            Text(switchingStatusExplanation(for: model.switchingStatus))
 
             Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
                 .foregroundStyle(.secondary)
@@ -309,10 +305,33 @@ struct KeyameleonRootView: View {
                 model.activePhysicalKeyboard?.name
                     ?? KeyameleonAppMetadata.noActivityObservedYet
             )
+
+            if let mismatch = model.activeInputSourceMismatch {
+                inputSourceMismatchStatus(mismatch)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func inputSourceMismatchStatus(
+        _ mismatch: InputSourceMismatchPresentation
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\(KeyameleonAppMetadata.currentInputSourceLabel): \(mismatch.currentName)")
+                .font(.callout)
+            Text("\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)")
+                .font(.callout)
+            Text(mismatch.restorationExplanation)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(KeyameleonAppMetadata.currentInputSourceLabel) \(mismatch.currentName). \(KeyameleonAppMetadata.assignedInputSourceLabel) \(mismatch.assignedName). \(mismatch.restorationExplanation)"
+        )
     }
 
     private var recoveryActions: some View {
@@ -487,6 +506,19 @@ struct KeyameleonRootView: View {
                 ? "\(KeyameleonAppMetadata.activePhysicalKeyboardLabel) · \(connectionDescription(for: physicalKeyboard))"
                 : connectionDescription(for: physicalKeyboard)
         )
+    }
+
+    private func switchingStatusExplanation(for status: SwitchingStatus) -> String {
+        switch status {
+        case .ready:
+            "Activity-Triggered Switching can observe Activation Activity."
+        case .permissionRequired:
+            "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
+        case .paused:
+            "Activity-Triggered Switching is paused. Key Content observation and Input Source requests are stopped. Management and settings stay available."
+        case .temporarilyUnavailable:
+            "Activity-Triggered Switching is temporarily unavailable. It resumes automatically when the session permits."
+        }
     }
 
     private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {

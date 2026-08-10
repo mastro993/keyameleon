@@ -18,7 +18,33 @@
 - Identity change: no auto migrate/delete of designation or records.
 - Forget deletes designation for that identityKey.
 
+## 2026-08-10 — Issue #7 Menu first + pause
+
+- **Pause persist**: `SetupDecisionStoring.isActivityTriggeredSwitchingPaused` / UserDefaults key `keyameleon.activityTriggeredSwitching.paused`.
+- **Status resolve**: pure `SwitchingStatus.resolve` priority Permission Required → Temporarily Unavailable → Paused → Ready.
+- **Discovery vs observe**: Paused keeps Physical Keyboard discovery for management; stops Key Content observation + Input Source requests (`allowsPhysicalKeyboardDiscovery` vs `allowsActivityTriggeredSwitching`).
+- **Temp unavailable**: flag slot on SetupModel for #11; no sleep/lock wiring in #7.
+- **Menu bar icon**: SF Symbol shapes per `MenuBarIconMark` (not color-only). Item warning only when Ready.
+- **Menu first action items**: unassigned + Unavailable Keyboard Assignment lines; incomplete setup still uses Continue Setup….
+- **Resume**: clear pause → recheck listen permission → start observation only if Ready.
+
 ## 2026-08-10
+
+### Issue #6 Converge after rapid activity and external changes
+
+Seams under test:
+- `KeyameleonSetupModel.handlePhysicalKeyboardEvent` — serial activity consumer (observation order).
+- Wanted Keyboard Assignment generation on `KeyameleonSetupModel` — bump per select need; discard stale readback.
+- `InputSourceChangeObserving` — external Input Source changes (manual / shortcut / other apps).
+- `activeInputSourceMismatch` presentation — current vs assigned when they differ.
+- `KeyameleonAppMetadata` restore copy.
+
+Defaults:
+- Sync TIS select still generation-gated so nested/reentrant activity cannot apply stale verify.
+- External change: update observed current, clear verified when current ≠ verified, never select.
+- Coalesce only when wanted + verified + current all match the assignment.
+- UI/Menu first show current + assigned names + restore explanation only on mismatch for Active assigned keyboard.
+- System observer: `DistributedNotificationCenter` + `kTISNotifySelectedKeyboardInputSourceChanged`.
 
 ### Issue #5 Activity-Triggered Switching seams
 
