@@ -65,6 +65,12 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.italian", name: "Italian"),
+                EligibleInputSource(identifier: "com.example.other", name: "Other"),
+            ]
+        ),
         inputSourceSelector: selector
     )
     model.onChange = { onChangeCount += 1 }
@@ -135,6 +141,11 @@ func verifiedAssignmentCoalescesFurtherActivationActivityWithoutReselect() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.us", name: "U.S.")
+            ]
+        ),
         inputSourceSelector: selector
     )
 
@@ -167,6 +178,12 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+                EligibleInputSource(identifier: "com.example.other", name: "Other"),
+            ]
+        ),
         inputSourceSelector: selector
     )
 
@@ -278,8 +295,11 @@ func catalogResolvesPhysicalKeyboardByServiceIDForAttribution() {
 final class SetupModelTestInputSourceSelector: InputSourceSelecting {
     var current: String?
     var verifySuccess: Bool
+    var onSelect: ((String) -> Void)?
     private(set) var selectCount = 0
+    private(set) var readbackCount = 0
     private(set) var lastRequestedIdentifier: String?
+    private(set) var requestedIdentifiers: [String] = []
 
     init(current: String? = nil, verifySuccess: Bool = true) {
         self.current = current
@@ -293,6 +313,10 @@ final class SetupModelTestInputSourceSelector: InputSourceSelecting {
     func selectAndVerifyInputSource(identifier: String) -> Bool {
         selectCount += 1
         lastRequestedIdentifier = identifier
+        requestedIdentifiers.append(identifier)
+        onSelect?(identifier)
+        // Exact-identifier readback after selection request.
+        readbackCount += 1
         guard verifySuccess else {
             return false
         }

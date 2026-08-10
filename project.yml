@@ -59,7 +59,9 @@ targets:
       - sdk: AppKit.framework
       - sdk: Carbon.framework
       - sdk: CoreHID.framework
+      - sdk: CryptoKit.framework
       - sdk: IOKit.framework
+      - sdk: Security.framework
       - sdk: ServiceManagement.framework
       - sdk: SwiftData.framework
       - sdk: SwiftUI.framework

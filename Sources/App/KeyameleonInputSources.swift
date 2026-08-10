@@ -17,6 +17,59 @@ protocol InputSourceSelecting: AnyObject {
 }
 
 @MainActor
+protocol InputSourceChangeObserving: AnyObject {
+    /// Observe external Input Source selection changes (manual, shortcut, other apps).
+    func start(onChange: @escaping @MainActor () -> Void)
+    func stop()
+}
+
+@MainActor
+final class NoOpInputSourceChangeObserver: InputSourceChangeObserving {
+    func start(onChange: @escaping @MainActor () -> Void) {}
+    func stop() {}
+}
+
+@MainActor
+final class SystemInputSourceChangeObserver: InputSourceChangeObserving {
+    // Token removed from DistributedNotificationCenter on stop; unsafe for deinit only.
+    private nonisolated(unsafe) var observer: NSObjectProtocol?
+
+    func start(onChange: @escaping @MainActor () -> Void) {
+        stop()
+        let name = Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String)
+        observer = DistributedNotificationCenter.default().addObserver(
+            forName: name,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                onChange()
+            }
+        }
+    }
+
+    func stop() {
+        if let observer {
+            DistributedNotificationCenter.default().removeObserver(observer)
+            self.observer = nil
+        }
+    }
+
+    deinit {
+        if let observer {
+            DistributedNotificationCenter.default().removeObserver(observer)
+        }
+    }
+}
+
+/// Presentation when the observed current Input Source differs from the Active assignment.
+struct InputSourceMismatchPresentation: Equatable, Sendable {
+    let currentName: String
+    let assignedName: String
+    let restorationExplanation: String
+}
+
+@MainActor
 final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelecting {
     func eligibleInputSources() -> [EligibleInputSource] {
         inputSourceFacts().map { facts in
