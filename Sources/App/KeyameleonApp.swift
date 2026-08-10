@@ -7,7 +7,7 @@ struct KeyameleonApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            KeyameleonGeneralSettingsView(model: applicationDelegate.generalSettingsModel)
         }
     }
 }

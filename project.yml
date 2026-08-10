@@ -6,6 +6,11 @@ options:
   developmentLanguage: en
   createIntermediateGroups: true
 
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -19,7 +24,6 @@ settings:
     CODE_SIGNING_REQUIRED: NO
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    SYMROOT: build
 
 targets:
   Keyameleon:
@@ -34,11 +38,26 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Keyameleon
         INFOPLIST_KEY_LSUIElement: YES
+    info:
+      path: Sources/App/Info.plist
+      properties:
+        CFBundleDisplayName: Keyameleon
+        LSUIElement: true
+        # Sparkle 2: user-approved, 24h-bounded checks; no auto-install; no system profiling.
+        SUFeedURL: https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
+        SUAutomaticallyUpdate: false
+        SUAllowsAutomaticUpdates: false
+        SUEnableSystemProfiling: false
     dependencies:
+      - package: Sparkle
+        product: Sparkle
       - sdk: AppKit.framework
       - sdk: Carbon.framework
       - sdk: CoreHID.framework
       - sdk: IOKit.framework
+      - sdk: ServiceManagement.framework
       - sdk: SwiftData.framework
       - sdk: SwiftUI.framework
 

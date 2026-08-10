@@ -12,4 +12,8 @@ func keyameleonShellMenuContract() {
     #expect(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle == "Open System Settings")
     #expect(KeyameleonAppMetadata.checkAgainMenuItemTitle == "Check Again")
     #expect(KeyameleonAppMetadata.quitMenuItemTitle == "Quit Keyameleon")
+    #expect(KeyameleonAppMetadata.settingsMenuItemTitle == "Settings…")
+    #expect(KeyameleonAppMetadata.checkForUpdatesMenuItemTitle == "Check for Updates…")
+    #expect(KeyameleonAppMetadata.generalSettingsTitle == "General")
+    #expect(KeyameleonAppMetadata.launchAtLoginToggleTitle == "Launch at Login")
 }
