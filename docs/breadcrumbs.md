@@ -1,5 +1,12 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #7
+
+- Menu first daily surface: Switching Status, Active PK, Keyboard Assignment, Current Input Source, action items, Pause/Resume.
+- Pause persists; Active PK does not. Icon marks: permission / warning / pause (+ temp unavailable).
+- Tests: `KeyameleonMenuFirstTests` + XCTest menu cases.
+- Follow-on: #11 sleep/lock → Temporarily Unavailable; #10 unavailable recovery actions; #12 no notify while Paused.
+
 ## 2026-08-10 — Issue #5
 
 - Issue #5: implement Activity-Triggered Switching.

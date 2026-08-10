@@ -16,4 +16,15 @@ func keyameleonShellMenuContract() {
     #expect(KeyameleonAppMetadata.checkForUpdatesMenuItemTitle == "Check for Updates…")
     #expect(KeyameleonAppMetadata.generalSettingsTitle == "General")
     #expect(KeyameleonAppMetadata.launchAtLoginToggleTitle == "Launch at Login")
+    #expect(KeyameleonAppMetadata.noActivityObservedYet == "No activity observed yet")
+    #expect(
+        KeyameleonAppMetadata.pauseActivityTriggeredSwitchingMenuItemTitle
+            == "Pause Activity-Triggered Switching"
+    )
+    #expect(
+        KeyameleonAppMetadata.resumeActivityTriggeredSwitchingMenuItemTitle
+            == "Resume Activity-Triggered Switching"
+    )
+    #expect(KeyameleonAppMetadata.keyboardAssignmentMenuItemPrefix == "Keyboard Assignment:")
+    #expect(KeyameleonAppMetadata.currentInputSourceMenuItemPrefix == "Current Input Source:")
 }
