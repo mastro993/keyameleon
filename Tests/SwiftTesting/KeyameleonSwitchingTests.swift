@@ -65,6 +65,12 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.italian", name: "Italian"),
+                EligibleInputSource(identifier: "com.example.other", name: "Other"),
+            ]
+        ),
         inputSourceSelector: selector
     )
     model.onChange = { onChangeCount += 1 }
@@ -135,6 +141,11 @@ func verifiedAssignmentCoalescesFurtherActivationActivityWithoutReselect() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.us", name: "U.S.")
+            ]
+        ),
         inputSourceSelector: selector
     )
 
@@ -167,6 +178,12 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+                EligibleInputSource(identifier: "com.example.other", name: "Other"),
+            ]
+        ),
         inputSourceSelector: selector
     )
 

@@ -1,5 +1,13 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #10
+
+- Recover selection failures + Unavailable Keyboard Assignments.
+- Parent #1; blocked-by #5 closed.
+- Domain warning/availability; SetupModel recovery; Retry Now; tests in `KeyameleonRecoveryTests`.
+- No timed retry; no substitute select; exact identifier return ends unavailable.
+- Merged main: keep #6 converge generation, #7 menu/pause, #9 manual designation.
+
 ## 2026-08-10 — Issue #9 Manual Physical Keyboard Designation
 
 - Issue #9: leave/return/name confirmation for eligible ambiguous external identity groups.

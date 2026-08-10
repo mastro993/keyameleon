@@ -251,6 +251,7 @@ struct KeyameleonRootView: View {
 
             switchingStatus
             activePhysicalKeyboardStatus
+            switchingWarnings
 
             HStack {
                 Button(KeyameleonAppMetadata.finishWithoutAssignmentsButtonTitle) {
@@ -269,6 +270,7 @@ struct KeyameleonRootView: View {
 
             switchingStatus
             activePhysicalKeyboardStatus
+            switchingWarnings
 
             Text(switchingStatusExplanation(for: model.switchingStatus))
 
@@ -332,6 +334,48 @@ struct KeyameleonRootView: View {
         .accessibilityLabel(
             "\(KeyameleonAppMetadata.currentInputSourceLabel) \(mismatch.currentName). \(KeyameleonAppMetadata.assignedInputSourceLabel) \(mismatch.assignedName). \(mismatch.restorationExplanation)"
         )
+    }
+
+    @ViewBuilder
+    private var switchingWarnings: some View {
+        if !model.activeWarnings.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(KeyameleonAppMetadata.switchingWarningsSectionTitle)
+                    .font(.headline)
+
+                ForEach(model.activeWarnings) { warning in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(warning.category.displayName)
+                            .font(.body.weight(.semibold))
+
+                        Text(recoveryExplanation(for: warning))
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+
+                        if warning.supportsRetryNow {
+                            Button(KeyameleonAppMetadata.retryNowButtonTitle) {
+                                model.retryNow()
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(warning.category.displayName)
+                    .accessibilityValue(warning.recoveryAction.displayName)
+                }
+            }
+        }
+    }
+
+    private func recoveryExplanation(for warning: SwitchingWarning) -> String {
+        switch warning.category {
+        case .selectionFailed:
+            KeyameleonAppMetadata.selectionFailedRecoveryExplanation
+        case .unavailableKeyboardAssignment:
+            KeyameleonAppMetadata.unavailableKeyboardAssignmentRecoveryExplanation
+        }
     }
 
     private var recoveryActions: some View {

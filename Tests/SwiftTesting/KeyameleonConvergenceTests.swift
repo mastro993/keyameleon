@@ -1,6 +1,17 @@
 import Testing
 @testable import Keyameleon
 
+@MainActor
+private func makeConvergeEligibleInputSources() -> SetupModelTestInputSourceProvider {
+    SetupModelTestInputSourceProvider(
+        inputSources: [
+            EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+            EligibleInputSource(identifier: "com.example.italian", name: "Italian"),
+            EligibleInputSource(identifier: "com.example.other", name: "Other"),
+        ]
+    )
+}
+
 @Test("Rapid A-B-A assigned activity converges to newest Keyboard Assignment")
 @MainActor
 func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
@@ -11,6 +22,7 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
     )
 
@@ -65,6 +77,7 @@ func eachWantedGenerationReceivesOneSelectionRequestAndOneReadback() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
     )
 
@@ -99,6 +112,7 @@ func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
     )
 
@@ -154,6 +168,7 @@ func repeatedActivityCoalescesWhenWantedKeyboardAssignmentAlreadyVerified() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
     )
 
@@ -283,6 +298,7 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
     )
 

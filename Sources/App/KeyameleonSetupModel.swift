@@ -107,7 +107,12 @@ final class KeyameleonSetupModel: ObservableObject {
     /// Last observed current Input Source (own select or external change). Not persisted.
     @Published private(set) var observedCurrentInputSourceIdentifier: String?
     @Published private(set) var inputSourceSelectionRequestCount = 0
+    /// Number of times a new warning cause became active. Not one per Physical Keyboard Event.
     @Published private(set) var warningEpisodeCount = 0
+    /// One warning per active cause. Plain failure category + recovery action only.
+    @Published private(set) var activeWarnings: [SwitchingWarning] = []
+    /// Latest wanted Keyboard Assignment for Retry Now (Physical Keyboard + identifier).
+    @Published private(set) var wantedKeyboardAssignment: WantedKeyboardAssignment?
     @Published private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     /// Persists across restart. Pause only Activity-Triggered Switching.
     @Published private(set) var isActivityTriggeredSwitchingPaused: Bool
@@ -130,6 +135,7 @@ final class KeyameleonSetupModel: ObservableObject {
     private var isInputSourceChangeObservationStarted = false
     /// Session protected state (sleep/lock). Issue #11 owns full recovery; #7 keeps priority slot.
     private var isTemporarilyUnavailable = false
+    private var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
 
     var onChange: (@MainActor () -> Void)?
 
@@ -331,6 +337,9 @@ final class KeyameleonSetupModel: ObservableObject {
             return
         }
 
+        // Keep eligible Input Sources current so exact-identifier return can end unavailable.
+        refreshInputSources()
+
         // Resolve designation elevation + saved assignment onto the catalog record.
         let physicalKeyboard = resolvePublishedPhysicalKeyboard(attributed)
 
@@ -341,6 +350,7 @@ final class KeyameleonSetupModel: ObservableObject {
 
         var didVerify = false
         var didUpdateWanted = false
+        var didStateChange = false
 
         switch physicalKeyboard.assignmentState {
         case let .assigned(assignment):
@@ -348,11 +358,36 @@ final class KeyameleonSetupModel: ObservableObject {
             let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
             observedCurrentInputSourceIdentifier = currentIdentifier
 
+            // Newer assigned Activation Activity replaces older wanted state for Retry Now.
+            wantedKeyboardAssignment = WantedKeyboardAssignment(
+                physicalKeyboardID: physicalKeyboard.id,
+                inputSourceIdentifier: wantedIdentifier
+            )
+
+            if isUnavailable(assignment) {
+                // Keep saved assignment. Never select a substitute.
+                clearWarning(cause: .selectionFailure)
+                openWarning(
+                    .unavailableKeyboardAssignment(
+                        physicalKeyboardID: physicalKeyboard.id,
+                        inputSourceIdentifier: wantedIdentifier
+                    )
+                )
+                if verifiedKeyboardAssignmentIdentifier == wantedIdentifier {
+                    verifiedKeyboardAssignmentIdentifier = nil
+                }
+                wantedKeyboardAssignmentIdentifier = wantedIdentifier
+                didUpdateWanted = true
+                didStateChange = true
+                break
+            }
+
             // Coalesce when this exact Keyboard Assignment is already wanted and verified.
             if wantedKeyboardAssignmentIdentifier == wantedIdentifier,
                verifiedKeyboardAssignmentIdentifier == wantedIdentifier,
                currentIdentifier == wantedIdentifier
             {
+                clearWarning(cause: .selectionFailure)
                 break
             }
 
@@ -362,38 +397,72 @@ final class KeyameleonSetupModel: ObservableObject {
             wantedKeyboardAssignmentIdentifier = wantedIdentifier
             didUpdateWanted = true
 
-            inputSourceSelectionRequestCount += 1
-            let verified = inputSourceSelector.selectAndVerifyInputSource(
-                identifier: wantedIdentifier
-            )
-
-            // Only the current wanted generation may accept its readback.
-            guard generation == wantedKeyboardAssignmentGeneration else {
-                break
-            }
-
-            if verified {
-                verifiedKeyboardAssignmentIdentifier = wantedIdentifier
-                observedCurrentInputSourceIdentifier = wantedIdentifier
+            if applyWantedKeyboardAssignment(
+                wantedIdentifier,
+                generation: generation
+            ) {
                 didVerify = true
-            } else {
-                if verifiedKeyboardAssignmentIdentifier == wantedIdentifier {
-                    // Wanted assignment no longer verified after this Activation Activity.
-                    verifiedKeyboardAssignmentIdentifier = nil
-                }
-                observedCurrentInputSourceIdentifier =
-                    inputSourceSelector.currentInputSourceIdentifier()
             }
-            // Selection failure restores prior Input Source when possible. No toast. No retry.
+            didStateChange = true
         case .unassigned, .unsupported:
             // No Input Source request for unassigned or unsupported Physical Keyboards.
             break
         }
 
-        if activeChanged || didVerify || didUpdateWanted {
+        if activeChanged || didVerify || didUpdateWanted || didStateChange {
             publishPhysicalKeyboards()
             onChange?()
         }
+    }
+
+    /// Explicit recovery. Retries the current wanted Keyboard Assignment. No timed retry loop.
+    func retryNow() {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            return
+        }
+
+        guard let wanted = wantedKeyboardAssignment else {
+            return
+        }
+
+        guard
+            let assignment = KeyboardAssignment(inputSourceIdentifier: wanted.inputSourceIdentifier)
+        else {
+            return
+        }
+
+        refreshInputSources()
+
+        if isUnavailable(assignment) {
+            clearWarning(cause: .selectionFailure)
+            openWarning(
+                .unavailableKeyboardAssignment(
+                    physicalKeyboardID: wanted.physicalKeyboardID,
+                    inputSourceIdentifier: wanted.inputSourceIdentifier
+                )
+            )
+            publishPhysicalKeyboards()
+            onChange?()
+            return
+        }
+
+        wantedKeyboardAssignmentGeneration &+= 1
+        let generation = wantedKeyboardAssignmentGeneration
+        wantedKeyboardAssignmentIdentifier = wanted.inputSourceIdentifier
+        _ = applyWantedKeyboardAssignment(wanted.inputSourceIdentifier, generation: generation)
+        publishPhysicalKeyboards()
+        onChange?()
+    }
+
+    func isUnavailableKeyboardAssignment(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
+        guard
+            let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
+            let assignment = physicalKeyboard.keyboardAssignment
+        else {
+            return false
+        }
+
+        return isUnavailable(assignment)
     }
 
     /// External Input Source selection: keep it, never fight, refresh observed current only.
@@ -525,6 +594,39 @@ final class KeyameleonSetupModel: ObservableObject {
             productName: physicalKeyboard.productName,
             assignment: assignment
         )
+
+        clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
+
+        if wantedKeyboardAssignment?.physicalKeyboardID == physicalKeyboardID {
+            // Assignment change invalidates prior selection-failure for this wanted state.
+            clearWarning(cause: .selectionFailure)
+            if let assignment {
+                wantedKeyboardAssignment = WantedKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: assignment.inputSourceIdentifier
+                )
+                wantedKeyboardAssignmentIdentifier = assignment.inputSourceIdentifier
+            } else {
+                wantedKeyboardAssignment = nil
+                wantedKeyboardAssignmentIdentifier = nil
+            }
+        }
+
+        if let assignment, isUnavailable(assignment) {
+            openWarning(
+                .unavailableKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: assignment.inputSourceIdentifier
+                )
+            )
+        }
+
+        if verifiedKeyboardAssignmentIdentifier != nil,
+           verifiedKeyboardAssignmentIdentifier != assignment?.inputSourceIdentifier
+        {
+            verifiedKeyboardAssignmentIdentifier = nil
+        }
+
         publishPhysicalKeyboards()
         onChange?()
     }
@@ -645,9 +747,16 @@ final class KeyameleonSetupModel: ObservableObject {
         designationStore.delete(identityKey: physicalKeyboardID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
         cancelManualDesignationIfMatching(physicalKeyboardID)
+        clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
 
         if activePhysicalKeyboardID == physicalKeyboardID {
             activePhysicalKeyboardID = nil
+        }
+
+        if wantedKeyboardAssignment?.physicalKeyboardID == physicalKeyboardID {
+            wantedKeyboardAssignment = nil
+            wantedKeyboardAssignmentIdentifier = nil
+            clearWarning(cause: .selectionFailure)
         }
 
         publishPhysicalKeyboards()
@@ -775,12 +884,134 @@ final class KeyameleonSetupModel: ObservableObject {
 
     private func refreshInputSources() {
         let refreshedInputSources = inputSourceProvider.eligibleInputSources()
-        guard refreshedInputSources != eligibleInputSources else {
+        let sourcesChanged = refreshedInputSources != eligibleInputSources
+        if sourcesChanged {
+            eligibleInputSources = refreshedInputSources
+        }
+
+        let warningsChanged = reevaluateUnavailableKeyboardAssignments()
+        if sourcesChanged || warningsChanged {
+            onChange?()
+        }
+    }
+
+    /// Request + verify exact wanted Input Source for one generation.
+    /// Leaves normal input unchanged on failure. No timed retry loop.
+    @discardableResult
+    private func applyWantedKeyboardAssignment(
+        _ inputSourceIdentifier: String,
+        generation: UInt64
+    ) -> Bool {
+        inputSourceSelectionRequestCount += 1
+        let verified = inputSourceSelector.selectAndVerifyInputSource(
+            identifier: inputSourceIdentifier
+        )
+
+        // Only the current wanted generation may accept its readback.
+        guard generation == wantedKeyboardAssignmentGeneration else {
+            return false
+        }
+
+        if verified {
+            verifiedKeyboardAssignmentIdentifier = inputSourceIdentifier
+            observedCurrentInputSourceIdentifier = inputSourceIdentifier
+            clearWarning(cause: .selectionFailure)
+            return true
+        }
+
+        if verifiedKeyboardAssignmentIdentifier == inputSourceIdentifier {
+            verifiedKeyboardAssignmentIdentifier = nil
+        }
+        observedCurrentInputSourceIdentifier =
+            inputSourceSelector.currentInputSourceIdentifier()
+        openWarning(.selectionFailure(inputSourceIdentifier: inputSourceIdentifier))
+        return false
+    }
+
+    private func isUnavailable(_ assignment: KeyboardAssignment) -> Bool {
+        !KeyboardAssignmentAvailability.isAvailable(
+            assignment,
+            eligibleInputSources: eligibleInputSources
+        )
+    }
+
+    /// Opens or refreshes one warning for an active cause. Counts a new episode only once per cause.
+    private func openWarning(_ warning: SwitchingWarning) {
+        let isNewEpisode = activeWarningByCause[warning.cause] == nil
+        activeWarningByCause[warning.cause] = warning
+        if isNewEpisode {
+            warningEpisodeCount += 1
+        }
+        publishActiveWarnings()
+    }
+
+    private func clearWarning(cause: SwitchingWarning.Cause) {
+        guard activeWarningByCause.removeValue(forKey: cause) != nil else {
             return
         }
 
-        eligibleInputSources = refreshedInputSources
-        onChange?()
+        publishActiveWarnings()
+    }
+
+    private func publishActiveWarnings() {
+        activeWarnings = activeWarningByCause.values.sorted { left, right in
+            left.id < right.id
+        }
+    }
+
+    /// Exact saved Input Source identifier return ends unavailable; substitute names never clear it.
+    @discardableResult
+    private func reevaluateUnavailableKeyboardAssignments() -> Bool {
+        var changed = false
+        let eligibleIdentifiers = Set(eligibleInputSources.map(\.identifier))
+        var remainingUnavailableIDs = Set(
+            activeWarningByCause.keys.compactMap { cause -> PhysicalKeyboardRecordID? in
+                if case let .unavailableKeyboardAssignment(id) = cause {
+                    return id
+                }
+
+                return nil
+            }
+        )
+
+        for record in physicalKeyboardRecordStore.allRecords() {
+            guard let assignment = record.keyboardAssignment else {
+                continue
+            }
+
+            let physicalKeyboardID = record.recordID
+            if KeyboardAssignmentAvailability.isAvailable(
+                assignment,
+                eligibleIdentifiers: eligibleIdentifiers
+            ) {
+                if activeWarningByCause[.unavailableKeyboardAssignment(physicalKeyboardID)] != nil {
+                    clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
+                    changed = true
+                }
+                remainingUnavailableIDs.remove(physicalKeyboardID)
+            } else {
+                let before = activeWarningByCause[.unavailableKeyboardAssignment(physicalKeyboardID)]
+                openWarning(
+                    .unavailableKeyboardAssignment(
+                        physicalKeyboardID: physicalKeyboardID,
+                        inputSourceIdentifier: assignment.inputSourceIdentifier
+                    )
+                )
+                if before == nil
+                    || before?.inputSourceIdentifier != assignment.inputSourceIdentifier
+                {
+                    changed = true
+                }
+                remainingUnavailableIDs.remove(physicalKeyboardID)
+            }
+        }
+
+        for staleID in remainingUnavailableIDs {
+            clearWarning(cause: .unavailableKeyboardAssignment(staleID))
+            changed = true
+        }
+
+        return changed
     }
 
     private func applySwitchingStatus(listenPermission: ListenPermissionState) {

@@ -1,5 +1,20 @@
 # Choices
 
+## 2026-08-10 — Issue #10 selection failure + Unavailable Keyboard Assignment seams
+
+- **Domain pure**: `SwitchingWarning`, `SwitchingFailureCategory`, `SwitchingRecoveryAction`, `WantedKeyboardAssignment`, `KeyboardAssignmentAvailability` (exact identifier only).
+- **Recovery coordinator** on `KeyameleonSetupModel`: one warning per active cause, `retryNow()`, skip select for unavailable, reevaluate on Input Source refresh.
+- **Converge integration**: keep wanted generation + generation-gated readback from #6; `WantedKeyboardAssignment` adds Physical Keyboard ID for Retry Now.
+- **InputSourceSelecting** unchanged: restore prior Input Source on exact readback mismatch.
+
+Defaults:
+
+- Selection failure cause is singular (current wanted). Newer assigned Activation Activity replaces wanted + may reselect.
+- Unavailable cause is per Physical Keyboard Record ID. Saved assignment stays; no substitute select.
+- Exact eligible-identifier return clears unavailable only. No timed retry loop.
+- `warningEpisodeCount` increments only when a new cause becomes active.
+- UI: plain category + recovery copy + **Retry Now** for selection failure; Change/Remove already on keyboard row.
+
 ## 2026-08-10 — Issue #9 Manual Physical Keyboard Designation
 
 ### Seams under test

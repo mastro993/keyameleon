@@ -58,6 +58,12 @@ enum KeyameleonAppMetadata {
         "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
     static let criticalUpdateWarningExplanation =
         "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
+    static let retryNowButtonTitle = "Retry Now"
+    static let switchingWarningsSectionTitle = "Warnings"
+    static let selectionFailedRecoveryExplanation =
+        "Normal input is unchanged. Retry Now retries the current wanted Keyboard Assignment. Later Activation Activity can also start a new request."
+    static let unavailableKeyboardAssignmentRecoveryExplanation =
+        "The saved Keyboard Assignment remains. Change Assignment or Remove Assignment. Switching restores automatically only when the exact saved Input Source identifier returns."
     static let manualDesignationButtonTitle = "Manual Physical Keyboard Designation…"
     static let manualDesignationConfirmNameButtonTitle = "Confirm Physical Keyboard Name"
     static let manualDesignationCancelButtonTitle = "Cancel Designation"
