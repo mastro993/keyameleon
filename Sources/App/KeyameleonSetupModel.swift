@@ -11,10 +11,12 @@ protocol SetupDecisionStoring: AnyObject {
     var hasStartedGuidedSetup: Bool { get }
     var hasCompletedGuidedSetup: Bool { get }
     var guidedSetupStep: GuidedSetupStep { get }
+    var isActivityTriggeredSwitchingPaused: Bool { get }
 
     func markGuidedSetupStarted()
     func markGuidedSetupStep(_ step: GuidedSetupStep)
     func markGuidedSetupCompleted()
+    func setActivityTriggeredSwitchingPaused(_ paused: Bool)
 }
 
 @MainActor
@@ -23,6 +25,8 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         static let hasStartedGuidedSetup = "keyameleon.guidedSetup.started"
         static let hasCompletedGuidedSetup = "keyameleon.guidedSetup.completed"
         static let guidedSetupStep = "keyameleon.guidedSetup.step"
+        static let isActivityTriggeredSwitchingPaused =
+            "keyameleon.activityTriggeredSwitching.paused"
     }
 
     private let defaults: UserDefaults
@@ -50,6 +54,10 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         return step
     }
 
+    var isActivityTriggeredSwitchingPaused: Bool {
+        defaults.bool(forKey: Key.isActivityTriggeredSwitchingPaused)
+    }
+
     func markGuidedSetupStarted() {
         defaults.set(true, forKey: Key.hasStartedGuidedSetup)
         if defaults.string(forKey: Key.guidedSetupStep) == nil {
@@ -68,10 +76,15 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         defaults.set(GuidedSetupStep.assignments.rawValue, forKey: Key.guidedSetupStep)
     }
 
+    func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
+        defaults.set(paused, forKey: Key.isActivityTriggeredSwitchingPaused)
+    }
+
     func resetForUITesting() {
         defaults.removeObject(forKey: Key.hasStartedGuidedSetup)
         defaults.removeObject(forKey: Key.hasCompletedGuidedSetup)
         defaults.removeObject(forKey: Key.guidedSetupStep)
+        defaults.removeObject(forKey: Key.isActivityTriggeredSwitchingPaused)
     }
 }
 
@@ -95,6 +108,8 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var observedCurrentInputSourceIdentifier: String?
     @Published private(set) var inputSourceSelectionRequestCount = 0
     @Published private(set) var warningEpisodeCount = 0
+    /// Persists across restart. Pause only Activity-Triggered Switching.
+    @Published private(set) var isActivityTriggeredSwitchingPaused: Bool
 
     private let permissionProvider: any ListenPermissionProviding
     private let setupStore: any SetupDecisionStoring
@@ -110,6 +125,8 @@ final class KeyameleonSetupModel: ObservableObject {
     private var isDiscoveryStarted = false
     private var isEventObservationStarted = false
     private var isInputSourceChangeObservationStarted = false
+    /// Session protected state (sleep/lock). Issue #11 owns full recovery; #7 keeps priority slot.
+    private var isTemporarilyUnavailable = false
 
     var onChange: (@MainActor () -> Void)?
 
@@ -119,6 +136,10 @@ final class KeyameleonSetupModel: ObservableObject {
 
     var canRequestInputSources: Bool {
         switchingStatus.allowsActivityTriggeredSwitching
+    }
+
+    var canDiscoverPhysicalKeyboards: Bool {
+        switchingStatus.allowsPhysicalKeyboardDiscovery
     }
 
     var showsAssignmentSetup: Bool {
@@ -131,6 +152,65 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         return physicalKeyboards.first { $0.id == activePhysicalKeyboardID }
+    }
+
+    var activePhysicalKeyboardMenuValue: String {
+        activePhysicalKeyboard?.name ?? KeyameleonAppMetadata.noActivityObservedYet
+    }
+
+    var activeKeyboardAssignmentMenuValue: String {
+        guard let activePhysicalKeyboard else {
+            return KeyameleonAppMetadata.menuValueUnavailable
+        }
+
+        switch activePhysicalKeyboard.assignmentState {
+        case .unassigned:
+            return "Unassigned"
+        case .assigned:
+            return assignmentDisplayName(for: activePhysicalKeyboard)
+                ?? "Unavailable Keyboard Assignment"
+        case let .unsupported(reason):
+            return "Unsupported — \(reason.displayName)"
+        }
+    }
+
+    var currentInputSourceMenuValue: String {
+        if let identifier = observedCurrentInputSourceIdentifier
+            ?? inputSourceSelector.currentInputSourceIdentifier()
+        {
+            return displayName(forInputSourceIdentifier: identifier)
+        }
+
+        return KeyameleonAppMetadata.menuValueUnavailable
+    }
+
+    /// Item conditions that need user action. Global status stays separate.
+    var menuFirstActionItems: [MenuFirstActionItem] {
+        physicalKeyboards.compactMap { physicalKeyboard in
+            switch physicalKeyboard.assignmentState {
+            case .unassigned:
+                .unassigned(physicalKeyboardName: physicalKeyboard.name)
+            case .assigned:
+                if assignmentDisplayName(for: physicalKeyboard) == nil {
+                    .unavailableKeyboardAssignment(physicalKeyboardName: physicalKeyboard.name)
+                } else {
+                    nil
+                }
+            case .unsupported:
+                nil
+            }
+        }
+    }
+
+    var hasItemConditionsNeedingAction: Bool {
+        !menuFirstActionItems.isEmpty || !isSetupComplete || activeInputSourceMismatch != nil
+    }
+
+    var menuBarIconMark: MenuBarIconMark {
+        MenuBarIconMark.resolve(
+            switchingStatus: switchingStatus,
+            hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
+        )
     }
 
     /// Current vs assigned when Active Physical Keyboard assignment differs from observed current.
@@ -170,24 +250,61 @@ final class KeyameleonSetupModel: ObservableObject {
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
         self.physicalKeyboardEventObserver = physicalKeyboardEventObserver
         self.inputSourceChangeObserver = inputSourceChangeObserver
-        self.switchingStatus = permissionProvider.checkListenPermission().switchingStatus
+        self.isActivityTriggeredSwitchingPaused = setupStore.isActivityTriggeredSwitchingPaused
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
         self.guidedSetupStep = setupStore.guidedSetupStep
+        self.switchingStatus = SwitchingStatus.resolve(
+            listenPermission: permissionProvider.checkListenPermission(),
+            isTemporarilyUnavailable: false,
+            isPaused: setupStore.isActivityTriggeredSwitchingPaused
+        )
     }
 
     func refreshPermission() {
-        let newStatus = permissionProvider.checkListenPermission().switchingStatus
-        if switchingStatus != newStatus {
-            switchingStatus = newStatus
-            onChange?()
-        }
-
+        applySwitchingStatus(
+            listenPermission: permissionProvider.checkListenPermission()
+        )
         refreshInputSources()
         refreshObservedCurrentInputSource(publish: false)
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
         updateInputSourceChangeObservation()
+    }
+
+    func pauseActivityTriggeredSwitching() {
+        guard !isActivityTriggeredSwitchingPaused else {
+            return
+        }
+
+        isActivityTriggeredSwitchingPaused = true
+        setupStore.setActivityTriggeredSwitchingPaused(true)
+        applySwitchingStatus(
+            listenPermission: permissionProvider.checkListenPermission()
+        )
+        updatePhysicalKeyboardDiscovery()
+        updatePhysicalKeyboardEventObservation()
+        updateInputSourceChangeObservation()
+        onChange?()
+    }
+
+    /// Clears pause, rechecks listen permission, then starts observation only when Ready.
+    func resumeActivityTriggeredSwitching() {
+        guard isActivityTriggeredSwitchingPaused else {
+            return
+        }
+
+        isActivityTriggeredSwitchingPaused = false
+        setupStore.setActivityTriggeredSwitchingPaused(false)
+        applySwitchingStatus(
+            listenPermission: permissionProvider.checkListenPermission()
+        )
+        refreshInputSources()
+        refreshObservedCurrentInputSource(publish: false)
+        updatePhysicalKeyboardDiscovery()
+        updatePhysicalKeyboardEventObservation()
+        updateInputSourceChangeObservation()
+        onChange?()
     }
 
     /// Serial activity consumer entry. Observation order only.
@@ -565,6 +682,18 @@ final class KeyameleonSetupModel: ObservableObject {
         onChange?()
     }
 
+    private func applySwitchingStatus(listenPermission: ListenPermissionState) {
+        let newStatus = SwitchingStatus.resolve(
+            listenPermission: listenPermission,
+            isTemporarilyUnavailable: isTemporarilyUnavailable,
+            isPaused: isActivityTriggeredSwitchingPaused
+        )
+        if switchingStatus != newStatus {
+            switchingStatus = newStatus
+            onChange?()
+        }
+    }
+
     private func refreshObservedCurrentInputSource(publish: Bool) {
         let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
         guard currentIdentifier != observedCurrentInputSourceIdentifier else {
@@ -578,7 +707,7 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     private func updatePhysicalKeyboardDiscovery() {
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
+        guard canDiscoverPhysicalKeyboards else {
             guard isDiscoveryStarted else {
                 publishPhysicalKeyboards()
                 return
@@ -604,7 +733,7 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     private func updatePhysicalKeyboardEventObservation() {
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
+        guard canObservePhysicalKeyboards else {
             guard isEventObservationStarted else {
                 return
             }
@@ -646,7 +775,7 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
+        guard canDiscoverPhysicalKeyboards else {
             return
         }
 

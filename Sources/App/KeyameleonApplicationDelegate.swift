@@ -10,10 +10,22 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var windowController: KeyameleonWindowController?
     private let modelContainer: ModelContainer?
+    /// Avoid replacing the opening menu while `menuNeedsUpdate` repopulates it.
+    private var isPopulatingOpenMenu = false
 
-    private lazy var menuDelegate = KeyameleonMenuDelegate { [weak self] in
-        // Refresh only. Do not replace the open menu.
-        self?.setupModel.refreshPermission()
+    private lazy var menuDelegate = KeyameleonMenuDelegate { [weak self] menu in
+        guard let self else {
+            return
+        }
+
+        // Refresh in place — do not replace the open menu instance.
+        self.isPopulatingOpenMenu = true
+        self.setupModel.refreshPermission()
+        self.populateMenu(menu)
+        if let button = self.statusItem?.button {
+            self.applyMenuBarIcon(to: button)
+        }
+        self.isPopulatingOpenMenu = false
     }
 
     override convenience init() {
@@ -85,7 +97,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         super.init()
 
         setupModel.onChange = { [weak self] in
-            self?.refreshMenu()
+            self?.refreshMenuBarPresentation()
         }
     }
 
@@ -93,6 +105,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         setupModel.refreshPermission()
         statusItem = makeStatusItem()
+        refreshMenuBarPresentation()
         if startsUpdaterOnLaunch {
             updateChecker.start()
         }
@@ -106,6 +119,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         setupModel.refreshPermission()
+        refreshMenuBarPresentation()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -115,6 +129,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     func makeMenu() -> NSMenu {
         let menu = NSMenu(title: KeyameleonAppMetadata.displayName)
         menu.autoenablesItems = false
+        populateMenu(menu)
+        menu.delegate = menuDelegate
+        return menu
+    }
+
+    private func populateMenu(_ menu: NSMenu) {
+        menu.removeAllItems()
 
         let statusItem = NSMenuItem(
             title: KeyameleonAppMetadata.switchingStatusMenuItemTitle(setupModel.switchingStatus),
@@ -128,28 +149,41 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         let activeKeyboardItem = NSMenuItem(
             title: KeyameleonAppMetadata.activePhysicalKeyboardMenuItemTitle(
-                setupModel.activePhysicalKeyboard?.name
+                setupModel.activePhysicalKeyboardMenuValue
             ),
             action: nil,
             keyEquivalent: ""
         )
         activeKeyboardItem.isEnabled = false
         activeKeyboardItem.setAccessibilityLabel(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
-        activeKeyboardItem.setAccessibilityValue(
-            setupModel.activePhysicalKeyboard?.name
-                ?? KeyameleonAppMetadata.noActivityObservedYet
-        )
+        activeKeyboardItem.setAccessibilityValue(setupModel.activePhysicalKeyboardMenuValue)
         menu.addItem(activeKeyboardItem)
 
-        if let mismatch = setupModel.activeInputSourceMismatch {
-            let currentItem = NSMenuItem(
-                title: "\(KeyameleonAppMetadata.currentInputSourceLabel): \(mismatch.currentName)",
-                action: nil,
-                keyEquivalent: ""
-            )
-            currentItem.isEnabled = false
-            menu.addItem(currentItem)
+        let assignmentItem = NSMenuItem(
+            title: KeyameleonAppMetadata.keyboardAssignmentMenuItemTitle(
+                setupModel.activeKeyboardAssignmentMenuValue
+            ),
+            action: nil,
+            keyEquivalent: ""
+        )
+        assignmentItem.isEnabled = false
+        assignmentItem.setAccessibilityLabel(KeyameleonAppMetadata.keyboardAssignmentLabel)
+        assignmentItem.setAccessibilityValue(setupModel.activeKeyboardAssignmentMenuValue)
+        menu.addItem(assignmentItem)
 
+        let currentInputSourceItem = NSMenuItem(
+            title: KeyameleonAppMetadata.currentInputSourceMenuItemTitle(
+                setupModel.currentInputSourceMenuValue
+            ),
+            action: nil,
+            keyEquivalent: ""
+        )
+        currentInputSourceItem.isEnabled = false
+        currentInputSourceItem.setAccessibilityLabel(KeyameleonAppMetadata.currentInputSourceLabel)
+        currentInputSourceItem.setAccessibilityValue(setupModel.currentInputSourceMenuValue)
+        menu.addItem(currentInputSourceItem)
+
+        if let mismatch = setupModel.activeInputSourceMismatch {
             let assignedItem = NSMenuItem(
                 title: "\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)",
                 action: nil,
@@ -165,6 +199,40 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             )
             restoreItem.isEnabled = false
             menu.addItem(restoreItem)
+        }
+
+        let actionItems = setupModel.menuFirstActionItems
+        if !actionItems.isEmpty {
+            menu.addItem(.separator())
+            for actionItem in actionItems {
+                let item = NSMenuItem(
+                    title: actionItem.menuTitle,
+                    action: nil,
+                    keyEquivalent: ""
+                )
+                item.isEnabled = false
+                menu.addItem(item)
+            }
+        }
+
+        menu.addItem(.separator())
+
+        if setupModel.isActivityTriggeredSwitchingPaused {
+            let resumeItem = NSMenuItem(
+                title: KeyameleonAppMetadata.resumeActivityTriggeredSwitchingMenuItemTitle,
+                action: #selector(resumeActivityTriggeredSwitching(_:)),
+                keyEquivalent: ""
+            )
+            resumeItem.target = self
+            menu.addItem(resumeItem)
+        } else {
+            let pauseItem = NSMenuItem(
+                title: KeyameleonAppMetadata.pauseActivityTriggeredSwitchingMenuItemTitle,
+                action: #selector(pauseActivityTriggeredSwitching(_:)),
+                keyEquivalent: ""
+            )
+            pauseItem.target = self
+            menu.addItem(pauseItem)
         }
 
         menu.addItem(.separator())
@@ -233,10 +301,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         quitItem.target = self
         menu.addItem(quitItem)
-
-        menu.delegate = menuDelegate
-
-        return menu
     }
 
     @objc
@@ -265,6 +329,19 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     @objc
     private func checkAgain(_ sender: Any?) {
         setupModel.refreshPermission()
+        refreshMenuBarPresentation()
+    }
+
+    @objc
+    private func pauseActivityTriggeredSwitching(_ sender: Any?) {
+        setupModel.pauseActivityTriggeredSwitching()
+        refreshMenuBarPresentation()
+    }
+
+    @objc
+    private func resumeActivityTriggeredSwitching(_ sender: Any?) {
+        setupModel.resumeActivityTriggeredSwitching()
+        refreshMenuBarPresentation()
     }
 
     @objc
@@ -277,7 +354,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     @objc
     private func checkForUpdates(_ sender: Any?) {
         generalSettingsModel.checkForUpdates()
-        refreshMenu()
+        refreshMenuBarPresentation()
     }
 
     @objc
@@ -291,39 +368,59 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             return item
         }
 
-        button.image = NSImage(
-            systemSymbolName: "keyboard",
-            accessibilityDescription: KeyameleonAppMetadata.displayName
-        )
         button.imagePosition = .imageOnly
-        button.toolTip = KeyameleonAppMetadata.displayName
         button.setAccessibilityElement(true)
         button.setAccessibilityRole(.button)
         button.setAccessibilityLabel(KeyameleonAppMetadata.menuBarAccessibilityLabel)
         item.menu = makeMenu()
+        applyMenuBarIcon(to: button)
         return item
     }
 
-    private func refreshMenu() {
+    private func refreshMenuBarPresentation() {
         guard let statusItem else {
             return
         }
 
-        statusItem.menu = makeMenu()
+        if !isPopulatingOpenMenu {
+            statusItem.menu = makeMenu()
+        }
+        if let button = statusItem.button {
+            applyMenuBarIcon(to: button)
+        }
+    }
+
+    private func applyMenuBarIcon(to button: NSStatusBarButton) {
+        let mark = setupModel.menuBarIconMark
+        // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
+        // Distinct SF Symbol shape + tooltip carry status without relying on color alone.
+        let image =
+            NSImage(
+                systemSymbolName: mark.systemSymbolName,
+                accessibilityDescription: KeyameleonAppMetadata.displayName
+            )
+            ?? NSImage(
+                systemSymbolName: MenuBarIconMark.ready.systemSymbolName,
+                accessibilityDescription: KeyameleonAppMetadata.displayName
+            )
+        image?.isTemplate = true
+        button.image = image
+        button.toolTip = mark.accessibilityDescription
+        button.setAccessibilityLabel(KeyameleonAppMetadata.menuBarAccessibilityLabel)
     }
 }
 
 @MainActor
 private final class KeyameleonMenuDelegate: NSObject, NSMenuDelegate {
-    private let onMenuWillOpen: @MainActor () -> Void
+    private let onMenuNeedsUpdate: @MainActor (NSMenu) -> Void
 
-    init(onMenuWillOpen: @escaping @MainActor () -> Void) {
-        self.onMenuWillOpen = onMenuWillOpen
+    init(onMenuNeedsUpdate: @escaping @MainActor (NSMenu) -> Void) {
+        self.onMenuNeedsUpdate = onMenuNeedsUpdate
         super.init()
     }
 
-    func menuWillOpen(_ menu: NSMenu) {
+    func menuNeedsUpdate(_ menu: NSMenu) {
         // Refresh permission and observed Input Source before Menu first paints.
-        onMenuWillOpen()
+        onMenuNeedsUpdate(menu)
     }
 }

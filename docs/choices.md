@@ -1,5 +1,15 @@
 # Choices
 
+## 2026-08-10 — Issue #7 Menu first + pause
+
+- **Pause persist**: `SetupDecisionStoring.isActivityTriggeredSwitchingPaused` / UserDefaults key `keyameleon.activityTriggeredSwitching.paused`.
+- **Status resolve**: pure `SwitchingStatus.resolve` priority Permission Required → Temporarily Unavailable → Paused → Ready.
+- **Discovery vs observe**: Paused keeps Physical Keyboard discovery for management; stops Key Content observation + Input Source requests (`allowsPhysicalKeyboardDiscovery` vs `allowsActivityTriggeredSwitching`).
+- **Temp unavailable**: flag slot on SetupModel for #11; no sleep/lock wiring in #7.
+- **Menu bar icon**: SF Symbol shapes per `MenuBarIconMark` (not color-only). Item warning only when Ready.
+- **Menu first action items**: unassigned + Unavailable Keyboard Assignment lines; incomplete setup still uses Continue Setup….
+- **Resume**: clear pause → recheck listen permission → start observation only if Ready.
+
 ## 2026-08-10
 
 ### Issue #6 Converge after rapid activity and external changes

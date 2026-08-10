@@ -234,11 +234,7 @@ struct KeyameleonRootView: View {
             switchingStatus
             activePhysicalKeyboardStatus
 
-            Text(
-                model.switchingStatus == .ready
-                    ? "Activity-Triggered Switching can observe Activation Activity."
-                    : "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
-            )
+            Text(switchingStatusExplanation(for: model.switchingStatus))
 
             Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
                 .foregroundStyle(.secondary)
@@ -452,6 +448,19 @@ struct KeyameleonRootView: View {
                 ? "\(KeyameleonAppMetadata.activePhysicalKeyboardLabel) · \(connectionDescription(for: physicalKeyboard))"
                 : connectionDescription(for: physicalKeyboard)
         )
+    }
+
+    private func switchingStatusExplanation(for status: SwitchingStatus) -> String {
+        switch status {
+        case .ready:
+            "Activity-Triggered Switching can observe Activation Activity."
+        case .permissionRequired:
+            "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
+        case .paused:
+            "Activity-Triggered Switching is paused. Key Content observation and Input Source requests are stopped. Management and settings stay available."
+        case .temporarilyUnavailable:
+            "Activity-Triggered Switching is temporarily unavailable. It resumes automatically when the session permits."
+        }
     }
 
     private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {
