@@ -1,5 +1,25 @@
 # Choices
 
+## 2026-08-10 — Issue #13 Diagnostic Data + Diagnostic Sessions
+
+### Seams under test
+- **Domain pure** (`KeyameleonDiagnosticData`): closed allowlist categories/codes, session max 10m, retention 7d/5MB oldest-first, temporary Physical Keyboard tokens, estimated record size.
+- **`DiagnosticDataControlling`**: start/stop session, auto-expire, record allowlisted operational/session events, clear all, delete by Physical Keyboard identity linkage, retention prune, read records.
+- **`ClockProviding`**: time boundary for session + retention.
+- **`KeyameleonSetupModel.forgetPhysicalKeyboard`**: also deletes Diagnostic Data linked to that Physical Keyboard.
+- **`KeyameleonGeneralSettingsModel`**: Diagnostics section (session + clear).
+
+### Defaults
+- Typed API only — no free-form String payload path into Diagnostic Data.
+- Default recording: operational errors + state changes. Not one record per Physical Keyboard Event.
+- Diagnostic Session unlocks detailed allowlisted categories (observation order, Input Source selection result, relative timing) still without Key Content or identity values.
+- Physical Keyboard linkage: SHA-256 of identity key → temporary UUID token (no exact identity/serial in Diagnostic Data store). Records store token only.
+- Size retention uses fixed `estimatedBytesPerRecord` (closed schema; not on-disk measurement).
+- Separate SwiftData container for Diagnostic Data (no PK schema migration risk).
+- Session auto-stop checked on access/record + MainActor timer while active.
+- Forget confirmation copy includes Diagnostic Data removal.
+- UI: General Settings → Diagnostics (start/stop session, clear all). Bundle export is #14.
+
 ## 2026-08-10 — Issue #10 selection failure + Unavailable Keyboard Assignment seams
 
 - **Domain pure**: `SwitchingWarning`, `SwitchingFailureCategory`, `SwitchingRecoveryAction`, `WantedKeyboardAssignment`, `KeyboardAssignmentAvailability` (exact identifier only).

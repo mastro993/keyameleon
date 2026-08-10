@@ -128,6 +128,7 @@ final class KeyameleonSetupModel: ObservableObject {
     private let inputSourceChangeObserver: any InputSourceChangeObserving
     private let designationStore: any ManualPhysicalKeyboardDesignationStoring
     private let integrityKeyProvider: any InstallationIntegrityKeyProviding
+    private let diagnosticDataController: any DiagnosticDataControlling
     private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var isDiscoveryStarted = false
@@ -252,7 +253,10 @@ final class KeyameleonSetupModel: ObservableObject {
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
-            InMemoryInstallationIntegrityKeyProvider()
+            InMemoryInstallationIntegrityKeyProvider(),
+        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
+            store: InMemoryDiagnosticDataStore()
+        )
     ) {
         self.permissionProvider = permissionProvider
         self.setupStore = setupStore
@@ -265,6 +269,7 @@ final class KeyameleonSetupModel: ObservableObject {
         self.inputSourceChangeObserver = inputSourceChangeObserver
         self.designationStore = designationStore
         self.integrityKeyProvider = integrityKeyProvider
+        self.diagnosticDataController = diagnosticDataController
         self.isActivityTriggeredSwitchingPaused = setupStore.isActivityTriggeredSwitchingPaused
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
@@ -346,7 +351,19 @@ final class KeyameleonSetupModel: ObservableObject {
         let activeChanged = activePhysicalKeyboardID != physicalKeyboard.id
         if activeChanged {
             activePhysicalKeyboardID = physicalKeyboard.id
+            diagnosticDataController.record(
+                code: .activePhysicalKeyboardChanged,
+                identityKey: physicalKeyboard.id.rawValue,
+                switchingStatus: nil
+            )
         }
+
+        // Session-only detailed marker; ignored in default recording mode.
+        diagnosticDataController.record(
+            code: .activationActivityAttributed,
+            identityKey: physicalKeyboard.id.rawValue,
+            switchingStatus: nil
+        )
 
         var didVerify = false
         var didUpdateWanted = false
@@ -388,6 +405,11 @@ final class KeyameleonSetupModel: ObservableObject {
                currentIdentifier == wantedIdentifier
             {
                 clearWarning(cause: .selectionFailure)
+                diagnosticDataController.record(
+                    code: .inputSourceSelectionCoalesced,
+                    identityKey: physicalKeyboard.id.rawValue,
+                    switchingStatus: nil
+                )
                 break
             }
 
@@ -594,6 +616,11 @@ final class KeyameleonSetupModel: ObservableObject {
             productName: physicalKeyboard.productName,
             assignment: assignment
         )
+        diagnosticDataController.record(
+            code: assignment == nil ? .assignmentRemoved : .assignmentSaved,
+            identityKey: physicalKeyboard.id.rawValue,
+            switchingStatus: nil
+        )
 
         clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
 
@@ -708,7 +735,7 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         let removedData =
-            "This removes the saved Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard Designation for \(physicalKeyboard.name)."
+            "This removes the saved Physical Keyboard Name, Keyboard Assignment, Manual Physical Keyboard Designation, and linked Diagnostic Data for \(physicalKeyboard.name)."
         let reconnectResult =
             switch physicalKeyboard.connectionState {
             case .connected:
@@ -745,6 +772,7 @@ final class KeyameleonSetupModel: ObservableObject {
 
         physicalKeyboardRecordStore.deleteRecord(identityKey: physicalKeyboardID.rawValue)
         designationStore.delete(identityKey: physicalKeyboardID.rawValue)
+        diagnosticDataController.deleteDiagnosticData(forIdentityKey: physicalKeyboardID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
         cancelManualDesignationIfMatching(physicalKeyboardID)
         clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
@@ -916,6 +944,11 @@ final class KeyameleonSetupModel: ObservableObject {
             verifiedKeyboardAssignmentIdentifier = inputSourceIdentifier
             observedCurrentInputSourceIdentifier = inputSourceIdentifier
             clearWarning(cause: .selectionFailure)
+            diagnosticDataController.record(
+                code: .inputSourceSelectionSucceeded,
+                identityKey: wantedKeyboardAssignment?.physicalKeyboardID.rawValue,
+                switchingStatus: nil
+            )
             return true
         }
 
@@ -925,6 +958,11 @@ final class KeyameleonSetupModel: ObservableObject {
         observedCurrentInputSourceIdentifier =
             inputSourceSelector.currentInputSourceIdentifier()
         openWarning(.selectionFailure(inputSourceIdentifier: inputSourceIdentifier))
+        diagnosticDataController.record(
+            code: .inputSourceSelectionFailed,
+            identityKey: wantedKeyboardAssignment?.physicalKeyboardID.rawValue,
+            switchingStatus: nil
+        )
         return false
     }
 
@@ -1022,6 +1060,18 @@ final class KeyameleonSetupModel: ObservableObject {
         )
         if switchingStatus != newStatus {
             switchingStatus = newStatus
+            diagnosticDataController.record(
+                code: .switchingStatusChanged,
+                identityKey: nil,
+                switchingStatus: newStatus
+            )
+            if newStatus == .permissionRequired {
+                diagnosticDataController.record(
+                    code: .permissionDenied,
+                    identityKey: nil,
+                    switchingStatus: newStatus
+                )
+            }
             onChange?()
         }
     }
@@ -1111,7 +1161,30 @@ final class KeyameleonSetupModel: ObservableObject {
             return
         }
 
-        physicalKeyboardCatalog.apply(change)
+        switch change {
+        case let .connected(facts):
+            physicalKeyboardCatalog.apply(change)
+            if let keyboard = physicalKeyboardCatalog.physicalKeyboard(forServiceID: facts.serviceID),
+               keyboard.id.isIdentityBased
+            {
+                diagnosticDataController.record(
+                    code: .physicalKeyboardConnected,
+                    identityKey: keyboard.id.rawValue,
+                    switchingStatus: nil
+                )
+            }
+        case .disconnected:
+            let previous = physicalKeyboardCatalog.physicalKeyboards
+            physicalKeyboardCatalog.apply(change)
+            let remainingIDs = Set(physicalKeyboardCatalog.physicalKeyboards.map(\.id))
+            for keyboard in previous where keyboard.id.isIdentityBased && !remainingIDs.contains(keyboard.id) {
+                diagnosticDataController.record(
+                    code: .physicalKeyboardDisconnected,
+                    identityKey: keyboard.id.rawValue,
+                    switchingStatus: nil
+                )
+            }
+        }
         // Disconnect never rewrites Active Physical Keyboard and never requests Input Sources.
         advanceManualDesignationSession()
         publishPhysicalKeyboards()

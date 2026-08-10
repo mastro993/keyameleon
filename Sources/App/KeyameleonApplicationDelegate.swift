@@ -10,6 +10,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var windowController: KeyameleonWindowController?
     private let modelContainer: ModelContainer?
+    private let diagnosticModelContainer: ModelContainer?
     /// Avoid replacing the opening menu while `menuNeedsUpdate` repopulates it.
     private var isPopulatingOpenMenu = false
 
@@ -42,6 +43,19 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
 
         let modelContext = ModelContext(modelContainer)
+
+        let diagnosticModelContainer: ModelContainer
+        do {
+            diagnosticModelContainer = try SwiftDataDiagnosticDataStore.makeContainer()
+        } catch {
+            fatalError("SwiftData container failed for Diagnostic Data: \(error)")
+        }
+        let diagnosticDataController = KeyameleonDiagnosticDataService(
+            store: SwiftDataDiagnosticDataStore(
+                modelContext: ModelContext(diagnosticModelContainer)
+            )
+        )
+
         let inputSources = SystemInputSourceProvider()
         let isUITesting = ProcessInfo.processInfo.arguments.contains(
             KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
@@ -61,9 +75,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceSelector: inputSources,
             physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
             inputSourceChangeObserver: SystemInputSourceChangeObserver(),
+            diagnosticDataController: diagnosticDataController,
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
             startsUpdaterOnLaunch: !isUITesting,
-            modelContainer: modelContainer
+            modelContainer: modelContainer,
+            diagnosticModelContainer: diagnosticModelContainer
         )
     }
 
@@ -80,12 +96,17 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: any InputSourceChangeObserving = SystemInputSourceChangeObserver(),
+        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
+            store: InMemoryDiagnosticDataStore()
+        ),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
-        modelContainer: ModelContainer? = nil
+        modelContainer: ModelContainer? = nil,
+        diagnosticModelContainer: ModelContainer? = nil
     ) {
         self.modelContainer = modelContainer
+        self.diagnosticModelContainer = diagnosticModelContainer
         self.updateChecker = updateChecker
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         setupModel = KeyameleonSetupModel(
@@ -98,11 +119,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardEventObserver: physicalKeyboardEventObserver,
             inputSourceChangeObserver: inputSourceChangeObserver,
             designationStore: designationStore,
-            integrityKeyProvider: integrityKeyProvider
+            integrityKeyProvider: integrityKeyProvider,
+            diagnosticDataController: diagnosticDataController
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
-            updateChecker: updateChecker
+            updateChecker: updateChecker,
+            diagnosticDataController: diagnosticDataController
         )
 
         super.init()

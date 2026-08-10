@@ -77,6 +77,21 @@ enum KeyameleonAppMetadata {
     static let manualDesignationExplanation =
         "Keyameleon can save this external identity group as a Physical Keyboard only after it leaves, returns, and you confirm its name."
 
+
+    static let diagnosticsSettingsSectionTitle = "Diagnostics"
+    static let startDiagnosticSessionButtonTitle = "Start Diagnostic Session"
+    static let stopDiagnosticSessionButtonTitle = "Stop Diagnostic Session"
+    static let clearAllDiagnosticDataButtonTitle = "Clear All Diagnostic Data"
+    static let diagnosticSessionStatusLabel = "Diagnostic Session"
+    static let diagnosticSessionActiveStatus = "Active (ends automatically after 10 minutes)"
+    static let diagnosticSessionInactiveStatus = "Inactive"
+    static let diagnosticsSettingsFooter =
+        "Diagnostic Data uses a closed allowlist. It never includes Key Content, exact Physical Keyboard Identity values, serial numbers, custom names, Keyboard Assignments, Input Source identifiers, paths, user names, or application names. Retention stops at 7 days or 5 MB."
+
+    static func diagnosticDataSummary(recordCount: Int, byteCount: Int) -> String {
+        "\(recordCount) records · about \(byteCount) bytes retained"
+    }
+
     static func switchingStatusMenuItemTitle(_ status: SwitchingStatus) -> String {
         "\(switchingStatusMenuItemPrefix) \(status.displayName)"
     }
