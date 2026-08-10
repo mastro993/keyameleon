@@ -1,5 +1,12 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #10
+
+- Recover selection failures + Unavailable Keyboard Assignments.
+- Parent #1; blocked-by #5 closed.
+- Domain warning/availability; SetupModel recovery; Retry Now; tests in `KeyameleonRecoveryTests`.
+- No timed retry; no substitute select; exact identifier return ends unavailable.
+
 ## 2026-08-10 — Issue #5
 
 - Issue #5: implement Activity-Triggered Switching.

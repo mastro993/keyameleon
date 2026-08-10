@@ -247,7 +247,7 @@ final class SetupModelTestPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscoverin
 
 @MainActor
 final class SetupModelTestInputSourceProvider: InputSourceProviding {
-    private let inputSources: [EligibleInputSource]
+    var inputSources: [EligibleInputSource]
 
     init(inputSources: [EligibleInputSource]) {
         self.inputSources = inputSources
