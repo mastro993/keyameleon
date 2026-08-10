@@ -4,6 +4,10 @@ import SwiftUI
 struct KeyameleonRootView: View {
     @ObservedObject private var model: KeyameleonSetupModel
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
+    @State private var replacePickerKeyboardID: PhysicalKeyboardRecordID?
+    @State private var pendingReplaceConnectedID: PhysicalKeyboardRecordID?
+    @State private var replaceTargetDisconnectedID: PhysicalKeyboardRecordID?
+    @State private var forgetCandidateID: PhysicalKeyboardRecordID?
     @State private var nameDrafts: [String: String] = [:]
 
     init(model: KeyameleonSetupModel) {
@@ -50,6 +54,95 @@ struct KeyameleonRootView: View {
                 }
             )
         }
+        .sheet(item: replacePickerBinding) { keyboard in
+            ReplaceSavedPhysicalKeyboardPickerView(
+                physicalKeyboard: keyboard,
+                candidates: model.replaceCandidates(for: keyboard.id),
+                onSelect: { candidate in
+                    replacePickerKeyboardID = nil
+                    replaceTargetDisconnectedID = candidate.id
+                },
+                onCancel: {
+                    replacePickerKeyboardID = nil
+                    pendingReplaceConnectedID = nil
+                }
+            )
+        }
+        .confirmationDialog(
+            KeyameleonAppMetadata.forgetConfirmationTitle,
+            isPresented: forgetConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button(KeyameleonAppMetadata.confirmForgetButtonTitle, role: .destructive) {
+                if let forgetCandidateID {
+                    model.forgetPhysicalKeyboard(forgetCandidateID)
+                }
+                forgetCandidateID = nil
+            }
+            Button("Cancel", role: .cancel) {
+                forgetCandidateID = nil
+            }
+        } message: {
+            if let forgetCandidateID {
+                Text(model.forgetConfirmationMessage(for: forgetCandidateID))
+            }
+        }
+        .confirmationDialog(
+            KeyameleonAppMetadata.replaceConfirmationTitle,
+            isPresented: replaceConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button(KeyameleonAppMetadata.confirmReplaceButtonTitle, role: .destructive) {
+                if let pendingReplaceConnectedID,
+                   let replaceTargetDisconnectedID
+                {
+                    model.replaceSavedPhysicalKeyboard(
+                        replaceTargetDisconnectedID,
+                        with: pendingReplaceConnectedID
+                    )
+                }
+                self.replaceTargetDisconnectedID = nil
+                self.pendingReplaceConnectedID = nil
+            }
+            Button("Cancel", role: .cancel) {
+                replaceTargetDisconnectedID = nil
+                pendingReplaceConnectedID = nil
+            }
+        } message: {
+            if let pendingReplaceConnectedID,
+               let replaceTargetDisconnectedID
+            {
+                Text(
+                    model.replaceConfirmationMessage(
+                        replacing: replaceTargetDisconnectedID,
+                        with: pendingReplaceConnectedID
+                    )
+                )
+            }
+        }
+    }
+
+    private var forgetConfirmationPresented: Binding<Bool> {
+        Binding(
+            get: { forgetCandidateID != nil },
+            set: { isPresented in
+                if !isPresented {
+                    forgetCandidateID = nil
+                }
+            }
+        )
+    }
+
+    private var replaceConfirmationPresented: Binding<Bool> {
+        Binding(
+            get: { replaceTargetDisconnectedID != nil },
+            set: { isPresented in
+                if !isPresented {
+                    replaceTargetDisconnectedID = nil
+                    pendingReplaceConnectedID = nil
+                }
+            }
+        )
     }
 
     private var assignmentPickerBinding: Binding<PhysicalKeyboard?> {
@@ -63,6 +156,21 @@ struct KeyameleonRootView: View {
             },
             set: { keyboard in
                 assignmentPickerKeyboardID = keyboard?.id
+            }
+        )
+    }
+
+    private var replacePickerBinding: Binding<PhysicalKeyboard?> {
+        Binding(
+            get: {
+                guard let replacePickerKeyboardID else {
+                    return nil
+                }
+
+                return model.physicalKeyboards.first { $0.id == replacePickerKeyboardID }
+            },
+            set: { keyboard in
+                replacePickerKeyboardID = keyboard?.id
             }
         )
     }
@@ -210,11 +318,28 @@ struct KeyameleonRootView: View {
 
     private func physicalKeyboardRow(_ physicalKeyboard: PhysicalKeyboard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            if physicalKeyboard.isAssignable {
-                Text(KeyameleonAppMetadata.physicalKeyboardNameLabel)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            HStack {
+                if physicalKeyboard.isAssignable {
+                    Text(KeyameleonAppMetadata.physicalKeyboardNameLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text(physicalKeyboard.name)
+                        .font(.body.weight(.medium))
+                }
 
+                Spacer()
+
+                if physicalKeyboard.isActive {
+                    Text(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(.tint.opacity(0.15), in: Capsule())
+                }
+            }
+
+            if physicalKeyboard.isAssignable {
                 TextField(
                     physicalKeyboard.productName,
                     text: nameBinding(for: physicalKeyboard)
@@ -230,17 +355,10 @@ struct KeyameleonRootView: View {
                         customName: newValue
                     )
                 }
-            } else {
-                Text(physicalKeyboard.name)
-                    .font(.body.weight(.medium))
             }
 
-            Text(
-                physicalKeyboard.isBuiltIn
-                    ? "Built-in"
-                    : physicalKeyboard.transport.displayName
-            )
-            .foregroundStyle(.secondary)
+            Text(connectionDescription(for: physicalKeyboard))
+                .foregroundStyle(.secondary)
 
             Text(assignmentStatusText(for: physicalKeyboard))
                 .foregroundStyle(
@@ -263,6 +381,23 @@ struct KeyameleonRootView: View {
                                 physicalKeyboard.id,
                                 inputSourceIdentifier: nil
                             )
+                        }
+                    }
+                }
+
+                HStack {
+                    if physicalKeyboard.connectionState == .connected,
+                       !model.replaceCandidates(for: physicalKeyboard.id).isEmpty
+                    {
+                        Button(KeyameleonAppMetadata.replaceSavedPhysicalKeyboardButtonTitle) {
+                            pendingReplaceConnectedID = physicalKeyboard.id
+                            replacePickerKeyboardID = physicalKeyboard.id
+                        }
+                    }
+
+                    if model.canForgetPhysicalKeyboard(physicalKeyboard.id) {
+                        Button(KeyameleonAppMetadata.forgetPhysicalKeyboardButtonTitle, role: .destructive) {
+                            forgetCandidateID = physicalKeyboard.id
                         }
                     }
                 }
@@ -291,9 +426,22 @@ struct KeyameleonRootView: View {
         .accessibilityLabel(physicalKeyboard.name)
         .accessibilityValue(
             model.activePhysicalKeyboardID == physicalKeyboard.id
-                ? KeyameleonAppMetadata.activePhysicalKeyboardLabel
-                : physicalKeyboard.statusDescription
+                ? "\(KeyameleonAppMetadata.activePhysicalKeyboardLabel) · \(connectionDescription(for: physicalKeyboard))"
+                : connectionDescription(for: physicalKeyboard)
         )
+    }
+
+    private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {
+        let hardware =
+            physicalKeyboard.isBuiltIn
+            ? "Built-in"
+            : physicalKeyboard.transport.displayName
+        let connection = physicalKeyboard.connectionState.displayName
+        if physicalKeyboard.connectionState == .disconnected {
+            return connection
+        }
+
+        return "\(connection) · \(hardware)"
     }
 
     private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {
@@ -384,5 +532,53 @@ private struct KeyboardAssignmentPickerView: View {
         }
         .padding(20)
         .frame(minWidth: 360, minHeight: 420)
+    }
+}
+
+@MainActor
+private struct ReplaceSavedPhysicalKeyboardPickerView: View {
+    let physicalKeyboard: PhysicalKeyboard
+    let candidates: [PhysicalKeyboard]
+    let onSelect: (PhysicalKeyboard) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(KeyameleonAppMetadata.replaceSavedPhysicalKeyboardPickerTitle)
+                .font(.title2)
+
+            Text("Move a disconnected saved Physical Keyboard onto \(physicalKeyboard.name).")
+                .foregroundStyle(.secondary)
+
+            if candidates.isEmpty {
+                Text("No disconnected saved Physical Keyboards.")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                List(candidates) { candidate in
+                    Button {
+                        onSelect(candidate)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(candidate.name)
+                            Text(candidate.statusDescription)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel", action: onCancel)
+                    .keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 360, minHeight: 360)
     }
 }

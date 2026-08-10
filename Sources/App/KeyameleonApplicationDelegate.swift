@@ -4,6 +4,9 @@ import AppKit
 @MainActor
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let setupModel: KeyameleonSetupModel
+    private let updateChecker: any UpdateChecking
+    private let startsUpdaterOnLaunch: Bool
+    let generalSettingsModel: KeyameleonGeneralSettingsModel
     private var statusItem: NSStatusItem?
     private var windowController: KeyameleonWindowController?
     private let modelContainer: ModelContainer?
@@ -26,6 +29,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
 
         let inputSources = SystemInputSourceProvider()
+        let isUITesting = ProcessInfo.processInfo.arguments.contains(
+            KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
+        )
         self.init(
             permissionProvider: SystemListenPermissionProvider(),
             setupStore: setupStore,
@@ -36,6 +42,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceProvider: inputSources,
             inputSourceSelector: inputSources,
             physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
+            // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
+            startsUpdaterOnLaunch: !isUITesting,
             modelContainer: modelContainer
         )
     }
@@ -48,9 +56,14 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
+        launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
+        updateChecker: any UpdateChecking = SparkleUpdateChecker(),
+        startsUpdaterOnLaunch: Bool = true,
         modelContainer: ModelContainer? = nil
     ) {
         self.modelContainer = modelContainer
+        self.updateChecker = updateChecker
+        self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         setupModel = KeyameleonSetupModel(
             permissionProvider: permissionProvider,
             setupStore: setupStore,
@@ -59,6 +72,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceSelector: inputSourceSelector,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             physicalKeyboardEventObserver: physicalKeyboardEventObserver
+        )
+        generalSettingsModel = KeyameleonGeneralSettingsModel(
+            launchAtLoginController: launchAtLoginController,
+            updateChecker: updateChecker
         )
 
         super.init()
@@ -72,6 +89,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         setupModel.refreshPermission()
         statusItem = makeStatusItem()
+        if startsUpdaterOnLaunch {
+            updateChecker.start()
+        }
+        generalSettingsModel.refresh()
 
         if !setupModel.isSetupComplete && !setupModel.hasStartedGuidedSetup {
             setupModel.beginGuidedSetup()
@@ -156,6 +177,25 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        let settingsItem = NSMenuItem(
+            title: KeyameleonAppMetadata.settingsMenuItemTitle,
+            action: #selector(openSettings(_:)),
+            keyEquivalent: ","
+        )
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
+        let checkForUpdatesItem = NSMenuItem(
+            title: KeyameleonAppMetadata.checkForUpdatesMenuItemTitle,
+            action: #selector(checkForUpdates(_:)),
+            keyEquivalent: ""
+        )
+        checkForUpdatesItem.target = self
+        checkForUpdatesItem.isEnabled = generalSettingsModel.canCheckForUpdates
+        menu.addItem(checkForUpdatesItem)
+
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(
             title: KeyameleonAppMetadata.quitMenuItemTitle,
             action: #selector(quitKeyameleon(_:)),
@@ -195,6 +235,19 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     @objc
     private func checkAgain(_ sender: Any?) {
         setupModel.refreshPermission()
+    }
+
+    @objc
+    private func openSettings(_ sender: Any?) {
+        generalSettingsModel.refresh()
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc
+    private func checkForUpdates(_ sender: Any?) {
+        generalSettingsModel.checkForUpdates()
+        refreshMenu()
     }
 
     @objc

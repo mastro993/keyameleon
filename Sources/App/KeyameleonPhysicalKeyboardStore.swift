@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 protocol PhysicalKeyboardRecordStoring: AnyObject {
     func record(forIdentityKey identityKey: String) -> SavedPhysicalKeyboardRecord?
+    func allRecords() -> [SavedPhysicalKeyboardRecord]
     func saveName(
         identityKey: String,
         productName: String,
@@ -13,6 +14,12 @@ protocol PhysicalKeyboardRecordStoring: AnyObject {
         identityKey: String,
         productName: String,
         assignment: KeyboardAssignment?
+    )
+    func deleteRecord(identityKey: String)
+    func transferRecord(
+        fromIdentityKey: String,
+        toIdentityKey: String,
+        productName: String
     )
 }
 
@@ -95,6 +102,16 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         fetchModel(identityKey: identityKey)?.savedRecord
     }
 
+    func allRecords() -> [SavedPhysicalKeyboardRecord] {
+        do {
+            return try modelContext
+                .fetch(FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>())
+                .map(\.savedRecord)
+        } catch {
+            fatalError("SwiftData fetch failed for Physical Keyboard records: \(error)")
+        }
+    }
+
     func saveName(
         identityKey: String,
         productName: String,
@@ -114,6 +131,31 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
     ) {
         let model = upsertModel(identityKey: identityKey, productName: productName)
         model.assignedInputSourceIdentifier = assignment?.inputSourceIdentifier
+        save()
+    }
+
+    func deleteRecord(identityKey: String) {
+        guard let model = fetchModel(identityKey: identityKey) else {
+            return
+        }
+
+        modelContext.delete(model)
+        save()
+    }
+
+    func transferRecord(
+        fromIdentityKey: String,
+        toIdentityKey: String,
+        productName: String
+    ) {
+        guard let source = fetchModel(identityKey: fromIdentityKey) else {
+            return
+        }
+
+        let destination = upsertModel(identityKey: toIdentityKey, productName: productName)
+        destination.customName = source.customName
+        destination.assignedInputSourceIdentifier = source.assignedInputSourceIdentifier
+        modelContext.delete(source)
         save()
     }
 
@@ -170,6 +212,10 @@ final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
         records[identityKey]
     }
 
+    func allRecords() -> [SavedPhysicalKeyboardRecord] {
+        Array(records.values)
+    }
+
     func saveName(
         identityKey: String,
         productName: String,
@@ -196,6 +242,28 @@ final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
             customName: existing?.customName,
             keyboardAssignment: assignment
         )
+    }
+
+    func deleteRecord(identityKey: String) {
+        records.removeValue(forKey: identityKey)
+    }
+
+    func transferRecord(
+        fromIdentityKey: String,
+        toIdentityKey: String,
+        productName: String
+    ) {
+        guard let source = records[fromIdentityKey] else {
+            return
+        }
+
+        records[toIdentityKey] = SavedPhysicalKeyboardRecord(
+            identityKey: toIdentityKey,
+            productName: productName,
+            customName: source.customName,
+            keyboardAssignment: source.keyboardAssignment
+        )
+        records.removeValue(forKey: fromIdentityKey)
     }
 }
 
