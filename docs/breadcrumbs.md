@@ -8,6 +8,39 @@
 - UI: General Settings → Diagnostics (start/stop session, clear all).
 - Tests: `KeyameleonDiagnosticDataTests.swift`. Bundle export = #14.
 
+## 2026-08-10 — Issue #10
+
+- Recover selection failures + Unavailable Keyboard Assignments.
+- Parent #1; blocked-by #5 closed.
+- Domain warning/availability; SetupModel recovery; Retry Now; tests in `KeyameleonRecoveryTests`.
+- No timed retry; no substitute select; exact identifier return ends unavailable.
+- Merged main: keep #6 converge generation, #7 menu/pause, #9 manual designation.
+
+## 2026-08-10 — Issue #9 Manual Physical Keyboard Designation
+
+- Issue #9: leave/return/name confirmation for eligible ambiguous external identity groups.
+- Domain: evidence rules + CryptoKit authenticator + phase enum.
+- App: Keychain integrity key, designation store, SetupModel session + elevation on publish/event.
+- UI: start button, status banner, name confirmation sheet.
+- Tests: `KeyameleonManualDesignationTests.swift` (eligibility, auth, flow, shared reject, empty name, no migrate, tamper).
+- Suite green.
+- Merged main: keep #6 converge + #7 menu first / pause.
+
+## 2026-08-10 — Issue #7
+
+- Menu first daily surface: Switching Status, Active PK, Keyboard Assignment, Current Input Source, action items, Pause/Resume.
+- Pause persists; Active PK does not. Icon marks: permission / warning / pause (+ temp unavailable).
+- Tests: `KeyameleonMenuFirstTests` + XCTest menu cases.
+- Merged main #6: keep wanted-generation converge + mismatch menu lines.
+- Follow-on: #11 sleep/lock → Temporarily Unavailable; #10 unavailable recovery actions; #12 no notify while Paused.
+
+## 2026-08-10 — Issue #6
+
+- Issue #6: converge after rapid activity + external Input Source changes.
+- Parent #1; blocked-by #5 closed.
+- Shipped: wanted generation, stale-readback discard, external change observer (no fight), mismatch UI/menu, A-B-A + rapid-order tests.
+- Out of scope: Pause (#7), Retry Now (#10 failure recovery).
+
 ## 2026-08-10 — Issue #5
 
 - Issue #5: implement Activity-Triggered Switching.

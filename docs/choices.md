@@ -20,7 +20,66 @@
 - Forget confirmation copy includes Diagnostic Data removal.
 - UI: General Settings → Diagnostics (start/stop session, clear all). Bundle export is #14.
 
+## 2026-08-10 — Issue #10 selection failure + Unavailable Keyboard Assignment seams
+
+- **Domain pure**: `SwitchingWarning`, `SwitchingFailureCategory`, `SwitchingRecoveryAction`, `WantedKeyboardAssignment`, `KeyboardAssignmentAvailability` (exact identifier only).
+- **Recovery coordinator** on `KeyameleonSetupModel`: one warning per active cause, `retryNow()`, skip select for unavailable, reevaluate on Input Source refresh.
+- **Converge integration**: keep wanted generation + generation-gated readback from #6; `WantedKeyboardAssignment` adds Physical Keyboard ID for Retry Now.
+- **InputSourceSelecting** unchanged: restore prior Input Source on exact readback mismatch.
+
+Defaults:
+
+- Selection failure cause is singular (current wanted). Newer assigned Activation Activity replaces wanted + may reselect.
+- Unavailable cause is per Physical Keyboard Record ID. Saved assignment stays; no substitute select.
+- Exact eligible-identifier return clears unavailable only. No timed retry loop.
+- `warningEpisodeCount` increments only when a new cause becomes active.
+- UI: plain category + recovery copy + **Retry Now** for selection failure; Change/Remove already on keyboard row.
+
+## 2026-08-10 — Issue #9 Manual Physical Keyboard Designation
+
+### Seams under test
+- `ManualPhysicalKeyboardDesignationEvidenceRules` — offer eligibility + return accept + confirmed name.
+- `ManualPhysicalKeyboardDesignationAuthenticator` — CryptoKit HMAC over identityKey/productName/confirmedName only (no Key Content).
+- `InstallationIntegrityKeyProviding` — Keychain-backed SymmetricKey (in-memory for tests).
+- `ManualPhysicalKeyboardDesignationStoring` — authenticated evidence persistence (SwiftData + in-memory).
+- `KeyameleonSetupModel` session: start → leave → return → confirm name; other Physical Keyboards stay assignable.
+
+### Defaults
+- Eligible only: external, identity-based, `.unsupported(.ambiguousIdentity)`. Missing/unstable/shared never offered.
+- Ambiguous multi-interface return still valid (approved exceptional case). Shared/unstable/missing return not accepted.
+- Save name + designation evidence only; no Keyboard Assignment from the flow.
+- Integrity key: Keychain generic password, service `dev.fedemas.keyameleon.installation-integrity`.
+- Designation model lives in `PhysicalKeyboardSchemaV1` container (additive model). Tampered HMAC → stay unsupported.
+- Identity change: no auto migrate/delete of designation or records.
+- Forget deletes designation for that identityKey.
+
+## 2026-08-10 — Issue #7 Menu first + pause
+
+- **Pause persist**: `SetupDecisionStoring.isActivityTriggeredSwitchingPaused` / UserDefaults key `keyameleon.activityTriggeredSwitching.paused`.
+- **Status resolve**: pure `SwitchingStatus.resolve` priority Permission Required → Temporarily Unavailable → Paused → Ready.
+- **Discovery vs observe**: Paused keeps Physical Keyboard discovery for management; stops Key Content observation + Input Source requests (`allowsPhysicalKeyboardDiscovery` vs `allowsActivityTriggeredSwitching`).
+- **Temp unavailable**: flag slot on SetupModel for #11; no sleep/lock wiring in #7.
+- **Menu bar icon**: SF Symbol shapes per `MenuBarIconMark` (not color-only). Item warning only when Ready.
+- **Menu first action items**: unassigned + Unavailable Keyboard Assignment lines; incomplete setup still uses Continue Setup….
+- **Resume**: clear pause → recheck listen permission → start observation only if Ready.
+
 ## 2026-08-10
+
+### Issue #6 Converge after rapid activity and external changes
+
+Seams under test:
+- `KeyameleonSetupModel.handlePhysicalKeyboardEvent` — serial activity consumer (observation order).
+- Wanted Keyboard Assignment generation on `KeyameleonSetupModel` — bump per select need; discard stale readback.
+- `InputSourceChangeObserving` — external Input Source changes (manual / shortcut / other apps).
+- `activeInputSourceMismatch` presentation — current vs assigned when they differ.
+- `KeyameleonAppMetadata` restore copy.
+
+Defaults:
+- Sync TIS select still generation-gated so nested/reentrant activity cannot apply stale verify.
+- External change: update observed current, clear verified when current ≠ verified, never select.
+- Coalesce only when wanted + verified + current all match the assignment.
+- UI/Menu first show current + assigned names + restore explanation only on mismatch for Active assigned keyboard.
+- System observer: `DistributedNotificationCenter` + `kTISNotifySelectedKeyboardInputSourceChanged`.
 
 ### Issue #5 Activity-Triggered Switching seams
 

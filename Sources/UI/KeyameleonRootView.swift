@@ -9,6 +9,7 @@ struct KeyameleonRootView: View {
     @State private var replaceTargetDisconnectedID: PhysicalKeyboardRecordID?
     @State private var forgetCandidateID: PhysicalKeyboardRecordID?
     @State private var nameDrafts: [String: String] = [:]
+    @State private var designationNameDraft = ""
 
     init(model: KeyameleonSetupModel) {
         _model = ObservedObject(wrappedValue: model)
@@ -120,6 +121,41 @@ struct KeyameleonRootView: View {
                 )
             }
         }
+        .sheet(isPresented: designationNameConfirmationPresented) {
+            ManualPhysicalKeyboardDesignationNameSheet(
+                nameDraft: $designationNameDraft,
+                onConfirm: {
+                    model.confirmManualDesignationName(designationNameDraft)
+                    designationNameDraft = ""
+                },
+                onCancel: {
+                    model.cancelManualDesignation()
+                    designationNameDraft = ""
+                }
+            )
+            .onAppear {
+                if case let .awaitingNameConfirmation(_, productName) = model.manualDesignationPhase {
+                    designationNameDraft = productName
+                }
+            }
+        }
+    }
+
+    private var designationNameConfirmationPresented: Binding<Bool> {
+        Binding(
+            get: {
+                if case .awaitingNameConfirmation = model.manualDesignationPhase {
+                    return true
+                }
+                return false
+            },
+            set: { isPresented in
+                if !isPresented, case .awaitingNameConfirmation = model.manualDesignationPhase {
+                    model.cancelManualDesignation()
+                    designationNameDraft = ""
+                }
+            }
+        )
     }
 
     private var forgetConfirmationPresented: Binding<Bool> {
@@ -215,6 +251,7 @@ struct KeyameleonRootView: View {
 
             switchingStatus
             activePhysicalKeyboardStatus
+            switchingWarnings
 
             HStack {
                 Button(KeyameleonAppMetadata.finishWithoutAssignmentsButtonTitle) {
@@ -233,12 +270,9 @@ struct KeyameleonRootView: View {
 
             switchingStatus
             activePhysicalKeyboardStatus
+            switchingWarnings
 
-            Text(
-                model.switchingStatus == .ready
-                    ? "Activity-Triggered Switching can observe Activation Activity."
-                    : "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
-            )
+            Text(switchingStatusExplanation(for: model.switchingStatus))
 
             Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
                 .foregroundStyle(.secondary)
@@ -273,10 +307,75 @@ struct KeyameleonRootView: View {
                 model.activePhysicalKeyboard?.name
                     ?? KeyameleonAppMetadata.noActivityObservedYet
             )
+
+            if let mismatch = model.activeInputSourceMismatch {
+                inputSourceMismatchStatus(mismatch)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func inputSourceMismatchStatus(
+        _ mismatch: InputSourceMismatchPresentation
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\(KeyameleonAppMetadata.currentInputSourceLabel): \(mismatch.currentName)")
+                .font(.callout)
+            Text("\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)")
+                .font(.callout)
+            Text(mismatch.restorationExplanation)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(KeyameleonAppMetadata.currentInputSourceLabel) \(mismatch.currentName). \(KeyameleonAppMetadata.assignedInputSourceLabel) \(mismatch.assignedName). \(mismatch.restorationExplanation)"
+        )
+    }
+
+    @ViewBuilder
+    private var switchingWarnings: some View {
+        if !model.activeWarnings.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(KeyameleonAppMetadata.switchingWarningsSectionTitle)
+                    .font(.headline)
+
+                ForEach(model.activeWarnings) { warning in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(warning.category.displayName)
+                            .font(.body.weight(.semibold))
+
+                        Text(recoveryExplanation(for: warning))
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+
+                        if warning.supportsRetryNow {
+                            Button(KeyameleonAppMetadata.retryNowButtonTitle) {
+                                model.retryNow()
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(warning.category.displayName)
+                    .accessibilityValue(warning.recoveryAction.displayName)
+                }
+            }
+        }
+    }
+
+    private func recoveryExplanation(for warning: SwitchingWarning) -> String {
+        switch warning.category {
+        case .selectionFailed:
+            KeyameleonAppMetadata.selectionFailedRecoveryExplanation
+        case .unavailableKeyboardAssignment:
+            KeyameleonAppMetadata.unavailableKeyboardAssignmentRecoveryExplanation
+        }
     }
 
     private var recoveryActions: some View {
@@ -295,6 +394,19 @@ struct KeyameleonRootView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Physical Keyboards")
                 .font(.headline)
+
+            if let designationStatus = model.manualDesignationStatusText() {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(designationStatus)
+                        .foregroundStyle(.secondary)
+                    Button(KeyameleonAppMetadata.manualDesignationCancelButtonTitle) {
+                        model.cancelManualDesignation()
+                    }
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+            }
 
             if model.physicalKeyboards.isEmpty {
                 Text("No Physical Keyboards found.")
@@ -401,6 +513,15 @@ struct KeyameleonRootView: View {
                         }
                     }
                 }
+            } else if model.canStartManualDesignation(for: physicalKeyboard.id) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(KeyameleonAppMetadata.manualDesignationExplanation)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Button(KeyameleonAppMetadata.manualDesignationButtonTitle) {
+                        model.startManualDesignation(for: physicalKeyboard.id)
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -429,6 +550,19 @@ struct KeyameleonRootView: View {
                 ? "\(KeyameleonAppMetadata.activePhysicalKeyboardLabel) · \(connectionDescription(for: physicalKeyboard))"
                 : connectionDescription(for: physicalKeyboard)
         )
+    }
+
+    private func switchingStatusExplanation(for status: SwitchingStatus) -> String {
+        switch status {
+        case .ready:
+            "Activity-Triggered Switching can observe Activation Activity."
+        case .permissionRequired:
+            "Physical Keyboard observation and Input Source requests remain stopped until listen permission is available."
+        case .paused:
+            "Activity-Triggered Switching is paused. Key Content observation and Input Source requests are stopped. Management and settings stay available."
+        case .temporarilyUnavailable:
+            "Activity-Triggered Switching is temporarily unavailable. It resumes automatically when the session permits."
+        }
     }
 
     private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {
@@ -580,5 +714,45 @@ private struct ReplaceSavedPhysicalKeyboardPickerView: View {
         }
         .padding(20)
         .frame(minWidth: 360, minHeight: 360)
+    }
+}
+
+@MainActor
+private struct ManualPhysicalKeyboardDesignationNameSheet: View {
+    @Binding var nameDraft: String
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(KeyameleonAppMetadata.manualDesignationConfirmNameButtonTitle)
+                .font(.title2)
+
+            Text(KeyameleonAppMetadata.manualDesignationExplanation)
+                .foregroundStyle(.secondary)
+
+            Text(KeyameleonAppMetadata.manualDesignationNameFieldLabel)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            TextField(
+                KeyameleonAppMetadata.physicalKeyboardNameLabel,
+                text: $nameDraft
+            )
+            .textFieldStyle(.roundedBorder)
+
+            HStack {
+                Spacer()
+                Button(KeyameleonAppMetadata.manualDesignationCancelButtonTitle, action: onCancel)
+                    .keyboardShortcut(.cancelAction)
+                Button(KeyameleonAppMetadata.manualDesignationConfirmNameButtonTitle) {
+                    onConfirm()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 360)
     }
 }
