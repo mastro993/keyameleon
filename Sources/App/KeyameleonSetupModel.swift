@@ -50,10 +50,16 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var switchingStatus: SwitchingStatus
     @Published private(set) var isSetupComplete: Bool
     @Published private(set) var hasStartedGuidedSetup: Bool
+    @Published private(set) var physicalKeyboards: [PhysicalKeyboard] = []
+    @Published private(set) var eligibleInputSources: [EligibleInputSource] = []
 
     private let permissionProvider: any ListenPermissionProviding
     private let setupStore: any SetupDecisionStoring
     private let systemSettingsOpener: any SystemSettingsOpening
+    private let physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering
+    private let inputSourceProvider: any InputSourceProviding
+    private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
+    private var isDiscoveryStarted = false
 
     var onChange: (@MainActor () -> Void)?
 
@@ -68,11 +74,15 @@ final class KeyameleonSetupModel: ObservableObject {
     init(
         permissionProvider: any ListenPermissionProviding,
         setupStore: any SetupDecisionStoring,
-        systemSettingsOpener: any SystemSettingsOpening
+        systemSettingsOpener: any SystemSettingsOpening,
+        physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = SystemPhysicalKeyboardDiscoverer(),
+        inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider()
     ) {
         self.permissionProvider = permissionProvider
         self.setupStore = setupStore
         self.systemSettingsOpener = systemSettingsOpener
+        self.physicalKeyboardDiscoverer = physicalKeyboardDiscoverer
+        self.inputSourceProvider = inputSourceProvider
         self.switchingStatus = permissionProvider.checkListenPermission().switchingStatus
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
@@ -80,12 +90,13 @@ final class KeyameleonSetupModel: ObservableObject {
 
     func refreshPermission() {
         let newStatus = permissionProvider.checkListenPermission().switchingStatus
-        guard switchingStatus != newStatus else {
-            return
+        if switchingStatus != newStatus {
+            switchingStatus = newStatus
+            onChange?()
         }
 
-        switchingStatus = newStatus
-        onChange?()
+        refreshInputSources()
+        updatePhysicalKeyboardDiscovery()
     }
 
     func requestPermission() {
@@ -130,5 +141,49 @@ final class KeyameleonSetupModel: ObservableObject {
 
     func openSystemSettings() {
         systemSettingsOpener.openSystemSettings()
+    }
+
+    private func refreshInputSources() {
+        let refreshedInputSources = inputSourceProvider.eligibleInputSources()
+        guard refreshedInputSources != eligibleInputSources else {
+            return
+        }
+
+        eligibleInputSources = refreshedInputSources
+        onChange?()
+    }
+
+    private func updatePhysicalKeyboardDiscovery() {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            guard isDiscoveryStarted else {
+                return
+            }
+
+            physicalKeyboardDiscoverer.stop()
+            isDiscoveryStarted = false
+            physicalKeyboardCatalog = PhysicalKeyboardCatalog()
+            physicalKeyboards = []
+            onChange?()
+            return
+        }
+
+        guard !isDiscoveryStarted else {
+            return
+        }
+
+        isDiscoveryStarted = true
+        physicalKeyboardDiscoverer.start { [weak self] change in
+            self?.apply(change)
+        }
+    }
+
+    private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            return
+        }
+
+        physicalKeyboardCatalog.apply(change)
+        physicalKeyboards = physicalKeyboardCatalog.physicalKeyboards
+        onChange?()
     }
 }

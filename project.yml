@@ -36,6 +36,8 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
     dependencies:
       - sdk: AppKit.framework
+      - sdk: Carbon.framework
+      - sdk: CoreHID.framework
       - sdk: IOKit.framework
       - sdk: SwiftUI.framework
 
