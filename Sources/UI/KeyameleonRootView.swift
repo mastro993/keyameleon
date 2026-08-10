@@ -223,22 +223,24 @@ struct KeyameleonRootView: View {
 
             switchingStatus
 
-            HStack {
-                Button(KeyameleonAppMetadata.requestPermissionButtonTitle) {
-                    model.requestPermission()
-                }
-                .disabled(model.switchingStatus == .ready)
+            if model.switchingStatus != .temporarilyUnavailable {
+                HStack {
+                    Button(KeyameleonAppMetadata.requestPermissionButtonTitle) {
+                        model.requestPermission()
+                    }
+                    .disabled(model.switchingStatus == .ready)
 
-                Button(
-                    model.switchingStatus == .ready
-                        ? KeyameleonAppMetadata.continueToAssignmentsButtonTitle
-                        : KeyameleonAppMetadata.continueWithoutPermissionButtonTitle
-                ) {
-                    model.continueToAssignments()
+                    Button(
+                        model.switchingStatus == .ready
+                            ? KeyameleonAppMetadata.continueToAssignmentsButtonTitle
+                            : KeyameleonAppMetadata.continueWithoutPermissionButtonTitle
+                    ) {
+                        model.continueToAssignments()
+                    }
                 }
+
+                recoveryActions
             }
-
-            recoveryActions
         }
     }
 
@@ -288,6 +290,17 @@ struct KeyameleonRootView: View {
             Text(model.switchingStatus.displayName)
                 .font(.title3)
                 .accessibilityValue(model.switchingStatus.displayName)
+
+            if let reason = model.temporaryUnavailableReason {
+                Text("\(KeyameleonAppMetadata.switchingStatusReasonMenuItemPrefix) \(reason.displayName)")
+                    .font(.callout)
+                    .accessibilityLabel(KeyameleonAppMetadata.switchingStatusReasonMenuItemPrefix)
+                    .accessibilityValue(reason.displayName)
+
+                Text(KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -378,14 +391,17 @@ struct KeyameleonRootView: View {
         }
     }
 
+    @ViewBuilder
     private var recoveryActions: some View {
-        HStack {
-            Button(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle) {
-                model.openSystemSettings()
-            }
+        if model.switchingStatus != .temporarilyUnavailable {
+            HStack {
+                Button(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle) {
+                    model.openSystemSettings()
+                }
 
-            Button(KeyameleonAppMetadata.checkAgainMenuItemTitle) {
-                model.refreshPermission()
+                Button(KeyameleonAppMetadata.checkAgainMenuItemTitle) {
+                    model.refreshPermission()
+                }
             }
         }
     }
@@ -561,7 +577,11 @@ struct KeyameleonRootView: View {
         case .paused:
             "Activity-Triggered Switching is paused. Key Content observation and Input Source requests are stopped. Management and settings stay available."
         case .temporarilyUnavailable:
-            "Activity-Triggered Switching is temporarily unavailable. It resumes automatically when the session permits."
+            if let reason = model.temporaryUnavailableReason {
+                "Activity-Triggered Switching is temporarily unavailable because \(reason.displayName). \(KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery)"
+            } else {
+                KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery
+            }
         }
     }
 

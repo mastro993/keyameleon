@@ -44,6 +44,26 @@ enum SwitchingStatus: String, Equatable, Sendable {
     }
 }
 
+enum SwitchingUnavailableReason: Equatable, Hashable, Sendable {
+    case sleeping
+    case inactiveSession
+    case secureInput
+    case protectedDataUnavailable
+
+    var displayName: String {
+        switch self {
+        case .sleeping:
+            "macOS is asleep"
+        case .inactiveSession:
+            "The user session is inactive"
+        case .secureInput:
+            "Secure Input is active"
+        case .protectedDataUnavailable:
+            "Protected data is unavailable"
+        }
+    }
+}
+
 enum ListenPermissionState: Equatable, Sendable {
     case granted
     case denied

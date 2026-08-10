@@ -5,6 +5,9 @@ enum KeyameleonAppMetadata {
     static let menuBarAccessibilityLabel = "Keyameleon"
     static let guidedSetupTitle = "Guided setup"
     static let switchingStatusMenuItemPrefix = "Switching Status:"
+    static let switchingStatusReasonMenuItemPrefix = "Detected reason:"
+    static let temporarilyUnavailableAutomaticRecovery =
+        "Resumes automatically when macOS allows Activity-Triggered Switching."
     static let activePhysicalKeyboardMenuItemPrefix = "Active Physical Keyboard:"
     static let keyboardAssignmentMenuItemPrefix = "Keyboard Assignment:"
     static let currentInputSourceMenuItemPrefix = "Current Input Source:"
@@ -106,5 +109,9 @@ enum KeyameleonAppMetadata {
 
     static func currentInputSourceMenuItemTitle(_ value: String) -> String {
         "\(currentInputSourceMenuItemPrefix) \(value)"
+    }
+
+    static func switchingStatusReasonMenuItemTitle(_ reason: SwitchingUnavailableReason) -> String {
+        "\(switchingStatusReasonMenuItemPrefix) \(reason.displayName)"
     }
 }
