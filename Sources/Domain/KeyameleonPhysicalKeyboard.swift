@@ -95,8 +95,22 @@ enum PhysicalKeyboardUnsupportedReason: Equatable, Sendable {
     }
 }
 
+struct KeyboardAssignment: Equatable, Sendable {
+    let inputSourceIdentifier: String
+
+    init?(inputSourceIdentifier: String) {
+        let normalized = inputSourceIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else {
+            return nil
+        }
+
+        self.inputSourceIdentifier = normalized
+    }
+}
+
 enum PhysicalKeyboardAssignmentState: Equatable, Sendable {
     case unassigned
+    case assigned(KeyboardAssignment)
     case unsupported(PhysicalKeyboardUnsupportedReason)
 }
 
@@ -154,36 +168,102 @@ enum PhysicalKeyboardDiscoveryChange: Sendable {
 }
 
 struct PhysicalKeyboardRecordID: Hashable, Sendable {
-    fileprivate let rawValue: String
+    let rawValue: String
 
-    fileprivate init(rawValue: String) {
+    init(rawValue: String) {
         self.rawValue = rawValue
+    }
+
+    var isIdentityBased: Bool {
+        rawValue.hasPrefix("identity:")
+    }
+}
+
+struct SavedPhysicalKeyboardRecord: Equatable, Sendable {
+    let identityKey: String
+    let productName: String
+    let customName: String?
+    let keyboardAssignment: KeyboardAssignment?
+
+    init(
+        identityKey: String,
+        productName: String,
+        customName: String? = nil,
+        keyboardAssignment: KeyboardAssignment? = nil
+    ) {
+        self.identityKey = identityKey
+        self.productName = productName
+        self.customName = customName?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        self.keyboardAssignment = keyboardAssignment
+    }
+
+    var displayName: String {
+        customName ?? productName
     }
 }
 
 struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
     let id: PhysicalKeyboardRecordID
-    let name: String
+    let productName: String
+    let customName: String?
     let transport: PhysicalKeyboardTransport
     let isBuiltIn: Bool
     let assignmentState: PhysicalKeyboardAssignmentState
     let connectedServiceCount: Int
 
-    var isAssignable: Bool {
-        if case .unassigned = assignmentState {
-            return true
+    var name: String {
+        customName ?? productName
+    }
+
+    var keyboardAssignment: KeyboardAssignment? {
+        if case let .assigned(assignment) = assignmentState {
+            return assignment
         }
 
-        return false
+        return nil
+    }
+
+    var isAssignable: Bool {
+        switch assignmentState {
+        case .unassigned, .assigned:
+            true
+        case .unsupported:
+            false
+        }
     }
 
     var statusDescription: String {
         switch assignmentState {
         case .unassigned:
             "Unassigned"
+        case .assigned:
+            "Assigned"
         case let .unsupported(reason):
             "Unsupported — \(reason.displayName)"
         }
+    }
+
+    func applying(savedRecord: SavedPhysicalKeyboardRecord?) -> PhysicalKeyboard {
+        guard isAssignable, let savedRecord else {
+            return self
+        }
+
+        let assignmentState: PhysicalKeyboardAssignmentState =
+            if let assignment = savedRecord.keyboardAssignment {
+                .assigned(assignment)
+            } else {
+                .unassigned
+            }
+
+        return PhysicalKeyboard(
+            id: id,
+            productName: productName,
+            customName: savedRecord.customName,
+            transport: transport,
+            isBuiltIn: isBuiltIn,
+            assignmentState: assignmentState,
+            connectedServiceCount: connectedServiceCount
+        )
     }
 }
 
@@ -285,7 +365,8 @@ struct PhysicalKeyboardCatalog: Sendable {
 
         return PhysicalKeyboard(
             id: recordID,
-            name: representative.name ?? "Physical Keyboard",
+            productName: representative.name ?? "Physical Keyboard",
+            customName: nil,
             transport: representative.transport,
             isBuiltIn: representative.isBuiltIn,
             assignmentState: assignmentState,
@@ -303,8 +384,8 @@ private struct StablePhysicalKeyboardFacts: Hashable, Sendable {
     let isBuiltIn: Bool
 }
 
-private extension String {
-    var nilIfEmpty: String? {
+extension String {
+    fileprivate var nilIfEmpty: String? {
         isEmpty ? nil : self
     }
 }

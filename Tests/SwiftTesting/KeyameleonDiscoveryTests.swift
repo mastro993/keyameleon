@@ -282,13 +282,20 @@ private final class DiscoveryTestListenPermissionProvider: ListenPermissionProvi
 private final class DiscoveryTestSetupDecisionStore: SetupDecisionStoring {
     var hasStartedGuidedSetup = false
     var hasCompletedGuidedSetup = false
+    var guidedSetupStep: GuidedSetupStep = .permission
 
     func markGuidedSetupStarted() {
         hasStartedGuidedSetup = true
     }
 
+    func markGuidedSetupStep(_ step: GuidedSetupStep) {
+        hasStartedGuidedSetup = true
+        guidedSetupStep = step
+    }
+
     func markGuidedSetupCompleted() {
         hasCompletedGuidedSetup = true
+        guidedSetupStep = .assignments
     }
 }
 

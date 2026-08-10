@@ -1,10 +1,12 @@
 import AppKit
+import SwiftData
 
 @MainActor
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let setupModel: KeyameleonSetupModel
     private var statusItem: NSStatusItem?
     private var windowController: KeyameleonWindowController?
+    private let modelContainer: ModelContainer?
 
     private lazy var menuDelegate = KeyameleonMenuDelegate { [weak self] in
         self?.setupModel.refreshPermission()
@@ -16,22 +18,37 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             setupStore.resetForUITesting()
         }
 
+        let modelContainer: ModelContainer
+        do {
+            modelContainer = try SwiftDataPhysicalKeyboardRecordStore.makeContainer()
+        } catch {
+            fatalError("SwiftData container failed for Physical Keyboard records: \(error)")
+        }
+
         self.init(
             permissionProvider: SystemListenPermissionProvider(),
             setupStore: setupStore,
-            systemSettingsOpener: NSWorkspaceSystemSettingsOpener()
+            systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
+            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(
+                modelContext: ModelContext(modelContainer)
+            ),
+            modelContainer: modelContainer
         )
     }
 
     init(
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
-        systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener()
+        systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
+        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
+        modelContainer: ModelContainer? = nil
     ) {
+        self.modelContainer = modelContainer
         setupModel = KeyameleonSetupModel(
             permissionProvider: permissionProvider,
             setupStore: setupStore,
-            systemSettingsOpener: systemSettingsOpener
+            systemSettingsOpener: systemSettingsOpener,
+            physicalKeyboardRecordStore: physicalKeyboardRecordStore
         )
 
         super.init()
@@ -139,7 +156,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     @objc
     private func continueSetup(_ sender: Any?) {
-        setupModel.beginGuidedSetup()
+        if !setupModel.hasStartedGuidedSetup {
+            setupModel.beginGuidedSetup()
+        }
         openKeyameleon(sender)
     }
 

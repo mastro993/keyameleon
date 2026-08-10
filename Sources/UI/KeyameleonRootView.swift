@@ -3,6 +3,8 @@ import SwiftUI
 @MainActor
 struct KeyameleonRootView: View {
     @ObservedObject private var model: KeyameleonSetupModel
+    @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
+    @State private var nameDrafts: [String: String] = [:]
 
     init(model: KeyameleonSetupModel) {
         _model = ObservedObject(wrappedValue: model)
@@ -17,18 +19,55 @@ struct KeyameleonRootView: View {
 
                 if model.isSetupComplete {
                     completedSetup
+                } else if model.guidedSetupStep == .assignments {
+                    assignmentSetup
                 } else {
-                    guidedSetup
+                    permissionSetup
                 }
 
-                configuration
+                if model.showsAssignmentSetup {
+                    configuration
+                }
             }
             .padding(28)
         }
         .frame(minWidth: 460, minHeight: 280)
+        .sheet(item: assignmentPickerBinding) { keyboard in
+            KeyboardAssignmentPickerView(
+                physicalKeyboard: keyboard,
+                filteredInputSources: { query in
+                    model.filteredInputSources(matching: query)
+                },
+                onSelect: { inputSource in
+                    model.setKeyboardAssignment(
+                        keyboard.id,
+                        inputSourceIdentifier: inputSource.identifier
+                    )
+                    assignmentPickerKeyboardID = nil
+                },
+                onCancel: {
+                    assignmentPickerKeyboardID = nil
+                }
+            )
+        }
     }
 
-    private var guidedSetup: some View {
+    private var assignmentPickerBinding: Binding<PhysicalKeyboard?> {
+        Binding(
+            get: {
+                guard let assignmentPickerKeyboardID else {
+                    return nil
+                }
+
+                return model.physicalKeyboards.first { $0.id == assignmentPickerKeyboardID }
+            },
+            set: { keyboard in
+                assignmentPickerKeyboardID = keyboard?.id
+            }
+        )
+    }
+
+    private var permissionSetup: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Activity-Triggered Switching keeps each Physical Keyboard aligned with its assigned Input Source after Keyameleon observes Activation Activity.")
 
@@ -48,10 +87,29 @@ struct KeyameleonRootView: View {
 
                 Button(
                     model.switchingStatus == .ready
-                        ? KeyameleonAppMetadata.finishSetupButtonTitle
+                        ? KeyameleonAppMetadata.continueToAssignmentsButtonTitle
                         : KeyameleonAppMetadata.continueWithoutPermissionButtonTitle
                 ) {
-                    model.completeSetup()
+                    model.continueToAssignments()
+                }
+            }
+
+            recoveryActions
+        }
+    }
+
+    private var assignmentSetup: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Name each Physical Keyboard and create Keyboard Assignments. Changes save immediately.")
+
+            Text(KeyameleonAppMetadata.assignmentAppliesAfterActivation)
+                .foregroundStyle(.secondary)
+
+            switchingStatus
+
+            HStack {
+                Button(KeyameleonAppMetadata.finishWithoutAssignmentsButtonTitle) {
+                    model.finishWithoutAssignments()
                 }
             }
 
@@ -117,28 +175,41 @@ struct KeyameleonRootView: View {
                 }
             }
 
-            Text("Input Sources")
-                .font(.headline)
-
-            if model.eligibleInputSources.isEmpty {
-                Text("No eligible Input Sources found.")
+            if !model.isSetupComplete {
+                Text(KeyameleonAppMetadata.assignmentAppliesAfterActivation)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
-            } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(model.eligibleInputSources) { inputSource in
-                        Text(inputSource.name)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
             }
         }
         .padding(.top, 4)
     }
 
     private func physicalKeyboardRow(_ physicalKeyboard: PhysicalKeyboard) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(physicalKeyboard.name)
-                .font(.body.weight(.medium))
+        VStack(alignment: .leading, spacing: 8) {
+            if physicalKeyboard.isAssignable {
+                Text(KeyameleonAppMetadata.physicalKeyboardNameLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                TextField(
+                    physicalKeyboard.productName,
+                    text: nameBinding(for: physicalKeyboard)
+                )
+                .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    commitName(for: physicalKeyboard)
+                }
+                .onChange(of: nameDrafts[physicalKeyboard.id.rawValue] ?? "") { _, newValue in
+                    // Immediate save on edit; empty draft restores the product name.
+                    model.setPhysicalKeyboardName(
+                        physicalKeyboard.id,
+                        customName: newValue
+                    )
+                }
+            } else {
+                Text(physicalKeyboard.name)
+                    .font(.body.weight(.medium))
+            }
 
             Text(
                 physicalKeyboard.isBuiltIn
@@ -147,18 +218,126 @@ struct KeyameleonRootView: View {
             )
             .foregroundStyle(.secondary)
 
-            Text(physicalKeyboard.statusDescription)
+            Text(assignmentStatusText(for: physicalKeyboard))
                 .foregroundStyle(
                     physicalKeyboard.isAssignable ? Color.secondary : Color.orange
                 )
+
+            if physicalKeyboard.isAssignable {
+                HStack {
+                    Button(
+                        physicalKeyboard.keyboardAssignment == nil
+                            ? KeyameleonAppMetadata.assignButtonTitle
+                            : KeyameleonAppMetadata.changeAssignmentButtonTitle
+                    ) {
+                        assignmentPickerKeyboardID = physicalKeyboard.id
+                    }
+
+                    if physicalKeyboard.keyboardAssignment != nil {
+                        Button(KeyameleonAppMetadata.removeAssignmentButtonTitle) {
+                            model.setKeyboardAssignment(
+                                physicalKeyboard.id,
+                                inputSourceIdentifier: nil
+                            )
+                        }
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(physicalKeyboard.name)
-        .accessibilityValue(
-            "\(physicalKeyboard.isBuiltIn ? "Built-in" : physicalKeyboard.transport.displayName), \(physicalKeyboard.statusDescription)"
+    }
+
+    private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {
+        switch physicalKeyboard.assignmentState {
+        case .unassigned:
+            "Unassigned"
+        case .assigned:
+            if let name = model.assignmentDisplayName(for: physicalKeyboard) {
+                "\(KeyameleonAppMetadata.keyboardAssignmentLabel): \(name)"
+            } else {
+                "Unavailable Keyboard Assignment"
+            }
+        case let .unsupported(reason):
+            "Unsupported — \(reason.displayName)"
+        }
+    }
+
+    private func nameBinding(for physicalKeyboard: PhysicalKeyboard) -> Binding<String> {
+        Binding(
+            get: {
+                if let draft = nameDrafts[physicalKeyboard.id.rawValue] {
+                    return draft
+                }
+
+                return physicalKeyboard.customName ?? physicalKeyboard.productName
+            },
+            set: { nameDrafts[physicalKeyboard.id.rawValue] = $0 }
         )
+    }
+
+    private func commitName(for physicalKeyboard: PhysicalKeyboard) {
+        let draft = nameDrafts[physicalKeyboard.id.rawValue] ?? physicalKeyboard.name
+        model.setPhysicalKeyboardName(physicalKeyboard.id, customName: draft)
+    }
+}
+
+@MainActor
+private struct KeyboardAssignmentPickerView: View {
+    let physicalKeyboard: PhysicalKeyboard
+    let filteredInputSources: (String) -> [EligibleInputSource]
+    let onSelect: (EligibleInputSource) -> Void
+    let onCancel: () -> Void
+
+    @State private var query = ""
+
+    private var visibleInputSources: [EligibleInputSource] {
+        filteredInputSources(query)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(KeyameleonAppMetadata.assignmentPickerTitle)
+                .font(.title2)
+
+            Text(physicalKeyboard.name)
+                .foregroundStyle(.secondary)
+
+            Text(KeyameleonAppMetadata.assignmentAppliesAfterActivation)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            TextField(KeyameleonAppMetadata.assignmentSearchPrompt, text: $query)
+                .textFieldStyle(.roundedBorder)
+
+            if visibleInputSources.isEmpty {
+                Text("No eligible Input Sources found.")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                List(visibleInputSources) { inputSource in
+                    Button {
+                        onSelect(inputSource)
+                    } label: {
+                        Text(inputSource.name)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    // Names only — never show technical Input Source identifiers.
+                }
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel", action: onCancel)
+                    .keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 360, minHeight: 420)
     }
 }
