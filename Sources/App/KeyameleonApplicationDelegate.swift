@@ -18,6 +18,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        // Refresh in place — do not replace the open menu instance.
         self.isPopulatingOpenMenu = true
         self.setupModel.refreshPermission()
         self.populateMenu(menu)
@@ -54,6 +55,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceProvider: inputSources,
             inputSourceSelector: inputSources,
             physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
+            inputSourceChangeObserver: SystemInputSourceChangeObserver(),
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
             startsUpdaterOnLaunch: !isUITesting,
             modelContainer: modelContainer
@@ -68,6 +70,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
+        inputSourceChangeObserver: any InputSourceChangeObserving = SystemInputSourceChangeObserver(),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
@@ -83,7 +86,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceProvider: inputSourceProvider,
             inputSourceSelector: inputSourceSelector,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
-            physicalKeyboardEventObserver: physicalKeyboardEventObserver
+            physicalKeyboardEventObserver: physicalKeyboardEventObserver,
+            inputSourceChangeObserver: inputSourceChangeObserver
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
@@ -175,9 +179,27 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             keyEquivalent: ""
         )
         currentInputSourceItem.isEnabled = false
-        currentInputSourceItem.setAccessibilityLabel("Current Input Source")
+        currentInputSourceItem.setAccessibilityLabel(KeyameleonAppMetadata.currentInputSourceLabel)
         currentInputSourceItem.setAccessibilityValue(setupModel.currentInputSourceMenuValue)
         menu.addItem(currentInputSourceItem)
+
+        if let mismatch = setupModel.activeInputSourceMismatch {
+            let assignedItem = NSMenuItem(
+                title: "\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)",
+                action: nil,
+                keyEquivalent: ""
+            )
+            assignedItem.isEnabled = false
+            menu.addItem(assignedItem)
+
+            let restoreItem = NSMenuItem(
+                title: mismatch.restorationExplanation,
+                action: nil,
+                keyEquivalent: ""
+            )
+            restoreItem.isEnabled = false
+            menu.addItem(restoreItem)
+        }
 
         let actionItems = setupModel.menuFirstActionItems
         if !actionItems.isEmpty {
@@ -398,6 +420,7 @@ private final class KeyameleonMenuDelegate: NSObject, NSMenuDelegate {
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
+        // Refresh permission and observed Input Source before Menu first paints.
         onMenuNeedsUpdate(menu)
     }
 }

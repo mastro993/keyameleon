@@ -100,6 +100,12 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var activePhysicalKeyboardID: PhysicalKeyboardRecordID?
     /// Last Keyboard Assignment verified active via exact identifier readback.
     @Published private(set) var verifiedKeyboardAssignmentIdentifier: String?
+    /// Monotonic wanted Keyboard Assignment generation. Bumps only when a new select is needed.
+    @Published private(set) var wantedKeyboardAssignmentGeneration: UInt64 = 0
+    /// Exact identifier for the current wanted Keyboard Assignment generation.
+    @Published private(set) var wantedKeyboardAssignmentIdentifier: String?
+    /// Last observed current Input Source (own select or external change). Not persisted.
+    @Published private(set) var observedCurrentInputSourceIdentifier: String?
     @Published private(set) var inputSourceSelectionRequestCount = 0
     @Published private(set) var warningEpisodeCount = 0
     /// Persists across restart. Pause only Activity-Triggered Switching.
@@ -113,10 +119,12 @@ final class KeyameleonSetupModel: ObservableObject {
     private let inputSourceSelector: any InputSourceSelecting
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving
+    private let inputSourceChangeObserver: any InputSourceChangeObserving
     private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var isDiscoveryStarted = false
     private var isEventObservationStarted = false
+    private var isInputSourceChangeObservationStarted = false
     /// Session protected state (sleep/lock). Issue #11 owns full recovery; #7 keeps priority slot.
     private var isTemporarilyUnavailable = false
 
@@ -167,12 +175,13 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     var currentInputSourceMenuValue: String {
-        guard let identifier = inputSourceSelector.currentInputSourceIdentifier() else {
-            return KeyameleonAppMetadata.menuValueUnavailable
+        if let identifier = observedCurrentInputSourceIdentifier
+            ?? inputSourceSelector.currentInputSourceIdentifier()
+        {
+            return displayName(forInputSourceIdentifier: identifier)
         }
 
-        return eligibleInputSources.first { $0.identifier == identifier }?.name
-            ?? identifier
+        return KeyameleonAppMetadata.menuValueUnavailable
     }
 
     /// Item conditions that need user action. Global status stays separate.
@@ -194,13 +203,30 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     var hasItemConditionsNeedingAction: Bool {
-        !menuFirstActionItems.isEmpty || !isSetupComplete
+        !menuFirstActionItems.isEmpty || !isSetupComplete || activeInputSourceMismatch != nil
     }
 
     var menuBarIconMark: MenuBarIconMark {
         MenuBarIconMark.resolve(
             switchingStatus: switchingStatus,
             hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
+        )
+    }
+
+    /// Current vs assigned when Active Physical Keyboard assignment differs from observed current.
+    var activeInputSourceMismatch: InputSourceMismatchPresentation? {
+        guard let activePhysicalKeyboard,
+              case let .assigned(assignment) = activePhysicalKeyboard.assignmentState,
+              let currentIdentifier = observedCurrentInputSourceIdentifier,
+              currentIdentifier != assignment.inputSourceIdentifier
+        else {
+            return nil
+        }
+
+        return InputSourceMismatchPresentation(
+            currentName: displayName(forInputSourceIdentifier: currentIdentifier),
+            assignedName: displayName(forInputSourceIdentifier: assignment.inputSourceIdentifier),
+            restorationExplanation: KeyameleonAppMetadata.inputSourceRestoresAfterActivation
         )
     }
 
@@ -212,7 +238,8 @@ final class KeyameleonSetupModel: ObservableObject {
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
-        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = NoOpPhysicalKeyboardEventObserver()
+        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = NoOpPhysicalKeyboardEventObserver(),
+        inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver()
     ) {
         self.permissionProvider = permissionProvider
         self.setupStore = setupStore
@@ -222,6 +249,7 @@ final class KeyameleonSetupModel: ObservableObject {
         self.inputSourceSelector = inputSourceSelector
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
         self.physicalKeyboardEventObserver = physicalKeyboardEventObserver
+        self.inputSourceChangeObserver = inputSourceChangeObserver
         self.isActivityTriggeredSwitchingPaused = setupStore.isActivityTriggeredSwitchingPaused
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
@@ -238,8 +266,10 @@ final class KeyameleonSetupModel: ObservableObject {
             listenPermission: permissionProvider.checkListenPermission()
         )
         refreshInputSources()
+        refreshObservedCurrentInputSource(publish: false)
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
+        updateInputSourceChangeObservation()
     }
 
     func pauseActivityTriggeredSwitching() {
@@ -254,6 +284,7 @@ final class KeyameleonSetupModel: ObservableObject {
         )
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
+        updateInputSourceChangeObservation()
         onChange?()
     }
 
@@ -269,8 +300,10 @@ final class KeyameleonSetupModel: ObservableObject {
             listenPermission: permissionProvider.checkListenPermission()
         )
         refreshInputSources()
+        refreshObservedCurrentInputSource(publish: false)
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
+        updateInputSourceChangeObservation()
         onChange?()
     }
 
@@ -304,25 +337,49 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         var didVerify = false
+        var didUpdateWanted = false
 
         switch physicalKeyboard.assignmentState {
         case let .assigned(assignment):
-            // Coalesce when this exact Keyboard Assignment is already verified.
-            if verifiedKeyboardAssignmentIdentifier == assignment.inputSourceIdentifier,
-               inputSourceSelector.currentInputSourceIdentifier() == assignment.inputSourceIdentifier
+            let wantedIdentifier = assignment.inputSourceIdentifier
+            let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
+            observedCurrentInputSourceIdentifier = currentIdentifier
+
+            // Coalesce when this exact Keyboard Assignment is already wanted and verified.
+            if wantedKeyboardAssignmentIdentifier == wantedIdentifier,
+               verifiedKeyboardAssignmentIdentifier == wantedIdentifier,
+               currentIdentifier == wantedIdentifier
             {
                 break
             }
 
+            // Newer assigned Activation Activity replaces older wanted state.
+            wantedKeyboardAssignmentGeneration &+= 1
+            let generation = wantedKeyboardAssignmentGeneration
+            wantedKeyboardAssignmentIdentifier = wantedIdentifier
+            didUpdateWanted = true
+
             inputSourceSelectionRequestCount += 1
-            if inputSourceSelector.selectAndVerifyInputSource(
-                identifier: assignment.inputSourceIdentifier
-            ) {
-                verifiedKeyboardAssignmentIdentifier = assignment.inputSourceIdentifier
+            let verified = inputSourceSelector.selectAndVerifyInputSource(
+                identifier: wantedIdentifier
+            )
+
+            // Only the current wanted generation may accept its readback.
+            guard generation == wantedKeyboardAssignmentGeneration else {
+                break
+            }
+
+            if verified {
+                verifiedKeyboardAssignmentIdentifier = wantedIdentifier
+                observedCurrentInputSourceIdentifier = wantedIdentifier
                 didVerify = true
-            } else if verifiedKeyboardAssignmentIdentifier == assignment.inputSourceIdentifier {
-                // Wanted assignment no longer verified after this Activation Activity.
-                verifiedKeyboardAssignmentIdentifier = nil
+            } else {
+                if verifiedKeyboardAssignmentIdentifier == wantedIdentifier {
+                    // Wanted assignment no longer verified after this Activation Activity.
+                    verifiedKeyboardAssignmentIdentifier = nil
+                }
+                observedCurrentInputSourceIdentifier =
+                    inputSourceSelector.currentInputSourceIdentifier()
             }
             // Selection failure restores prior Input Source when possible. No toast. No retry.
         case .unassigned, .unsupported:
@@ -330,8 +387,34 @@ final class KeyameleonSetupModel: ObservableObject {
             break
         }
 
-        if activeChanged || didVerify {
+        if activeChanged || didVerify || didUpdateWanted {
             publishPhysicalKeyboards()
+            onChange?()
+        }
+    }
+
+    /// External Input Source selection: keep it, never fight, refresh observed current only.
+    func handleExternalInputSourceChange() {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            return
+        }
+
+        let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
+        let previousObserved = observedCurrentInputSourceIdentifier
+        let previousVerified = verifiedKeyboardAssignmentIdentifier
+
+        observedCurrentInputSourceIdentifier = currentIdentifier
+
+        if let verified = verifiedKeyboardAssignmentIdentifier,
+           currentIdentifier != verified
+        {
+            // External actor owns Input Source until later assigned Activation Activity.
+            verifiedKeyboardAssignmentIdentifier = nil
+        }
+
+        if previousObserved != observedCurrentInputSourceIdentifier
+            || previousVerified != verifiedKeyboardAssignmentIdentifier
+        {
             onChange?()
         }
     }
@@ -585,6 +668,10 @@ final class KeyameleonSetupModel: ObservableObject {
         }
     }
 
+    private func displayName(forInputSourceIdentifier identifier: String) -> String {
+        eligibleInputSources.first { $0.identifier == identifier }?.name ?? identifier
+    }
+
     private func refreshInputSources() {
         let refreshedInputSources = inputSourceProvider.eligibleInputSources()
         guard refreshedInputSources != eligibleInputSources else {
@@ -603,6 +690,18 @@ final class KeyameleonSetupModel: ObservableObject {
         )
         if switchingStatus != newStatus {
             switchingStatus = newStatus
+            onChange?()
+        }
+    }
+
+    private func refreshObservedCurrentInputSource(publish: Bool) {
+        let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
+        guard currentIdentifier != observedCurrentInputSourceIdentifier else {
+            return
+        }
+
+        observedCurrentInputSourceIdentifier = currentIdentifier
+        if publish {
             onChange?()
         }
     }
@@ -651,6 +750,27 @@ final class KeyameleonSetupModel: ObservableObject {
         isEventObservationStarted = true
         physicalKeyboardEventObserver.start { [weak self] event in
             self?.handlePhysicalKeyboardEvent(event)
+        }
+    }
+
+    private func updateInputSourceChangeObservation() {
+        guard switchingStatus.allowsActivityTriggeredSwitching else {
+            guard isInputSourceChangeObservationStarted else {
+                return
+            }
+
+            inputSourceChangeObserver.stop()
+            isInputSourceChangeObservationStarted = false
+            return
+        }
+
+        guard !isInputSourceChangeObservationStarted else {
+            return
+        }
+
+        isInputSourceChangeObservationStarted = true
+        inputSourceChangeObserver.start { [weak self] in
+            self?.handleExternalInputSourceChange()
         }
     }
 

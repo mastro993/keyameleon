@@ -35,6 +35,10 @@ enum KeyameleonAppMetadata {
     static let physicalKeyboardNameLabel = "Physical Keyboard Name"
     static let keyboardAssignmentLabel = "Keyboard Assignment"
     static let assignmentAppliesAfterActivation = "Applies after next Activation Activity"
+    static let currentInputSourceLabel = "Current Input Source"
+    static let assignedInputSourceLabel = "Assigned Input Source"
+    static let inputSourceRestoresAfterActivation =
+        "Later Activation Activity restores the Keyboard Assignment."
     static let assignmentPickerTitle = "Choose Input Source"
     static let assignmentSearchPrompt = "Search Input Sources"
     static let replaceSavedPhysicalKeyboardPickerTitle = "Replace Saved Physical Keyboard"

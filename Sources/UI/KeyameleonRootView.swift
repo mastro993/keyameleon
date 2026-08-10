@@ -269,10 +269,33 @@ struct KeyameleonRootView: View {
                 model.activePhysicalKeyboard?.name
                     ?? KeyameleonAppMetadata.noActivityObservedYet
             )
+
+            if let mismatch = model.activeInputSourceMismatch {
+                inputSourceMismatchStatus(mismatch)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func inputSourceMismatchStatus(
+        _ mismatch: InputSourceMismatchPresentation
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\(KeyameleonAppMetadata.currentInputSourceLabel): \(mismatch.currentName)")
+                .font(.callout)
+            Text("\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)")
+                .font(.callout)
+            Text(mismatch.restorationExplanation)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(KeyameleonAppMetadata.currentInputSourceLabel) \(mismatch.currentName). \(KeyameleonAppMetadata.assignedInputSourceLabel) \(mismatch.assignedName). \(mismatch.restorationExplanation)"
+        )
     }
 
     private var recoveryActions: some View {

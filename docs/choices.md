@@ -12,6 +12,22 @@
 
 ## 2026-08-10
 
+### Issue #6 Converge after rapid activity and external changes
+
+Seams under test:
+- `KeyameleonSetupModel.handlePhysicalKeyboardEvent` — serial activity consumer (observation order).
+- Wanted Keyboard Assignment generation on `KeyameleonSetupModel` — bump per select need; discard stale readback.
+- `InputSourceChangeObserving` — external Input Source changes (manual / shortcut / other apps).
+- `activeInputSourceMismatch` presentation — current vs assigned when they differ.
+- `KeyameleonAppMetadata` restore copy.
+
+Defaults:
+- Sync TIS select still generation-gated so nested/reentrant activity cannot apply stale verify.
+- External change: update observed current, clear verified when current ≠ verified, never select.
+- Coalesce only when wanted + verified + current all match the assignment.
+- UI/Menu first show current + assigned names + restore explanation only on mismatch for Active assigned keyboard.
+- System observer: `DistributedNotificationCenter` + `kTISNotifySelectedKeyboardInputSourceChanged`.
+
 ### Issue #5 Activity-Triggered Switching seams
 
 - **Activation Activity classification** (domain pure): `PhysicalKeyboardEventKind` press/repeat/release; release not Activation Activity.
