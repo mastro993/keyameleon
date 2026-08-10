@@ -58,3 +58,34 @@ jobs:
           test -f SECURITY.md
           grep -q "Supported Release" SECURITY.md
           test -f CONTRIBUTING.md
+
+  qualification:
+    name: Automated qualification (macOS ${{ matrix.macos_major }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            macos_major: "15"
+          - os: macos-26
+            macos_major: "26"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Run automated qualification
+        env:
+          QUALIFICATION_SUPPORTED_MACOS_VERSIONS: ${{ matrix.macos_major }}
+        run: ./Scripts/run.sh qualify
+
+      - name: Upload sanitized qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualification-macos-${{ matrix.macos_major }}
+          path: .scratch/qualification/qualification-evidence.json
+          if-no-files-found: error

@@ -9,7 +9,7 @@ The qualification candidate must be identified by its source commit. A required 
 Run:
 
 ```sh
-./Scripts/run.sh qualify
+./Scripts/run.sh qualify-setup-accessibility
 ```
 
 The command writes `build/qualification/setup-accessibility.json` and gate logs under `build/qualification/logs/`. It runs:
@@ -124,7 +124,7 @@ Create a JSON file with aggregate, privacy-safe evidence:
 Evaluate it with:
 
 ```sh
-./Scripts/run.sh qualify --evidence path/to/evidence.json
+./Scripts/run.sh qualify-setup-accessibility --evidence path/to/evidence.json
 ```
 
 Only a safe `evidenceRef` matching `A-Za-z0-9` followed by up to 127 `A-Za-z0-9._-` characters and aggregate values belong in this file. Keep participant identity and raw observations outside the repository, under the approved qualification process.
