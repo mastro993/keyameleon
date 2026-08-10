@@ -8,7 +8,7 @@ PRODUCTS_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug"
 
 audit_sources() {
     local forbidden_pattern='HIDVirtualDevice|seizeDevice\(|kIOHIDRequestTypePostEvent|CGRequestPostEventAccess|DriverKit|Tauri|Electron'
-    if rg -n "$forbidden_pattern" Sources project.yml; then
+    if grep -REn "$forbidden_pattern" Sources project.yml; then
         print -u2 "forbidden non-shell surface found"
         return 1
     fi
@@ -20,10 +20,12 @@ generate_project() {
 
 run_tests() {
     python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
+    # The menu-bar app and hosted macOS test bundles must not launch in parallel.
     xcodebuild test \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
+        -parallel-testing-enabled NO \
         -derivedDataPath "${DERIVED_DATA_PATH}"
 }
 
