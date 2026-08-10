@@ -1,5 +1,5 @@
 import Foundation
-import SwiftData
+@preconcurrency import SwiftData
 
 @MainActor
 protocol PhysicalKeyboardRecordStoring: AnyObject {
@@ -17,7 +17,9 @@ protocol PhysicalKeyboardRecordStoring: AnyObject {
 }
 
 enum PhysicalKeyboardSchemaV1: VersionedSchema {
-    static let versionIdentifier = Schema.Version(1, 0, 0)
+    static var versionIdentifier: Schema.Version {
+        Schema.Version(1, 0, 0)
+    }
 
     static var models: [any PersistentModel.Type] {
         [PhysicalKeyboardRecordModel.self]

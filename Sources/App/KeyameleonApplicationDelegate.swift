@@ -1,5 +1,5 @@
 import AppKit
-import SwiftData
+@preconcurrency import SwiftData
 
 @MainActor
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
