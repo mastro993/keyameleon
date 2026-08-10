@@ -179,6 +179,20 @@ struct PhysicalKeyboardRecordID: Hashable, Sendable {
     }
 }
 
+enum PhysicalKeyboardConnectionState: Equatable, Sendable {
+    case connected
+    case disconnected
+
+    var displayName: String {
+        switch self {
+        case .connected:
+            "Connected"
+        case .disconnected:
+            "Disconnected"
+        }
+    }
+}
+
 struct SavedPhysicalKeyboardRecord: Equatable, Sendable {
     let identityKey: String
     let productName: String
@@ -200,6 +214,14 @@ struct SavedPhysicalKeyboardRecord: Equatable, Sendable {
     var displayName: String {
         customName ?? productName
     }
+
+    var recordID: PhysicalKeyboardRecordID {
+        PhysicalKeyboardRecordID(rawValue: identityKey)
+    }
+
+    var isBuiltInIdentity: Bool {
+        identityKey.contains("|anchor:built-in")
+    }
 }
 
 struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
@@ -210,6 +232,8 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
     let isBuiltIn: Bool
     let assignmentState: PhysicalKeyboardAssignmentState
     let connectedServiceCount: Int
+    let connectionState: PhysicalKeyboardConnectionState
+    let isActive: Bool
 
     var name: String {
         customName ?? productName
@@ -262,8 +286,97 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
             transport: transport,
             isBuiltIn: isBuiltIn,
             assignmentState: assignmentState,
-            connectedServiceCount: connectedServiceCount
+            connectedServiceCount: connectedServiceCount,
+            connectionState: connectionState,
+            isActive: isActive
         )
+    }
+
+    func markingActive(_ isActive: Bool) -> PhysicalKeyboard {
+        PhysicalKeyboard(
+            id: id,
+            productName: productName,
+            customName: customName,
+            transport: transport,
+            isBuiltIn: isBuiltIn,
+            assignmentState: assignmentState,
+            connectedServiceCount: connectedServiceCount,
+            connectionState: connectionState,
+            isActive: isActive
+        )
+    }
+
+    func asDisconnected() -> PhysicalKeyboard {
+        PhysicalKeyboard(
+            id: id,
+            productName: productName,
+            customName: customName,
+            transport: transport,
+            isBuiltIn: isBuiltIn,
+            assignmentState: assignmentState,
+            connectedServiceCount: 0,
+            connectionState: .disconnected,
+            isActive: isActive
+        )
+    }
+
+    static func disconnected(from savedRecord: SavedPhysicalKeyboardRecord) -> PhysicalKeyboard {
+        let assignmentState: PhysicalKeyboardAssignmentState =
+            if let assignment = savedRecord.keyboardAssignment {
+                .assigned(assignment)
+            } else {
+                .unassigned
+            }
+
+        return PhysicalKeyboard(
+            id: savedRecord.recordID,
+            productName: savedRecord.productName,
+            customName: savedRecord.customName,
+            transport: .other,
+            isBuiltIn: savedRecord.isBuiltInIdentity,
+            assignmentState: assignmentState,
+            connectedServiceCount: 0,
+            connectionState: .disconnected,
+            isActive: false
+        )
+    }
+}
+
+enum PhysicalKeyboardListOrdering {
+    static func sorted(
+        _ physicalKeyboards: [PhysicalKeyboard],
+        activeID: PhysicalKeyboardRecordID?
+    ) -> [PhysicalKeyboard] {
+        physicalKeyboards.sorted { left, right in
+            let leftRank = sortRank(for: left, activeID: activeID)
+            let rightRank = sortRank(for: right, activeID: activeID)
+            if leftRank != rightRank {
+                return leftRank < rightRank
+            }
+
+            let nameComparison = left.name.localizedCaseInsensitiveCompare(right.name)
+            if nameComparison != .orderedSame {
+                return nameComparison == .orderedAscending
+            }
+
+            return left.id.rawValue < right.id.rawValue
+        }
+    }
+
+    private static func sortRank(
+        for physicalKeyboard: PhysicalKeyboard,
+        activeID: PhysicalKeyboardRecordID?
+    ) -> Int {
+        if let activeID, physicalKeyboard.id == activeID {
+            return 0
+        }
+
+        switch physicalKeyboard.connectionState {
+        case .connected:
+            return 1
+        case .disconnected:
+            return 2
+        }
     }
 }
 
@@ -370,7 +483,9 @@ struct PhysicalKeyboardCatalog: Sendable {
             transport: representative.transport,
             isBuiltIn: representative.isBuiltIn,
             assignmentState: assignmentState,
-            connectedServiceCount: group.count
+            connectedServiceCount: group.count,
+            connectionState: .connected,
+            isActive: false
         )
     }
 }
