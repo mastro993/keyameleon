@@ -48,6 +48,19 @@ enum KeyameleonAppMetadata {
         "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
     static let criticalUpdateWarningExplanation =
         "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
+    static let diagnosticsSettingsSectionTitle = "Diagnostics"
+    static let startDiagnosticSessionButtonTitle = "Start Diagnostic Session"
+    static let stopDiagnosticSessionButtonTitle = "Stop Diagnostic Session"
+    static let clearAllDiagnosticDataButtonTitle = "Clear All Diagnostic Data"
+    static let diagnosticSessionStatusLabel = "Diagnostic Session"
+    static let diagnosticSessionActiveStatus = "Active (ends automatically after 10 minutes)"
+    static let diagnosticSessionInactiveStatus = "Inactive"
+    static let diagnosticsSettingsFooter =
+        "Diagnostic Data uses a closed allowlist. It never includes Key Content, exact Physical Keyboard Identity values, serial numbers, custom names, Keyboard Assignments, Input Source identifiers, paths, user names, or application names. Retention stops at 7 days or 5 MB."
+
+    static func diagnosticDataSummary(recordCount: Int, byteCount: Int) -> String {
+        "\(recordCount) records · about \(byteCount) bytes retained"
+    }
 
     static func switchingStatusMenuItemTitle(_ status: SwitchingStatus) -> String {
         "\(switchingStatusMenuItemPrefix) \(status.displayName)"

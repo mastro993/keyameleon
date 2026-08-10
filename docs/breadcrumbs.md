@@ -1,5 +1,13 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #13 Control Diagnostic Data and Diagnostic Sessions
+
+- Domain: closed allowlist `DiagnosticCategory`/`DiagnosticEventCode`, session 10m, retention 7d/5MB, temporary tokens.
+- Service: `KeyameleonDiagnosticDataService` + `InMemory`/`SwiftData` store; `ClockProviding`.
+- Wire: SetupModel records operational state/errors; session-only detailed codes; forget deletes linked diagnostics.
+- UI: General Settings → Diagnostics (start/stop session, clear all).
+- Tests: `KeyameleonDiagnosticDataTests.swift`. Bundle export = #14.
+
 ## 2026-08-10 — Issue #5
 
 - Issue #5: implement Activity-Triggered Switching.

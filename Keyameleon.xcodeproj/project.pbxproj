@@ -10,6 +10,7 @@
 		09A8E2280F073308A73D54C1 /* KeyameleonLifecycleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC7358858FE9ED01078060A /* KeyameleonLifecycleUITests.swift */; };
 		15EADB73F954D79F813518EC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5225FE09338A066FF3E0C002 /* Carbon.framework */; };
 		19105A3BEAA212153F549A0C /* KeyameleonActivationActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D54E9681097A8CC3525C174 /* KeyameleonActivationActivityTests.swift */; };
+		1DE711112C0D275511B175F8 /* KeyameleonDiagnosticDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F5731D1B47F9F27209506F7 /* KeyameleonDiagnosticDataStore.swift */; };
 		1E16D110159043AA38790E18 /* KeyameleonUpdatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2081CDA9B0A44E57A812562D /* KeyameleonUpdatePolicy.swift */; };
 		20D047C8389D5AFAF0640BF9 /* KeyameleonGeneralSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29DF815D1A244C353EB07D1 /* KeyameleonGeneralSettingsModel.swift */; };
 		2A917419870E1F12F7352151 /* KeyameleonInputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79EA503C879924C491405AE /* KeyameleonInputSource.swift */; };
@@ -18,6 +19,7 @@
 		388F2269E6A2FBE054E99FB3 /* KeyameleonPhysicalKeyboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3632ABCF441FFA56C14EF59F /* KeyameleonPhysicalKeyboardStore.swift */; };
 		40DC297BC0EA599BD7E9FEA1 /* KeyameleonLaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F33EBC2EEBE9B17D8ABBF6F /* KeyameleonLaunchAtLogin.swift */; };
 		48015E432FD28317B7DD5C50 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D397C615AE93268A186585C /* ServiceManagement.framework */; };
+		516B77846CF8FF3C6009DE4E /* KeyameleonDiagnosticData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0564DEACB278CD01A3E12140 /* KeyameleonDiagnosticData.swift */; };
 		612CF8D5C63F09DBA398E9E1 /* KeyameleonPhysicalKeyboardDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18397DF8FD0876C66C5EAA37 /* KeyameleonPhysicalKeyboardDiscovery.swift */; };
 		62B876A3340C8FB20074FAD9 /* KeyameleonSwitchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0BF5042B79F5BA8910EB10 /* KeyameleonSwitchingTests.swift */; };
 		64E3E73BCBE33BBF8DA964B2 /* SwiftData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81634072FBBCD7BCF66DC8CC /* SwiftData.framework */; };
@@ -32,7 +34,9 @@
 		8E983EC936ED3F0E0C5AD299 /* KeyameleonGeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192B0AA0A94FCF33D18120BD /* KeyameleonGeneralSettingsView.swift */; };
 		8EACA5A3486235A102A93F44 /* KeyameleonApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8390A0559D913FCE3B8443D0 /* KeyameleonApplicationDelegate.swift */; };
 		91E6DD5CBEB5B2DAE4AC91F1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAF64CA3A3802AD87234A325 /* SwiftUI.framework */; };
+		9BFB9E9D57F795F1CCB9DC50 /* KeyameleonDiagnosticDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C51CA1E8A18EEA8BEA32C1D /* KeyameleonDiagnosticDataService.swift */; };
 		ACA1D2A2F87C1D348122EE23 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */; };
+		B4E6FAC420FB0A2DB154C3F3 /* KeyameleonDiagnosticDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFA3A9EC9C29FDF5FBBFBBD /* KeyameleonDiagnosticDataTests.swift */; };
 		BAAD4D6E6FB90A5B0E638646 /* KeyameleonPhysicalKeyboardEventObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70F0FD9FD44BC881C85C57D4 /* KeyameleonPhysicalKeyboardEventObserver.swift */; };
 		C5FC705A3DCC9EA289FB584E /* KeyameleonInputSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963A3486E0561CC765074E65 /* KeyameleonInputSources.swift */; };
 		C8FA0F1AE962C4AEC32A0A92 /* KeyameleonWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F9918A3CBD5830F8FB513A /* KeyameleonWindowController.swift */; };
@@ -74,15 +78,18 @@
 
 /* Begin PBXFileReference section */
 		02455F8A5A118EF76B787E5D /* KeyameleonApplicationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonApplicationTests.swift; sourceTree = "<group>"; };
+		0564DEACB278CD01A3E12140 /* KeyameleonDiagnosticData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonDiagnosticData.swift; sourceTree = "<group>"; };
 		077A1A619B7B568508D1505F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		07F9918A3CBD5830F8FB513A /* KeyameleonWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonWindowController.swift; sourceTree = "<group>"; };
 		0E0BF5042B79F5BA8910EB10 /* KeyameleonSwitchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonSwitchingTests.swift; sourceTree = "<group>"; };
+		0FFA3A9EC9C29FDF5FBBFBBD /* KeyameleonDiagnosticDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonDiagnosticDataTests.swift; sourceTree = "<group>"; };
 		10A6D03C52349B7198BF3887 /* KeyameleonAppMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonAppMetadataTests.swift; sourceTree = "<group>"; };
 		18397DF8FD0876C66C5EAA37 /* KeyameleonPhysicalKeyboardDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonPhysicalKeyboardDiscovery.swift; sourceTree = "<group>"; };
 		189C50D0A9824D1363633125 /* KeyameleonSwitchingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonSwitchingStatus.swift; sourceTree = "<group>"; };
 		192B0AA0A94FCF33D18120BD /* KeyameleonGeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonGeneralSettingsView.swift; sourceTree = "<group>"; };
 		2081CDA9B0A44E57A812562D /* KeyameleonUpdatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonUpdatePolicy.swift; sourceTree = "<group>"; };
 		27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		2F5731D1B47F9F27209506F7 /* KeyameleonDiagnosticDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonDiagnosticDataStore.swift; sourceTree = "<group>"; };
 		31D4DC9D2C8B0CA0754D04CE /* KeyameleonSetupModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonSetupModel.swift; sourceTree = "<group>"; };
 		3632ABCF441FFA56C14EF59F /* KeyameleonPhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonPhysicalKeyboardStore.swift; sourceTree = "<group>"; };
 		4D54E9681097A8CC3525C174 /* KeyameleonActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonActivationActivityTests.swift; sourceTree = "<group>"; };
@@ -98,6 +105,7 @@
 		8390A0559D913FCE3B8443D0 /* KeyameleonApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonApplicationDelegate.swift; sourceTree = "<group>"; };
 		88866B9159B0A6585EC96F97 /* KeyameleonDiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonDiscoveryTests.swift; sourceTree = "<group>"; };
 		8A5D9B212C3318CABB8BF0B9 /* KeyameleonAssignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonAssignmentTests.swift; sourceTree = "<group>"; };
+		8C51CA1E8A18EEA8BEA32C1D /* KeyameleonDiagnosticDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonDiagnosticDataService.swift; sourceTree = "<group>"; };
 		925B8730799DFF8411FF94FF /* KeyameleonApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonApp.swift; sourceTree = "<group>"; };
 		963A3486E0561CC765074E65 /* KeyameleonInputSources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonInputSources.swift; sourceTree = "<group>"; };
 		967B7E1070DD4601582EE6C6 /* Keyameleon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keyameleon.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -195,6 +203,8 @@
 				077A1A619B7B568508D1505F /* Info.plist */,
 				925B8730799DFF8411FF94FF /* KeyameleonApp.swift */,
 				8390A0559D913FCE3B8443D0 /* KeyameleonApplicationDelegate.swift */,
+				8C51CA1E8A18EEA8BEA32C1D /* KeyameleonDiagnosticDataService.swift */,
+				2F5731D1B47F9F27209506F7 /* KeyameleonDiagnosticDataStore.swift */,
 				B29DF815D1A244C353EB07D1 /* KeyameleonGeneralSettingsModel.swift */,
 				963A3486E0561CC765074E65 /* KeyameleonInputSources.swift */,
 				6F33EBC2EEBE9B17D8ABBF6F /* KeyameleonLaunchAtLogin.swift */,
@@ -213,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				E866BDFB5D4377E15825F6E8 /* KeyameleonAppMetadata.swift */,
+				0564DEACB278CD01A3E12140 /* KeyameleonDiagnosticData.swift */,
 				C79EA503C879924C491405AE /* KeyameleonInputSource.swift */,
 				B8B6F299CFBCDC378DA2681F /* KeyameleonPhysicalKeyboard.swift */,
 				F0F83338ABBB24B7EB3AD021 /* KeyameleonPhysicalKeyboardEvent.swift */,
@@ -256,6 +267,7 @@
 				4D54E9681097A8CC3525C174 /* KeyameleonActivationActivityTests.swift */,
 				10A6D03C52349B7198BF3887 /* KeyameleonAppMetadataTests.swift */,
 				8A5D9B212C3318CABB8BF0B9 /* KeyameleonAssignmentTests.swift */,
+				0FFA3A9EC9C29FDF5FBBFBBD /* KeyameleonDiagnosticDataTests.swift */,
 				88866B9159B0A6585EC96F97 /* KeyameleonDiscoveryTests.swift */,
 				A0F8CAA723ECE90E00BDC978 /* KeyameleonGeneralSettingsModelTests.swift */,
 				70E129C8285C1318793290B4 /* KeyameleonLifecycleTests.swift */,
@@ -399,6 +411,9 @@
 				84C64FB9DA6AC5FFCA575DE3 /* KeyameleonApp.swift in Sources */,
 				6A55073B7C935715A040BE0E /* KeyameleonAppMetadata.swift in Sources */,
 				8EACA5A3486235A102A93F44 /* KeyameleonApplicationDelegate.swift in Sources */,
+				516B77846CF8FF3C6009DE4E /* KeyameleonDiagnosticData.swift in Sources */,
+				9BFB9E9D57F795F1CCB9DC50 /* KeyameleonDiagnosticDataService.swift in Sources */,
+				1DE711112C0D275511B175F8 /* KeyameleonDiagnosticDataStore.swift in Sources */,
 				20D047C8389D5AFAF0640BF9 /* KeyameleonGeneralSettingsModel.swift in Sources */,
 				8E983EC936ED3F0E0C5AD299 /* KeyameleonGeneralSettingsView.swift in Sources */,
 				2A917419870E1F12F7352151 /* KeyameleonInputSource.swift in Sources */,
@@ -434,6 +449,7 @@
 				19105A3BEAA212153F549A0C /* KeyameleonActivationActivityTests.swift in Sources */,
 				F86C0383C89A4A0E94C568D0 /* KeyameleonAppMetadataTests.swift in Sources */,
 				FC880075EE67A5A5FA744D72 /* KeyameleonAssignmentTests.swift in Sources */,
+				B4E6FAC420FB0A2DB154C3F3 /* KeyameleonDiagnosticDataTests.swift in Sources */,
 				D75FC4D1B672A7915B4FBBF8 /* KeyameleonDiscoveryTests.swift in Sources */,
 				C9A6F7A5181A79349C54433E /* KeyameleonGeneralSettingsModelTests.swift in Sources */,
 				E0E9C09796EBA40EAEE859AD /* KeyameleonLifecycleTests.swift in Sources */,

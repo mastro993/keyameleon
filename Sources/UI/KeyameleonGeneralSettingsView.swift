@@ -46,10 +46,53 @@ struct KeyameleonGeneralSettingsView: View {
             } header: {
                 Text(KeyameleonAppMetadata.updatesSettingsSectionTitle)
             }
+
+            Section {
+                Text(model.isDiagnosticSessionActive
+                    ? KeyameleonAppMetadata.diagnosticSessionActiveStatus
+                    : KeyameleonAppMetadata.diagnosticSessionInactiveStatus)
+                    .font(.callout)
+                    .accessibilityLabel(KeyameleonAppMetadata.diagnosticSessionStatusLabel)
+                    .accessibilityValue(
+                        model.isDiagnosticSessionActive
+                            ? KeyameleonAppMetadata.diagnosticSessionActiveStatus
+                            : KeyameleonAppMetadata.diagnosticSessionInactiveStatus
+                    )
+
+                if model.isDiagnosticSessionActive {
+                    Button(KeyameleonAppMetadata.stopDiagnosticSessionButtonTitle) {
+                        model.stopDiagnosticSession()
+                    }
+                    .accessibilityLabel(KeyameleonAppMetadata.stopDiagnosticSessionButtonTitle)
+                } else {
+                    Button(KeyameleonAppMetadata.startDiagnosticSessionButtonTitle) {
+                        model.startDiagnosticSession()
+                    }
+                    .accessibilityLabel(KeyameleonAppMetadata.startDiagnosticSessionButtonTitle)
+                }
+
+                Text(KeyameleonAppMetadata.diagnosticDataSummary(
+                    recordCount: model.diagnosticRecordCount,
+                    byteCount: model.diagnosticEstimatedByteCount
+                ))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+                Button(KeyameleonAppMetadata.clearAllDiagnosticDataButtonTitle, role: .destructive) {
+                    model.clearAllDiagnosticData()
+                }
+                .disabled(model.diagnosticRecordCount == 0)
+                .accessibilityLabel(KeyameleonAppMetadata.clearAllDiagnosticDataButtonTitle)
+            } header: {
+                Text(KeyameleonAppMetadata.diagnosticsSettingsSectionTitle)
+            } footer: {
+                Text(KeyameleonAppMetadata.diagnosticsSettingsFooter)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .padding()
-        .frame(minWidth: 420, minHeight: 280)
+        .frame(minWidth: 420, minHeight: 360)
         .onAppear {
             model.refresh()
         }
