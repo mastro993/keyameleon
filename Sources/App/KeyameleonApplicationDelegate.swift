@@ -68,7 +68,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         let isUITesting = ProcessInfo.processInfo.arguments.contains(
             KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
         )
-        let operationalNotificationProvider = SystemOperationalNotificationProvider()
+        let operationalNotificationProvider: any OperationalNotificationProviding =
+            isUITesting
+                ? NoOpOperationalNotificationProvider()
+                : SystemOperationalNotificationProvider()
         let notificationEpisodeStore = UserDefaultsOperationalNotificationEpisodeStore()
         let notificationSetupStore = UserDefaultsNotificationSetupDecisionStore()
         if isUITesting {
