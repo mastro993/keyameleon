@@ -117,6 +117,8 @@ final class KeyameleonSetupModel: ObservableObject {
     @Published private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     /// Persists across restart. Pause only Activity-Triggered Switching.
     @Published private(set) var isActivityTriggeredSwitchingPaused: Bool
+    @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState = .unknown
+    @Published private(set) var shouldOfferOperationalNotificationSetup = false
 
     private let permissionProvider: any ListenPermissionProviding
     private let protectedStateProvider: any ProtectedStateProviding
@@ -131,6 +133,9 @@ final class KeyameleonSetupModel: ObservableObject {
     private let designationStore: any ManualPhysicalKeyboardDesignationStoring
     private let integrityKeyProvider: any InstallationIntegrityKeyProviding
     private let diagnosticDataController: any DiagnosticDataControlling
+    private let operationalNotificationProvider: any OperationalNotificationProviding
+    private let notificationEpisodeStore: any OperationalNotificationEpisodeStoring
+    private let notificationSetupStore: any NotificationSetupDecisionStoring
     private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var isDiscoveryStarted = false
@@ -138,6 +143,8 @@ final class KeyameleonSetupModel: ObservableObject {
     private var isInputSourceChangeObservationStarted = false
     private var eventProtectedDataUnavailable = false
     private var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
+    private var lastKnownListenPermission: ListenPermissionState
+    private var isNotificationAuthorizationRequestInFlight = false
 
     var onChange: (@MainActor () -> Void)?
 
@@ -262,7 +269,13 @@ final class KeyameleonSetupModel: ObservableObject {
             InMemoryInstallationIntegrityKeyProvider(),
         diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
             store: InMemoryDiagnosticDataStore()
-        )
+        ),
+        operationalNotificationProvider: any OperationalNotificationProviding =
+            NoOpOperationalNotificationProvider(),
+        notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
+            InMemoryOperationalNotificationEpisodeStore(),
+        notificationSetupStore: any NotificationSetupDecisionStoring =
+            InMemoryNotificationSetupDecisionStore()
     ) {
         self.permissionProvider = permissionProvider
         self.protectedStateProvider = protectedStateProvider
@@ -277,6 +290,9 @@ final class KeyameleonSetupModel: ObservableObject {
         self.designationStore = designationStore
         self.integrityKeyProvider = integrityKeyProvider
         self.diagnosticDataController = diagnosticDataController
+        self.operationalNotificationProvider = operationalNotificationProvider
+        self.notificationEpisodeStore = notificationEpisodeStore
+        self.notificationSetupStore = notificationSetupStore
         self.isActivityTriggeredSwitchingPaused = setupStore.isActivityTriggeredSwitchingPaused
         self.isSetupComplete = setupStore.hasCompletedGuidedSetup
         self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
@@ -288,23 +304,42 @@ final class KeyameleonSetupModel: ObservableObject {
             eventProtectedDataUnavailable: false
         )
         self.temporarilyUnavailableReasons = initialUnavailableReasons
+        let initialListenPermission = permissionProvider.checkListenPermission()
+        self.lastKnownListenPermission = initialListenPermission
         self.switchingStatus = SwitchingStatus.resolve(
-            listenPermission: permissionProvider.checkListenPermission(),
+            listenPermission: initialListenPermission,
             isTemporarilyUnavailable: !initialUnavailableReasons.isEmpty,
             isPaused: setupStore.isActivityTriggeredSwitchingPaused
         )
+        self.notificationAuthorizationState = operationalNotificationProvider.authorizationState
+
+        if initialListenPermission == .granted {
+            notificationEpisodeStore.markGrantedListenPermissionObserved()
+        } else if initialListenPermission == .denied,
+                  notificationEpisodeStore.hasEverObservedGrantedListenPermission
+        {
+            notificationEpisodeStore.begin(.listenPermissionRevoked)
+        }
+
+        updateOperationalNotificationSetupOffer()
     }
 
     func refreshPermission() {
         reconcileProtectedState()
-        applySwitchingStatus(
-            listenPermission: permissionProvider.checkListenPermission()
-        )
+        let listenPermission = permissionProvider.checkListenPermission()
+        reconcileListenPermission(listenPermission)
+        applySwitchingStatus(listenPermission: listenPermission)
         refreshInputSources()
         refreshObservedCurrentInputSource(publish: false)
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
         updateInputSourceChangeObservation()
+        updateOperationalNotificationSetupOffer()
+        refreshOperationalNotificationAuthorization()
+    }
+
+    func refreshNotificationAuthorization() {
+        refreshOperationalNotificationAuthorization()
     }
 
     func handleLifecycleEvent(_ event: KeyameleonLifecycleEvent) {
@@ -335,12 +370,13 @@ final class KeyameleonSetupModel: ObservableObject {
 
         isActivityTriggeredSwitchingPaused = true
         setupStore.setActivityTriggeredSwitchingPaused(true)
-        applySwitchingStatus(
-            listenPermission: permissionProvider.checkListenPermission()
-        )
+        let listenPermission = permissionProvider.checkListenPermission()
+        reconcileListenPermission(listenPermission)
+        applySwitchingStatus(listenPermission: listenPermission)
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
         updateInputSourceChangeObservation()
+        updateOperationalNotificationSetupOffer()
         onChange?()
     }
 
@@ -352,14 +388,16 @@ final class KeyameleonSetupModel: ObservableObject {
 
         isActivityTriggeredSwitchingPaused = false
         setupStore.setActivityTriggeredSwitchingPaused(false)
-        applySwitchingStatus(
-            listenPermission: permissionProvider.checkListenPermission()
-        )
+        let listenPermission = permissionProvider.checkListenPermission()
+        reconcileListenPermission(listenPermission)
+        applySwitchingStatus(listenPermission: listenPermission)
         refreshInputSources()
         refreshObservedCurrentInputSource(publish: false)
         updatePhysicalKeyboardDiscovery()
         updatePhysicalKeyboardEventObservation()
         updateInputSourceChangeObservation()
+        updateOperationalNotificationSetupOffer()
+        sendPendingOperationalNotifications()
         onChange?()
     }
 
@@ -565,6 +603,39 @@ final class KeyameleonSetupModel: ObservableObject {
         refreshPermission()
     }
 
+    func requestOperationalNotificationAuthorization() {
+        guard notificationAuthorizationState == .notDetermined,
+              !isNotificationAuthorizationRequestInFlight
+        else {
+            return
+        }
+
+        isNotificationAuthorizationRequestInFlight = true
+        notificationSetupStore.markOperationalNotificationSetupOffered()
+        shouldOfferOperationalNotificationSetup = false
+        operationalNotificationProvider.requestAlertAuthorization { [weak self] state in
+            guard let self else {
+                return
+            }
+
+            self.isNotificationAuthorizationRequestInFlight = false
+            self.notificationAuthorizationState = state
+            self.sendPendingOperationalNotifications()
+            self.onChange?()
+        }
+        onChange?()
+    }
+
+    func dismissOperationalNotificationSetup() {
+        guard shouldOfferOperationalNotificationSetup else {
+            return
+        }
+
+        notificationSetupStore.markOperationalNotificationSetupOffered()
+        shouldOfferOperationalNotificationSetup = false
+        onChange?()
+    }
+
     func beginGuidedSetup() {
         guard !hasStartedGuidedSetup else {
             return
@@ -698,6 +769,7 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         publishPhysicalKeyboards()
+        updateOperationalNotificationSetupOffer()
         onChange?()
     }
 
@@ -761,12 +833,14 @@ final class KeyameleonSetupModel: ObservableObject {
             toIdentityKey: connectedID.rawValue,
             productName: connected.productName
         )
+        clearWarning(cause: .unavailableKeyboardAssignment(disconnectedID))
         lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
 
         if activePhysicalKeyboardID == disconnectedID {
             activePhysicalKeyboardID = connectedID
         }
 
+        _ = reevaluateUnavailableKeyboardAssignments()
         publishPhysicalKeyboards()
         onChange?()
     }
@@ -949,6 +1023,94 @@ final class KeyameleonSetupModel: ObservableObject {
         }
     }
 
+    private func reconcileListenPermission(_ listenPermission: ListenPermissionState) {
+        let revokedEpisode = OperationalNotificationEpisode.listenPermissionRevoked
+        if listenPermission == .granted {
+            notificationEpisodeStore.markGrantedListenPermissionObserved()
+            notificationEpisodeStore.end(revokedEpisode)
+        } else if listenPermission == .denied,
+                  (lastKnownListenPermission == .granted
+                      || notificationEpisodeStore.hasEverObservedGrantedListenPermission)
+        {
+            notificationEpisodeStore.begin(revokedEpisode)
+        }
+
+        lastKnownListenPermission = listenPermission
+    }
+
+    private func refreshOperationalNotificationAuthorization() {
+        operationalNotificationProvider.refreshAuthorization { [weak self] state in
+            guard let self else {
+                return
+            }
+
+            self.notificationAuthorizationState = state
+            self.updateOperationalNotificationSetupOffer()
+            self.sendPendingOperationalNotifications()
+            self.onChange?()
+        }
+    }
+
+    private func updateOperationalNotificationSetupOffer() {
+        guard !notificationSetupStore.hasOfferedOperationalNotificationSetup else {
+            shouldOfferOperationalNotificationSetup = false
+            return
+        }
+
+        let hasKeyboardAssignment = physicalKeyboards.contains {
+            $0.keyboardAssignment != nil
+        } || physicalKeyboardRecordStore.allRecords().contains {
+            $0.keyboardAssignment != nil
+        }
+        shouldOfferOperationalNotificationSetup =
+            lastKnownListenPermission == .granted
+                && notificationAuthorizationState == .notDetermined
+                && hasKeyboardAssignment
+    }
+
+    private func sendPendingOperationalNotifications() {
+        guard !isActivityTriggeredSwitchingPaused,
+              notificationAuthorizationState.canSend
+        else {
+            return
+        }
+
+        sendOperationalNotificationIfNeeded(
+            for: .listenPermissionRevoked,
+            notification: .listenPermissionRevoked
+        )
+
+        for warning in activeWarnings {
+            guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
+                  let inputSourceIdentifier = warning.inputSourceIdentifier
+            else {
+                continue
+            }
+
+            sendOperationalNotificationIfNeeded(
+                for: .unavailableKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: inputSourceIdentifier
+                ),
+                notification: .unavailableKeyboardAssignment
+            )
+        }
+    }
+
+    private func sendOperationalNotificationIfNeeded(
+        for episode: OperationalNotificationEpisode,
+        notification: OperationalNotification
+    ) {
+        guard notificationEpisodeStore.isActive(episode),
+              !notificationEpisodeStore.hasSentNotification(for: episode)
+        else {
+            return
+        }
+
+        notificationEpisodeStore.markNotificationSent(for: episode)
+        operationalNotificationProvider.send(notification)
+    }
+
     private func displayName(forInputSourceIdentifier identifier: String) -> String {
         eligibleInputSources.first { $0.identifier == identifier }?.name ?? identifier
     }
@@ -1018,20 +1180,60 @@ final class KeyameleonSetupModel: ObservableObject {
 
     /// Opens or refreshes one warning for an active cause. Counts a new episode only once per cause.
     private func openWarning(_ warning: SwitchingWarning) {
+        if let previous = activeWarningByCause[warning.cause],
+           previous.inputSourceIdentifier != warning.inputSourceIdentifier
+        {
+            endNotificationEpisode(for: previous)
+        }
+
         let isNewEpisode = activeWarningByCause[warning.cause] == nil
         activeWarningByCause[warning.cause] = warning
         if isNewEpisode {
             warningEpisodeCount += 1
         }
+
+        beginNotificationEpisode(for: warning)
         publishActiveWarnings()
+        sendPendingOperationalNotifications()
     }
 
     private func clearWarning(cause: SwitchingWarning.Cause) {
-        guard activeWarningByCause.removeValue(forKey: cause) != nil else {
+        guard let warning = activeWarningByCause.removeValue(forKey: cause) else {
             return
         }
 
+        endNotificationEpisode(for: warning)
         publishActiveWarnings()
+    }
+
+    private func beginNotificationEpisode(for warning: SwitchingWarning) {
+        guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
+              let inputSourceIdentifier = warning.inputSourceIdentifier
+        else {
+            return
+        }
+
+        notificationEpisodeStore.begin(
+            .unavailableKeyboardAssignment(
+                physicalKeyboardID: physicalKeyboardID,
+                inputSourceIdentifier: inputSourceIdentifier
+            )
+        )
+    }
+
+    private func endNotificationEpisode(for warning: SwitchingWarning) {
+        guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
+              let inputSourceIdentifier = warning.inputSourceIdentifier
+        else {
+            return
+        }
+
+        notificationEpisodeStore.end(
+            .unavailableKeyboardAssignment(
+                physicalKeyboardID: physicalKeyboardID,
+                inputSourceIdentifier: inputSourceIdentifier
+            )
+        )
     }
 
     private func publishActiveWarnings() {

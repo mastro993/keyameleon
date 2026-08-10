@@ -21,8 +21,7 @@ The app uses one AppKit process. It has no Dock icon. Its durable menu bar item 
 ## License
 
 Keyameleon is free and open source under **`GPL-3.0-only`**. See [`LICENSE`](LICENSE) and
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Contributions require a
-[Developer Certificate of Origin](CONTRIBUTING.md) sign-off.
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Supported Release and security
 

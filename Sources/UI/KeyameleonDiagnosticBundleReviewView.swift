@@ -67,7 +67,7 @@ struct KeyameleonDiagnosticBundleReviewView: View {
             }
         }
         .onAppear {
-            model.refresh()
+            model.refreshDiagnosticBundle()
         }
     }
 

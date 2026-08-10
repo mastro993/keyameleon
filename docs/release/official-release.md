@@ -53,7 +53,7 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 ### `main` branch (Settings → Branches / Rulesets)
 
 - Require a pull request before merging
-- Require status checks: `CI` / Build and test, and `DCO`
+- Require status check: `CI` / Build and test
 - Restrict who can push / bypass
 
 ### Tags (Settings → Rulesets)

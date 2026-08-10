@@ -16,6 +16,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let diagnosticModelContainer: ModelContainer?
     /// Avoid replacing the opening menu while `menuNeedsUpdate` repopulates it.
     private var isPopulatingOpenMenu = false
+    private var isStatusMenuOpen = false
 
     private lazy var menuDelegate = KeyameleonMenuDelegate { [weak self] menu in
         guard let self else {
@@ -30,6 +31,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             self.applyMenuBarIcon(to: button)
         }
         self.isPopulatingOpenMenu = false
+    } onVisibilityChange: { [weak self] isOpen in
+        self?.isStatusMenuOpen = isOpen
     }
 
     override convenience init() {
@@ -65,6 +68,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         let isUITesting = ProcessInfo.processInfo.arguments.contains(
             KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
         )
+        let operationalNotificationProvider = SystemOperationalNotificationProvider()
+        let notificationEpisodeStore = UserDefaultsOperationalNotificationEpisodeStore()
+        let notificationSetupStore = UserDefaultsNotificationSetupDecisionStore()
+        if isUITesting {
+            notificationEpisodeStore.resetForUITesting()
+            notificationSetupStore.resetForUITesting()
+        }
         self.init(
             permissionProvider: SystemListenPermissionProvider(),
             setupStore: setupStore,
@@ -81,6 +91,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
             inputSourceChangeObserver: SystemInputSourceChangeObserver(),
             diagnosticDataController: diagnosticDataController,
+            operationalNotificationProvider: operationalNotificationProvider,
+            notificationEpisodeStore: notificationEpisodeStore,
+            notificationSetupStore: notificationSetupStore,
+            notificationSettingsOpener: NSWorkspaceNotificationSettingsOpener(),
             uncleanExitStateStore: uncleanExitStateStore,
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
             startsUpdaterOnLaunch: !isUITesting,
@@ -107,6 +121,14 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
             store: InMemoryDiagnosticDataStore()
         ),
+        operationalNotificationProvider: any OperationalNotificationProviding =
+            NoOpOperationalNotificationProvider(),
+        notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
+            InMemoryOperationalNotificationEpisodeStore(),
+        notificationSetupStore: any NotificationSetupDecisionStoring =
+            InMemoryNotificationSetupDecisionStore(),
+        notificationSettingsOpener: any NotificationSettingsOpening =
+            NoOpNotificationSettingsOpener(),
         uncleanExitStateStore: any UncleanExitStateStoring = UserDefaultsUncleanExitStateStore(),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
@@ -132,12 +154,17 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceChangeObserver: inputSourceChangeObserver,
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider,
-            diagnosticDataController: diagnosticDataController
+            diagnosticDataController: diagnosticDataController,
+            operationalNotificationProvider: operationalNotificationProvider,
+            notificationEpisodeStore: notificationEpisodeStore,
+            notificationSetupStore: notificationSetupStore
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
-            diagnosticDataController: diagnosticDataController
+            diagnosticDataController: diagnosticDataController,
+            operationalNotificationProvider: operationalNotificationProvider,
+            notificationSettingsOpener: notificationSettingsOpener
         )
 
         super.init()
@@ -145,6 +172,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         setupModel.onChange = { [weak self] in
             self?.generalSettingsModel.refresh()
             self?.refreshMenuBarPresentation()
+        }
+        generalSettingsModel.onNotificationAuthorizationChange = { [weak self] in
+            self?.setupModel.refreshNotificationAuthorization()
         }
     }
 
@@ -170,6 +200,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         setupModel.refreshPermission()
+        generalSettingsModel.refresh()
         refreshMenuBarPresentation()
     }
 
@@ -486,7 +517,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        if !isPopulatingOpenMenu {
+        if !isPopulatingOpenMenu, !isStatusMenuOpen {
             statusItem.menu = makeMenu()
         }
         if let button = statusItem.button {
@@ -551,14 +582,27 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 private final class KeyameleonMenuDelegate: NSObject, NSMenuDelegate {
     private let onMenuNeedsUpdate: @MainActor (NSMenu) -> Void
+    private let onVisibilityChange: @MainActor (Bool) -> Void
 
-    init(onMenuNeedsUpdate: @escaping @MainActor (NSMenu) -> Void) {
+    init(
+        onMenuNeedsUpdate: @escaping @MainActor (NSMenu) -> Void,
+        onVisibilityChange: @escaping @MainActor (Bool) -> Void
+    ) {
         self.onMenuNeedsUpdate = onMenuNeedsUpdate
+        self.onVisibilityChange = onVisibilityChange
         super.init()
+    }
+
+    func menuWillOpen(_ menu: NSMenu) {
+        onVisibilityChange(true)
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         // Refresh permission and observed Input Source before Menu first paints.
         onMenuNeedsUpdate(menu)
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        onVisibilityChange(false)
     }
 }

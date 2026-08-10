@@ -46,6 +46,7 @@ enum KeyameleonAppMetadata {
     static let assignmentSearchPrompt = "Search Input Sources"
     static let replaceSavedPhysicalKeyboardPickerTitle = "Replace Saved Physical Keyboard"
     static let systemSettingsURL = "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
+    static let notificationSettingsURL = "x-apple.systempreferences:com.apple.Notifications-Settings.extension"
     static let uiTestingResetSetupLaunchArgument = "--reset-guided-setup"
     static let settingsMenuItemTitle = "Settings…"
     static let checkForUpdatesMenuItemTitle = "Check for Updates…"
@@ -61,6 +62,20 @@ enum KeyameleonAppMetadata {
         "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
     static let criticalUpdateWarningExplanation =
         "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
+    static let operationalNotificationTitle = "Keyameleon needs attention"
+    static let operationalNotificationSetupTitle = "Optional operational notifications"
+    static let operationalNotificationSetupExplanation =
+        "Keyameleon can alert you only when listen permission is revoked or a Keyboard Assignment becomes unavailable. It requests alert access only. It does not request sound or icon badge access."
+    static let enableOperationalNotificationsButtonTitle = "Enable Operational Notifications"
+    static let skipOperationalNotificationsButtonTitle = "Not Now"
+    static let notificationAuthorizationLabel = "Notification Authorization"
+    static let notificationAuthorizationFooter =
+        "Operational notifications are optional. They never block Activity-Triggered Switching. Keyameleon requests alert access only; it does not request sound or icon badge access."
+    static let openNotificationSettingsButtonTitle = "Open System Settings…"
+    static let listenPermissionRevokedNotificationBody =
+        "Input Monitoring permission was revoked. Open System Settings to restore Activity-Triggered Switching."
+    static let unavailableKeyboardAssignmentNotificationBody =
+        "A Keyboard Assignment is unavailable. Open Keyameleon to change or remove it."
     static let retryNowButtonTitle = "Retry Now"
     static let switchingWarningsSectionTitle = "Warnings"
     static let selectionFailedRecoveryExplanation =

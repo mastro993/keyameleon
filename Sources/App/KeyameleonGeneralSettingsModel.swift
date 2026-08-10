@@ -9,28 +9,41 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var isDiagnosticSessionActive: Bool
     @Published private(set) var diagnosticRecordCount: Int
     @Published private(set) var diagnosticEstimatedByteCount: Int
+    @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
+    var onNotificationAuthorizationChange: (@MainActor () -> Void)?
     @Published private(set) var diagnosticBundle: DiagnosticBundle
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
     private let diagnosticDataController: any DiagnosticDataControlling
+    private let operationalNotificationProvider: any OperationalNotificationProviding
+    private let notificationSettingsOpener: any NotificationSettingsOpening
+    private var isNotificationAuthorizationRequestInFlight = false
 
     init(
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
         diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
             store: InMemoryDiagnosticDataStore()
-        )
+        ),
+        operationalNotificationProvider: any OperationalNotificationProviding =
+            NoOpOperationalNotificationProvider(),
+        notificationSettingsOpener: any NotificationSettingsOpening =
+            NoOpNotificationSettingsOpener()
     ) {
         self.launchAtLoginController = launchAtLoginController
         self.updateChecker = updateChecker
         self.diagnosticDataController = diagnosticDataController
+        self.operationalNotificationProvider = operationalNotificationProvider
+        self.notificationSettingsOpener = notificationSettingsOpener
         self.isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         self.launchAtLoginErrorMessage = nil
         self.canCheckForUpdates = updateChecker.canCheckForUpdates
         self.isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         self.diagnosticRecordCount = diagnosticDataController.recordCount
         self.diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
+        self.notificationAuthorizationState = operationalNotificationProvider.authorizationState
+        self.onNotificationAuthorizationChange = nil
         self.diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
         diagnosticDataController.onChange = { [weak self] in
             self?.publishDiagnosticState()
@@ -41,6 +54,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         canCheckForUpdates = updateChecker.canCheckForUpdates
         publishDiagnosticState()
+        refreshNotificationAuthorization()
     }
 
     func setLaunchAtLoginEnabled(_ enabled: Bool) {
@@ -59,6 +73,29 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         canCheckForUpdates = updateChecker.canCheckForUpdates
     }
 
+    func requestOperationalNotificationAuthorization() {
+        guard notificationAuthorizationState == .notDetermined,
+              !isNotificationAuthorizationRequestInFlight
+        else {
+            return
+        }
+
+        isNotificationAuthorizationRequestInFlight = true
+        operationalNotificationProvider.requestAlertAuthorization { [weak self] state in
+            guard let self else {
+                return
+            }
+
+            self.isNotificationAuthorizationRequestInFlight = false
+            self.notificationAuthorizationState = state
+            self.onNotificationAuthorizationChange?()
+        }
+    }
+
+    func openNotificationSettings() {
+        notificationSettingsOpener.openNotificationSettings()
+    }
+
     func startDiagnosticSession() {
         diagnosticDataController.startDiagnosticSession()
         publishDiagnosticState()
@@ -74,10 +111,20 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         publishDiagnosticState()
     }
 
+    func refreshDiagnosticBundle() {
+        publishDiagnosticState()
+    }
+
     private func publishDiagnosticState() {
         isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         diagnosticRecordCount = diagnosticDataController.recordCount
         diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
         diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
+    }
+
+    private func refreshNotificationAuthorization() {
+        operationalNotificationProvider.refreshAuthorization { [weak self] state in
+            self?.notificationAuthorizationState = state
+        }
     }
 }

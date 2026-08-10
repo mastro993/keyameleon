@@ -39,6 +39,9 @@ struct KeyameleonRootView: View {
                     configuration
                 }
 
+                if model.shouldOfferOperationalNotificationSetup {
+                    operationalNotificationSetup
+                }
                 KeyameleonDiagnosticBundleReviewView(model: diagnosticModel)
             }
             .padding(28)
@@ -249,6 +252,39 @@ struct KeyameleonRootView: View {
                 recoveryActions
             }
         }
+    }
+
+    private var operationalNotificationSetup: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(KeyameleonAppMetadata.operationalNotificationSetupTitle)
+                .font(.headline)
+
+            Text(KeyameleonAppMetadata.operationalNotificationSetupExplanation)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            Text(model.notificationAuthorizationState.displayName)
+                .font(.callout)
+                .accessibilityLabel(KeyameleonAppMetadata.notificationAuthorizationLabel)
+                .accessibilityValue(model.notificationAuthorizationState.displayName)
+
+            HStack {
+                if model.notificationAuthorizationState == .notDetermined {
+                    Button(KeyameleonAppMetadata.enableOperationalNotificationsButtonTitle) {
+                        model.requestOperationalNotificationAuthorization()
+                    }
+                    .accessibilityLabel(KeyameleonAppMetadata.enableOperationalNotificationsButtonTitle)
+                }
+
+                Button(KeyameleonAppMetadata.skipOperationalNotificationsButtonTitle) {
+                    model.dismissOperationalNotificationSetup()
+                }
+                .accessibilityLabel(KeyameleonAppMetadata.skipOperationalNotificationsButtonTitle)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
     }
 
     private var assignmentSetup: some View {
