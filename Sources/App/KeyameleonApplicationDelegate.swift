@@ -68,8 +68,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         let isUITesting = ProcessInfo.processInfo.arguments.contains(
             KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
         )
+        let isXCTestHost = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         let operationalNotificationProvider: any OperationalNotificationProviding =
-            isUITesting
+            isUITesting || isXCTestHost
                 ? NoOpOperationalNotificationProvider()
                 : SystemOperationalNotificationProvider()
         let notificationEpisodeStore = UserDefaultsOperationalNotificationEpisodeStore()
