@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		03C20AF1309BDDFD13859B7B /* ConvergenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E98D0AC0DC16B488CC68F34 /* ConvergenceTests.swift */; };
+		04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */; };
 		059476CFED67F850100CBA43 /* UpdatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA6153A9F4D4EF18DDDE19D /* UpdatePolicy.swift */; };
 		06EBFF4FA1E89F0CBB858180 /* ProtectedLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */; };
 		08D3A64C845E5958312E508E /* UncleanExitState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A760C722DF4EA56CBAAB76C6 /* UncleanExitState.swift */; };
@@ -15,6 +16,7 @@
 		0C7B8751B513E6FD6EBEAE84 /* ReleasePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */; };
 		10C10DA54CEEC81C6E86EC7A /* ManualPhysicalKeyboardDesignationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B53925154A212D0013E930A2 /* ManualPhysicalKeyboardDesignationStore.swift */; };
 		15EADB73F954D79F813518EC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5225FE09338A066FF3E0C002 /* Carbon.framework */; };
+		169AFF82F03C83BB838E2075 /* SingleInstanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B0570BABEDCEEE8774DB02 /* SingleInstanceTests.swift */; };
 		187E867991A04368B8582C70 /* SetupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D034ED3A59FFA8A4A8E5CD7 /* SetupModel.swift */; };
 		1E1179B5322D8292B3D7A9F4 /* ApplicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98542FD5C82032FA9E2F7AF9 /* ApplicationTests.swift */; };
 		289DA25583F6E6AC2E0DF99B /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DD2621A84D0D5ACCEFA2F4 /* InputSource.swift */; };
@@ -145,12 +147,14 @@
 		96EAAA7C23460CFB5FE490B2 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		983C8E45DAD547D8162603B6 /* PhysicalKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboard.swift; sourceTree = "<group>"; };
 		98542FD5C82032FA9E2F7AF9 /* ApplicationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationTests.swift; sourceTree = "<group>"; };
+		99B0570BABEDCEEE8774DB02 /* SingleInstanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleInstanceTests.swift; sourceTree = "<group>"; };
 		9B34AD2AC37423AEC5A62769 /* SwitchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchingTests.swift; sourceTree = "<group>"; };
 		9D397C615AE93268A186585C /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		A0DD2621A84D0D5ACCEFA2F4 /* InputSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSource.swift; sourceTree = "<group>"; };
 		A760C722DF4EA56CBAAB76C6 /* UncleanExitState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UncleanExitState.swift; sourceTree = "<group>"; };
 		AC6BDE001E72B645ABFC8A82 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		AEDB8B347F199B06902DF758 /* ReleasePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicy.swift; sourceTree = "<group>"; };
+		B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleInstanceLock.swift; sourceTree = "<group>"; };
 		B53925154A212D0013E930A2 /* ManualPhysicalKeyboardDesignationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignationStore.swift; sourceTree = "<group>"; };
 		B6F2F27F6D94088F0A945139 /* RecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryTests.swift; sourceTree = "<group>"; };
 		BAFD6C2C12E6744103679EBE /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
@@ -273,6 +277,7 @@
 				4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */,
 				9163A19B113812EA758F0681 /* ProductionFactory.swift */,
 				5D034ED3A59FFA8A4A8E5CD7 /* SetupModel.swift */,
+				B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */,
 				A760C722DF4EA56CBAAB76C6 /* UncleanExitState.swift */,
 				3C710797D8D223EBD0663F59 /* UpdateChecker.swift */,
 				4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */,
@@ -343,6 +348,7 @@
 				B6F2F27F6D94088F0A945139 /* RecoveryTests.swift */,
 				D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */,
 				121A7F398BDBAFE53E28C58E /* SetupModelTests.swift */,
+				99B0570BABEDCEEE8774DB02 /* SingleInstanceTests.swift */,
 				9B34AD2AC37423AEC5A62769 /* SwitchingTests.swift */,
 				0A301EAA639B770F7935C3B7 /* UncleanExitTests.swift */,
 				FC3803559762A26A22D58DB8 /* UpdatePolicyTests.swift */,
@@ -509,6 +515,7 @@
 				4641828CA43C4D22AF22077A /* ReleasePolicy.swift in Sources */,
 				E7ECA56E3601A3B66CA7F3F3 /* RootView.swift in Sources */,
 				187E867991A04368B8582C70 /* SetupModel.swift in Sources */,
+				04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */,
 				595EED790099599C0103B092 /* SwitchingStatus.swift in Sources */,
 				7FDB18B30F2508DBF4354A47 /* SwitchingWarning.swift in Sources */,
 				08D3A64C845E5958312E508E /* UncleanExitState.swift in Sources */,
@@ -545,6 +552,7 @@
 				A00E9121965AC9358A33DB3B /* RecoveryTests.swift in Sources */,
 				0C7B8751B513E6FD6EBEAE84 /* ReleasePolicyTests.swift in Sources */,
 				58DDA085B57FB4BE4336A31A /* SetupModelTests.swift in Sources */,
+				169AFF82F03C83BB838E2075 /* SingleInstanceTests.swift in Sources */,
 				B0AE2EC67744B63A24235EF2 /* SwitchingTests.swift in Sources */,
 				A4CF953DD84068C1786D51D2 /* UncleanExitTests.swift in Sources */,
 				FB39E04074F5D3884F9FC645 /* UpdatePolicyTests.swift in Sources */,
@@ -818,7 +826,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.development;
 				PRODUCT_NAME = Keyameleon;
 				SDKROOT = macosx;
 			};

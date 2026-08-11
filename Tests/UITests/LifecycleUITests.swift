@@ -1,5 +1,11 @@
 import XCTest
 
+#if DEBUG
+private let keyameleonBundleIdentifier = "dev.fedemas.keyameleon.development"
+#else
+private let keyameleonBundleIdentifier = "dev.fedemas.keyameleon"
+#endif
+
 @MainActor
 final class KeyameleonLifecycleUITests: XCTestCase {
     private let launchTimeout: TimeInterval = 5
@@ -7,7 +13,7 @@ final class KeyameleonLifecycleUITests: XCTestCase {
     private let windowTimeout: TimeInterval = 5
 
     func testLaunchOpenCloseReopenAndQuit() {
-        let app = XCUIApplication(bundleIdentifier: "dev.fedemas.keyameleon")
+        let app = XCUIApplication(bundleIdentifier: keyameleonBundleIdentifier)
         app.launchArguments = ["--reset-guided-setup"]
         app.launch()
 

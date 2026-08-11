@@ -39,6 +39,9 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Keyameleon
         INFOPLIST_KEY_LSUIElement: YES
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.development
     info:
       path: Sources/App/Info.plist
       properties:
@@ -46,6 +49,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
+        LSMultipleInstancesProhibited: true
         # Sparkle 2: user-approved, 24h-bounded checks; no auto-install; no system profiling.
         SUFeedURL: https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml
         SUEnableAutomaticChecks: true
