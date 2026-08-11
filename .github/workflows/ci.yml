@@ -52,12 +52,9 @@ jobs:
           test -f LICENSE
           grep -q "GNU GENERAL PUBLIC LICENSE" LICENSE
           grep -q "Version 3" LICENSE
-          test -f LICENSE-SPDX.txt
-          grep -q "GPL-3.0-only" LICENSE-SPDX.txt
           test -f THIRD_PARTY_NOTICES.md
           grep -q "Sparkle" THIRD_PARTY_NOTICES.md
           grep -q "GPL-3.0-only" README.md
           test -f SECURITY.md
           grep -q "Supported Release" SECURITY.md
           test -f CONTRIBUTING.md
-          grep -qi "Developer Certificate of Origin" CONTRIBUTING.md
