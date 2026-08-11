@@ -33,7 +33,9 @@ protocol SystemSettingsOpening: AnyObject {
 @MainActor
 final class NSWorkspaceSystemSettingsOpener: SystemSettingsOpening {
     func openSystemSettings() {
-        guard let url = URL(string: KeyameleonAppMetadata.systemSettingsURL) else {
+        guard let url = URL(
+            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
+        ) else {
             return
         }
 

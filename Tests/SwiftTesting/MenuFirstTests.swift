@@ -87,18 +87,6 @@ func menuBarIconMarkPrefersGlobalStatusOverItemWarnings() {
     )
 }
 
-@Test("Menu bar icon marks use distinct SF Symbol names")
-func menuBarIconMarksUseDistinctSFSymbolNames() {
-    let names = [
-        MenuBarIconMark.ready.systemSymbolName,
-        MenuBarIconMark.permissionRequired.systemSymbolName,
-        MenuBarIconMark.temporarilyUnavailable.systemSymbolName,
-        MenuBarIconMark.paused.systemSymbolName,
-        MenuBarIconMark.warning.systemSymbolName,
-    ]
-    #expect(Set(names).count == names.count)
-}
-
 @Test("Pause Activity-Triggered Switching stops Key Content observation and Input Source requests")
 @MainActor
 func pauseStopsKeyContentObservationAndInputSourceRequests() {
@@ -185,7 +173,7 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
     #expect(restarted.isActivityTriggeredSwitchingPaused)
     #expect(restarted.switchingStatus == .paused)
     #expect(restarted.activePhysicalKeyboardID == nil)
-    #expect(restarted.activePhysicalKeyboardMenuValue == KeyameleonAppMetadata.noActivityObservedYet)
+    #expect(restarted.activePhysicalKeyboard == nil)
 }
 
 @Test("Resume rechecks listen permission before observation starts")
@@ -307,7 +295,7 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
     model.setPhysicalKeyboardName(betaID, customName: "Beta")
     model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.missing")
 
-    let items = model.menuFirstActionItems
+    let items = model.physicalKeyboardActionConditions
     #expect(
         items.contains(.unassigned(physicalKeyboardName: "Alpha"))
     )
@@ -316,9 +304,9 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
     )
 }
 
-@Test("Active Keyboard Assignment and Current Input Source menu values")
+@Test("Active Keyboard Assignment and Current Input Source facts")
 @MainActor
-func activeKeyboardAssignmentAndCurrentInputSourceMenuValues() {
+func activeKeyboardAssignmentAndCurrentInputSourceFacts() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
     let model = KeyameleonSetupModel(
@@ -336,9 +324,8 @@ func activeKeyboardAssignmentAndCurrentInputSourceMenuValues() {
     )
 
     model.refreshPermission()
-    #expect(model.activePhysicalKeyboardMenuValue == KeyameleonAppMetadata.noActivityObservedYet)
-    #expect(model.activeKeyboardAssignmentMenuValue == "—")
-    #expect(model.currentInputSourceMenuValue == "U.S.")
+    #expect(model.activePhysicalKeyboard == nil)
+    #expect(model.currentInputSourceIdentifier == "com.example.us")
 
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 731)))
     let keyboardID = model.physicalKeyboards[0].id
@@ -347,9 +334,9 @@ func activeKeyboardAssignmentAndCurrentInputSourceMenuValues() {
         PhysicalKeyboardEvent(serviceID: 731, kind: .press)
     )
 
-    #expect(model.activePhysicalKeyboardMenuValue == "Test Keyboard")
-    #expect(model.activeKeyboardAssignmentMenuValue == "Italian")
-    #expect(model.currentInputSourceMenuValue == "Italian")
+    #expect(model.activePhysicalKeyboard?.name == "Test Keyboard")
+    #expect(model.activePhysicalKeyboard?.keyboardAssignment?.inputSourceIdentifier == "com.example.it")
+    #expect(model.currentInputSourceIdentifier == "com.example.it")
 }
 
 @Test("UserDefaults pause flag survives store re-read")

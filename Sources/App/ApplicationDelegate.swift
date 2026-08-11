@@ -38,7 +38,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     override convenience init() {
         let setupStore = UserDefaultsSetupDecisionStore()
         let uncleanExitStateStore = UserDefaultsUncleanExitStateStore()
-        if ProcessInfo.processInfo.arguments.contains(KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument) {
+        if ProcessInfo.processInfo.arguments.contains("--reset-guided-setup") {
             setupStore.resetForUITesting()
             uncleanExitStateStore.resetForUITesting()
         }
@@ -66,7 +66,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         let inputSources = SystemInputSourceProvider()
         let isUITesting = ProcessInfo.processInfo.arguments.contains(
-            KeyameleonAppMetadata.uiTestingResetSetupLaunchArgument
+            "--reset-guided-setup"
         )
         let isXCTestHost = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         let operationalNotificationProvider: any OperationalNotificationProviding =
@@ -218,7 +218,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func makeMenu() -> NSMenu {
-        let menu = NSMenu(title: KeyameleonAppMetadata.displayName)
+        let menu = NSMenu(title: "Keyameleon")
         menu.autoenablesItems = false
         populateMenu(menu)
         menu.delegate = menuDelegate
@@ -229,28 +229,28 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.removeAllItems()
 
         let statusItem = NSMenuItem(
-            title: KeyameleonAppMetadata.switchingStatusMenuItemTitle(setupModel.switchingStatus),
+            title: "Switching Status: \(switchingStatusName(setupModel.switchingStatus))",
             action: nil,
             keyEquivalent: ""
         )
         statusItem.isEnabled = false
         statusItem.setAccessibilityLabel("Switching Status")
-        statusItem.setAccessibilityValue(setupModel.switchingStatus.displayName)
+        statusItem.setAccessibilityValue(switchingStatusName(setupModel.switchingStatus))
         menu.addItem(statusItem)
 
         if let reason = setupModel.temporaryUnavailableReason {
             let reasonItem = NSMenuItem(
-                title: KeyameleonAppMetadata.switchingStatusReasonMenuItemTitle(reason),
+                title: "Detected reason: \(unavailableReasonName(reason))",
                 action: nil,
                 keyEquivalent: ""
             )
             reasonItem.isEnabled = false
-            reasonItem.setAccessibilityLabel(KeyameleonAppMetadata.switchingStatusReasonMenuItemPrefix)
-            reasonItem.setAccessibilityValue(reason.displayName)
+            reasonItem.setAccessibilityLabel("Detected reason:")
+            reasonItem.setAccessibilityValue(unavailableReasonName(reason))
             menu.addItem(reasonItem)
 
             let recoveryItem = NSMenuItem(
-                title: KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery,
+                title: "Resumes automatically when macOS allows Activity-Triggered Switching.",
                 action: nil,
                 keyEquivalent: ""
             )
@@ -260,45 +260,41 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         addUncleanExitNoticeIfNeeded(to: menu)
 
+        let activePhysicalKeyboardName = setupModel.activePhysicalKeyboard?.name
+            ?? "No activity observed yet"
         let activeKeyboardItem = NSMenuItem(
-            title: KeyameleonAppMetadata.activePhysicalKeyboardMenuItemTitle(
-                setupModel.activePhysicalKeyboardMenuValue
-            ),
+            title: "Active Physical Keyboard: \(activePhysicalKeyboardName)",
             action: nil,
             keyEquivalent: ""
         )
         activeKeyboardItem.isEnabled = false
-        activeKeyboardItem.setAccessibilityLabel(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
-        activeKeyboardItem.setAccessibilityValue(setupModel.activePhysicalKeyboardMenuValue)
+        activeKeyboardItem.setAccessibilityLabel("Active")
+        activeKeyboardItem.setAccessibilityValue(activePhysicalKeyboardName)
         menu.addItem(activeKeyboardItem)
 
         let assignmentItem = NSMenuItem(
-            title: KeyameleonAppMetadata.keyboardAssignmentMenuItemTitle(
-                setupModel.activeKeyboardAssignmentMenuValue
-            ),
+            title: "Keyboard Assignment: \(assignmentMenuValue)",
             action: nil,
             keyEquivalent: ""
         )
         assignmentItem.isEnabled = false
-        assignmentItem.setAccessibilityLabel(KeyameleonAppMetadata.keyboardAssignmentLabel)
-        assignmentItem.setAccessibilityValue(setupModel.activeKeyboardAssignmentMenuValue)
+        assignmentItem.setAccessibilityLabel("Keyboard Assignment")
+        assignmentItem.setAccessibilityValue(assignmentMenuValue)
         menu.addItem(assignmentItem)
 
         let currentInputSourceItem = NSMenuItem(
-            title: KeyameleonAppMetadata.currentInputSourceMenuItemTitle(
-                setupModel.currentInputSourceMenuValue
-            ),
+            title: "Current Input Source: \(currentSourceMenuValue)",
             action: nil,
             keyEquivalent: ""
         )
         currentInputSourceItem.isEnabled = false
-        currentInputSourceItem.setAccessibilityLabel(KeyameleonAppMetadata.currentInputSourceLabel)
-        currentInputSourceItem.setAccessibilityValue(setupModel.currentInputSourceMenuValue)
+        currentInputSourceItem.setAccessibilityLabel("Current Input Source")
+        currentInputSourceItem.setAccessibilityValue(currentSourceMenuValue)
         menu.addItem(currentInputSourceItem)
 
         if let mismatch = setupModel.activeInputSourceMismatch {
             let assignedItem = NSMenuItem(
-                title: "\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)",
+                title: "Assigned Input Source: \(inputSourceName(for: mismatch.assignedInputSourceIdentifier))",
                 action: nil,
                 keyEquivalent: ""
             )
@@ -306,7 +302,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(assignedItem)
 
             let restoreItem = NSMenuItem(
-                title: mismatch.restorationExplanation,
+                title: "Later Activation Activity restores the Keyboard Assignment.",
                 action: nil,
                 keyEquivalent: ""
             )
@@ -314,12 +310,12 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(restoreItem)
         }
 
-        let actionItems = setupModel.menuFirstActionItems
+        let actionItems = setupModel.physicalKeyboardActionConditions
         if !actionItems.isEmpty {
             menu.addItem(.separator())
             for actionItem in actionItems {
                 let item = NSMenuItem(
-                    title: actionItem.menuTitle,
+                    title: physicalKeyboardActionConditionTitle(actionItem),
                     action: nil,
                     keyEquivalent: ""
                 )
@@ -332,7 +328,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         if setupModel.isActivityTriggeredSwitchingPaused {
             let resumeItem = NSMenuItem(
-                title: KeyameleonAppMetadata.resumeActivityTriggeredSwitchingMenuItemTitle,
+                title: "Resume Activity-Triggered Switching",
                 action: #selector(resumeActivityTriggeredSwitching(_:)),
                 keyEquivalent: ""
             )
@@ -340,7 +336,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(resumeItem)
         } else {
             let pauseItem = NSMenuItem(
-                title: KeyameleonAppMetadata.pauseActivityTriggeredSwitchingMenuItemTitle,
+                title: "Pause Activity-Triggered Switching",
                 action: #selector(pauseActivityTriggeredSwitching(_:)),
                 keyEquivalent: ""
             )
@@ -351,7 +347,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let openItem = NSMenuItem(
-            title: KeyameleonAppMetadata.openMenuItemTitle,
+            title: "Open Keyameleon…",
             action: #selector(openKeyameleon(_:)),
             keyEquivalent: ""
         )
@@ -360,7 +356,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         if !setupModel.isSetupComplete {
             let continueSetupItem = NSMenuItem(
-                title: KeyameleonAppMetadata.continueSetupMenuItemTitle,
+                title: "Continue Setup…",
                 action: #selector(continueSetup(_:)),
                 keyEquivalent: ""
             )
@@ -372,7 +368,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         if setupModel.switchingStatus != .temporarilyUnavailable {
             let openSystemSettingsItem = NSMenuItem(
-                title: KeyameleonAppMetadata.openSystemSettingsMenuItemTitle,
+                title: "Open System Settings",
                 action: #selector(openSystemSettings(_:)),
                 keyEquivalent: ""
             )
@@ -380,7 +376,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(openSystemSettingsItem)
 
             let checkAgainItem = NSMenuItem(
-                title: KeyameleonAppMetadata.checkAgainMenuItemTitle,
+                title: "Check Again",
                 action: #selector(checkAgain(_:)),
                 keyEquivalent: ""
             )
@@ -391,7 +387,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let settingsItem = NSMenuItem(
-            title: KeyameleonAppMetadata.settingsMenuItemTitle,
+            title: "Settings…",
             action: #selector(openSettings(_:)),
             keyEquivalent: ","
         )
@@ -399,7 +395,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(settingsItem)
 
         let checkForUpdatesItem = NSMenuItem(
-            title: KeyameleonAppMetadata.checkForUpdatesMenuItemTitle,
+            title: "Check for Updates…",
             action: #selector(checkForUpdates(_:)),
             keyEquivalent: ""
         )
@@ -410,7 +406,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: KeyameleonAppMetadata.quitMenuItemTitle,
+            title: "Quit Keyameleon",
             action: #selector(quitKeyameleon(_:)),
             keyEquivalent: "q"
         )
@@ -513,7 +509,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         button.imagePosition = .imageOnly
         button.setAccessibilityElement(true)
         button.setAccessibilityRole(.button)
-        button.setAccessibilityLabel(KeyameleonAppMetadata.menuBarAccessibilityLabel)
+        button.setAccessibilityLabel("Keyameleon")
         item.menu = makeMenu()
         applyMenuBarIcon(to: button)
         return item
@@ -543,17 +539,17 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         // Distinct SF Symbol shape + tooltip carry status without relying on color alone.
         let image =
             NSImage(
-                systemSymbolName: mark.systemSymbolName,
-                accessibilityDescription: KeyameleonAppMetadata.displayName
+                systemSymbolName: systemSymbolName(for: mark),
+                accessibilityDescription: "Keyameleon"
             )
             ?? NSImage(
-                systemSymbolName: MenuBarIconMark.ready.systemSymbolName,
-                accessibilityDescription: KeyameleonAppMetadata.displayName
+                systemSymbolName: systemSymbolName(for: .ready),
+                accessibilityDescription: "Keyameleon"
             )
         image?.isTemplate = true
         button.image = image
-        button.toolTip = mark.accessibilityDescription
-        button.setAccessibilityLabel(KeyameleonAppMetadata.menuBarAccessibilityLabel)
+        button.toolTip = menuBarIconAccessibilityDescription(for: mark)
+        button.setAccessibilityLabel("Keyameleon")
     }
 
     private func addUncleanExitNoticeIfNeeded(to menu: NSMenu) {
@@ -564,17 +560,19 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let noticeItem = NSMenuItem(
-            title: KeyameleonAppMetadata.uncleanExitNoticeTitle,
+            title: "Keyameleon did not exit cleanly.",
             action: nil,
             keyEquivalent: ""
         )
         noticeItem.isEnabled = false
-        noticeItem.setAccessibilityLabel(KeyameleonAppMetadata.uncleanExitNoticeTitle)
-        noticeItem.setAccessibilityValue(KeyameleonAppMetadata.uncleanExitNoticeMessage)
+        noticeItem.setAccessibilityLabel("Keyameleon did not exit cleanly.")
+        noticeItem.setAccessibilityValue(
+            "Review local Diagnostic Data. Keyameleon sends no notification for an unclean exit."
+        )
         menu.addItem(noticeItem)
 
         let reviewItem = NSMenuItem(
-            title: KeyameleonAppMetadata.reviewDiagnosticsMenuItemTitle,
+            title: "Review Diagnostics…",
             action: #selector(reviewDiagnostics(_:)),
             keyEquivalent: ""
         )
@@ -582,12 +580,120 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(reviewItem)
 
         let dismissItem = NSMenuItem(
-            title: KeyameleonAppMetadata.dismissDiagnosticsNoticeMenuItemTitle,
+            title: "Dismiss Diagnostics Notice",
             action: #selector(dismissDiagnosticsNotice(_:)),
             keyEquivalent: ""
         )
         dismissItem.target = self
         menu.addItem(dismissItem)
+    }
+
+    private var assignmentMenuValue: String {
+        guard let activePhysicalKeyboard = setupModel.activePhysicalKeyboard else {
+            return "—"
+        }
+
+        switch activePhysicalKeyboard.assignmentState {
+        case .unassigned:
+            return "Unassigned"
+        case .assigned:
+            return setupModel.assignedInputSourceName(for: activePhysicalKeyboard)
+                ?? "Unavailable Keyboard Assignment"
+        case let .unsupported(reason):
+            return "Unsupported — \(unsupportedReasonName(reason))"
+        }
+    }
+
+    private var currentSourceMenuValue: String {
+        guard let identifier = setupModel.currentInputSourceIdentifier else {
+            return "—"
+        }
+
+        return inputSourceName(for: identifier)
+    }
+
+    private func inputSourceName(for identifier: String) -> String {
+        setupModel.eligibleInputSources.first { $0.identifier == identifier }?.name ?? identifier
+    }
+
+    private func switchingStatusName(_ status: SwitchingStatus) -> String {
+        switch status {
+        case .ready:
+            "Ready"
+        case .permissionRequired:
+            "Permission Required"
+        case .paused:
+            "Paused"
+        case .temporarilyUnavailable:
+            "Temporarily Unavailable"
+        }
+    }
+
+    private func unavailableReasonName(_ reason: SwitchingUnavailableReason) -> String {
+        switch reason {
+        case .sleeping:
+            "macOS is asleep"
+        case .inactiveSession:
+            "The user session is inactive"
+        case .secureInput:
+            "Secure Input is active"
+        case .protectedDataUnavailable:
+            "Protected data is unavailable"
+        }
+    }
+
+    private func unsupportedReasonName(_ reason: PhysicalKeyboardUnsupportedReason) -> String {
+        switch reason {
+        case .missingIdentity:
+            "Physical Keyboard Identity unavailable"
+        case .unstableIdentity:
+            "Physical Keyboard Identity unstable"
+        case .sharedIdentity:
+            "Physical Keyboard Identity shared"
+        case .ambiguousIdentity:
+            "Physical Keyboard Identity ambiguous"
+        }
+    }
+
+    private func physicalKeyboardActionConditionTitle(
+        _ condition: PhysicalKeyboardActionCondition
+    ) -> String {
+        switch condition {
+        case let .unassigned(name):
+            "Needs action: \(name) — Unassigned"
+        case let .unavailableKeyboardAssignment(name):
+            "Needs action: \(name) — Unavailable Keyboard Assignment"
+        }
+    }
+
+    func systemSymbolName(for mark: MenuBarIconMark) -> String {
+        switch mark {
+        case .ready:
+            "keyboard"
+        case .permissionRequired:
+            "keyboard.badge.ellipsis"
+        case .temporarilyUnavailable:
+            "moon.zzz"
+        case .paused:
+            "pause.circle"
+        case .warning:
+            "exclamationmark.triangle"
+        }
+    }
+
+    func menuBarIconAccessibilityDescription(for mark: MenuBarIconMark) -> String {
+        switch mark {
+        case .ready:
+            "Keyameleon"
+        case .permissionRequired:
+            "Keyameleon — Permission Required"
+        case .temporarilyUnavailable:
+            "Keyameleon — Temporarily Unavailable"
+        case .paused:
+            "Keyameleon — Paused"
+        case .warning:
+            "Keyameleon — Action needed"
+        }
     }
 }
 

@@ -8,21 +8,6 @@ enum DiagnosticCategory: String, Equatable, Sendable, CaseIterable {
     case observationOrder
     case inputSourceSelectionResult
     case sessionLifecycle
-
-    var displayName: String {
-        switch self {
-        case .operationalError:
-            "Operational errors"
-        case .operationalStateChange:
-            "Operational state changes"
-        case .observationOrder:
-            "Observation order"
-        case .inputSourceSelectionResult:
-            "Input Source selection results"
-        case .sessionLifecycle:
-            "Diagnostic Session lifecycle"
-        }
-    }
 }
 
 /// Closed Diagnostic Data event codes. No free-form message strings.

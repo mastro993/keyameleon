@@ -9,25 +9,25 @@ final class KeyameleonApplicationTests: XCTestCase {
         let menu = delegate.makeMenu()
         let titles = menu.items.map(\.title)
 
-        XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.switchingStatusMenuItemPrefix) })
-        XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.activePhysicalKeyboardMenuItemPrefix) })
-        XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.keyboardAssignmentMenuItemPrefix) })
-        XCTAssertTrue(titles.contains { $0.hasPrefix(KeyameleonAppMetadata.currentInputSourceMenuItemPrefix) })
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.pauseActivityTriggeredSwitchingMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.openMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.checkAgainMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.settingsMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.checkForUpdatesMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.quitMenuItemTitle))
-        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.openMenuItemTitle)?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.openSystemSettingsMenuItemTitle)?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.checkAgainMenuItemTitle)?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.settingsMenuItemTitle)?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.checkForUpdatesMenuItemTitle)?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: KeyameleonAppMetadata.quitMenuItemTitle)?.target === delegate)
+        XCTAssertTrue(titles.contains { $0.hasPrefix("Switching Status:") })
+        XCTAssertTrue(titles.contains { $0.hasPrefix("Active Physical Keyboard:") })
+        XCTAssertTrue(titles.contains { $0.hasPrefix("Keyboard Assignment:") })
+        XCTAssertTrue(titles.contains { $0.hasPrefix("Current Input Source:") })
+        XCTAssertTrue(titles.contains("Pause Activity-Triggered Switching"))
+        XCTAssertTrue(titles.contains("Open Keyameleon…"))
+        XCTAssertTrue(titles.contains("Open System Settings"))
+        XCTAssertTrue(titles.contains("Check Again"))
+        XCTAssertTrue(titles.contains("Settings…"))
+        XCTAssertTrue(titles.contains("Check for Updates…"))
+        XCTAssertTrue(titles.contains("Quit Keyameleon"))
+        XCTAssertTrue(menu.item(withTitle: "Open Keyameleon…")?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: "Open System Settings")?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: "Check Again")?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: "Settings…")?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: "Check for Updates…")?.target === delegate)
+        XCTAssertTrue(menu.item(withTitle: "Quit Keyameleon")?.target === delegate)
         XCTAssertTrue(
-            menu.item(withTitle: KeyameleonAppMetadata.pauseActivityTriggeredSwitchingMenuItemTitle)?
+            menu.item(withTitle: "Pause Activity-Triggered Switching")?
                 .target === delegate
         )
     }
@@ -39,15 +39,10 @@ final class KeyameleonApplicationTests: XCTestCase {
         )
         let menu = delegate.makeMenu()
         let activeTitle = menu.items.first {
-            $0.title.hasPrefix(KeyameleonAppMetadata.activePhysicalKeyboardMenuItemPrefix)
+            $0.title.hasPrefix("Active Physical Keyboard:")
         }?.title
 
-        XCTAssertEqual(
-            activeTitle,
-            KeyameleonAppMetadata.activePhysicalKeyboardMenuItemTitle(
-                KeyameleonAppMetadata.noActivityObservedYet
-            )
-        )
+        XCTAssertEqual(activeTitle, "Active Physical Keyboard: No activity observed yet")
     }
 
     @MainActor
@@ -61,13 +56,29 @@ final class KeyameleonApplicationTests: XCTestCase {
         let menu = delegate.makeMenu()
         let titles = menu.items.map(\.title)
 
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.resumeActivityTriggeredSwitchingMenuItemTitle))
-        XCTAssertFalse(titles.contains(KeyameleonAppMetadata.pauseActivityTriggeredSwitchingMenuItemTitle))
-        XCTAssertTrue(
-            titles.contains(
-                KeyameleonAppMetadata.switchingStatusMenuItemTitle(.paused)
+        XCTAssertTrue(titles.contains("Resume Activity-Triggered Switching"))
+        XCTAssertFalse(titles.contains("Pause Activity-Triggered Switching"))
+        XCTAssertTrue(titles.contains("Switching Status: Paused"))
+    }
+
+    @MainActor
+    func testMenuBarIconPresentationMapsEveryStatusMark() {
+        let delegate = KeyameleonApplicationDelegate()
+        let expected: [(MenuBarIconMark, String, String)] = [
+            (.ready, "keyboard", "Keyameleon"),
+            (.permissionRequired, "keyboard.badge.ellipsis", "Keyameleon — Permission Required"),
+            (.temporarilyUnavailable, "moon.zzz", "Keyameleon — Temporarily Unavailable"),
+            (.paused, "pause.circle", "Keyameleon — Paused"),
+            (.warning, "exclamationmark.triangle", "Keyameleon — Action needed")
+        ]
+
+        for (mark, symbolName, accessibilityDescription) in expected {
+            XCTAssertEqual(delegate.systemSymbolName(for: mark), symbolName)
+            XCTAssertEqual(
+                delegate.menuBarIconAccessibilityDescription(for: mark),
+                accessibilityDescription
             )
-        )
+        }
     }
 
     @MainActor
@@ -79,14 +90,14 @@ final class KeyameleonApplicationTests: XCTestCase {
         let menu = delegate.makeMenu()
         let titles = menu.items.map(\.title)
 
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.uncleanExitNoticeTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.reviewDiagnosticsMenuItemTitle))
-        XCTAssertTrue(titles.contains(KeyameleonAppMetadata.dismissDiagnosticsNoticeMenuItemTitle))
+        XCTAssertTrue(titles.contains("Keyameleon did not exit cleanly."))
+        XCTAssertTrue(titles.contains("Review Diagnostics…"))
+        XCTAssertTrue(titles.contains("Dismiss Diagnostics Notice"))
         XCTAssertTrue(
-            menu.item(withTitle: KeyameleonAppMetadata.reviewDiagnosticsMenuItemTitle)?.target === delegate
+            menu.item(withTitle: "Review Diagnostics…")?.target === delegate
         )
         XCTAssertTrue(
-            menu.item(withTitle: KeyameleonAppMetadata.dismissDiagnosticsNoticeMenuItemTitle)?.target === delegate
+            menu.item(withTitle: "Dismiss Diagnostics Notice")?.target === delegate
         )
     }
 
@@ -133,7 +144,7 @@ final class KeyameleonApplicationTests: XCTestCase {
     func testLaunchedApplicationUsesAccessoryPolicyAndAgentInfo() {
         XCTAssertEqual(NSApp.activationPolicy(), .accessory)
         XCTAssertEqual(
-            Bundle(identifier: KeyameleonAppMetadata.bundleIdentifier)?
+            Bundle(identifier: "dev.fedemas.keyameleon")?
                 .object(forInfoDictionaryKey: "LSUIElement") as? Bool,
             true
         )
@@ -141,7 +152,7 @@ final class KeyameleonApplicationTests: XCTestCase {
 
     @MainActor
     func testSparkleInfoPlistEncodesUserApprovedUpdatePolicy() {
-        let bundle = Bundle(identifier: KeyameleonAppMetadata.bundleIdentifier)
+        let bundle = Bundle(identifier: "dev.fedemas.keyameleon")
         XCTAssertEqual(
             bundle?.object(forInfoDictionaryKey: "SUFeedURL") as? String,
             KeyameleonUpdatePolicy.feedURLString

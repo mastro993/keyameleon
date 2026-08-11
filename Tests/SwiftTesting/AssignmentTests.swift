@@ -102,7 +102,7 @@ func keyboardAssignmentSavesExactInputSourceIdentifierImmediatelyWithoutSelectio
         model.physicalKeyboards[0].keyboardAssignment?.inputSourceIdentifier
             == "com.example.italian"
     )
-    #expect(model.assignmentDisplayName(for: model.physicalKeyboards[0]) == "Italian")
+    #expect(model.assignedInputSourceName(for: model.physicalKeyboards[0]) == "Italian")
     #expect(
         recordStore.record(forIdentityKey: keyboardID.rawValue)?
             .keyboardAssignment?.inputSourceIdentifier == "com.example.italian"
@@ -157,6 +157,6 @@ func swiftDataStoreKeepsNamesAndAssignmentsAcrossContainers() throws {
     )
     let saved = secondStore.record(forIdentityKey: identityKey)
 
-    #expect(saved?.displayName == "Studio")
+    #expect(saved?.name == "Studio")
     #expect(saved?.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
 }

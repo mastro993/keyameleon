@@ -248,12 +248,8 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
     #expect(model.verifiedKeyboardAssignmentIdentifier == nil)
     #expect(model.observedCurrentInputSourceIdentifier == "com.example.italian")
     #expect(model.activeInputSourceMismatch != nil)
-    #expect(model.activeInputSourceMismatch?.currentName == "Italian")
-    #expect(model.activeInputSourceMismatch?.assignedName == "U.S.")
-    #expect(
-        model.activeInputSourceMismatch?.restorationExplanation
-            == KeyameleonAppMetadata.inputSourceRestoresAfterActivation
-    )
+    #expect(model.activeInputSourceMismatch?.currentInputSourceIdentifier == "com.example.italian")
+    #expect(model.activeInputSourceMismatch?.assignedInputSourceIdentifier == "com.example.us")
 
     // Still no fight on another external change.
     selector.current = "com.example.other"
@@ -342,16 +338,6 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
     #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.italian")
     #expect(model.wantedKeyboardAssignmentGeneration == 200)
     #expect(model.activePhysicalKeyboardID == iotaID)
-}
-
-@Test("Input Source mismatch copy explains later Activation Activity restores assignment")
-func inputSourceMismatchCopyExplainsLaterActivationActivityRestoresAssignment() {
-    #expect(KeyameleonAppMetadata.currentInputSourceLabel == "Current Input Source")
-    #expect(KeyameleonAppMetadata.assignedInputSourceLabel == "Assigned Input Source")
-    #expect(
-        KeyameleonAppMetadata.inputSourceRestoresAfterActivation
-            == "Later Activation Activity restores the Keyboard Assignment."
-    )
 }
 
 @MainActor

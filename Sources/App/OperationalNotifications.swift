@@ -9,19 +9,6 @@ enum OperationalNotificationAuthorizationState: Equatable, Sendable {
     case denied
     case authorized
 
-    var displayName: String {
-        switch self {
-        case .unknown:
-            "Checking"
-        case .notDetermined:
-            "Not requested"
-        case .denied:
-            "Denied"
-        case .authorized:
-            "Authorized"
-        }
-    }
-
     var canSend: Bool {
         self == .authorized
     }
@@ -30,19 +17,6 @@ enum OperationalNotificationAuthorizationState: Equatable, Sendable {
 enum OperationalNotification: Equatable, Sendable {
     case listenPermissionRevoked
     case unavailableKeyboardAssignment
-
-    var title: String {
-        KeyameleonAppMetadata.operationalNotificationTitle
-    }
-
-    var body: String {
-        switch self {
-        case .listenPermissionRevoked:
-            KeyameleonAppMetadata.listenPermissionRevokedNotificationBody
-        case .unavailableKeyboardAssignment:
-            KeyameleonAppMetadata.unavailableKeyboardAssignmentNotificationBody
-        }
-    }
 }
 
 enum OperationalNotificationEpisode: Hashable, Sendable {
@@ -170,14 +144,23 @@ final class SystemOperationalNotificationProvider: OperationalNotificationProvid
         }
 
         let content = UNMutableNotificationContent()
-        content.title = notification.title
-        content.body = notification.body
+        content.title = "Keyameleon needs attention"
+        content.body = notificationBody(for: notification)
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,
             trigger: nil
         )
         center.add(request)
+    }
+
+    private func notificationBody(for notification: OperationalNotification) -> String {
+        switch notification {
+        case .listenPermissionRevoked:
+            "Input Monitoring permission was revoked. Open System Settings to restore Activity-Triggered Switching."
+        case .unavailableKeyboardAssignment:
+            "A Keyboard Assignment is unavailable. Open Keyameleon to change or remove it."
+        }
     }
 
     nonisolated private static func authorizationState(
@@ -370,7 +353,9 @@ protocol NotificationSettingsOpening: AnyObject {
 @MainActor
 final class NSWorkspaceNotificationSettingsOpener: NotificationSettingsOpening {
     func openNotificationSettings() {
-        guard let url = URL(string: KeyameleonAppMetadata.notificationSettingsURL) else {
+        guard let url = URL(
+            string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension"
+        ) else {
             return
         }
 
