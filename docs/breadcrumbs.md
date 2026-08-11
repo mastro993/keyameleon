@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-11 — Product validation simplification
+
+- Reduced CI to one macOS 26 test job with the focused suite and safety audit.
+- Removed repeated qualification, 100,000-event stress, human qualification evidence, and performance quotas.
+- Replaced qualification guidance with `docs/testing.md` and recorded the decision in `docs/adr/0001-product-validation.md`.
+
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification
 
 - Added `./Scripts/run.sh qualify-setup-accessibility` for source audit, application build, complete tests, and privacy-safe human evidence evaluation.

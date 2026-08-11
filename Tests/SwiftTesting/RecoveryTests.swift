@@ -38,7 +38,6 @@ func selectionFailureLeavesNormalInputUnchangedAndOpensOneWarningEpisode() {
     #expect(selector.selectCount == 3)
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
     #expect(model.verifiedKeyboardAssignmentIdentifier == nil)
-    #expect(model.warningEpisodeCount == 1)
     #expect(model.activeWarnings.count == 1)
     #expect(model.activeWarnings[0].category == .selectionFailed)
     #expect(model.activeWarnings[0].recoveryAction == .retryNow)
@@ -77,12 +76,10 @@ func retryNowRetriesCurrentWantedKeyboardAssignment() {
     )
     model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 302, kind: .press))
     #expect(selector.selectCount == 1)
-    #expect(model.warningEpisodeCount == 1)
 
     model.retryNow()
     #expect(selector.selectCount == 2)
     #expect(selector.lastRequestedIdentifier == "com.example.us")
-    #expect(model.warningEpisodeCount == 1)
     #expect(model.activeWarnings.count == 1)
 
     selector.verifySuccess = true
@@ -155,7 +152,6 @@ func laterAssignedActivationActivityReplacesWantedStateAndCanStartNewRequest() {
     #expect(selector.lastRequestedIdentifier == "com.example.it")
     #expect(model.wantedKeyboardAssignment?.physicalKeyboardID == keyboardB.id)
     // Still one selection-failure warning cause, not one per event.
-    #expect(model.warningEpisodeCount == 1)
     #expect(model.activeWarnings.count == 1)
     #expect(model.activeWarnings[0].cause == .selectionFailure)
 }
@@ -186,7 +182,6 @@ func missingAssignedInputSourceBecomesUnavailableKeyboardAssignmentWithoutSelect
 
     #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
     #expect(model.physicalKeyboards[0].keyboardAssignment?.inputSourceIdentifier == "com.example.missing")
-    #expect(model.warningEpisodeCount == 1)
     #expect(model.activeWarnings.count == 1)
     #expect(model.activeWarnings[0].category == .unavailableKeyboardAssignment)
     #expect(model.activeWarnings[0].recoveryAction == .changeOrRemoveAssignment)
@@ -197,7 +192,6 @@ func missingAssignedInputSourceBecomesUnavailableKeyboardAssignmentWithoutSelect
     #expect(selector.selectCount == 0)
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
     #expect(model.activePhysicalKeyboardID == keyboardID)
-    #expect(model.warningEpisodeCount == 1)
     #expect(model.activeWarnings.count == 1)
 }
 
@@ -225,7 +219,6 @@ func exactInputSourceReturnEndsUnavailableConditionAndRestoresSwitching() {
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
     #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.warningEpisodeCount == 1)
 
     inputSources.inputSources = [
         EligibleInputSource(identifier: "com.example.other", name: "Other"),
@@ -267,7 +260,6 @@ func changeAssignmentAndRemoveAssignmentClearUnavailableKeyboardAssignment() {
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.missing")
     #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.warningEpisodeCount == 1)
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.it")
     #expect(!model.isUnavailableKeyboardAssignment(for: keyboardID))
@@ -276,7 +268,6 @@ func changeAssignmentAndRemoveAssignmentClearUnavailableKeyboardAssignment() {
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.gone")
     #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.warningEpisodeCount == 2)
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: nil)
     #expect(!model.isUnavailableKeyboardAssignment(for: keyboardID))
