@@ -10,15 +10,14 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var diagnosticRecordCount: Int
     @Published private(set) var diagnosticEstimatedByteCount: Int
     @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
-    var onNotificationAuthorizationChange: (@MainActor () -> Void)?
     @Published private(set) var diagnosticBundle: DiagnosticBundle
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
     private let diagnosticDataController: any DiagnosticDataControlling
-    private let operationalNotificationProvider: any OperationalNotificationProviding
+    private let operationalNotifications: OperationalNotifications
     private let notificationSettingsOpener: any NotificationSettingsOpening
-    private var isNotificationAuthorizationRequestInFlight = false
+    private var notificationObserverID: UUID?
 
     init(
         launchAtLoginController: any LaunchAtLoginControlling,
@@ -26,6 +25,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
             store: InMemoryDiagnosticDataStore()
         ),
+        operationalNotifications: OperationalNotifications? = nil,
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationSettingsOpener: any NotificationSettingsOpening =
@@ -34,7 +34,10 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.launchAtLoginController = launchAtLoginController
         self.updateChecker = updateChecker
         self.diagnosticDataController = diagnosticDataController
-        self.operationalNotificationProvider = operationalNotificationProvider
+        let notifications = operationalNotifications ?? OperationalNotifications(
+            provider: operationalNotificationProvider
+        )
+        self.operationalNotifications = notifications
         self.notificationSettingsOpener = notificationSettingsOpener
         self.isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         self.launchAtLoginErrorMessage = nil
@@ -42,11 +45,13 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         self.diagnosticRecordCount = diagnosticDataController.recordCount
         self.diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
-        self.notificationAuthorizationState = operationalNotificationProvider.authorizationState
-        self.onNotificationAuthorizationChange = nil
+        self.notificationAuthorizationState = notifications.authorizationState
         self.diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
         diagnosticDataController.onChange = { [weak self] in
             self?.publishDiagnosticState()
+        }
+        notificationObserverID = notifications.observe { [weak self] in
+            self?.notificationAuthorizationState = notifications.authorizationState
         }
     }
 
@@ -74,22 +79,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     }
 
     func requestOperationalNotificationAuthorization() {
-        guard notificationAuthorizationState == .notDetermined,
-              !isNotificationAuthorizationRequestInFlight
-        else {
-            return
-        }
-
-        isNotificationAuthorizationRequestInFlight = true
-        operationalNotificationProvider.requestAlertAuthorization { [weak self] state in
-            guard let self else {
-                return
-            }
-
-            self.isNotificationAuthorizationRequestInFlight = false
-            self.notificationAuthorizationState = state
-            self.onNotificationAuthorizationChange?()
-        }
+        operationalNotifications.requestAlertAuthorization()
     }
 
     func openNotificationSettings() {
@@ -123,8 +113,6 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     }
 
     private func refreshNotificationAuthorization() {
-        operationalNotificationProvider.refreshAuthorization { [weak self] state in
-            self?.notificationAuthorizationState = state
-        }
+        operationalNotifications.refreshAuthorization()
     }
 }

@@ -379,7 +379,7 @@ func forgetOnSetupModelAlsoClearsLinkedDiagnosticData() {
         diagnosticDataController: diagnostic
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 301)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setPhysicalKeyboardName(keyboardID, customName: "Travel")

@@ -83,7 +83,7 @@ func physicalKeyboardIdentityAndKeyboardAssignmentLifecycleStaysStable() {
         physicalKeyboardRecordStore: recordStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -183,7 +183,7 @@ func switchingStatusPriorityAndWarningRecoveryStayDeterministic() {
         diagnosticDataController: QualificationNoOpDiagnosticDataController()
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 503)))
     let physicalKeyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(
@@ -192,20 +192,20 @@ func switchingStatusPriorityAndWarningRecoveryStayDeterministic() {
     )
 
     for _ in 0..<100 {
-        model.handlePhysicalKeyboardEvent(
+        model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
             PhysicalKeyboardEvent(serviceID: 503, kind: .press)
         )
     }
 
-    #expect(model.warningEpisodeCount == 1)
-    #expect(model.activeWarnings.count == 1)
-    #expect(model.activeWarnings[0].cause == .selectionFailure)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].cause == .selectionFailure)
 
     selector.verifySuccess = true
-    model.retryNow()
+    model.activityTriggeredSwitching.retryNow()
 
-    #expect(model.activeWarnings.isEmpty)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.qualification")
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.qualification")
     #expect(selector.selectCount == 101)
     #expect(selector.readbackCount == selector.selectCount)
 }
@@ -239,7 +239,7 @@ func deterministicStressProcesses100000PhysicalKeyboardEvents() {
         diagnosticDataController: QualificationNoOpDiagnosticDataController()
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -328,21 +328,20 @@ func deterministicStressProcesses100000PhysicalKeyboardEvents() {
 
         if let externalIdentifier = action.externalInputSourceIdentifier {
             selector.current = externalIdentifier
-            model.handleExternalInputSourceChange()
+            model.activityTriggeredSwitching.handleExternalInputSourceChange()
         }
-        model.handlePhysicalKeyboardEvent(action.event)
+        model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(action.event)
     }
 
     #expect(expectedSelectionCount > 0)
     #expect(selector.selectCount == expectedSelectionCount)
     #expect(selector.readbackCount == expectedSelectionCount)
     #expect(selector.selectionCounts == expectedSelectionCounts)
-    #expect(model.inputSourceSelectionRequestCount == expectedSelectionCount)
-    #expect(model.wantedKeyboardAssignmentGeneration == UInt64(expectedSelectionCount))
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration == UInt64(expectedSelectionCount))
     #expect(model.activePhysicalKeyboardID == keyboardBID)
-    #expect(model.wantedKeyboardAssignmentIdentifier == sourceB)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == sourceB)
-    #expect(model.observedCurrentInputSourceIdentifier == sourceB)
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentIdentifier == sourceB)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == sourceB)
+    #expect(model.activityTriggeredSwitching.testingObservedCurrentInputSourceIdentifier == sourceB)
     #expect(selector.current == sourceB)
 }
 

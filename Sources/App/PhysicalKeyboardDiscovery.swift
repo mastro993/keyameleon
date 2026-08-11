@@ -101,3 +101,205 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
         }
     }
 }
+
+/// Classified activation attributed to one Physical Keyboard.
+///
+/// Raw Physical Keyboard Events and CoreHID service identifiers end here.
+struct PhysicalKeyboardActivationActivity: Equatable, Sendable {
+    let physicalKeyboardID: PhysicalKeyboardRecordID
+}
+
+enum PhysicalKeyboardDiscoveryRecordChange: Equatable, Sendable {
+    case connected(physicalKeyboardID: PhysicalKeyboardRecordID)
+    case disconnected(physicalKeyboardID: PhysicalKeyboardRecordID)
+}
+
+/// Shared internal Physical Keyboard discovery module.
+///
+/// It owns CoreHID discovery, attribution, connection lifecycle, and
+/// Activation Activity classification. Setup management receives the current
+/// Physical Keyboard catalog. Activity-Triggered Switching receives only
+/// attributed Activation Activity.
+@MainActor
+final class PhysicalKeyboardDiscovery {
+    private let discoverer: any PhysicalKeyboardDiscovering
+    private let eventObserver: any PhysicalKeyboardEventObserving
+    private var catalog = PhysicalKeyboardCatalog()
+    private var discoveryStarted = false
+    private var activityObservationStarted = false
+    private var observers: [UUID: @MainActor ([PhysicalKeyboard]) -> Void] = [:]
+    private var recordChangeObservers: [
+        UUID: @MainActor (PhysicalKeyboardDiscoveryRecordChange) -> Void
+    ] = [:]
+    private var onActivationActivity: (@MainActor (PhysicalKeyboardActivationActivity) -> Void)?
+
+    private(set) var activePhysicalKeyboardID: PhysicalKeyboardRecordID?
+
+    init(
+        discoverer: any PhysicalKeyboardDiscovering,
+        eventObserver: any PhysicalKeyboardEventObserving
+    ) {
+        self.discoverer = discoverer
+        self.eventObserver = eventObserver
+    }
+
+    var physicalKeyboards: [PhysicalKeyboard] {
+        catalog.physicalKeyboards.map { keyboard in
+            keyboard.markingActive(keyboard.id == activePhysicalKeyboardID)
+        }
+    }
+
+    private func physicalKeyboard(forServiceID serviceID: UInt64) -> PhysicalKeyboard? {
+        catalog.physicalKeyboard(forServiceID: serviceID)
+    }
+
+    @discardableResult
+    func observeChanges(
+        _ observer: @escaping @MainActor ([PhysicalKeyboard]) -> Void
+    ) -> UUID {
+        let id = UUID()
+        observers[id] = observer
+        observer(physicalKeyboards)
+        return id
+    }
+
+    func removeObserver(_ id: UUID) {
+        observers[id] = nil
+    }
+
+    @discardableResult
+    func observeRecordChanges(
+        _ observer: @escaping @MainActor (PhysicalKeyboardDiscoveryRecordChange) -> Void
+    ) -> UUID {
+        let id = UUID()
+        recordChangeObservers[id] = observer
+        return id
+    }
+
+    func removeRecordChangeObserver(_ id: UUID) {
+        recordChangeObservers[id] = nil
+    }
+
+    func start() {
+        guard !discoveryStarted else {
+            return
+        }
+
+        discoveryStarted = true
+        discoverer.start { [weak self] change in
+            self?.apply(change)
+        }
+        publish()
+    }
+
+    func stop() {
+        stopActivationActivityObservation()
+        guard discoveryStarted else {
+            return
+        }
+
+        discoverer.stop()
+        discoveryStarted = false
+        catalog = PhysicalKeyboardCatalog()
+        publish()
+    }
+
+    func startActivationActivityObservation(
+        onActivationActivity: @escaping @MainActor (PhysicalKeyboardActivationActivity) -> Void
+    ) {
+        self.onActivationActivity = onActivationActivity
+        guard !activityObservationStarted else {
+            return
+        }
+
+        activityObservationStarted = true
+        eventObserver.start { [weak self] event in
+            self?.apply(event)
+        }
+    }
+
+    func stopActivationActivityObservation() {
+        guard activityObservationStarted else {
+            onActivationActivity = nil
+            return
+        }
+
+        eventObserver.stop()
+        activityObservationStarted = false
+        onActivationActivity = nil
+    }
+
+    func markActive(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
+        guard activePhysicalKeyboardID != physicalKeyboardID else {
+            return
+        }
+
+        activePhysicalKeyboardID = physicalKeyboardID
+        publish()
+    }
+
+    func clearActive(if physicalKeyboardID: PhysicalKeyboardRecordID) {
+        guard activePhysicalKeyboardID == physicalKeyboardID else {
+            return
+        }
+
+        activePhysicalKeyboardID = nil
+        publish()
+    }
+
+    /// Test seam for feeding raw adapter evidence through the discovery module.
+    /// Production callers use the event observer owned by this module.
+    func handlePhysicalKeyboardEventForTesting(_ event: PhysicalKeyboardEvent) {
+        apply(event)
+    }
+
+    private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
+        guard discoveryStarted else {
+            return
+        }
+
+        let previousKeyboards = catalog.physicalKeyboards
+        catalog.apply(change)
+        switch change {
+        case let .connected(facts):
+            if let keyboard = physicalKeyboard(forServiceID: facts.serviceID),
+               keyboard.id.isIdentityBased
+            {
+                publishRecordChange(.connected(physicalKeyboardID: keyboard.id))
+            }
+        case .disconnected:
+            let remainingIDs = Set(catalog.physicalKeyboards.map(\.id))
+            for keyboard in previousKeyboards
+                where keyboard.id.isIdentityBased && !remainingIDs.contains(keyboard.id)
+            {
+                publishRecordChange(.disconnected(physicalKeyboardID: keyboard.id))
+            }
+        }
+        publish()
+    }
+
+    private func apply(_ event: PhysicalKeyboardEvent) {
+        guard
+            ActivationActivityClassification.isActivationActivity(event),
+            let physicalKeyboard = catalog.physicalKeyboard(forServiceID: event.serviceID)
+        else {
+            return
+        }
+
+        onActivationActivity?(
+            PhysicalKeyboardActivationActivity(physicalKeyboardID: physicalKeyboard.id)
+        )
+    }
+
+    private func publish() {
+        for observer in observers.values {
+            observer(physicalKeyboards)
+        }
+    }
+
+    private func publishRecordChange(_ change: PhysicalKeyboardDiscoveryRecordChange) {
+        for observer in recordChangeObservers.values {
+            observer(change)
+        }
+    }
+}

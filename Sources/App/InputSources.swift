@@ -29,6 +29,98 @@ final class NoOpInputSourceChangeObserver: InputSourceChangeObserving {
     func stop() {}
 }
 
+/// Shared internal Input Source module.
+///
+/// It owns catalog refresh, current-source observation, exact selection, and
+/// exact readback. Callers receive product values; platform identifiers stay
+/// inside this module and Activity-Triggered Switching.
+@MainActor
+final class InputSourceModule {
+    private let provider: any InputSourceProviding
+    private let selector: any InputSourceSelecting
+    private let changeObserver: any InputSourceChangeObserving
+    private var isObservingChanges = false
+    private var observers: [UUID: @MainActor () -> Void] = [:]
+
+    private(set) var eligibleInputSources: [EligibleInputSource] = []
+    private(set) var currentInputSourceIdentifier: String?
+
+    init(
+        provider: any InputSourceProviding,
+        selector: any InputSourceSelecting,
+        changeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver()
+    ) {
+        self.provider = provider
+        self.selector = selector
+        self.changeObserver = changeObserver
+        currentInputSourceIdentifier = selector.currentInputSourceIdentifier()
+    }
+
+    @discardableResult
+    func refresh() -> Bool {
+        let sources = provider.eligibleInputSources()
+        let currentIdentifier = selector.currentInputSourceIdentifier()
+        let changed = sources != eligibleInputSources
+            || currentIdentifier != currentInputSourceIdentifier
+
+        eligibleInputSources = sources
+        currentInputSourceIdentifier = currentIdentifier
+        if changed {
+            publish()
+        }
+        return changed
+    }
+
+    func selectAndVerifyInputSource(identifier: String) -> Bool {
+        let verified = selector.selectAndVerifyInputSource(identifier: identifier)
+        currentInputSourceIdentifier = selector.currentInputSourceIdentifier()
+        return verified
+    }
+
+    @discardableResult
+    func observeChanges(_ observer: @escaping @MainActor () -> Void) -> UUID {
+        let id = UUID()
+        observers[id] = observer
+        observer()
+        return id
+    }
+
+    func removeObserver(_ id: UUID) {
+        observers[id] = nil
+    }
+
+    func startObservingChanges() {
+        guard !isObservingChanges else {
+            return
+        }
+
+        isObservingChanges = true
+        changeObserver.start { [weak self] in
+            guard let self else {
+                return
+            }
+
+            self.currentInputSourceIdentifier = self.selector.currentInputSourceIdentifier()
+            self.publish()
+        }
+    }
+
+    func stopObservingChanges() {
+        guard isObservingChanges else {
+            return
+        }
+
+        changeObserver.stop()
+        isObservingChanges = false
+    }
+
+    private func publish() {
+        for observer in observers.values {
+            observer()
+        }
+    }
+}
+
 @MainActor
 final class SystemInputSourceChangeObserver: InputSourceChangeObserving {
     // Token removed from DistributedNotificationCenter on stop; unsafe for deinit only.

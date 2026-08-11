@@ -2,7 +2,8 @@ import SwiftUI
 
 @MainActor
 struct KeyameleonRootView: View {
-    @ObservedObject private var model: KeyameleonSetupModel
+    private let model: KeyameleonSetupModel
+    private let switching: ActivityTriggeredSwitching
     @ObservedObject private var diagnosticModel: KeyameleonGeneralSettingsModel
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var replacePickerKeyboardID: PhysicalKeyboardRecordID?
@@ -14,9 +15,11 @@ struct KeyameleonRootView: View {
 
     init(
         model: KeyameleonSetupModel,
+        switching: ActivityTriggeredSwitching,
         diagnosticModel: KeyameleonGeneralSettingsModel
     ) {
-        _model = ObservedObject(wrappedValue: model)
+        self.model = model
+        self.switching = switching
         _diagnosticModel = ObservedObject(wrappedValue: diagnosticModel)
     }
 
@@ -234,16 +237,18 @@ struct KeyameleonRootView: View {
 
             switchingStatus
 
-            if model.switchingStatus != .temporarilyUnavailable {
+            if switching.outcome.hasAction(.requestPermission)
+                || switching.outcome.hasAction(.checkAgain)
+            {
                 HStack {
                     Button(KeyameleonAppMetadata.requestPermissionButtonTitle) {
-                        model.requestPermission()
+                        switching.requestPermission()
                     }
-                    .disabled(model.switchingStatus == .ready)
+                    .disabled(!switching.outcome.hasAction(.requestPermission))
                     .accessibilityIdentifier(KeyameleonAppMetadata.requestPermissionAccessibilityIdentifier)
 
                     Button(
-                        model.switchingStatus == .ready
+                        switching.outcome.switchingStatus == .ready
                             ? KeyameleonAppMetadata.continueToAssignmentsButtonTitle
                             : KeyameleonAppMetadata.continueWithoutPermissionButtonTitle
                     ) {
@@ -322,7 +327,7 @@ struct KeyameleonRootView: View {
             activePhysicalKeyboardStatus
             switchingWarnings
 
-            Text(switchingStatusExplanation(for: model.switchingStatus))
+            Text(switchingStatusExplanation(for: switching.outcome.switchingStatus))
 
             Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
                 .foregroundStyle(.secondary)
@@ -336,11 +341,11 @@ struct KeyameleonRootView: View {
             Text("Switching Status")
                 .font(.headline)
                 .accessibilityIdentifier(KeyameleonAppMetadata.switchingStatusAccessibilityIdentifier)
-            Text(model.switchingStatus.displayName)
+            Text(switching.outcome.switchingStatus.displayName)
                 .font(.title3)
-                .accessibilityValue(model.switchingStatus.displayName)
+                .accessibilityValue(switching.outcome.switchingStatus.displayName)
 
-            if let reason = model.temporaryUnavailableReason {
+            if let reason = switching.outcome.temporarilyUnavailableReasons.first {
                 Text("\(KeyameleonAppMetadata.switchingStatusReasonMenuItemPrefix) \(reason.displayName)")
                     .font(.callout)
                     .accessibilityLabel(KeyameleonAppMetadata.switchingStatusReasonMenuItemPrefix)
@@ -363,16 +368,16 @@ struct KeyameleonRootView: View {
             Text(KeyameleonAppMetadata.activePhysicalKeyboardLabel)
                 .font(.headline)
             Text(
-                model.activePhysicalKeyboard?.name
+                switching.outcome.activePhysicalKeyboard?.name
                     ?? KeyameleonAppMetadata.noActivityObservedYet
             )
             .font(.title3)
             .accessibilityValue(
-                model.activePhysicalKeyboard?.name
+                switching.outcome.activePhysicalKeyboard?.name
                     ?? KeyameleonAppMetadata.noActivityObservedYet
             )
 
-            if let mismatch = model.activeInputSourceMismatch {
+            if let mismatch = switching.outcome.mismatch {
                 inputSourceMismatchStatus(mismatch)
             }
         }
@@ -385,32 +390,32 @@ struct KeyameleonRootView: View {
     }
 
     private func inputSourceMismatchStatus(
-        _ mismatch: InputSourceMismatchPresentation
+        _ mismatch: ActivityTriggeredSwitchingMismatch
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("\(KeyameleonAppMetadata.currentInputSourceLabel): \(mismatch.currentName)")
                 .font(.callout)
             Text("\(KeyameleonAppMetadata.assignedInputSourceLabel): \(mismatch.assignedName)")
                 .font(.callout)
-            Text(mismatch.restorationExplanation)
+            Text(KeyameleonAppMetadata.inputSourceRestoresAfterActivation)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.top, 6)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "\(KeyameleonAppMetadata.currentInputSourceLabel) \(mismatch.currentName). \(KeyameleonAppMetadata.assignedInputSourceLabel) \(mismatch.assignedName). \(mismatch.restorationExplanation)"
+            "\(KeyameleonAppMetadata.currentInputSourceLabel) \(mismatch.currentName). \(KeyameleonAppMetadata.assignedInputSourceLabel) \(mismatch.assignedName). \(KeyameleonAppMetadata.inputSourceRestoresAfterActivation)"
         )
     }
 
     @ViewBuilder
     private var switchingWarnings: some View {
-        if !model.activeWarnings.isEmpty {
+        if !switching.outcome.warnings.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
                 Text(KeyameleonAppMetadata.switchingWarningsSectionTitle)
                     .font(.headline)
 
-                ForEach(model.activeWarnings) { warning in
+                ForEach(switching.outcome.warnings) { warning in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(warning.category.displayName)
                             .font(.body.weight(.semibold))
@@ -419,9 +424,9 @@ struct KeyameleonRootView: View {
                             .font(.callout)
                             .foregroundStyle(.secondary)
 
-                        if warning.supportsRetryNow {
+                        if warning.supportsRetryNow && switching.outcome.hasAction(.retryNow) {
                             Button(KeyameleonAppMetadata.retryNowButtonTitle) {
-                                model.retryNow()
+                                switching.retryNow()
                             }
                         }
                     }
@@ -436,7 +441,9 @@ struct KeyameleonRootView: View {
         }
     }
 
-    private func recoveryExplanation(for warning: SwitchingWarning) -> String {
+    private func recoveryExplanation(
+        for warning: ActivityTriggeredSwitchingWarning
+    ) -> String {
         switch warning.category {
         case .selectionFailed:
             KeyameleonAppMetadata.selectionFailedRecoveryExplanation
@@ -447,14 +454,14 @@ struct KeyameleonRootView: View {
 
     @ViewBuilder
     private var recoveryActions: some View {
-        if model.switchingStatus != .temporarilyUnavailable {
+        if switching.outcome.hasAction(.checkAgain) {
             HStack {
                 Button(KeyameleonAppMetadata.openSystemSettingsMenuItemTitle) {
                     model.openSystemSettings()
                 }
 
                 Button(KeyameleonAppMetadata.checkAgainMenuItemTitle) {
-                    model.refreshPermission()
+                    switching.checkAgain()
                 }
             }
         }
@@ -635,7 +642,7 @@ struct KeyameleonRootView: View {
         case .paused:
             "Activity-Triggered Switching is paused. Key Content observation and Input Source requests are stopped. Management and settings stay available."
         case .temporarilyUnavailable:
-            if let reason = model.temporaryUnavailableReason {
+            if let reason = switching.outcome.temporarilyUnavailableReasons.first {
                 "Activity-Triggered Switching is temporarily unavailable because \(reason.displayName). \(KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery)"
             } else {
                 KeyameleonAppMetadata.temporarilyUnavailableAutomaticRecovery

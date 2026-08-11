@@ -17,16 +17,16 @@ func permissionRevocationStopsObservationAndLaterInputSourceRequests() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(eventObserver.startCount == 1)
 
     permissionProvider.state = .denied
-    model.refreshPermission()
+    startAndCheck(model)
 
-    #expect(model.switchingStatus == .permissionRequired)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(eventObserver.stopCount == 1)
-    #expect(!model.canObservePhysicalKeyboards)
-    #expect(!model.canRequestInputSources)
+    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
+    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
     #expect(selector.selectCount == 0)
 }
 
@@ -43,25 +43,25 @@ func sleepAndLockStopObservationWakeAndUnlockResumeAutomatically() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(eventObserver.startCount == 1)
 
-    model.handleLifecycleEvent(.willSleep)
-    #expect(model.switchingStatus == .temporarilyUnavailable)
-    #expect(model.temporaryUnavailableReason == .sleeping)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.willSleep)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .temporarilyUnavailable)
+    #expect(model.activityTriggeredSwitching.outcome.temporarilyUnavailableReasons.first == .sleeping)
     #expect(eventObserver.stopCount == 1)
 
-    model.handleLifecycleEvent(.didWake)
-    #expect(model.switchingStatus == .ready)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.didWake)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
     #expect(eventObserver.startCount == 2)
 
-    model.handleLifecycleEvent(.sessionDidResignActive)
-    #expect(model.switchingStatus == .temporarilyUnavailable)
-    #expect(model.temporaryUnavailableReason == .inactiveSession)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidResignActive)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .temporarilyUnavailable)
+    #expect(model.activityTriggeredSwitching.outcome.temporarilyUnavailableReasons.first == .inactiveSession)
     #expect(eventObserver.stopCount == 2)
 
-    model.handleLifecycleEvent(.sessionDidBecomeActive)
-    #expect(model.switchingStatus == .ready)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidBecomeActive)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
     #expect(eventObserver.startCount == 3)
 }
 
@@ -78,14 +78,14 @@ func wakeRestoresSavedPhysicalKeyboardRecordsAfterLifecycleStop() {
         physicalKeyboardRecordStore: recordStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     let facts = makeSetupModelHardwareFacts(serviceID: 901)
     discoverer.emit(.connected(facts))
     let keyboardID = model.physicalKeyboards[0].id
     model.setPhysicalKeyboardName(keyboardID, customName: "Saved")
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
 
-    model.handleLifecycleEvent(.willSleep)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.willSleep)
 
     #expect(model.physicalKeyboards.count == 1)
     #expect(model.physicalKeyboards[0].connectionState == .disconnected)
@@ -95,7 +95,7 @@ func wakeRestoresSavedPhysicalKeyboardRecordsAfterLifecycleStop() {
             == KeyboardAssignment(inputSourceIdentifier: "com.example.us")
     )
 
-    model.handleLifecycleEvent(.didWake)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.didWake)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 902)))
 
     #expect(model.physicalKeyboards.count == 1)
@@ -120,25 +120,25 @@ func positiveSecureInputEvidenceSetsTemporarilyUnavailableAndResumesWithoutRetry
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     protectedStateProvider.state = ProtectedStateSnapshot(
         isSecureInputEnabled: true,
         isProtectedDataAvailable: true
     )
-    model.refreshPermission()
+    startAndCheck(model)
 
-    #expect(model.switchingStatus == .temporarilyUnavailable)
-    #expect(model.temporaryUnavailableReason == .secureInput)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .temporarilyUnavailable)
+    #expect(model.activityTriggeredSwitching.outcome.temporarilyUnavailableReasons.first == .secureInput)
     #expect(eventObserver.stopCount == 1)
 
-    model.retryNow()
+    model.activityTriggeredSwitching.retryNow()
     #expect(selector.selectCount == 0)
 
     protectedStateProvider.state = .clear
-    model.refreshPermission()
+    startAndCheck(model)
 
-    #expect(model.switchingStatus == .ready)
-    #expect(model.temporaryUnavailableReason == nil)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
+    #expect(model.activityTriggeredSwitching.outcome.temporarilyUnavailableReasons.first == nil)
     #expect(eventObserver.startCount == 2)
 }
 
@@ -153,10 +153,10 @@ func missingActivityDoesNotCreateTemporarilyUnavailable() {
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
 
-    #expect(model.switchingStatus == .ready)
-    #expect(model.temporaryUnavailableReason == nil)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
+    #expect(model.activityTriggeredSwitching.outcome.temporarilyUnavailableReasons.first == nil)
 }
 
 @Test("Protected lifecycle recovery keeps Paused status until user resumes")
@@ -173,21 +173,22 @@ func protectedLifecycleRecoveryKeepsPausedStatusUntilUserResumes() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
-    model.pauseActivityTriggeredSwitching()
-    #expect(model.switchingStatus == .paused)
+    startAndCheck(model)
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.pause()
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .paused)
 
     protectedStateProvider.state = ProtectedStateSnapshot(
         isSecureInputEnabled: true,
         isProtectedDataAvailable: true
     )
-    model.refreshPermission()
-    #expect(model.switchingStatus == .temporarilyUnavailable)
+    startAndCheck(model)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .temporarilyUnavailable)
     #expect(eventObserver.stopCount == 1)
 
     protectedStateProvider.state = .clear
-    model.refreshPermission()
-    #expect(model.switchingStatus == .paused)
+    startAndCheck(model)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .paused)
     #expect(eventObserver.startCount == 1)
 }
 

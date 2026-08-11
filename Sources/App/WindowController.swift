@@ -5,6 +5,7 @@ import SwiftUI
 final class KeyameleonWindowController: NSWindowController {
     init(
         model: KeyameleonSetupModel,
+        switching: ActivityTriggeredSwitching,
         diagnosticModel: KeyameleonGeneralSettingsModel
     ) {
         let window = NSWindow(
@@ -21,6 +22,7 @@ final class KeyameleonWindowController: NSWindowController {
         window.contentView = NSHostingView(
             rootView: KeyameleonRootView(
                 model: model,
+                switching: switching,
                 diagnosticModel: diagnosticModel
             )
         )

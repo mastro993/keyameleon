@@ -24,26 +24,26 @@ func selectionFailureLeavesNormalInputUnchangedAndOpensOneWarningEpisode() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 301)))
     model.setKeyboardAssignment(
         model.physicalKeyboards[0].id,
         inputSourceIdentifier: "com.example.us"
     )
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 301, kind: .repeat))
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 301, kind: .repeat))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
 
     #expect(selector.selectCount == 3)
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
-    #expect(model.verifiedKeyboardAssignmentIdentifier == nil)
-    #expect(model.warningEpisodeCount == 1)
-    #expect(model.activeWarnings.count == 1)
-    #expect(model.activeWarnings[0].category == .selectionFailed)
-    #expect(model.activeWarnings[0].recoveryAction == .retryNow)
-    #expect(model.activeWarnings[0].supportsRetryNow)
-    #expect(model.wantedKeyboardAssignment?.inputSourceIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == nil)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].category == .selectionFailed)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].recoveryAction == .retryNow)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].supportsRetryNow)
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.us")
 }
 
 @Test("Retry Now retries current wanted Keyboard Assignment")
@@ -69,27 +69,27 @@ func retryNowRetriesCurrentWantedKeyboardAssignment() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 302)))
     model.setKeyboardAssignment(
         model.physicalKeyboards[0].id,
         inputSourceIdentifier: "com.example.us"
     )
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 302, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 302, kind: .press))
     #expect(selector.selectCount == 1)
-    #expect(model.warningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
 
-    model.retryNow()
+    model.activityTriggeredSwitching.retryNow()
     #expect(selector.selectCount == 2)
     #expect(selector.lastRequestedIdentifier == "com.example.us")
-    #expect(model.warningEpisodeCount == 1)
-    #expect(model.activeWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
 
     selector.verifySuccess = true
-    model.retryNow()
+    model.activityTriggeredSwitching.retryNow()
     #expect(selector.selectCount == 3)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
-    #expect(model.activeWarnings.isEmpty)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
     #expect(selector.currentInputSourceIdentifier() == "com.example.us")
 }
 
@@ -117,7 +117,7 @@ func laterAssignedActivationActivityReplacesWantedStateAndCanStartNewRequest() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -146,18 +146,18 @@ func laterAssignedActivationActivityReplacesWantedStateAndCanStartNewRequest() {
     model.setKeyboardAssignment(keyboardA.id, inputSourceIdentifier: "com.example.us")
     model.setKeyboardAssignment(keyboardB.id, inputSourceIdentifier: "com.example.it")
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 303, kind: .press))
-    #expect(model.wantedKeyboardAssignment?.inputSourceIdentifier == "com.example.us")
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 303, kind: .press))
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.us")
     #expect(selector.lastRequestedIdentifier == "com.example.us")
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 304, kind: .press))
-    #expect(model.wantedKeyboardAssignment?.inputSourceIdentifier == "com.example.it")
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 304, kind: .press))
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.it")
     #expect(selector.lastRequestedIdentifier == "com.example.it")
-    #expect(model.wantedKeyboardAssignment?.physicalKeyboardID == keyboardB.id)
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.physicalKeyboardID == keyboardB.id)
     // Still one selection-failure warning cause, not one per event.
-    #expect(model.warningEpisodeCount == 1)
-    #expect(model.activeWarnings.count == 1)
-    #expect(model.activeWarnings[0].cause == .selectionFailure)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].cause == .selectionFailure)
 }
 
 @Test("Missing assigned Input Source becomes Unavailable Keyboard Assignment without selection")
@@ -179,26 +179,26 @@ func missingAssignedInputSourceBecomesUnavailableKeyboardAssignmentWithoutSelect
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 305)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.missing")
 
-    #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
+    #expect(isUnavailableKeyboardAssignment(model, for: keyboardID))
     #expect(model.physicalKeyboards[0].keyboardAssignment?.inputSourceIdentifier == "com.example.missing")
-    #expect(model.warningEpisodeCount == 1)
-    #expect(model.activeWarnings.count == 1)
-    #expect(model.activeWarnings[0].category == .unavailableKeyboardAssignment)
-    #expect(model.activeWarnings[0].recoveryAction == .changeOrRemoveAssignment)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].category == .unavailableKeyboardAssignment)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].recoveryAction == .changeOrRemoveAssignment)
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 305, kind: .press))
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 305, kind: .repeat))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 305, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 305, kind: .repeat))
 
     #expect(selector.selectCount == 0)
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
     #expect(model.activePhysicalKeyboardID == keyboardID)
-    #expect(model.warningEpisodeCount == 1)
-    #expect(model.activeWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
 }
 
 @Test("Exact Input Source return ends unavailable condition and restores switching")
@@ -220,29 +220,29 @@ func exactInputSourceReturnEndsUnavailableConditionAndRestoresSwitching() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 306)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
-    #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.warningEpisodeCount == 1)
+    #expect(isUnavailableKeyboardAssignment(model, for: keyboardID))
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
 
     inputSources.inputSources = [
         EligibleInputSource(identifier: "com.example.other", name: "Other"),
         EligibleInputSource(identifier: "com.example.us", name: "U.S."),
     ]
-    model.refreshPermission()
+    startAndCheck(model)
 
-    #expect(!model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.activeWarnings.isEmpty)
+    #expect(!isUnavailableKeyboardAssignment(model, for: keyboardID))
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
     #expect(
         model.physicalKeyboards[0].keyboardAssignment?.inputSourceIdentifier == "com.example.us"
     )
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 306, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 306, kind: .press))
     #expect(selector.selectCount == 1)
     #expect(selector.lastRequestedIdentifier == "com.example.us")
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
 }
 
 @Test("Change Assignment and Remove Assignment clear Unavailable Keyboard Assignment")
@@ -262,26 +262,26 @@ func changeAssignmentAndRemoveAssignmentClearUnavailableKeyboardAssignment() {
         inputSourceProvider: inputSources
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 307)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.missing")
-    #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.warningEpisodeCount == 1)
+    #expect(isUnavailableKeyboardAssignment(model, for: keyboardID))
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.it")
-    #expect(!model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.activeWarnings.isEmpty)
+    #expect(!isUnavailableKeyboardAssignment(model, for: keyboardID))
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
     #expect(model.physicalKeyboards[0].keyboardAssignment?.inputSourceIdentifier == "com.example.it")
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.gone")
-    #expect(model.isUnavailableKeyboardAssignment(for: keyboardID))
-    #expect(model.warningEpisodeCount == 2)
+    #expect(isUnavailableKeyboardAssignment(model, for: keyboardID))
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 2)
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: nil)
-    #expect(!model.isUnavailableKeyboardAssignment(for: keyboardID))
+    #expect(!isUnavailableKeyboardAssignment(model, for: keyboardID))
     #expect(model.physicalKeyboards[0].keyboardAssignment == nil)
-    #expect(model.activeWarnings.isEmpty)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
 }
 
 @Test("Keyboard Assignment availability uses exact identifier only")
@@ -330,7 +330,7 @@ func unavailableActivationActivityClearsPriorSelectionFailureWarning() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -357,13 +357,13 @@ func unavailableActivationActivityClearsPriorSelectionFailureWarning() {
     model.setKeyboardAssignment(okID, inputSourceIdentifier: "com.example.us")
     model.setKeyboardAssignment(missingID, inputSourceIdentifier: "com.example.gone")
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 308, kind: .press))
-    #expect(model.activeWarnings.contains { $0.cause == .selectionFailure })
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 308, kind: .press))
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.contains { $0.cause == .selectionFailure })
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 309, kind: .press))
-    #expect(!model.activeWarnings.contains { $0.cause == .selectionFailure })
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 309, kind: .press))
+    #expect(!model.activityTriggeredSwitching.testingActiveWarnings.contains { $0.cause == .selectionFailure })
     #expect(
-        model.activeWarnings.contains {
+        model.activityTriggeredSwitching.testingActiveWarnings.contains {
             $0.cause == .unavailableKeyboardAssignment(missingID)
         }
     )
@@ -394,14 +394,14 @@ func changeAssignmentClearsSelectionFailureWarningForThatWantedKeyboard() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 310)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 310, kind: .press))
-    #expect(model.activeWarnings.contains { $0.cause == .selectionFailure })
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 310, kind: .press))
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.contains { $0.cause == .selectionFailure })
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.it")
-    #expect(!model.activeWarnings.contains { $0.cause == .selectionFailure })
-    #expect(model.wantedKeyboardAssignment?.inputSourceIdentifier == "com.example.it")
+    #expect(!model.activityTriggeredSwitching.testingActiveWarnings.contains { $0.cause == .selectionFailure })
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.it")
 }

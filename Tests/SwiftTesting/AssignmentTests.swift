@@ -14,7 +14,7 @@ func physicalKeyboardNameDefaultsToProductNameAndAcceptsCustomValue() {
         physicalKeyboardRecordStore: recordStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 51)))
 
     #expect(model.physicalKeyboards[0].name == "Test Keyboard")
@@ -42,7 +42,7 @@ func duplicatePhysicalKeyboardNamesStayValidAndLeaveIdentityUnchanged() {
         physicalKeyboardRecordStore: recordStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -92,7 +92,7 @@ func keyboardAssignmentSavesExactInputSourceIdentifierImmediatelyWithoutSelectio
         physicalKeyboardRecordStore: recordStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 54)))
 
     let keyboardID = model.physicalKeyboards[0].id
@@ -125,7 +125,7 @@ func searchableAssignmentPickerFiltersByInputSourceNameOnly() {
         )
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
 
     let filtered = model.filteredInputSources(matching: "ita")
     #expect(filtered.map(\.name) == ["Italian"])

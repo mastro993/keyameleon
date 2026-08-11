@@ -154,7 +154,7 @@ func manualDesignationRequiresLeaveReturnAndExplicitNameConfirmation() {
         discoverer: discoverer
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 201, 202, identity: "macos.keyboard.amb")
     let keyboardID = model.physicalKeyboards[0].id
     #expect(model.canStartManualDesignation(for: keyboardID))
@@ -232,7 +232,7 @@ func sharedReturnEvidenceIsNotAcceptedAndCreatesNoDesignationOrAssignment() {
         discoverer: discoverer
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 211, 212, identity: "macos.keyboard.amb2")
     let keyboardID = model.physicalKeyboards[0].id
     model.startManualDesignation(for: keyboardID)
@@ -292,7 +292,7 @@ func emptyConfirmedNameIsIncompleteEvidenceAndCreatesNoDesignation() {
         discoverer: discoverer
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 241, 242, identity: "macos.keyboard.empty-name")
     let keyboardID = model.physicalKeyboards[0].id
     model.startManualDesignation(for: keyboardID)
@@ -328,7 +328,7 @@ func identityChangeDoesNotAutoMigrateManualDesignation() {
         discoverer: discoverer
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 221, 222, identity: "macos.keyboard.old-amb")
     let oldID = model.physicalKeyboards[0].id
     model.startManualDesignation(for: oldID)
@@ -368,7 +368,7 @@ func tamperedDesignationEvidenceLeavesUnsupported() {
         discoverer: discoverer
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 231, 232, identity: "macos.keyboard.tamp")
     let keyboardID = model.physicalKeyboards[0].id
 
@@ -380,7 +380,7 @@ func tamperedDesignationEvidenceLeavesUnsupported() {
             authenticationTag: Data(repeating: 0xAB, count: 32)
         )
     )
-    model.refreshPermission()
+    startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 231, 232, identity: "macos.keyboard.tamp")
 
     #expect(
