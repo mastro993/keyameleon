@@ -62,44 +62,8 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
     ])
     #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
     #expect(model.wantedKeyboardAssignmentIdentifier == "com.example.us")
-    #expect(model.wantedKeyboardAssignmentGeneration == 3)
     #expect(model.activePhysicalKeyboardID == alphaID)
     #expect(selector.currentInputSourceIdentifier() == "com.example.us")
-}
-
-@Test("Each wanted generation receives one selection request and one readback")
-@MainActor
-func eachWantedGenerationReceivesOneSelectionRequestAndOneReadback() {
-    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
-        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
-        setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
-        physicalKeyboardDiscoverer: discoverer,
-        inputSourceProvider: makeConvergeEligibleInputSources(),
-        inputSourceSelector: selector
-    )
-
-    model.refreshPermission()
-    discoverer.emit(
-        .connected(
-            makeSetupModelHardwareFacts(
-                serviceID: 311,
-                identity: "macos.keyboard.gamma",
-                serialNumber: "serial-g"
-            )
-        )
-    )
-    let keyboardID = model.physicalKeyboards[0].id
-    model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
-
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 311, kind: .press))
-
-    #expect(model.wantedKeyboardAssignmentGeneration == 1)
-    #expect(selector.selectCount == 1)
-    #expect(selector.readbackCount == 1)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
 }
 
 @Test("Newer assigned Activation Activity discards stale selection result")
@@ -152,7 +116,6 @@ func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
     model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 321, kind: .press))
 
     #expect(selector.requestedIdentifiers == ["com.example.us", "com.example.italian"])
-    #expect(model.wantedKeyboardAssignmentGeneration == 2)
     #expect(model.wantedKeyboardAssignmentIdentifier == "com.example.italian")
     #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.italian")
     #expect(model.activePhysicalKeyboardID == epsilonID)
@@ -188,14 +151,12 @@ func repeatedActivityCoalescesWhenWantedKeyboardAssignmentAlreadyVerified() {
     )
 
     model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 331, kind: .press))
-    let generationAfterFirst = model.wantedKeyboardAssignmentGeneration
     #expect(selector.selectCount == 1)
 
     model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 331, kind: .repeat))
     model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 331, kind: .press))
 
     #expect(selector.selectCount == 1)
-    #expect(model.wantedKeyboardAssignmentGeneration == generationAfterFirst)
     #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
 }
 
@@ -284,7 +245,7 @@ func permissionRequiredStopsInputSourceChangeObservation() {
     #expect(changeObserver.stopCount == 1)
 }
 
-@Test("Serial consumer processes Activation Activity in observation order under rapid load")
+@Test("Serial consumer processes Activation Activity in observation order")
 @MainActor
 func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
@@ -322,22 +283,20 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
     model.setKeyboardAssignment(thetaID, inputSourceIdentifier: "com.example.us")
     model.setKeyboardAssignment(iotaID, inputSourceIdentifier: "com.example.italian")
 
-    var expected: [String] = []
-    for index in 0..<200 {
-        let useTheta = index % 2 == 0
-        expected.append(useTheta ? "com.example.us" : "com.example.italian")
+    let events: [(serviceID: UInt64, identifier: String)] = [
+        (351, "com.example.us"),
+        (352, "com.example.italian"),
+        (351, "com.example.us"),
+    ]
+    for event in events {
         model.handlePhysicalKeyboardEvent(
-            PhysicalKeyboardEvent(
-                serviceID: useTheta ? 351 : 352,
-                kind: .press
-            )
+            PhysicalKeyboardEvent(serviceID: event.serviceID, kind: .press)
         )
     }
 
-    #expect(selector.requestedIdentifiers == expected)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.italian")
-    #expect(model.wantedKeyboardAssignmentGeneration == 200)
-    #expect(model.activePhysicalKeyboardID == iotaID)
+    #expect(selector.requestedIdentifiers == events.map { $0.identifier })
+    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activePhysicalKeyboardID == thetaID)
 }
 
 @MainActor

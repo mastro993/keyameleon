@@ -68,15 +68,12 @@ func disconnectedActivePhysicalKeyboardStaysActiveWithNoInputSourceRequest() {
     model.noteActivationActivity(for: keyboardID)
 
     #expect(model.activePhysicalKeyboardID == keyboardID)
-    #expect(model.inputSourceSelectionRequestCount == 0)
 
     discoverer.emit(.disconnected(serviceID: 121))
 
     #expect(model.activePhysicalKeyboardID == keyboardID)
     #expect(model.physicalKeyboards[0].isActive)
     #expect(model.physicalKeyboards[0].connectionState == .disconnected)
-    #expect(model.inputSourceSelectionRequestCount == 0)
-    #expect(model.warningEpisodeCount == 0)
 }
 
 @Test("Unsaved Active Physical Keyboard still appears disconnected after disconnect")

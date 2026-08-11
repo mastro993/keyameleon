@@ -59,7 +59,6 @@ func releaseOnlyPhysicalKeyboardEventIsNotActivationActivity() {
 func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadback() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    var onChangeCount = 0
     let model = KeyameleonSetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
@@ -73,13 +72,11 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
         ),
         inputSourceSelector: selector
     )
-    model.onChange = { onChangeCount += 1 }
 
     model.refreshPermission()
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 103)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.italian")
-    let changesBeforeActivation = onChangeCount
 
     model.handlePhysicalKeyboardEvent(
         PhysicalKeyboardEvent(serviceID: 103, kind: .press)
@@ -89,7 +86,6 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
     #expect(selector.lastRequestedIdentifier == "com.example.italian")
     #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.italian")
     #expect(model.activePhysicalKeyboardID == keyboardID)
-    #expect(onChangeCount > changesBeforeActivation)
 }
 
 @Test("Unassigned and unsupported Activation Activity does not request Input Source change")

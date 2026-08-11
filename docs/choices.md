@@ -1,5 +1,14 @@
 # Choices
 
+## 2026-08-11 — Product validation and macOS 26 support
+
+### Defaults
+- This supersedes the qualification-process defaults recorded under Issues #17 and #19 below.
+- Supported Release targets macOS 26.
+- Pull requests run one focused product test suite with one fast safety audit.
+- Monitor-only behavior and no saved Key Content remain hard failures.
+- Repeated suites, fixed stress counts, human qualification matrices, qualification evidence files, and performance quotas are removed.
+
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification
 
 ### Seams under test
