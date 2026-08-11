@@ -171,7 +171,7 @@ func readySwitchingStatusStartsDiscoveryAndPublishesConfigurationChoices() {
         inputSourceProvider: inputSourceProvider
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeHardwareFacts(serviceID: 41)))
 
     #expect(discoverer.startCount == 1)
@@ -193,9 +193,9 @@ func permissionRequiredStopsPhysicalKeyboardDiscovery() {
         inputSourceProvider: TestInputSourceProvider(inputSources: [])
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     permissionProvider.state = .denied
-    model.refreshPermission()
+    startAndCheck(model)
 
     #expect(discoverer.startCount == 1)
     #expect(discoverer.stopCount == 1)

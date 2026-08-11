@@ -1,6 +1,29 @@
 import Testing
 @testable import Keyameleon
 
+@Test("Physical Keyboard discovery records identity-based connection lifecycle")
+@MainActor
+func physicalKeyboardDiscoveryRecordsIdentityBasedConnectionLifecycle() {
+    let diagnostic = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        diagnosticDataController: diagnostic
+    )
+
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 100)))
+    discoverer.emit(.disconnected(serviceID: 100))
+
+    #expect(
+        diagnostic.allRecords().map(\.code)
+            == [.physicalKeyboardConnected, .physicalKeyboardDisconnected]
+    )
+}
+
 @Test("Activation Activity sets Active Physical Keyboard")
 @MainActor
 func activationActivitySetsActivePhysicalKeyboard() {
@@ -14,13 +37,13 @@ func activationActivitySetsActivePhysicalKeyboard() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 101)))
 
     #expect(model.activePhysicalKeyboardID == nil)
     #expect(eventObserver.startCount == 1)
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 101, kind: .press)
     )
 
@@ -41,12 +64,12 @@ func releaseOnlyPhysicalKeyboardEventIsNotActivationActivity() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 102)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 102, kind: .release)
     )
 
@@ -73,18 +96,18 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 103)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.italian")
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 103, kind: .press)
     )
 
     #expect(selector.selectCount == 1)
     #expect(selector.lastRequestedIdentifier == "com.example.italian")
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.italian")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.italian")
     #expect(model.activePhysicalKeyboardID == keyboardID)
 }
 
@@ -101,7 +124,7 @@ func unassignedAndUnsupportedActivationActivityDoesNotRequestInputSourceChange()
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 104)))
     discoverer.emit(
         .connected(
@@ -114,14 +137,14 @@ func unassignedAndUnsupportedActivationActivityDoesNotRequestInputSourceChange()
     )
 
     // Unassigned stable keyboard
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 104, kind: .press)
     )
     #expect(model.activePhysicalKeyboardID != nil)
     #expect(selector.selectCount == 0)
 
     // Unsupported unstable identity
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 105, kind: .repeat)
     )
     #expect(selector.selectCount == 0)
@@ -145,17 +168,17 @@ func verifiedAssignmentCoalescesFurtherActivationActivityWithoutReselect() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 106)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 106, kind: .press)
     )
     #expect(selector.selectCount == 1)
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 106, kind: .repeat)
     )
     #expect(selector.selectCount == 1)
@@ -183,19 +206,19 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 107)))
     model.setKeyboardAssignment(
         model.physicalKeyboards[0].id,
         inputSourceIdentifier: "com.example.us"
     )
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 107, kind: .press)
     )
 
     #expect(selector.selectCount == 1)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == nil)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == nil)
     #expect(model.activePhysicalKeyboardID == model.physicalKeyboards[0].id)
     // Failed select must not rewrite the observed current Input Source in the fake.
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
@@ -212,7 +235,7 @@ func activePhysicalKeyboardSortsFirstInGuidedSetupList() {
         physicalKeyboardDiscoverer: discoverer
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -237,7 +260,7 @@ func activePhysicalKeyboardSortsFirstInGuidedSetupList() {
     let betaID = model.physicalKeyboards.first { $0.id != alphaID }!.id
     model.setPhysicalKeyboardName(betaID, customName: "Beta")
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 109, kind: .press)
     )
 
@@ -257,12 +280,34 @@ func permissionRequiredStopsPhysicalKeyboardEventObservation() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(eventObserver.startCount == 1)
 
     permissionProvider.state = .denied
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(eventObserver.stopCount == 1)
+}
+
+@Test("Switching outcome does not expose an unknown Input Source identifier")
+@MainActor
+func switchingOutcomeDoesNotExposeUnknownInputSourceIdentifier() {
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.known", name: "Known")
+            ]
+        ),
+        inputSourceSelector: SetupModelTestInputSourceSelector(
+            current: "com.example.unknown"
+        )
+    )
+
+    startAndCheck(model)
+
+    #expect(model.activityTriggeredSwitching.outcome.currentInputSourceName == nil)
 }
 
 @Test("Catalog resolves Physical Keyboard by service ID for attribution")

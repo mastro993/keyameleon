@@ -26,7 +26,7 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -50,9 +50,9 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
     model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.us")
     model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.italian")
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 302, kind: .press))
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 302, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 301, kind: .press))
 
     #expect(selector.selectCount == 3)
     #expect(selector.requestedIdentifiers == [
@@ -60,10 +60,46 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
         "com.example.italian",
         "com.example.us",
     ])
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
-    #expect(model.wantedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration == 3)
     #expect(model.activePhysicalKeyboardID == alphaID)
     #expect(selector.currentInputSourceIdentifier() == "com.example.us")
+}
+
+@Test("Each wanted generation receives one selection request and one readback")
+@MainActor
+func eachWantedGenerationReceivesOneSelectionRequestAndOneReadback() {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: makeConvergeEligibleInputSources(),
+        inputSourceSelector: selector
+    )
+
+    startAndCheck(model)
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 311,
+                identity: "macos.keyboard.gamma",
+                serialNumber: "serial-g"
+            )
+        )
+    )
+    let keyboardID = model.physicalKeyboards[0].id
+    model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
+
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 311, kind: .press))
+
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration == 1)
+    #expect(selector.selectCount == 1)
+    #expect(selector.readbackCount == 1)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
 }
 
 @Test("Newer assigned Activation Activity discards stale selection result")
@@ -80,7 +116,7 @@ func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -110,14 +146,15 @@ func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
             return
         }
         nested = true
-        model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 322, kind: .press))
+        model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 322, kind: .press))
     }
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 321, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 321, kind: .press))
 
     #expect(selector.requestedIdentifiers == ["com.example.us", "com.example.italian"])
-    #expect(model.wantedKeyboardAssignmentIdentifier == "com.example.italian")
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.italian")
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration == 2)
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentIdentifier == "com.example.italian")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.italian")
     #expect(model.activePhysicalKeyboardID == epsilonID)
 }
 
@@ -135,7 +172,7 @@ func repeatedActivityCoalescesWhenWantedKeyboardAssignmentAlreadyVerified() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -150,14 +187,16 @@ func repeatedActivityCoalescesWhenWantedKeyboardAssignmentAlreadyVerified() {
         inputSourceIdentifier: "com.example.us"
     )
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 331, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 331, kind: .press))
+    let generationAfterFirst = model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration
     #expect(selector.selectCount == 1)
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 331, kind: .repeat))
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 331, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 331, kind: .repeat))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 331, kind: .press))
 
     #expect(selector.selectCount == 1)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration == generationAfterFirst)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
 }
 
 @Test("External Input Source change stays until later assigned Activation Activity")
@@ -181,7 +220,7 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
         inputSourceChangeObserver: changeObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(changeObserver.startCount == 1)
 
     discoverer.emit(
@@ -196,21 +235,21 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
 
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 341, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 341, kind: .press))
     #expect(selector.selectCount == 1)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
-    #expect(model.activeInputSourceMismatch == nil)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.outcome.mismatch == nil)
 
     // Manual / macOS shortcut / external actor changes Input Source.
     selector.current = "com.example.italian"
     changeObserver.emit()
 
     #expect(selector.selectCount == 1)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == nil)
-    #expect(model.observedCurrentInputSourceIdentifier == "com.example.italian")
-    #expect(model.activeInputSourceMismatch != nil)
-    #expect(model.activeInputSourceMismatch?.currentInputSourceIdentifier == "com.example.italian")
-    #expect(model.activeInputSourceMismatch?.assignedInputSourceIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == nil)
+    #expect(model.activityTriggeredSwitching.testingObservedCurrentInputSourceIdentifier == "com.example.italian")
+    #expect(model.activityTriggeredSwitching.outcome.mismatch != nil)
+    #expect(model.activityTriggeredSwitching.outcome.mismatch?.currentName == "Italian")
+    #expect(model.activityTriggeredSwitching.outcome.mismatch?.assignedName == "U.S.")
 
     // Still no fight on another external change.
     selector.current = "com.example.other"
@@ -218,11 +257,11 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
     #expect(selector.selectCount == 1)
 
     // Later assigned Activation Activity restores Keyboard Assignment.
-    model.handlePhysicalKeyboardEvent(PhysicalKeyboardEvent(serviceID: 341, kind: .press))
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 341, kind: .press))
     #expect(selector.selectCount == 2)
     #expect(selector.lastRequestedIdentifier == "com.example.us")
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
-    #expect(model.activeInputSourceMismatch == nil)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.outcome.mismatch == nil)
 }
 
 @Test("Permission Required stops Input Source change observation")
@@ -237,15 +276,15 @@ func permissionRequiredStopsInputSourceChangeObservation() {
         inputSourceChangeObserver: changeObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(changeObserver.startCount == 1)
 
     permissionProvider.state = .denied
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(changeObserver.stopCount == 1)
 }
 
-@Test("Serial consumer processes Activation Activity in observation order")
+@Test("Serial consumer processes Activation Activity in observation order under rapid load")
 @MainActor
 func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
@@ -259,7 +298,7 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -283,20 +322,22 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
     model.setKeyboardAssignment(thetaID, inputSourceIdentifier: "com.example.us")
     model.setKeyboardAssignment(iotaID, inputSourceIdentifier: "com.example.italian")
 
-    let events: [(serviceID: UInt64, identifier: String)] = [
-        (351, "com.example.us"),
-        (352, "com.example.italian"),
-        (351, "com.example.us"),
-    ]
-    for event in events {
-        model.handlePhysicalKeyboardEvent(
-            PhysicalKeyboardEvent(serviceID: event.serviceID, kind: .press)
+    var expected: [String] = []
+    for index in 0..<200 {
+        let useTheta = index % 2 == 0
+        expected.append(useTheta ? "com.example.us" : "com.example.italian")
+        model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
+            PhysicalKeyboardEvent(
+                serviceID: useTheta ? 351 : 352,
+                kind: .press
+            )
         )
     }
 
-    #expect(selector.requestedIdentifiers == events.map { $0.identifier })
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
-    #expect(model.activePhysicalKeyboardID == thetaID)
+    #expect(selector.requestedIdentifiers == expected)
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.italian")
+    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignmentGeneration == 200)
+    #expect(model.activePhysicalKeyboardID == iotaID)
 }
 
 @MainActor

@@ -2,7 +2,8 @@ import SwiftUI
 
 @MainActor
 struct KeyameleonRootView: View {
-    @ObservedObject private var model: KeyameleonSetupModel
+    private let model: KeyameleonSetupModel
+    private let switching: ActivityTriggeredSwitching
     @ObservedObject private var diagnosticModel: KeyameleonGeneralSettingsModel
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var replacePickerKeyboardID: PhysicalKeyboardRecordID?
@@ -14,9 +15,11 @@ struct KeyameleonRootView: View {
 
     init(
         model: KeyameleonSetupModel,
+        switching: ActivityTriggeredSwitching,
         diagnosticModel: KeyameleonGeneralSettingsModel
     ) {
-        _model = ObservedObject(wrappedValue: model)
+        self.model = model
+        self.switching = switching
         _diagnosticModel = ObservedObject(wrappedValue: diagnosticModel)
     }
 
@@ -95,10 +98,8 @@ struct KeyameleonRootView: View {
                 forgetCandidateID = nil
             }
         } message: {
-            if let forgetCandidateID,
-               let physicalKeyboard = model.physicalKeyboards.first(where: { $0.id == forgetCandidateID })
-            {
-                Text(forgetConfirmationMessage(for: physicalKeyboard))
+            if let forgetCandidateID {
+                Text(model.forgetConfirmationMessage(for: forgetCandidateID))
             }
         }
         .confirmationDialog(
@@ -124,11 +125,14 @@ struct KeyameleonRootView: View {
             }
         } message: {
             if let pendingReplaceConnectedID,
-               let replaceTargetDisconnectedID,
-               let connected = model.physicalKeyboards.first(where: { $0.id == pendingReplaceConnectedID }),
-               let disconnected = model.physicalKeyboards.first(where: { $0.id == replaceTargetDisconnectedID })
+               let replaceTargetDisconnectedID
             {
-                Text(replaceConfirmationMessage(replacing: disconnected, with: connected))
+                Text(
+                    model.replaceConfirmationMessage(
+                        replacing: replaceTargetDisconnectedID,
+                        with: pendingReplaceConnectedID
+                    )
+                )
             }
         }
         .sheet(isPresented: designationNameConfirmationPresented) {
@@ -191,30 +195,6 @@ struct KeyameleonRootView: View {
         )
     }
 
-    private func forgetConfirmationMessage(for physicalKeyboard: PhysicalKeyboard) -> String {
-        let removedData =
-            "This removes the saved Physical Keyboard Name, Keyboard Assignment, Manual Physical Keyboard Designation, and linked Diagnostic Data for \(physicalKeyboard.name)."
-        let reconnectResult =
-            switch physicalKeyboard.connectionState {
-            case .connected:
-                "This connected Physical Keyboard reappears as new and unassigned."
-            case .disconnected:
-                "This disconnected Physical Keyboard disappears."
-            }
-
-        return "\(removedData) \(reconnectResult)"
-    }
-
-    private func replaceConfirmationMessage(
-        replacing disconnected: PhysicalKeyboard,
-        with connected: PhysicalKeyboard
-    ) -> String {
-        """
-        Move the Physical Keyboard Name and Keyboard Assignment from \(disconnected.name) to \(connected.name)? \
-        The old saved record is removed. If the old hardware returns later, it appears as new and unassigned.
-        """
-    }
-
     private var assignmentPickerBinding: Binding<PhysicalKeyboard?> {
         Binding(
             get: {
@@ -257,16 +237,18 @@ struct KeyameleonRootView: View {
 
             switchingStatus
 
-            if model.switchingStatus != .temporarilyUnavailable {
+            if switching.outcome.hasAction(.requestPermission)
+                || switching.outcome.hasAction(.checkAgain)
+            {
                 HStack {
                     Button("Request Permission") {
-                        model.requestPermission()
+                        switching.requestPermission()
                     }
-                    .disabled(model.switchingStatus == .ready)
+                    .disabled(!switching.outcome.hasAction(.requestPermission))
                     .accessibilityIdentifier("request-permission")
 
                     Button(
-                        model.switchingStatus == .ready
+                        switching.outcome.switchingStatus == .ready
                             ? "Continue to Assignments"
                             : "Continue Without Permission"
                     ) {
@@ -347,7 +329,7 @@ struct KeyameleonRootView: View {
             activePhysicalKeyboardStatus
             switchingWarnings
 
-            Text(switchingStatusExplanation(for: model.switchingStatus))
+            Text(switchingStatusExplanation(for: switching.outcome.switchingStatus))
 
             Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
                 .foregroundStyle(.secondary)
@@ -361,11 +343,11 @@ struct KeyameleonRootView: View {
             Text("Switching Status")
                 .font(.headline)
                 .accessibilityIdentifier("switching-status")
-            Text(switchingStatusName(model.switchingStatus))
+            Text(switchingStatusName(switching.outcome.switchingStatus))
                 .font(.title3)
-                .accessibilityValue(switchingStatusName(model.switchingStatus))
+                .accessibilityValue(switchingStatusName(switching.outcome.switchingStatus))
 
-            if let reason = model.temporaryUnavailableReason {
+            if let reason = switching.outcome.temporarilyUnavailableReasons.first {
                 Text("Detected reason: \(unavailableReasonName(reason))")
                     .font(.callout)
                     .accessibilityLabel("Detected reason:")
@@ -388,16 +370,16 @@ struct KeyameleonRootView: View {
             Text("Active")
                 .font(.headline)
             Text(
-                model.activePhysicalKeyboard?.name
+                switching.outcome.activePhysicalKeyboard?.name
                     ?? "No activity observed yet"
             )
             .font(.title3)
             .accessibilityValue(
-                model.activePhysicalKeyboard?.name
+                switching.outcome.activePhysicalKeyboard?.name
                     ?? "No activity observed yet"
             )
 
-            if let mismatch = model.activeInputSourceMismatch {
+            if let mismatch = switching.outcome.mismatch {
                 inputSourceMismatchStatus(mismatch)
             }
         }
@@ -410,16 +392,12 @@ struct KeyameleonRootView: View {
     }
 
     private func inputSourceMismatchStatus(
-        _ mismatch: InputSourceMismatch
+        _ mismatch: ActivityTriggeredSwitchingMismatch
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(
-                "Current Input Source: \(inputSourceName(for: mismatch.currentInputSourceIdentifier))"
-            )
+            Text("Current Input Source: \(mismatch.currentName)")
                 .font(.callout)
-            Text(
-                "Assigned Input Source: \(inputSourceName(for: mismatch.assignedInputSourceIdentifier))"
-            )
+            Text("Assigned Input Source: \(mismatch.assignedName)")
                 .font(.callout)
             Text("Later Activation Activity restores the Keyboard Assignment.")
                 .font(.caption)
@@ -428,18 +406,18 @@ struct KeyameleonRootView: View {
         .padding(.top, 6)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "Current Input Source \(inputSourceName(for: mismatch.currentInputSourceIdentifier)). Assigned Input Source \(inputSourceName(for: mismatch.assignedInputSourceIdentifier)). Later Activation Activity restores the Keyboard Assignment."
+            "Current Input Source \(mismatch.currentName). Assigned Input Source \(mismatch.assignedName). Later Activation Activity restores the Keyboard Assignment."
         )
     }
 
     @ViewBuilder
     private var switchingWarnings: some View {
-        if !model.activeWarnings.isEmpty {
+        if !switching.outcome.warnings.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Warnings")
                     .font(.headline)
 
-                ForEach(model.activeWarnings) { warning in
+                ForEach(switching.outcome.warnings) { warning in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(switchingFailureCategoryName(warning.category))
                             .font(.body.weight(.semibold))
@@ -448,9 +426,9 @@ struct KeyameleonRootView: View {
                             .font(.callout)
                             .foregroundStyle(.secondary)
 
-                        if warning.supportsRetryNow {
+                        if warning.supportsRetryNow && switching.outcome.hasAction(.retryNow) {
                             Button("Retry Now") {
-                                model.retryNow()
+                                switching.retryNow()
                             }
                         }
                     }
@@ -465,7 +443,9 @@ struct KeyameleonRootView: View {
         }
     }
 
-    private func recoveryExplanation(for warning: SwitchingWarning) -> String {
+    private func recoveryExplanation(
+        for warning: ActivityTriggeredSwitchingWarning
+    ) -> String {
         switch warning.category {
         case .selectionFailed:
             "Normal input is unchanged. Retry Now retries the current wanted Keyboard Assignment. Later Activation Activity can also start a new request."
@@ -476,14 +456,14 @@ struct KeyameleonRootView: View {
 
     @ViewBuilder
     private var recoveryActions: some View {
-        if model.switchingStatus != .temporarilyUnavailable {
+        if switching.outcome.hasAction(.checkAgain) {
             HStack {
                 Button("Open System Settings") {
                     model.openSystemSettings()
                 }
 
                 Button("Check Again") {
-                    model.refreshPermission()
+                    switching.checkAgain()
                 }
             }
         }
@@ -494,7 +474,7 @@ struct KeyameleonRootView: View {
             Text("Physical Keyboards")
                 .font(.headline)
 
-            if let designationStatus = manualDesignationMessage(for: model.manualDesignationPhase) {
+            if let designationStatus = model.manualDesignationStatusText() {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(designationStatus)
                         .foregroundStyle(.secondary)
@@ -666,7 +646,7 @@ struct KeyameleonRootView: View {
         case .paused:
             "Activity-Triggered Switching is paused. Key Content observation and Input Source requests are stopped. Management and settings stay available."
         case .temporarilyUnavailable:
-            if let reason = model.temporaryUnavailableReason {
+            if let reason = switching.outcome.temporarilyUnavailableReasons.first {
                 "Activity-Triggered Switching is temporarily unavailable because \(unavailableReasonName(reason)). Resumes automatically when macOS allows Activity-Triggered Switching."
             } else {
                 "Resumes automatically when macOS allows Activity-Triggered Switching."
@@ -718,10 +698,6 @@ struct KeyameleonRootView: View {
     private func commitName(for physicalKeyboard: PhysicalKeyboard) {
         let draft = nameDrafts[physicalKeyboard.id.rawValue] ?? physicalKeyboard.name
         model.setPhysicalKeyboardName(physicalKeyboard.id, customName: draft)
-    }
-
-    private func inputSourceName(for identifier: String) -> String {
-        model.eligibleInputSources.first { $0.identifier == identifier }?.name ?? identifier
     }
 
     private func switchingStatusName(_ status: SwitchingStatus) -> String {
@@ -783,21 +759,6 @@ struct KeyameleonRootView: View {
         }
     }
 
-    private func manualDesignationMessage(
-        for phase: ManualPhysicalKeyboardDesignationPhase
-    ) -> String? {
-        switch phase {
-        case .idle:
-            nil
-        case .awaitingRemoval:
-            "Unplug or turn off this Physical Keyboard, then return it."
-        case .awaitingReturn:
-            "Return the same Physical Keyboard to continue."
-        case .awaitingNameConfirmation:
-            "Confirm the Physical Keyboard Name to save Manual Physical Keyboard Designation."
-        }
-    }
-
     private func transportName(_ transport: PhysicalKeyboardTransport) -> String {
         switch transport {
         case .usb:
@@ -830,6 +791,27 @@ struct KeyameleonRootView: View {
             "Physical Keyboard Identity shared"
         case .ambiguousIdentity:
             "Physical Keyboard Identity ambiguous"
+        }
+    }
+
+}
+
+private func physicalKeyboardStatusDescription(_ physicalKeyboard: PhysicalKeyboard) -> String {
+    switch physicalKeyboard.assignmentState {
+    case .unassigned:
+        "Unassigned"
+    case .assigned:
+        "Assigned"
+    case let .unsupported(reason):
+        switch reason {
+        case .missingIdentity:
+            "Unsupported — Physical Keyboard Identity unavailable"
+        case .unstableIdentity:
+            "Unsupported — Physical Keyboard Identity unstable"
+        case .sharedIdentity:
+            "Unsupported — Physical Keyboard Identity shared"
+        case .ambiguousIdentity:
+            "Unsupported — Physical Keyboard Identity ambiguous"
         }
     }
 }
@@ -901,26 +883,6 @@ private struct ReplaceSavedPhysicalKeyboardPickerView: View {
     let onSelect: (PhysicalKeyboard) -> Void
     let onCancel: () -> Void
 
-    private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {
-        switch physicalKeyboard.assignmentState {
-        case .unassigned:
-            "Unassigned"
-        case .assigned:
-            "Assigned"
-        case let .unsupported(reason):
-            switch reason {
-            case .missingIdentity:
-                "Unsupported — Physical Keyboard Identity unavailable"
-            case .unstableIdentity:
-                "Unsupported — Physical Keyboard Identity unstable"
-            case .sharedIdentity:
-                "Unsupported — Physical Keyboard Identity shared"
-            case .ambiguousIdentity:
-                "Unsupported — Physical Keyboard Identity ambiguous"
-            }
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Replace Saved Physical Keyboard")
@@ -940,7 +902,7 @@ private struct ReplaceSavedPhysicalKeyboardPickerView: View {
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(candidate.name)
-                            Text(assignmentStatusText(for: candidate))
+                            Text(physicalKeyboardStatusDescription(candidate))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

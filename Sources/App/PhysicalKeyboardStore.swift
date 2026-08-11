@@ -5,6 +5,8 @@ import Foundation
 protocol PhysicalKeyboardRecordStoring: AnyObject {
     func record(forIdentityKey identityKey: String) -> SavedPhysicalKeyboardRecord?
     func allRecords() -> [SavedPhysicalKeyboardRecord]
+    func startObservingChanges(onChange: @escaping @MainActor () -> Void)
+    func stopObservingChanges()
     func saveName(
         identityKey: String,
         productName: String,
@@ -21,6 +23,11 @@ protocol PhysicalKeyboardRecordStoring: AnyObject {
         toIdentityKey: String,
         productName: String
     )
+}
+
+extension PhysicalKeyboardRecordStoring {
+    func startObservingChanges(onChange: @escaping @MainActor () -> Void) {}
+    func stopObservingChanges() {}
 }
 
 enum PhysicalKeyboardSchemaV1: VersionedSchema {
@@ -81,6 +88,7 @@ enum PhysicalKeyboardMigrationPlan: SchemaMigrationPlan {
 @MainActor
 final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
     private let modelContext: ModelContext
+    private var onChange: (@MainActor () -> Void)?
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -103,6 +111,14 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
 
     func record(forIdentityKey identityKey: String) -> SavedPhysicalKeyboardRecord? {
         fetchModel(identityKey: identityKey)?.savedRecord
+    }
+
+    func startObservingChanges(onChange: @escaping @MainActor () -> Void) {
+        self.onChange = onChange
+    }
+
+    func stopObservingChanges() {
+        onChange = nil
     }
 
     func allRecords() -> [SavedPhysicalKeyboardRecord] {
@@ -201,6 +217,7 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
 
         do {
             try modelContext.save()
+            onChange?()
         } catch {
             fatalError("SwiftData save failed for Physical Keyboard records: \(error)")
         }
@@ -210,9 +227,18 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
 @MainActor
 final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
     private var records: [String: SavedPhysicalKeyboardRecord] = [:]
+    private var onChange: (@MainActor () -> Void)?
 
     func record(forIdentityKey identityKey: String) -> SavedPhysicalKeyboardRecord? {
         records[identityKey]
+    }
+
+    func startObservingChanges(onChange: @escaping @MainActor () -> Void) {
+        self.onChange = onChange
+    }
+
+    func stopObservingChanges() {
+        onChange = nil
     }
 
     func allRecords() -> [SavedPhysicalKeyboardRecord] {
@@ -231,6 +257,7 @@ final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
             customName: customName,
             keyboardAssignment: existing?.keyboardAssignment
         )
+        onChange?()
     }
 
     func saveAssignment(
@@ -245,10 +272,15 @@ final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
             customName: existing?.customName,
             keyboardAssignment: assignment
         )
+        onChange?()
     }
 
     func deleteRecord(identityKey: String) {
-        records.removeValue(forKey: identityKey)
+        guard records.removeValue(forKey: identityKey) != nil else {
+            return
+        }
+
+        onChange?()
     }
 
     func transferRecord(
@@ -267,6 +299,7 @@ final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
             keyboardAssignment: source.keyboardAssignment
         )
         records.removeValue(forKey: fromIdentityKey)
+        onChange?()
     }
 }
 

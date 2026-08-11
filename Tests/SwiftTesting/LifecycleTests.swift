@@ -8,7 +8,7 @@ func samePhysicalKeyboardIdentityKeepsNameAndAssignmentAcrossDisconnectAndReconn
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 101)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setPhysicalKeyboardName(keyboardID, customName: "Travel")
@@ -39,7 +39,7 @@ func disconnectedSavedPhysicalKeyboardRemainsUntilForgotten() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 111)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setPhysicalKeyboardName(keyboardID, customName: "Studio")
@@ -59,21 +59,29 @@ func disconnectedSavedPhysicalKeyboardRemainsUntilForgotten() {
 func disconnectedActivePhysicalKeyboardStaysActiveWithNoInputSourceRequest() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
+    let selector = SetupModelTestInputSourceSelector()
+    let model = makeLifecycleModel(
+        recordStore: recordStore,
+        discoverer: discoverer,
+        selector: selector
+    )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 121)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
-    model.noteActivationActivity(for: keyboardID)
+    model.activityTriggeredSwitching.markActiveForTesting(keyboardID)
 
     #expect(model.activePhysicalKeyboardID == keyboardID)
+    #expect(selector.selectCount == 0)
 
     discoverer.emit(.disconnected(serviceID: 121))
 
     #expect(model.activePhysicalKeyboardID == keyboardID)
     #expect(model.physicalKeyboards[0].isActive)
     #expect(model.physicalKeyboards[0].connectionState == .disconnected)
+    #expect(selector.selectCount == 0)
+    #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 0)
 }
 
 @Test("Unsaved Active Physical Keyboard still appears disconnected after disconnect")
@@ -83,10 +91,10 @@ func unsavedActivePhysicalKeyboardStillAppearsDisconnectedAfterDisconnect() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 122)))
     let keyboardID = model.physicalKeyboards[0].id
-    model.noteActivationActivity(for: keyboardID)
+    model.activityTriggeredSwitching.markActiveForTesting(keyboardID)
     discoverer.emit(.disconnected(serviceID: 122))
 
     #expect(recordStore.record(forIdentityKey: keyboardID.rawValue) == nil)
@@ -104,7 +112,7 @@ func changedPhysicalKeyboardIdentityCreatesNewUnassignedAndKeepsOldDisconnected(
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -147,7 +155,7 @@ func replaceCandidatesListOnlyDisconnectedSavedRecords() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -195,7 +203,7 @@ func replacementMovesNameAndAssignmentThenRemovesOldRecord() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -253,7 +261,7 @@ func forgetCandidatesExposeSavedNameAndConnectionState() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 161)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setPhysicalKeyboardName(keyboardID, customName: "Travel")
@@ -277,7 +285,7 @@ func forgetConnectedReappearsUnassignedAndDisconnectedDisappears() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -330,7 +338,7 @@ func physicalKeyboardListSortsActiveConnectedThenDisconnectedByName() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -367,7 +375,7 @@ func physicalKeyboardListSortsActiveConnectedThenDisconnectedByName() {
     model.setPhysicalKeyboardName(alphaID, customName: "Alpha")
     model.setPhysicalKeyboardName(deltaID, customName: "Delta")
     discoverer.emit(.disconnected(serviceID: 183))
-    model.noteActivationActivity(for: zetaID)
+    model.activityTriggeredSwitching.markActiveForTesting(zetaID)
 
     #expect(model.physicalKeyboards.map(\.name) == ["Zeta", "Alpha", "Delta"])
     #expect(model.physicalKeyboards.map(\.isActive) == [true, false, false])
@@ -380,7 +388,8 @@ func physicalKeyboardListSortsActiveConnectedThenDisconnectedByName() {
 @MainActor
 private func makeLifecycleModel(
     recordStore: InMemoryPhysicalKeyboardRecordStore,
-    discoverer: SetupModelTestPhysicalKeyboardDiscoverer
+    discoverer: SetupModelTestPhysicalKeyboardDiscoverer,
+    selector: SetupModelTestInputSourceSelector = SetupModelTestInputSourceSelector()
 ) -> KeyameleonSetupModel {
     KeyameleonSetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
@@ -393,6 +402,7 @@ private func makeLifecycleModel(
                 EligibleInputSource(identifier: "com.example.italian", name: "Italian")
             ]
         ),
+        inputSourceSelector: selector,
         physicalKeyboardRecordStore: recordStore
     )
 }

@@ -103,24 +103,24 @@ func pauseStopsKeyContentObservationAndInputSourceRequests() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 701)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
     #expect(eventObserver.startCount == 1)
-    #expect(model.switchingStatus == .ready)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
 
-    model.pauseActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.pause()
 
-    #expect(model.switchingStatus == .paused)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .paused)
     #expect(model.isActivityTriggeredSwitchingPaused)
     #expect(setupStore.isActivityTriggeredSwitchingPaused)
     #expect(eventObserver.stopCount == 1)
-    #expect(!model.canObservePhysicalKeyboards)
-    #expect(!model.canRequestInputSources)
-    #expect(model.canDiscoverPhysicalKeyboards)
+    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
 
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 701, kind: .press)
     )
     #expect(selector.selectCount == 0)
@@ -153,13 +153,14 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
         physicalKeyboardRecordStore: recordStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 711)))
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 711, kind: .press)
     )
     #expect(model.activePhysicalKeyboardID != nil)
-    model.pauseActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.pause()
     #expect(setupStore.isActivityTriggeredSwitchingPaused)
 
     let restarted = KeyameleonSetupModel(
@@ -171,9 +172,9 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
     )
 
     #expect(restarted.isActivityTriggeredSwitchingPaused)
-    #expect(restarted.switchingStatus == .paused)
+    #expect(restarted.activityTriggeredSwitching.outcome.switchingStatus == .paused)
     #expect(restarted.activePhysicalKeyboardID == nil)
-    #expect(restarted.activePhysicalKeyboard == nil)
+    #expect(restarted.activityTriggeredSwitching.outcome.activePhysicalKeyboard == nil)
 }
 
 @Test("Resume rechecks listen permission before observation starts")
@@ -190,24 +191,26 @@ func resumeRechecksListenPermissionBeforeObservationStarts() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    #expect(model.switchingStatus == .paused)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .paused)
     #expect(eventObserver.startCount == 0)
 
     permissionProvider.state = .denied
     let checksBeforeResume = permissionProvider.checkCount
-    model.resumeActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.resume()
 
     #expect(permissionProvider.checkCount > checksBeforeResume)
     #expect(!model.isActivityTriggeredSwitchingPaused)
-    #expect(model.switchingStatus == .permissionRequired)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(eventObserver.startCount == 0)
     #expect(eventObserver.stopCount == 0)
 
     permissionProvider.state = .granted
-    model.resumeActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.resume()
     // Already resumed; refresh path via resume no-ops when not paused.
-    model.refreshPermission()
-    #expect(model.switchingStatus == .ready)
+    startAndCheck(model)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
     #expect(eventObserver.startCount == 1)
 }
 
@@ -224,15 +227,17 @@ func resumeFromPausedWithPermissionStartsObservation() {
         physicalKeyboardEventObserver: eventObserver
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(eventObserver.startCount == 1)
-    model.pauseActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.pause()
     #expect(eventObserver.stopCount == 1)
 
     let checksBefore = permissionProvider.checkCount
-    model.resumeActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.resume()
     #expect(permissionProvider.checkCount > checksBefore)
-    #expect(model.switchingStatus == .ready)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
     #expect(eventObserver.startCount == 2)
 }
 
@@ -247,13 +252,15 @@ func permissionRequiredBeatsPauseAfterResumeDenial() {
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
     )
 
-    model.refreshPermission()
-    model.pauseActivityTriggeredSwitching()
+    startAndCheck(model)
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.pause()
     permissionProvider.state = .denied
-    model.refreshPermission()
+    startAndCheck(model)
 
+    #expect(setupStore.isActivityTriggeredSwitchingPaused)
     #expect(model.isActivityTriggeredSwitchingPaused)
-    #expect(model.switchingStatus == .permissionRequired)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
 }
 
 @Test("Menu first action items list unassigned and unavailable assignments")
@@ -270,7 +277,7 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
         )
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -304,9 +311,9 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
     )
 }
 
-@Test("Active Keyboard Assignment and Current Input Source facts")
+@Test("Active Keyboard Assignment and Current Input Source menu values")
 @MainActor
-func activeKeyboardAssignmentAndCurrentInputSourceFacts() {
+func activeKeyboardAssignmentAndCurrentInputSourceMenuValues() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
     let model = KeyameleonSetupModel(
@@ -323,20 +330,21 @@ func activeKeyboardAssignmentAndCurrentInputSourceFacts() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
-    #expect(model.activePhysicalKeyboard == nil)
-    #expect(model.currentInputSourceIdentifier == "com.example.us")
+    startAndCheck(model)
+    #expect(model.activityTriggeredSwitching.outcome.activePhysicalKeyboard == nil)
+    #expect(model.activityTriggeredSwitching.outcome.currentKeyboardAssignment == .none)
+    #expect(model.activityTriggeredSwitching.outcome.currentInputSourceName == "U.S.")
 
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 731)))
     let keyboardID = model.physicalKeyboards[0].id
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.it")
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 731, kind: .press)
     )
 
-    #expect(model.activePhysicalKeyboard?.name == "Test Keyboard")
-    #expect(model.activePhysicalKeyboard?.keyboardAssignment?.inputSourceIdentifier == "com.example.it")
-    #expect(model.currentInputSourceIdentifier == "com.example.it")
+    #expect(model.activityTriggeredSwitching.outcome.activePhysicalKeyboard?.name == "Test Keyboard")
+    #expect(model.activityTriggeredSwitching.outcome.currentKeyboardAssignment == .assigned(name: "Italian"))
+    #expect(model.activityTriggeredSwitching.outcome.currentInputSourceName == "Italian")
 }
 
 @Test("UserDefaults pause flag survives store re-read")

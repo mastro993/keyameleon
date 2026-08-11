@@ -367,3 +367,226 @@ final class NSWorkspaceNotificationSettingsOpener: NotificationSettingsOpening {
 final class NoOpNotificationSettingsOpener: NotificationSettingsOpening {
     func openNotificationSettings() {}
 }
+
+/// Deep module for bounded Operational Notification authorization and episodes.
+///
+/// Activity-Triggered Switching supplies internal product conditions. This
+/// module owns persistence, episode recovery, setup-offer gating, pause
+/// suppression, and delivery.
+@MainActor
+final class OperationalNotifications {
+    private let provider: any OperationalNotificationProviding
+    private let episodeStore: any OperationalNotificationEpisodeStoring
+    private let setupStore: any NotificationSetupDecisionStoring
+    private var isAuthorizationRequestInFlight = false
+    private var isPaused = false
+    private var activeWarnings: [SwitchingWarning] = []
+    private var observers: [UUID: @MainActor () -> Void] = [:]
+
+    private(set) var authorizationState: OperationalNotificationAuthorizationState
+    private(set) var shouldOfferSetup = false
+
+    init(
+        provider: any OperationalNotificationProviding = NoOpOperationalNotificationProvider(),
+        episodeStore: any OperationalNotificationEpisodeStoring =
+            InMemoryOperationalNotificationEpisodeStore(),
+        setupStore: any NotificationSetupDecisionStoring = InMemoryNotificationSetupDecisionStore()
+    ) {
+        self.provider = provider
+        self.episodeStore = episodeStore
+        self.setupStore = setupStore
+        authorizationState = provider.authorizationState
+        updateSetupOffer(listenPermission: .unknown, hasKeyboardAssignment: false)
+    }
+
+    @discardableResult
+    func observe(_ observer: @escaping @MainActor () -> Void) -> UUID {
+        let id = UUID()
+        observers[id] = observer
+        return id
+    }
+
+    func removeObserver(_ id: UUID) {
+        observers[id] = nil
+    }
+
+    func refreshAuthorization() {
+        provider.refreshAuthorization { [weak self] state in
+            guard let self else {
+                return
+            }
+
+            authorizationState = state
+            sendPendingNotifications()
+            publish()
+        }
+    }
+
+    func requestAlertAuthorization() {
+        guard authorizationState == .notDetermined,
+              !isAuthorizationRequestInFlight
+        else {
+            return
+        }
+
+        isAuthorizationRequestInFlight = true
+        setupStore.markOperationalNotificationSetupOffered()
+        shouldOfferSetup = false
+        provider.requestAlertAuthorization { [weak self] state in
+            guard let self else {
+                return
+            }
+
+            isAuthorizationRequestInFlight = false
+            authorizationState = state
+            sendPendingNotifications()
+            publish()
+        }
+        publish()
+    }
+
+    func dismissSetupOffer() {
+        guard shouldOfferSetup else {
+            return
+        }
+
+        setupStore.markOperationalNotificationSetupOffered()
+        shouldOfferSetup = false
+        publish()
+    }
+
+    func update(
+        listenPermission: ListenPermissionState,
+        warnings: [SwitchingWarning],
+        hasKeyboardAssignment: Bool,
+        paused: Bool
+    ) {
+        let previousWarnings = activeWarnings
+        isPaused = paused
+        activeWarnings = warnings
+
+        updateListenPermissionEpisode(listenPermission)
+        updateUnavailableAssignmentEpisodes(
+            previousWarnings: previousWarnings,
+            currentWarnings: warnings
+        )
+        updateSetupOffer(
+            listenPermission: listenPermission,
+            hasKeyboardAssignment: hasKeyboardAssignment
+        )
+        sendPendingNotifications()
+        publish()
+    }
+
+    private func updateListenPermissionEpisode(_ permission: ListenPermissionState) {
+        let episode = OperationalNotificationEpisode.listenPermissionRevoked
+        switch permission {
+        case .granted:
+            episodeStore.markGrantedListenPermissionObserved()
+            episodeStore.end(episode)
+        case .denied where episodeStore.hasEverObservedGrantedListenPermission:
+            episodeStore.begin(episode)
+        case .unknown, .denied:
+            break
+        }
+    }
+
+    private func updateUnavailableAssignmentEpisodes(
+        previousWarnings: [SwitchingWarning],
+        currentWarnings: [SwitchingWarning]
+    ) {
+        let currentEpisodes = Set(
+            currentWarnings.compactMap { warning -> OperationalNotificationEpisode? in
+                guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
+                      let inputSourceIdentifier = warning.inputSourceIdentifier
+                else {
+                    return nil
+                }
+
+                return .unavailableKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: inputSourceIdentifier
+                )
+            }
+        )
+
+        let previousEpisodes = Set(
+            previousWarnings.compactMap { warning -> OperationalNotificationEpisode? in
+                guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
+                      let inputSourceIdentifier = warning.inputSourceIdentifier
+                else {
+                    return nil
+                }
+
+                return .unavailableKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: inputSourceIdentifier
+                )
+            }
+        )
+
+        for episode in previousEpisodes.subtracting(currentEpisodes) {
+            episodeStore.end(episode)
+        }
+        for episode in currentEpisodes {
+            episodeStore.begin(episode)
+        }
+    }
+
+    private func updateSetupOffer(
+        listenPermission: ListenPermissionState,
+        hasKeyboardAssignment: Bool
+    ) {
+        shouldOfferSetup = !setupStore.hasOfferedOperationalNotificationSetup
+            && listenPermission == .granted
+            && authorizationState == .notDetermined
+            && hasKeyboardAssignment
+    }
+
+    private func sendPendingNotifications() {
+        guard !isPaused, authorizationState.canSend else {
+            return
+        }
+
+        sendIfNeeded(
+            episode: .listenPermissionRevoked,
+            notification: .listenPermissionRevoked
+        )
+
+        for warning in activeWarnings {
+            guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
+                  let inputSourceIdentifier = warning.inputSourceIdentifier
+            else {
+                continue
+            }
+
+            sendIfNeeded(
+                episode: .unavailableKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: inputSourceIdentifier
+                ),
+                notification: .unavailableKeyboardAssignment
+            )
+        }
+    }
+
+    private func sendIfNeeded(
+        episode: OperationalNotificationEpisode,
+        notification: OperationalNotification
+    ) {
+        guard episodeStore.isActive(episode),
+              !episodeStore.hasSentNotification(for: episode)
+        else {
+            return
+        }
+
+        episodeStore.markNotificationSent(for: episode)
+        provider.send(notification)
+    }
+
+    private func publish() {
+        for observer in observers.values {
+            observer()
+        }
+    }
+}

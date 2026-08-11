@@ -13,9 +13,9 @@ func firstLaunchChecksListenPermissionWithoutRequestingIt() {
 
     #expect(permissionProvider.checkCount == 1)
     #expect(permissionProvider.requestCount == 0)
-    #expect(model.switchingStatus == .permissionRequired)
-    #expect(!model.canObservePhysicalKeyboards)
-    #expect(!model.canRequestInputSources)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
+    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
+    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
     #expect(model.guidedSetupStep == .permission)
 }
 
@@ -33,12 +33,13 @@ func requestPermissionKeepsDeniedStatusAndDoesNotCompleteSetup() {
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
     )
 
-    model.requestPermission()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.requestPermission()
 
     #expect(permissionProvider.requestCount == 1)
     #expect(!model.isSetupComplete)
     #expect(!setupStore.hasCompletedGuidedSetup)
-    #expect(model.switchingStatus == .permissionRequired)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(model.guidedSetupStep == .permission)
 }
 
@@ -53,13 +54,13 @@ func checkAgainRefreshesPermissionWithoutRequestingIt() {
     )
 
     permissionProvider.state = .granted
-    model.refreshPermission()
+    startAndCheck(model)
 
     #expect(permissionProvider.checkCount == 2)
     #expect(permissionProvider.requestCount == 0)
-    #expect(model.switchingStatus == .ready)
-    #expect(model.canObservePhysicalKeyboards)
-    #expect(model.canRequestInputSources)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
 }
 
 @Test("Continue to Assignments advances step without completing setup")
@@ -135,7 +136,7 @@ func interruptedSetupRestoresCompletedDecisionsAndResumesIncompleteStep() {
     #expect(model.guidedSetupStep == .assignments)
     #expect(!model.isSetupComplete)
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 50)))
 
     #expect(model.physicalKeyboards.count == 1)

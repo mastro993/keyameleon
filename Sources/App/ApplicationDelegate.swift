@@ -1,9 +1,11 @@
 import AppKit
+import Observation
 @preconcurrency import SwiftData
 
 @MainActor
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let setupModel: KeyameleonSetupModel
+    private let activityTriggeredSwitching: ActivityTriggeredSwitching
     private let updateChecker: any UpdateChecking
     private let lifecycleObserver: any KeyameleonLifecycleObserving
     private let startsUpdaterOnLaunch: Bool
@@ -25,7 +27,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         // Refresh in place — do not replace the open menu instance.
         self.isPopulatingOpenMenu = true
-        self.setupModel.refreshPermission()
+        self.activityTriggeredSwitching.checkAgain()
         self.populateMenu(menu)
         if let button = self.statusItem?.button {
             self.applyMenuBarIcon(to: button)
@@ -64,10 +66,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             )
         )
 
-        let inputSources = SystemInputSourceProvider()
-        let isUITesting = ProcessInfo.processInfo.arguments.contains(
-            "--reset-guided-setup"
-        )
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("--reset-guided-setup")
         let isXCTestHost = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         let operationalNotificationProvider: any OperationalNotificationProviding =
             isUITesting || isXCTestHost
@@ -79,27 +78,30 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             notificationEpisodeStore.resetForUITesting()
             notificationSetupStore.resetForUITesting()
         }
-        self.init(
-            permissionProvider: SystemListenPermissionProvider(),
+        let physicalKeyboardRecordStore = SwiftDataPhysicalKeyboardRecordStore(
+            modelContext: modelContext
+        )
+        let designationStore = SwiftDataManualPhysicalKeyboardDesignationStore(
+            modelContext: modelContext
+        )
+        let composition = KeyameleonProductionFactory.makeLiveComposition(
             setupStore: setupStore,
-            systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
-            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(
-                modelContext: modelContext
-            ),
-            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(
-                modelContext: modelContext
-            ),
+            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
+            designationStore: designationStore,
             integrityKeyProvider: KeychainInstallationIntegrityKeyProvider(),
-            inputSourceProvider: inputSources,
-            inputSourceSelector: inputSources,
-            physicalKeyboardEventObserver: SystemPhysicalKeyboardEventObserver(),
-            inputSourceChangeObserver: SystemInputSourceChangeObserver(),
             diagnosticDataController: diagnosticDataController,
             operationalNotificationProvider: operationalNotificationProvider,
             notificationEpisodeStore: notificationEpisodeStore,
-            notificationSetupStore: notificationSetupStore,
+            notificationSetupStore: notificationSetupStore
+        )
+        self.init(
+            composition: composition,
+            systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
             notificationSettingsOpener: NSWorkspaceNotificationSettingsOpener(),
             uncleanExitStateStore: uncleanExitStateStore,
+            lifecycleObserver: SystemKeyameleonLifecycleObserver(),
+            launchAtLoginController: ServiceManagementLaunchAtLoginController(),
+            updateChecker: SparkleUpdateChecker(),
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
             startsUpdaterOnLaunch: !isUITesting,
             modelContainer: modelContainer,
@@ -107,11 +109,56 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    init(
+    private init(
+        composition: KeyameleonActivityTriggeredSwitchingComposition,
+        systemSettingsOpener: any SystemSettingsOpening,
+        notificationSettingsOpener: any NotificationSettingsOpening,
+        uncleanExitStateStore: any UncleanExitStateStoring,
+        lifecycleObserver: any KeyameleonLifecycleObserving,
+        launchAtLoginController: any LaunchAtLoginControlling,
+        updateChecker: any UpdateChecking,
+        startsUpdaterOnLaunch: Bool,
+        modelContainer: ModelContainer?,
+        diagnosticModelContainer: ModelContainer?
+    ) {
+        self.modelContainer = modelContainer
+        self.diagnosticModelContainer = diagnosticModelContainer
+        self.updateChecker = updateChecker
+        self.lifecycleObserver = lifecycleObserver
+        self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
+        self.uncleanExitStateStore = uncleanExitStateStore
+        self.activityTriggeredSwitching = composition.activityTriggeredSwitching
+        setupModel = KeyameleonSetupModel(
+            activityTriggeredSwitching: composition.activityTriggeredSwitching,
+            setupStore: composition.setupStore,
+            systemSettingsOpener: systemSettingsOpener,
+            physicalKeyboardDiscovery: composition.physicalKeyboardDiscovery,
+            inputSources: composition.inputSources,
+            physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
+            designationStore: composition.designationStore,
+            integrityKeyProvider: composition.integrityKeyProvider,
+            diagnosticDataController: composition.diagnosticDataController,
+            operationalNotifications: composition.operationalNotifications
+        )
+        generalSettingsModel = KeyameleonGeneralSettingsModel(
+            launchAtLoginController: launchAtLoginController,
+            updateChecker: updateChecker,
+            diagnosticDataController: composition.diagnosticDataController,
+            operationalNotifications: composition.operationalNotifications,
+            notificationSettingsOpener: notificationSettingsOpener
+        )
+
+        super.init()
+        observePresentationChanges()
+    }
+
+    convenience init(
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
         systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
+            SystemPhysicalKeyboardDiscoverer(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
@@ -140,22 +187,16 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         modelContainer: ModelContainer? = nil,
         diagnosticModelContainer: ModelContainer? = nil
     ) {
-        self.modelContainer = modelContainer
-        self.diagnosticModelContainer = diagnosticModelContainer
-        self.updateChecker = updateChecker
-        self.lifecycleObserver = lifecycleObserver
-        self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
-        self.uncleanExitStateStore = uncleanExitStateStore
-        setupModel = KeyameleonSetupModel(
+        let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
             protectedStateProvider: protectedStateProvider,
             setupStore: setupStore,
-            systemSettingsOpener: systemSettingsOpener,
+            physicalKeyboardDiscoverer: physicalKeyboardDiscoverer,
+            physicalKeyboardEventObserver: physicalKeyboardEventObserver,
             inputSourceProvider: inputSourceProvider,
             inputSourceSelector: inputSourceSelector,
-            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
-            physicalKeyboardEventObserver: physicalKeyboardEventObserver,
             inputSourceChangeObserver: inputSourceChangeObserver,
+            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider,
             diagnosticDataController: diagnosticDataController,
@@ -163,32 +204,27 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             notificationEpisodeStore: notificationEpisodeStore,
             notificationSetupStore: notificationSetupStore
         )
-        generalSettingsModel = KeyameleonGeneralSettingsModel(
+        self.init(
+            composition: composition,
+            systemSettingsOpener: systemSettingsOpener,
+            notificationSettingsOpener: notificationSettingsOpener,
+            uncleanExitStateStore: uncleanExitStateStore,
+            lifecycleObserver: lifecycleObserver,
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
-            diagnosticDataController: diagnosticDataController,
-            operationalNotificationProvider: operationalNotificationProvider,
-            notificationSettingsOpener: notificationSettingsOpener
+            startsUpdaterOnLaunch: startsUpdaterOnLaunch,
+            modelContainer: modelContainer,
+            diagnosticModelContainer: diagnosticModelContainer
         )
-
-        super.init()
-
-        setupModel.onChange = { [weak self] in
-            self?.generalSettingsModel.refresh()
-            self?.refreshMenuBarPresentation()
-        }
-        generalSettingsModel.onNotificationAuthorizationChange = { [weak self] in
-            self?.setupModel.refreshNotificationAuthorization()
-        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         uncleanExitStateStore.beginLaunch()
         lifecycleObserver.start { [weak self] event in
-            self?.setupModel.handleLifecycleEvent(event)
+            self?.activityTriggeredSwitching.handleLifecycleEvent(event)
         }
-        setupModel.refreshPermission()
+        activityTriggeredSwitching.start()
         statusItem = makeStatusItem()
         refreshMenuBarPresentation()
         if startsUpdaterOnLaunch {
@@ -203,7 +239,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
-        setupModel.refreshPermission()
+        activityTriggeredSwitching.checkAgain()
         generalSettingsModel.refresh()
         refreshMenuBarPresentation()
     }
@@ -211,6 +247,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         uncleanExitStateStore.markCleanTermination()
         lifecycleObserver.stop()
+        activityTriggeredSwitching.stop()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -227,18 +264,28 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     private func populateMenu(_ menu: NSMenu) {
         menu.removeAllItems()
+        let switchingOutcome = activityTriggeredSwitching.outcome
+        let activePhysicalKeyboardValue =
+            switchingOutcome.activePhysicalKeyboard?.name
+                ?? "No activity observed yet"
+        let activeKeyboardAssignmentValue = keyboardAssignmentMenuValue(
+            switchingOutcome.currentKeyboardAssignment
+        )
+        let currentInputSourceValue =
+            switchingOutcome.currentInputSourceName
+                ?? "—"
 
         let statusItem = NSMenuItem(
-            title: "Switching Status: \(switchingStatusName(setupModel.switchingStatus))",
+            title: "Switching Status: \(switchingStatusName(switchingOutcome.switchingStatus))",
             action: nil,
             keyEquivalent: ""
         )
         statusItem.isEnabled = false
         statusItem.setAccessibilityLabel("Switching Status")
-        statusItem.setAccessibilityValue(switchingStatusName(setupModel.switchingStatus))
+        statusItem.setAccessibilityValue(switchingStatusName(switchingOutcome.switchingStatus))
         menu.addItem(statusItem)
 
-        if let reason = setupModel.temporaryUnavailableReason {
+        if let reason = switchingOutcome.temporarilyUnavailableReasons.first {
             let reasonItem = NSMenuItem(
                 title: "Detected reason: \(unavailableReasonName(reason))",
                 action: nil,
@@ -260,41 +307,39 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         addUncleanExitNoticeIfNeeded(to: menu)
 
-        let activePhysicalKeyboardName = setupModel.activePhysicalKeyboard?.name
-            ?? "No activity observed yet"
         let activeKeyboardItem = NSMenuItem(
-            title: "Active Physical Keyboard: \(activePhysicalKeyboardName)",
+            title: "Active Physical Keyboard: \(activePhysicalKeyboardValue)",
             action: nil,
             keyEquivalent: ""
         )
         activeKeyboardItem.isEnabled = false
         activeKeyboardItem.setAccessibilityLabel("Active")
-        activeKeyboardItem.setAccessibilityValue(activePhysicalKeyboardName)
+        activeKeyboardItem.setAccessibilityValue(activePhysicalKeyboardValue)
         menu.addItem(activeKeyboardItem)
 
         let assignmentItem = NSMenuItem(
-            title: "Keyboard Assignment: \(assignmentMenuValue)",
+            title: "Keyboard Assignment: \(activeKeyboardAssignmentValue)",
             action: nil,
             keyEquivalent: ""
         )
         assignmentItem.isEnabled = false
         assignmentItem.setAccessibilityLabel("Keyboard Assignment")
-        assignmentItem.setAccessibilityValue(assignmentMenuValue)
+        assignmentItem.setAccessibilityValue(activeKeyboardAssignmentValue)
         menu.addItem(assignmentItem)
 
         let currentInputSourceItem = NSMenuItem(
-            title: "Current Input Source: \(currentSourceMenuValue)",
+            title: "Current Input Source: \(currentInputSourceValue)",
             action: nil,
             keyEquivalent: ""
         )
         currentInputSourceItem.isEnabled = false
         currentInputSourceItem.setAccessibilityLabel("Current Input Source")
-        currentInputSourceItem.setAccessibilityValue(currentSourceMenuValue)
+        currentInputSourceItem.setAccessibilityValue(currentInputSourceValue)
         menu.addItem(currentInputSourceItem)
 
-        if let mismatch = setupModel.activeInputSourceMismatch {
+        if let mismatch = switchingOutcome.mismatch {
             let assignedItem = NSMenuItem(
-                title: "Assigned Input Source: \(inputSourceName(for: mismatch.assignedInputSourceIdentifier))",
+                title: "Assigned Input Source: \(mismatch.assignedName)",
                 action: nil,
                 keyEquivalent: ""
             )
@@ -326,7 +371,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
-        if setupModel.isActivityTriggeredSwitchingPaused {
+        if switchingOutcome.hasAction(.resume) {
             let resumeItem = NSMenuItem(
                 title: "Resume Activity-Triggered Switching",
                 action: #selector(resumeActivityTriggeredSwitching(_:)),
@@ -334,7 +379,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             )
             resumeItem.target = self
             menu.addItem(resumeItem)
-        } else {
+        } else if switchingOutcome.hasAction(.pause) {
             let pauseItem = NSMenuItem(
                 title: "Pause Activity-Triggered Switching",
                 action: #selector(pauseActivityTriggeredSwitching(_:)),
@@ -366,7 +411,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
-        if setupModel.switchingStatus != .temporarilyUnavailable {
+        if switchingOutcome.hasAction(.openSystemSettings)
+            && switchingOutcome.hasAction(.checkAgain)
+        {
             let openSystemSettingsItem = NSMenuItem(
                 title: "Open System Settings",
                 action: #selector(openSystemSettings(_:)),
@@ -421,6 +468,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         if windowController == nil {
             windowController = KeyameleonWindowController(
                 model: setupModel,
+                switching: activityTriggeredSwitching,
                 diagnosticModel: generalSettingsModel
             )
         }
@@ -465,19 +513,19 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     @objc
     private func checkAgain(_ sender: Any?) {
-        setupModel.refreshPermission()
+        activityTriggeredSwitching.checkAgain()
         refreshMenuBarPresentation()
     }
 
     @objc
     private func pauseActivityTriggeredSwitching(_ sender: Any?) {
-        setupModel.pauseActivityTriggeredSwitching()
+        activityTriggeredSwitching.pause()
         refreshMenuBarPresentation()
     }
 
     @objc
     private func resumeActivityTriggeredSwitching(_ sender: Any?) {
-        setupModel.resumeActivityTriggeredSwitching()
+        activityTriggeredSwitching.resume()
         refreshMenuBarPresentation()
     }
 
@@ -534,7 +582,14 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func applyMenuBarIcon(to button: NSStatusBarButton) {
-        let mark = setupModel.menuBarIconMark
+        let outcome = activityTriggeredSwitching.outcome
+        let hasItemConditionsNeedingAction = !setupModel.physicalKeyboardActionConditions.isEmpty
+            || !setupModel.isSetupComplete
+            || outcome.mismatch != nil
+        let mark = MenuBarIconMark.resolve(
+            switchingStatus: outcome.switchingStatus,
+            hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
+        )
         // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
         // Distinct SF Symbol shape + tooltip carry status without relying on color alone.
         let image =
@@ -550,6 +605,41 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         button.image = image
         button.toolTip = menuBarIconAccessibilityDescription(for: mark)
         button.setAccessibilityLabel("Keyameleon")
+    }
+
+    private func keyboardAssignmentMenuValue(
+        _ assignment: ActivityTriggeredSwitchingKeyboardAssignment
+    ) -> String {
+        switch assignment {
+        case .none:
+            "—"
+        case .unassigned:
+            "Unassigned"
+        case let .assigned(name):
+            name
+        case .unavailable:
+            "Unavailable Keyboard Assignment"
+        case let .unsupported(reason):
+            "Unsupported — \(unsupportedReasonName(reason))"
+        }
+    }
+
+    private func observePresentationChanges() {
+        withObservationTracking {
+            _ = activityTriggeredSwitching.outcome
+            _ = setupModel.physicalKeyboards
+            _ = setupModel.isSetupComplete
+            _ = setupModel.physicalKeyboardActionConditions
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else {
+                    return
+                }
+
+                self.refreshMenuBarPresentation()
+                self.observePresentationChanges()
+            }
+        }
     }
 
     private func addUncleanExitNoticeIfNeeded(to menu: NSMenu) {
@@ -586,34 +676,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         dismissItem.target = self
         menu.addItem(dismissItem)
-    }
-
-    private var assignmentMenuValue: String {
-        guard let activePhysicalKeyboard = setupModel.activePhysicalKeyboard else {
-            return "—"
-        }
-
-        switch activePhysicalKeyboard.assignmentState {
-        case .unassigned:
-            return "Unassigned"
-        case .assigned:
-            return setupModel.assignedInputSourceName(for: activePhysicalKeyboard)
-                ?? "Unavailable Keyboard Assignment"
-        case let .unsupported(reason):
-            return "Unsupported — \(unsupportedReasonName(reason))"
-        }
-    }
-
-    private var currentSourceMenuValue: String {
-        guard let identifier = setupModel.currentInputSourceIdentifier else {
-            return "—"
-        }
-
-        return inputSourceName(for: identifier)
-    }
-
-    private func inputSourceName(for identifier: String) -> String {
-        setupModel.eligibleInputSources.first { $0.identifier == identifier }?.name ?? identifier
     }
 
     private func switchingStatusName(_ status: SwitchingStatus) -> String {

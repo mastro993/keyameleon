@@ -9,6 +9,20 @@
 - Monitor-only behavior and no saved Key Content remain hard failures.
 - Repeated suites, fixed stress counts, human qualification matrices, qualification evidence files, and performance quotas are removed.
 
+## 2026-08-11 — Issue #39 Activity-Triggered Switching module
+
+### Seams
+
+- `ActivityTriggeredSwitching` is the one concrete observable switching module. Its external surface is one immutable `ActivityTriggeredSwitchingOutcome` and seven product operations: start, stop, request permission, check again, pause, resume, and retry now.
+- `PhysicalKeyboardDiscovery`, `InputSourceModule`, `PhysicalKeyboardRecordStoring`, and `OperationalNotifications` keep discovery, exact selection, record changes, and notification episodes local to their own deep modules.
+- SetupModel owns Guided setup and Physical Keyboard management. RootView and Daily Status consume the switching outcome directly.
+
+### Defaults
+
+- Internal identifiers, wanted generations, selection request evidence, warning episode evidence, raw Physical Keyboard Events, and lifecycle adapter facts do not cross the product outcome.
+- The production factory creates one shared discovery, Input Source, and Operational Notification module for the application lifetime.
+- Focused tests use deterministic adapters and assert the product outcome plus internal adapter evidence.
+
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification
 
 ### Seams under test

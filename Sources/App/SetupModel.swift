@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import Observation
 
 enum GuidedSetupStep: String, Equatable, Sendable {
     case permission
@@ -88,154 +88,114 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
     }
 }
 
+/// Presentation model for setup and Physical Keyboard management.
+///
+/// Activity-Triggered Switching owns switching behavior and exposes one
+/// canonical outcome. This model owns guided setup, saved names and
+/// Keyboard Assignment editing only.
 @MainActor
-final class KeyameleonSetupModel: ObservableObject {
-    @Published private(set) var switchingStatus: SwitchingStatus
-    @Published private(set) var temporarilyUnavailableReasons: [SwitchingUnavailableReason] = []
-    @Published private(set) var isSetupComplete: Bool
-    @Published private(set) var hasStartedGuidedSetup: Bool
-    @Published private(set) var guidedSetupStep: GuidedSetupStep
-    @Published private(set) var physicalKeyboards: [PhysicalKeyboard] = []
-    @Published private(set) var eligibleInputSources: [EligibleInputSource] = []
-    /// Not persisted across app restart. Nil until first Activation Activity.
-    @Published private(set) var activePhysicalKeyboardID: PhysicalKeyboardRecordID?
-    /// Last Keyboard Assignment verified active via exact identifier readback.
-    @Published private(set) var verifiedKeyboardAssignmentIdentifier: String?
-    /// Monotonic wanted Keyboard Assignment generation. Bumps only when a new select is needed.
-    @Published private(set) var wantedKeyboardAssignmentGeneration: UInt64 = 0
-    /// Exact identifier for the current wanted Keyboard Assignment generation.
-    @Published private(set) var wantedKeyboardAssignmentIdentifier: String?
-    /// Last observed current Input Source (own select or external change). Not persisted.
-    @Published private(set) var observedCurrentInputSourceIdentifier: String?
-    @Published private(set) var inputSourceSelectionRequestCount = 0
-    /// Number of times a new warning cause became active. Not one per Physical Keyboard Event.
-    @Published private(set) var warningEpisodeCount = 0
-    /// One warning per active cause. Plain failure category + recovery action only.
-    @Published private(set) var activeWarnings: [SwitchingWarning] = []
-    /// Latest wanted Keyboard Assignment for Retry Now (Physical Keyboard + identifier).
-    @Published private(set) var wantedKeyboardAssignment: WantedKeyboardAssignment?
-    @Published private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
-    /// Persists across restart. Pause only Activity-Triggered Switching.
-    @Published private(set) var isActivityTriggeredSwitchingPaused: Bool
-    @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState = .unknown
-    @Published private(set) var shouldOfferOperationalNotificationSetup = false
+@Observable
+final class KeyameleonSetupModel {
+    private(set) var isSetupComplete: Bool
+    private(set) var hasStartedGuidedSetup: Bool
+    private(set) var guidedSetupStep: GuidedSetupStep
+    private(set) var physicalKeyboards: [PhysicalKeyboard] = []
+    private(set) var eligibleInputSources: [EligibleInputSource] = []
+    private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
+    private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
+    private(set) var shouldOfferOperationalNotificationSetup: Bool
 
-    private let permissionProvider: any ListenPermissionProviding
-    private let protectedStateProvider: any ProtectedStateProviding
+    let activityTriggeredSwitching: ActivityTriggeredSwitching
+
     private let setupStore: any SetupDecisionStoring
     private let systemSettingsOpener: any SystemSettingsOpening
-    private let physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering
-    private let inputSourceProvider: any InputSourceProviding
-    private let inputSourceSelector: any InputSourceSelecting
+    private let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
+    private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
-    private let physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving
-    private let inputSourceChangeObserver: any InputSourceChangeObserving
     private let designationStore: any ManualPhysicalKeyboardDesignationStoring
     private let integrityKeyProvider: any InstallationIntegrityKeyProviding
     private let diagnosticDataController: any DiagnosticDataControlling
-    private let operationalNotificationProvider: any OperationalNotificationProviding
-    private let notificationEpisodeStore: any OperationalNotificationEpisodeStoring
-    private let notificationSetupStore: any NotificationSetupDecisionStoring
-    private var physicalKeyboardCatalog = PhysicalKeyboardCatalog()
+    private let operationalNotifications: OperationalNotifications
+    private let resolver: PhysicalKeyboardPresentationResolver
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
-    private var isDiscoveryStarted = false
-    private var isEventObservationStarted = false
-    private var isInputSourceChangeObservationStarted = false
-    private var eventProtectedDataUnavailable = false
-    private var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
-    private var lastKnownListenPermission: ListenPermissionState
-    private var isNotificationAuthorizationRequestInFlight = false
-
-    var onChange: (@MainActor () -> Void)?
-
-    var canObservePhysicalKeyboards: Bool {
-        switchingStatus.allowsActivityTriggeredSwitching
-    }
-
-    var canRequestInputSources: Bool {
-        switchingStatus.allowsActivityTriggeredSwitching
-    }
-
-    var canDiscoverPhysicalKeyboards: Bool {
-        switchingStatus.allowsPhysicalKeyboardDiscovery
-    }
-
-    var temporaryUnavailableReason: SwitchingUnavailableReason? {
-        temporarilyUnavailableReasons.first
-    }
-
-    var showsAssignmentSetup: Bool {
-        isSetupComplete || guidedSetupStep == .assignments
-    }
-
-    var activePhysicalKeyboard: PhysicalKeyboard? {
-        guard let activePhysicalKeyboardID else {
-            return nil
-        }
-
-        return physicalKeyboards.first { $0.id == activePhysicalKeyboardID }
-    }
-
-    var currentInputSourceIdentifier: String? {
-        observedCurrentInputSourceIdentifier ?? inputSourceSelector.currentInputSourceIdentifier()
-    }
-
-    /// Item conditions that need user action. Global status stays separate.
-    var physicalKeyboardActionConditions: [PhysicalKeyboardActionCondition] {
-        physicalKeyboards.compactMap { physicalKeyboard in
-            switch physicalKeyboard.assignmentState {
-            case .unassigned:
-                .unassigned(physicalKeyboardName: physicalKeyboard.name)
-            case .assigned:
-                if assignedInputSourceName(for: physicalKeyboard) == nil {
-                    .unavailableKeyboardAssignment(physicalKeyboardName: physicalKeyboard.name)
-                } else {
-                    nil
-                }
-            case .unsupported:
-                nil
-            }
-        }
-    }
-
-    var hasItemConditionsNeedingAction: Bool {
-        !physicalKeyboardActionConditions.isEmpty || !isSetupComplete || activeInputSourceMismatch != nil
-    }
-
-    var menuBarIconMark: MenuBarIconMark {
-        MenuBarIconMark.resolve(
-            switchingStatus: switchingStatus,
-            hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
-        )
-    }
-
-    /// Current vs assigned when Active Physical Keyboard assignment differs from observed current.
-    var activeInputSourceMismatch: InputSourceMismatch? {
-        guard let activePhysicalKeyboard,
-              case let .assigned(assignment) = activePhysicalKeyboard.assignmentState,
-              let currentIdentifier = observedCurrentInputSourceIdentifier,
-              currentIdentifier != assignment.inputSourceIdentifier
-        else {
-            return nil
-        }
-
-        return InputSourceMismatch(
-            currentInputSourceIdentifier: currentIdentifier,
-            assignedInputSourceIdentifier: assignment.inputSourceIdentifier
-        )
-    }
+    private var discoveryObserverID: UUID?
+    private var inputSourceObserverID: UUID?
+    private var notificationObserverID: UUID?
 
     init(
+        activityTriggeredSwitching: ActivityTriggeredSwitching,
+        setupStore: any SetupDecisionStoring,
+        systemSettingsOpener: any SystemSettingsOpening,
+        physicalKeyboardDiscovery: PhysicalKeyboardDiscovery,
+        inputSources: InputSourceModule,
+        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
+        designationStore: any ManualPhysicalKeyboardDesignationStoring,
+        integrityKeyProvider: any InstallationIntegrityKeyProviding,
+        diagnosticDataController: any DiagnosticDataControlling,
+        operationalNotifications: OperationalNotifications
+    ) {
+        self.activityTriggeredSwitching = activityTriggeredSwitching
+        self.setupStore = setupStore
+        self.systemSettingsOpener = systemSettingsOpener
+        self.physicalKeyboardDiscovery = physicalKeyboardDiscovery
+        self.inputSources = inputSources
+        self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
+        self.designationStore = designationStore
+        self.integrityKeyProvider = integrityKeyProvider
+        self.diagnosticDataController = diagnosticDataController
+        self.operationalNotifications = operationalNotifications
+        resolver = PhysicalKeyboardPresentationResolver(
+            recordStore: physicalKeyboardRecordStore,
+            designationStore: designationStore,
+            integrityKeyProvider: integrityKeyProvider
+        )
+        isSetupComplete = setupStore.hasCompletedGuidedSetup
+        hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
+        guidedSetupStep = setupStore.guidedSetupStep
+        notificationAuthorizationState = operationalNotifications.authorizationState
+        shouldOfferOperationalNotificationSetup = operationalNotifications.shouldOfferSetup
+
+        discoveryObserverID = physicalKeyboardDiscovery.observeChanges { [weak self] _ in
+            self?.advanceManualDesignationSession()
+            self?.publishPhysicalKeyboards()
+        }
+        inputSourceObserverID = inputSources.observeChanges { [weak self] in
+            guard let self else {
+                return
+            }
+
+            eligibleInputSources = inputSources.eligibleInputSources
+        }
+        notificationObserverID = operationalNotifications.observe { [weak self] in
+            guard let self else {
+                return
+            }
+
+            notificationAuthorizationState = operationalNotifications.authorizationState
+            shouldOfferOperationalNotificationSetup = operationalNotifications.shouldOfferSetup
+        }
+
+        publishPhysicalKeyboards()
+        eligibleInputSources = inputSources.eligibleInputSources
+    }
+
+    /// Compatibility composition initializer for focused adapter tests.
+    /// Production composition uses the concrete module initializer above.
+    convenience init(
         permissionProvider: any ListenPermissionProviding,
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring,
         systemSettingsOpener: any SystemSettingsOpening,
-        physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = SystemPhysicalKeyboardDiscoverer(),
+        physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
+            SystemPhysicalKeyboardDiscoverer(),
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
-        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
-        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = NoOpPhysicalKeyboardEventObserver(),
-        inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
+        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring =
+            InMemoryPhysicalKeyboardRecordStore(),
+        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving =
+            NoOpPhysicalKeyboardEventObserver(),
+        inputSourceChangeObserver: any InputSourceChangeObserving =
+            NoOpInputSourceChangeObserver(),
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
@@ -250,363 +210,82 @@ final class KeyameleonSetupModel: ObservableObject {
         notificationSetupStore: any NotificationSetupDecisionStoring =
             InMemoryNotificationSetupDecisionStore()
     ) {
-        self.permissionProvider = permissionProvider
-        self.protectedStateProvider = protectedStateProvider
-        self.setupStore = setupStore
-        self.systemSettingsOpener = systemSettingsOpener
-        self.physicalKeyboardDiscoverer = physicalKeyboardDiscoverer
-        self.inputSourceProvider = inputSourceProvider
-        self.inputSourceSelector = inputSourceSelector
-        self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
-        self.physicalKeyboardEventObserver = physicalKeyboardEventObserver
-        self.inputSourceChangeObserver = inputSourceChangeObserver
-        self.designationStore = designationStore
-        self.integrityKeyProvider = integrityKeyProvider
-        self.diagnosticDataController = diagnosticDataController
-        self.operationalNotificationProvider = operationalNotificationProvider
-        self.notificationEpisodeStore = notificationEpisodeStore
-        self.notificationSetupStore = notificationSetupStore
-        self.isActivityTriggeredSwitchingPaused = setupStore.isActivityTriggeredSwitchingPaused
-        self.isSetupComplete = setupStore.hasCompletedGuidedSetup
-        self.hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
-        self.guidedSetupStep = setupStore.guidedSetupStep
-
-        let initialProtectedState = protectedStateProvider.currentProtectedState()
-        let initialUnavailableReasons = Self.unavailableReasons(
-            protectedState: initialProtectedState,
-            eventProtectedDataUnavailable: false
+        let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
+            permissionProvider: permissionProvider,
+            protectedStateProvider: protectedStateProvider,
+            setupStore: setupStore,
+            physicalKeyboardDiscoverer: physicalKeyboardDiscoverer,
+            physicalKeyboardEventObserver: physicalKeyboardEventObserver,
+            inputSourceProvider: inputSourceProvider,
+            inputSourceSelector: inputSourceSelector,
+            inputSourceChangeObserver: inputSourceChangeObserver,
+            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
+            designationStore: designationStore,
+            integrityKeyProvider: integrityKeyProvider,
+            diagnosticDataController: diagnosticDataController,
+            operationalNotificationProvider: operationalNotificationProvider,
+            notificationEpisodeStore: notificationEpisodeStore,
+            notificationSetupStore: notificationSetupStore
         )
-        self.temporarilyUnavailableReasons = initialUnavailableReasons
-        let initialListenPermission = permissionProvider.checkListenPermission()
-        self.lastKnownListenPermission = initialListenPermission
-        self.switchingStatus = SwitchingStatus.resolve(
-            listenPermission: initialListenPermission,
-            isTemporarilyUnavailable: !initialUnavailableReasons.isEmpty,
-            isPaused: setupStore.isActivityTriggeredSwitchingPaused
+        self.init(
+            activityTriggeredSwitching: composition.activityTriggeredSwitching,
+            setupStore: composition.setupStore,
+            systemSettingsOpener: systemSettingsOpener,
+            physicalKeyboardDiscovery: composition.physicalKeyboardDiscovery,
+            inputSources: composition.inputSources,
+            physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
+            designationStore: composition.designationStore,
+            integrityKeyProvider: composition.integrityKeyProvider,
+            diagnosticDataController: composition.diagnosticDataController,
+            operationalNotifications: composition.operationalNotifications
         )
-        self.notificationAuthorizationState = operationalNotificationProvider.authorizationState
-
-        if initialListenPermission == .granted {
-            notificationEpisodeStore.markGrantedListenPermissionObserved()
-        } else if initialListenPermission == .denied,
-                  notificationEpisodeStore.hasEverObservedGrantedListenPermission
-        {
-            notificationEpisodeStore.begin(.listenPermissionRevoked)
-        }
-
-        updateOperationalNotificationSetupOffer()
     }
 
-    func refreshPermission() {
-        reconcileProtectedState()
-        let listenPermission = permissionProvider.checkListenPermission()
-        reconcileListenPermission(listenPermission)
-        applySwitchingStatus(listenPermission: listenPermission)
-        refreshInputSources()
-        refreshObservedCurrentInputSource(publish: false)
-        updatePhysicalKeyboardDiscovery()
-        updatePhysicalKeyboardEventObservation()
-        updateInputSourceChangeObservation()
-        updateOperationalNotificationSetupOffer()
-        refreshOperationalNotificationAuthorization()
+    var activePhysicalKeyboardID: PhysicalKeyboardRecordID? {
+        physicalKeyboardDiscovery.activePhysicalKeyboardID
+    }
+
+    var activePhysicalKeyboard: PhysicalKeyboard? {
+        guard let activePhysicalKeyboardID else {
+            return nil
+        }
+
+        return physicalKeyboards.first { $0.id == activePhysicalKeyboardID }
+    }
+
+    var showsAssignmentSetup: Bool {
+        isSetupComplete || guidedSetupStep == .assignments
+    }
+
+    var isActivityTriggeredSwitchingPaused: Bool {
+        setupStore.isActivityTriggeredSwitchingPaused
+    }
+
+    var physicalKeyboardActionConditions: [PhysicalKeyboardActionCondition] {
+        physicalKeyboards.compactMap { physicalKeyboard in
+            switch physicalKeyboard.assignmentState {
+            case .unassigned:
+                .unassigned(physicalKeyboardName: physicalKeyboard.name)
+            case .assigned:
+                assignedInputSourceName(for: physicalKeyboard) == nil
+                    ? .unavailableKeyboardAssignment(physicalKeyboardName: physicalKeyboard.name)
+                    : nil
+            case .unsupported:
+                nil
+            }
+        }
     }
 
     func refreshNotificationAuthorization() {
-        refreshOperationalNotificationAuthorization()
-    }
-
-    func handleLifecycleEvent(_ event: KeyameleonLifecycleEvent) {
-        switch event {
-        case .willSleep:
-            updateUnavailableReason(.sleeping, isActive: true)
-        case .didWake:
-            updateUnavailableReason(.sleeping, isActive: false)
-        case .sessionDidResignActive:
-            updateUnavailableReason(.inactiveSession, isActive: true)
-        case .sessionDidBecomeActive:
-            updateUnavailableReason(.inactiveSession, isActive: false)
-        case .protectedDataWillBecomeUnavailable:
-            eventProtectedDataUnavailable = true
-            updateUnavailableReason(.protectedDataUnavailable, isActive: true)
-        case .protectedDataDidBecomeAvailable:
-            eventProtectedDataUnavailable = false
-            updateUnavailableReason(.protectedDataUnavailable, isActive: false)
-        }
-
-        refreshPermission()
-    }
-
-    func pauseActivityTriggeredSwitching() {
-        guard !isActivityTriggeredSwitchingPaused else {
-            return
-        }
-
-        isActivityTriggeredSwitchingPaused = true
-        setupStore.setActivityTriggeredSwitchingPaused(true)
-        let listenPermission = permissionProvider.checkListenPermission()
-        reconcileListenPermission(listenPermission)
-        applySwitchingStatus(listenPermission: listenPermission)
-        updatePhysicalKeyboardDiscovery()
-        updatePhysicalKeyboardEventObservation()
-        updateInputSourceChangeObservation()
-        updateOperationalNotificationSetupOffer()
-        onChange?()
-    }
-
-    /// Clears pause, rechecks listen permission, then starts observation only when Ready.
-    func resumeActivityTriggeredSwitching() {
-        guard isActivityTriggeredSwitchingPaused else {
-            return
-        }
-
-        isActivityTriggeredSwitchingPaused = false
-        setupStore.setActivityTriggeredSwitchingPaused(false)
-        let listenPermission = permissionProvider.checkListenPermission()
-        reconcileListenPermission(listenPermission)
-        applySwitchingStatus(listenPermission: listenPermission)
-        refreshInputSources()
-        refreshObservedCurrentInputSource(publish: false)
-        updatePhysicalKeyboardDiscovery()
-        updatePhysicalKeyboardEventObservation()
-        updateInputSourceChangeObservation()
-        updateOperationalNotificationSetupOffer()
-        sendPendingOperationalNotifications()
-        onChange?()
-    }
-
-    /// Serial activity consumer entry. Observation order only.
-    func handlePhysicalKeyboardEvent(_ event: PhysicalKeyboardEvent) {
-        let protectedState = protectedStateProvider.currentProtectedState()
-        if protectedState.isSecureInputEnabled || !protectedState.isProtectedDataAvailable {
-            // Positive public-API evidence stops processing. Missing activity never does.
-            refreshPermission()
-            return
-        }
-
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
-            return
-        }
-
-        guard ActivationActivityClassification.isActivationActivity(event) else {
-            return
-        }
-
-        guard let attributed = physicalKeyboardCatalog.physicalKeyboard(forServiceID: event.serviceID)
-        else {
-            return
-        }
-
-        // Keep eligible Input Sources current so exact-identifier return can end unavailable.
-        refreshInputSources()
-
-        // Resolve designation elevation + saved assignment onto the catalog record.
-        let physicalKeyboard = resolvePublishedPhysicalKeyboard(attributed)
-
-        let activeChanged = activePhysicalKeyboardID != physicalKeyboard.id
-        if activeChanged {
-            activePhysicalKeyboardID = physicalKeyboard.id
-            diagnosticDataController.record(
-                code: .activePhysicalKeyboardChanged,
-                identityKey: physicalKeyboard.id.rawValue,
-                switchingStatus: nil
-            )
-        }
-
-        // Session-only detailed marker; ignored in default recording mode.
-        diagnosticDataController.record(
-            code: .activationActivityAttributed,
-            identityKey: physicalKeyboard.id.rawValue,
-            switchingStatus: nil
-        )
-
-        var didVerify = false
-        var didUpdateWanted = false
-        var didStateChange = false
-
-        switch physicalKeyboard.assignmentState {
-        case let .assigned(assignment):
-            let wantedIdentifier = assignment.inputSourceIdentifier
-            let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
-            observedCurrentInputSourceIdentifier = currentIdentifier
-
-            // Newer assigned Activation Activity replaces older wanted state for Retry Now.
-            wantedKeyboardAssignment = WantedKeyboardAssignment(
-                physicalKeyboardID: physicalKeyboard.id,
-                inputSourceIdentifier: wantedIdentifier
-            )
-
-            if isUnavailable(assignment) {
-                // Keep saved assignment. Never select a substitute.
-                clearWarning(cause: .selectionFailure)
-                openWarning(
-                    .unavailableKeyboardAssignment(
-                        physicalKeyboardID: physicalKeyboard.id,
-                        inputSourceIdentifier: wantedIdentifier
-                    )
-                )
-                if verifiedKeyboardAssignmentIdentifier == wantedIdentifier {
-                    verifiedKeyboardAssignmentIdentifier = nil
-                }
-                wantedKeyboardAssignmentIdentifier = wantedIdentifier
-                didUpdateWanted = true
-                didStateChange = true
-                break
-            }
-
-            // Coalesce when this exact Keyboard Assignment is already wanted and verified.
-            if wantedKeyboardAssignmentIdentifier == wantedIdentifier,
-               verifiedKeyboardAssignmentIdentifier == wantedIdentifier,
-               currentIdentifier == wantedIdentifier
-            {
-                clearWarning(cause: .selectionFailure)
-                diagnosticDataController.record(
-                    code: .inputSourceSelectionCoalesced,
-                    identityKey: physicalKeyboard.id.rawValue,
-                    switchingStatus: nil
-                )
-                break
-            }
-
-            // Newer assigned Activation Activity replaces older wanted state.
-            wantedKeyboardAssignmentGeneration &+= 1
-            let generation = wantedKeyboardAssignmentGeneration
-            wantedKeyboardAssignmentIdentifier = wantedIdentifier
-            didUpdateWanted = true
-
-            if applyWantedKeyboardAssignment(
-                wantedIdentifier,
-                generation: generation
-            ) {
-                didVerify = true
-            }
-            didStateChange = true
-        case .unassigned, .unsupported:
-            // No Input Source request for unassigned or unsupported Physical Keyboards.
-            break
-        }
-
-        if activeChanged || didVerify || didUpdateWanted || didStateChange {
-            publishPhysicalKeyboards()
-            onChange?()
-        }
-    }
-
-    /// Explicit recovery. Retries the current wanted Keyboard Assignment. No timed retry loop.
-    func retryNow() {
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
-            return
-        }
-
-        guard let wanted = wantedKeyboardAssignment else {
-            return
-        }
-
-        guard
-            let assignment = KeyboardAssignment(inputSourceIdentifier: wanted.inputSourceIdentifier)
-        else {
-            return
-        }
-
-        refreshInputSources()
-
-        if isUnavailable(assignment) {
-            clearWarning(cause: .selectionFailure)
-            openWarning(
-                .unavailableKeyboardAssignment(
-                    physicalKeyboardID: wanted.physicalKeyboardID,
-                    inputSourceIdentifier: wanted.inputSourceIdentifier
-                )
-            )
-            publishPhysicalKeyboards()
-            onChange?()
-            return
-        }
-
-        wantedKeyboardAssignmentGeneration &+= 1
-        let generation = wantedKeyboardAssignmentGeneration
-        wantedKeyboardAssignmentIdentifier = wanted.inputSourceIdentifier
-        _ = applyWantedKeyboardAssignment(wanted.inputSourceIdentifier, generation: generation)
-        publishPhysicalKeyboards()
-        onChange?()
-    }
-
-    func isUnavailableKeyboardAssignment(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
-        guard
-            let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
-            let assignment = physicalKeyboard.keyboardAssignment
-        else {
-            return false
-        }
-
-        return isUnavailable(assignment)
-    }
-
-    /// External Input Source selection: keep it, never fight, refresh observed current only.
-    func handleExternalInputSourceChange() {
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
-            return
-        }
-
-        let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
-        let previousObserved = observedCurrentInputSourceIdentifier
-        let previousVerified = verifiedKeyboardAssignmentIdentifier
-
-        observedCurrentInputSourceIdentifier = currentIdentifier
-
-        if let verified = verifiedKeyboardAssignmentIdentifier,
-           currentIdentifier != verified
-        {
-            // External actor owns Input Source until later assigned Activation Activity.
-            verifiedKeyboardAssignmentIdentifier = nil
-        }
-
-        if previousObserved != observedCurrentInputSourceIdentifier
-            || previousVerified != verifiedKeyboardAssignmentIdentifier
-        {
-            onChange?()
-        }
-    }
-
-    func requestPermission() {
-        guard switchingStatus != .ready else {
-            return
-        }
-
-        _ = permissionProvider.requestListenPermission()
-        refreshPermission()
+        operationalNotifications.refreshAuthorization()
     }
 
     func requestOperationalNotificationAuthorization() {
-        guard notificationAuthorizationState == .notDetermined,
-              !isNotificationAuthorizationRequestInFlight
-        else {
-            return
-        }
-
-        isNotificationAuthorizationRequestInFlight = true
-        notificationSetupStore.markOperationalNotificationSetupOffered()
-        shouldOfferOperationalNotificationSetup = false
-        operationalNotificationProvider.requestAlertAuthorization { [weak self] state in
-            guard let self else {
-                return
-            }
-
-            self.isNotificationAuthorizationRequestInFlight = false
-            self.notificationAuthorizationState = state
-            self.sendPendingOperationalNotifications()
-            self.onChange?()
-        }
-        onChange?()
+        operationalNotifications.requestAlertAuthorization()
     }
 
     func dismissOperationalNotificationSetup() {
-        guard shouldOfferOperationalNotificationSetup else {
-            return
-        }
-
-        notificationSetupStore.markOperationalNotificationSetupOffered()
-        shouldOfferOperationalNotificationSetup = false
-        onChange?()
+        operationalNotifications.dismissSetupOffer()
     }
 
     func beginGuidedSetup() {
@@ -617,15 +296,13 @@ final class KeyameleonSetupModel: ObservableObject {
         setupStore.markGuidedSetupStarted()
         hasStartedGuidedSetup = true
         guidedSetupStep = setupStore.guidedSetupStep
-        onChange?()
     }
 
     func continueToAssignments() {
         setupStore.markGuidedSetupStep(.assignments)
         hasStartedGuidedSetup = true
         guidedSetupStep = .assignments
-        refreshPermission()
-        onChange?()
+        activityTriggeredSwitching.checkAgain()
     }
 
     func finishWithoutAssignments() {
@@ -633,28 +310,17 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     func completeSetup() {
-        var changed = false
-
         if !hasStartedGuidedSetup {
             setupStore.markGuidedSetupStarted()
             hasStartedGuidedSetup = true
-            changed = true
         }
-
         if guidedSetupStep != .assignments {
             setupStore.markGuidedSetupStep(.assignments)
             guidedSetupStep = .assignments
-            changed = true
         }
-
         if !isSetupComplete {
             setupStore.markGuidedSetupCompleted()
             isSetupComplete = true
-            changed = true
-        }
-
-        if changed {
-            onChange?()
         }
     }
 
@@ -679,7 +345,6 @@ final class KeyameleonSetupModel: ObservableObject {
             customName: customName
         )
         publishPhysicalKeyboards()
-        onChange?()
     }
 
     func setKeyboardAssignment(
@@ -693,11 +358,7 @@ final class KeyameleonSetupModel: ObservableObject {
             return
         }
 
-        let assignment = inputSourceIdentifier.flatMap {
-            KeyboardAssignment(inputSourceIdentifier: $0)
-        }
-
-        // Saving a Keyboard Assignment never requests an Input Source.
+        let assignment = inputSourceIdentifier.flatMap(KeyboardAssignment.init)
         physicalKeyboardRecordStore.saveAssignment(
             identityKey: physicalKeyboard.id.rawValue,
             productName: physicalKeyboard.productName,
@@ -708,54 +369,7 @@ final class KeyameleonSetupModel: ObservableObject {
             identityKey: physicalKeyboard.id.rawValue,
             switchingStatus: nil
         )
-
-        clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
-
-        if wantedKeyboardAssignment?.physicalKeyboardID == physicalKeyboardID {
-            // Assignment change invalidates prior selection-failure for this wanted state.
-            clearWarning(cause: .selectionFailure)
-            if let assignment {
-                wantedKeyboardAssignment = WantedKeyboardAssignment(
-                    physicalKeyboardID: physicalKeyboardID,
-                    inputSourceIdentifier: assignment.inputSourceIdentifier
-                )
-                wantedKeyboardAssignmentIdentifier = assignment.inputSourceIdentifier
-            } else {
-                wantedKeyboardAssignment = nil
-                wantedKeyboardAssignmentIdentifier = nil
-            }
-        }
-
-        if let assignment, isUnavailable(assignment) {
-            openWarning(
-                .unavailableKeyboardAssignment(
-                    physicalKeyboardID: physicalKeyboardID,
-                    inputSourceIdentifier: assignment.inputSourceIdentifier
-                )
-            )
-        }
-
-        if verifiedKeyboardAssignmentIdentifier != nil,
-           verifiedKeyboardAssignmentIdentifier != assignment?.inputSourceIdentifier
-        {
-            verifiedKeyboardAssignmentIdentifier = nil
-        }
-
         publishPhysicalKeyboards()
-        updateOperationalNotificationSetupOffer()
-        onChange?()
-    }
-
-    func noteActivationActivity(for physicalKeyboardID: PhysicalKeyboardRecordID) {
-        guard physicalKeyboards.contains(where: { $0.id == physicalKeyboardID }) else {
-            return
-        }
-
-        // Test/manual seam: set Active without Input Source request.
-        // Real Activity-Triggered Switching uses handlePhysicalKeyboardEvent.
-        activePhysicalKeyboardID = physicalKeyboardID
-        publishPhysicalKeyboards()
-        onChange?()
     }
 
     func canForgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
@@ -788,12 +402,8 @@ final class KeyameleonSetupModel: ObservableObject {
         guard let connected = physicalKeyboards.first(where: { $0.id == connectedID }),
               connected.connectionState == .connected,
               connected.isAssignable,
-              connected.id.isIdentityBased
-        else {
-            return
-        }
-
-        guard let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
+              connected.id.isIdentityBased,
+              let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
               disconnected.connectionState == .disconnected,
               disconnected.id.isIdentityBased,
               physicalKeyboardRecordStore.record(forIdentityKey: disconnectedID.rawValue) != nil
@@ -806,16 +416,45 @@ final class KeyameleonSetupModel: ObservableObject {
             toIdentityKey: connectedID.rawValue,
             productName: connected.productName
         )
-        clearWarning(cause: .unavailableKeyboardAssignment(disconnectedID))
         lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
+        activityTriggeredSwitching.replaceActivePhysicalKeyboard(
+            from: disconnectedID,
+            to: connectedID
+        )
+        publishPhysicalKeyboards()
+    }
 
-        if activePhysicalKeyboardID == disconnectedID {
-            activePhysicalKeyboardID = connectedID
+    func forgetConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
+        else {
+            return ""
         }
 
-        _ = reevaluateUnavailableKeyboardAssignments()
-        publishPhysicalKeyboards()
-        onChange?()
+        let removedData =
+            "This removes the saved Physical Keyboard Name, Keyboard Assignment, Manual Physical Keyboard Designation, and linked Diagnostic Data for \(physicalKeyboard.name)."
+        let reconnectResult = switch physicalKeyboard.connectionState {
+        case .connected:
+            "This connected Physical Keyboard reappears as new and unassigned."
+        case .disconnected:
+            "This disconnected Physical Keyboard disappears."
+        }
+        return "\(removedData) \(reconnectResult)"
+    }
+
+    func replaceConfirmationMessage(
+        replacing disconnectedID: PhysicalKeyboardRecordID,
+        with connectedID: PhysicalKeyboardRecordID
+    ) -> String {
+        guard let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
+              let connected = physicalKeyboards.first(where: { $0.id == connectedID })
+        else {
+            return ""
+        }
+
+        return """
+        Move the Physical Keyboard Name and Keyboard Assignment from \(disconnected.name) to \(connected.name)? \
+        The old saved record is removed. If the old hardware returns later, it appears as new and unassigned.
+        """
     }
 
     func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
@@ -830,28 +469,13 @@ final class KeyameleonSetupModel: ObservableObject {
         diagnosticDataController.deleteDiagnosticData(forIdentityKey: physicalKeyboardID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
         cancelManualDesignationIfMatching(physicalKeyboardID)
-        clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
-
-        if activePhysicalKeyboardID == physicalKeyboardID {
-            activePhysicalKeyboardID = nil
-        }
-
-        if wantedKeyboardAssignment?.physicalKeyboardID == physicalKeyboardID {
-            wantedKeyboardAssignment = nil
-            wantedKeyboardAssignmentIdentifier = nil
-            clearWarning(cause: .selectionFailure)
-        }
-
+        activityTriggeredSwitching.forgetPhysicalKeyboard(physicalKeyboardID)
         publishPhysicalKeyboards()
-        onChange?()
     }
 
     func canStartManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
-        guard manualDesignationPhase == .idle else {
-            return false
-        }
-
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
+        guard manualDesignationPhase == .idle,
+              let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
               physicalKeyboard.connectionState == .connected
         else {
             return false
@@ -868,57 +492,38 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         manualDesignationPhase = .awaitingRemoval(physicalKeyboardID)
-        onChange?()
     }
 
     func cancelManualDesignation() {
-        guard manualDesignationPhase != .idle else {
-            return
-        }
-
         manualDesignationPhase = .idle
-        onChange?()
     }
 
     func confirmManualDesignationName(_ name: String) {
-        guard case let .awaitingNameConfirmation(recordID, productName) = manualDesignationPhase
+        guard case let .awaitingNameConfirmation(recordID, productName) = manualDesignationPhase,
+              ManualPhysicalKeyboardDesignationEvidenceRules.acceptsConfirmedName(name),
+              ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
+                  connected: physicalKeyboardDiscovery.physicalKeyboards,
+                  expectedID: recordID
+              ) != nil
         else {
-            return
-        }
-
-        guard ManualPhysicalKeyboardDesignationEvidenceRules.acceptsConfirmedName(name) else {
-            return
-        }
-
-        // Re-validate same identity group evidence before save.
-        guard
-            ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
-                connected: physicalKeyboardCatalog.physicalKeyboards,
-                expectedID: recordID
-            ) != nil
-        else {
-            manualDesignationPhase = .idle
-            publishPhysicalKeyboards()
-            onChange?()
             return
         }
 
         let confirmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let integrityKey = integrityKeyProvider.integrityKey()
         let tag = ManualPhysicalKeyboardDesignationAuthenticator.authenticationTag(
             identityKey: recordID.rawValue,
             productName: productName,
             confirmedName: confirmedName,
-            integrityKey: integrityKey
+            integrityKey: integrityKeyProvider.integrityKey()
         )
-        let designation = SavedManualPhysicalKeyboardDesignation(
-            identityKey: recordID.rawValue,
-            productName: productName,
-            confirmedName: confirmedName,
-            authenticationTag: tag
+        designationStore.save(
+            SavedManualPhysicalKeyboardDesignation(
+                identityKey: recordID.rawValue,
+                productName: productName,
+                confirmedName: confirmedName,
+                authenticationTag: tag
+            )
         )
-        designationStore.save(designation)
-        // Designation alone: name only. No Keyboard Assignment and no Key Content.
         physicalKeyboardRecordStore.saveName(
             identityKey: recordID.rawValue,
             productName: productName,
@@ -926,7 +531,19 @@ final class KeyameleonSetupModel: ObservableObject {
         )
         manualDesignationPhase = .idle
         publishPhysicalKeyboards()
-        onChange?()
+    }
+
+    func manualDesignationStatusText() -> String? {
+        switch manualDesignationPhase {
+        case .idle:
+            nil
+        case .awaitingRemoval:
+            "Unplug or turn off this Physical Keyboard, then return it."
+        case .awaitingReturn:
+            "Return the same Physical Keyboard to continue."
+        case .awaitingNameConfirmation:
+            "Confirm the Physical Keyboard Name to save Manual Physical Keyboard Designation."
+        }
     }
 
     func assignedInputSourceName(for physicalKeyboard: PhysicalKeyboard) -> String? {
@@ -948,515 +565,6 @@ final class KeyameleonSetupModel: ObservableObject {
         }
     }
 
-    private func reconcileListenPermission(_ listenPermission: ListenPermissionState) {
-        let revokedEpisode = OperationalNotificationEpisode.listenPermissionRevoked
-        if listenPermission == .granted {
-            notificationEpisodeStore.markGrantedListenPermissionObserved()
-            notificationEpisodeStore.end(revokedEpisode)
-        } else if listenPermission == .denied,
-                  (lastKnownListenPermission == .granted
-                      || notificationEpisodeStore.hasEverObservedGrantedListenPermission)
-        {
-            notificationEpisodeStore.begin(revokedEpisode)
-        }
-
-        lastKnownListenPermission = listenPermission
-    }
-
-    private func refreshOperationalNotificationAuthorization() {
-        operationalNotificationProvider.refreshAuthorization { [weak self] state in
-            guard let self else {
-                return
-            }
-
-            self.notificationAuthorizationState = state
-            self.updateOperationalNotificationSetupOffer()
-            self.sendPendingOperationalNotifications()
-            self.onChange?()
-        }
-    }
-
-    private func updateOperationalNotificationSetupOffer() {
-        guard !notificationSetupStore.hasOfferedOperationalNotificationSetup else {
-            shouldOfferOperationalNotificationSetup = false
-            return
-        }
-
-        let hasKeyboardAssignment = physicalKeyboards.contains {
-            $0.keyboardAssignment != nil
-        } || physicalKeyboardRecordStore.allRecords().contains {
-            $0.keyboardAssignment != nil
-        }
-        shouldOfferOperationalNotificationSetup =
-            lastKnownListenPermission == .granted
-                && notificationAuthorizationState == .notDetermined
-                && hasKeyboardAssignment
-    }
-
-    private func sendPendingOperationalNotifications() {
-        guard !isActivityTriggeredSwitchingPaused,
-              notificationAuthorizationState.canSend
-        else {
-            return
-        }
-
-        sendOperationalNotificationIfNeeded(
-            for: .listenPermissionRevoked,
-            notification: .listenPermissionRevoked
-        )
-
-        for warning in activeWarnings {
-            guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
-                  let inputSourceIdentifier = warning.inputSourceIdentifier
-            else {
-                continue
-            }
-
-            sendOperationalNotificationIfNeeded(
-                for: .unavailableKeyboardAssignment(
-                    physicalKeyboardID: physicalKeyboardID,
-                    inputSourceIdentifier: inputSourceIdentifier
-                ),
-                notification: .unavailableKeyboardAssignment
-            )
-        }
-    }
-
-    private func sendOperationalNotificationIfNeeded(
-        for episode: OperationalNotificationEpisode,
-        notification: OperationalNotification
-    ) {
-        guard notificationEpisodeStore.isActive(episode),
-              !notificationEpisodeStore.hasSentNotification(for: episode)
-        else {
-            return
-        }
-
-        notificationEpisodeStore.markNotificationSent(for: episode)
-        operationalNotificationProvider.send(notification)
-    }
-
-    private func refreshInputSources() {
-        let refreshedInputSources = inputSourceProvider.eligibleInputSources()
-        let sourcesChanged = refreshedInputSources != eligibleInputSources
-        if sourcesChanged {
-            eligibleInputSources = refreshedInputSources
-        }
-
-        let warningsChanged = reevaluateUnavailableKeyboardAssignments()
-        if sourcesChanged || warningsChanged {
-            onChange?()
-        }
-    }
-
-    /// Request + verify exact wanted Input Source for one generation.
-    /// Leaves normal input unchanged on failure. No timed retry loop.
-    @discardableResult
-    private func applyWantedKeyboardAssignment(
-        _ inputSourceIdentifier: String,
-        generation: UInt64
-    ) -> Bool {
-        inputSourceSelectionRequestCount += 1
-        let verified = inputSourceSelector.selectAndVerifyInputSource(
-            identifier: inputSourceIdentifier
-        )
-
-        // Only the current wanted generation may accept its readback.
-        guard generation == wantedKeyboardAssignmentGeneration else {
-            return false
-        }
-
-        if verified {
-            verifiedKeyboardAssignmentIdentifier = inputSourceIdentifier
-            observedCurrentInputSourceIdentifier = inputSourceIdentifier
-            clearWarning(cause: .selectionFailure)
-            diagnosticDataController.record(
-                code: .inputSourceSelectionSucceeded,
-                identityKey: wantedKeyboardAssignment?.physicalKeyboardID.rawValue,
-                switchingStatus: nil
-            )
-            return true
-        }
-
-        if verifiedKeyboardAssignmentIdentifier == inputSourceIdentifier {
-            verifiedKeyboardAssignmentIdentifier = nil
-        }
-        observedCurrentInputSourceIdentifier =
-            inputSourceSelector.currentInputSourceIdentifier()
-        openWarning(.selectionFailure(inputSourceIdentifier: inputSourceIdentifier))
-        diagnosticDataController.record(
-            code: .inputSourceSelectionFailed,
-            identityKey: wantedKeyboardAssignment?.physicalKeyboardID.rawValue,
-            switchingStatus: nil
-        )
-        return false
-    }
-
-    private func isUnavailable(_ assignment: KeyboardAssignment) -> Bool {
-        !KeyboardAssignmentAvailability.isAvailable(
-            assignment,
-            eligibleInputSources: eligibleInputSources
-        )
-    }
-
-    /// Opens or refreshes one warning for an active cause. Counts a new episode only once per cause.
-    private func openWarning(_ warning: SwitchingWarning) {
-        if let previous = activeWarningByCause[warning.cause],
-           previous.inputSourceIdentifier != warning.inputSourceIdentifier
-        {
-            endNotificationEpisode(for: previous)
-        }
-
-        let isNewEpisode = activeWarningByCause[warning.cause] == nil
-        activeWarningByCause[warning.cause] = warning
-        if isNewEpisode {
-            warningEpisodeCount += 1
-        }
-
-        beginNotificationEpisode(for: warning)
-        publishActiveWarnings()
-        sendPendingOperationalNotifications()
-    }
-
-    private func clearWarning(cause: SwitchingWarning.Cause) {
-        guard let warning = activeWarningByCause.removeValue(forKey: cause) else {
-            return
-        }
-
-        endNotificationEpisode(for: warning)
-        publishActiveWarnings()
-    }
-
-    private func beginNotificationEpisode(for warning: SwitchingWarning) {
-        guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
-              let inputSourceIdentifier = warning.inputSourceIdentifier
-        else {
-            return
-        }
-
-        notificationEpisodeStore.begin(
-            .unavailableKeyboardAssignment(
-                physicalKeyboardID: physicalKeyboardID,
-                inputSourceIdentifier: inputSourceIdentifier
-            )
-        )
-    }
-
-    private func endNotificationEpisode(for warning: SwitchingWarning) {
-        guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause,
-              let inputSourceIdentifier = warning.inputSourceIdentifier
-        else {
-            return
-        }
-
-        notificationEpisodeStore.end(
-            .unavailableKeyboardAssignment(
-                physicalKeyboardID: physicalKeyboardID,
-                inputSourceIdentifier: inputSourceIdentifier
-            )
-        )
-    }
-
-    private func publishActiveWarnings() {
-        activeWarnings = activeWarningByCause.values.sorted { left, right in
-            left.id < right.id
-        }
-    }
-
-    private static let unavailableReasonPriority: [SwitchingUnavailableReason] = [
-        .sleeping,
-        .inactiveSession,
-        .secureInput,
-        .protectedDataUnavailable,
-    ]
-
-    private static func unavailableReasons(
-        protectedState: ProtectedStateSnapshot,
-        eventProtectedDataUnavailable: Bool
-    ) -> [SwitchingUnavailableReason] {
-        var reasons = Set<SwitchingUnavailableReason>()
-        if protectedState.isSecureInputEnabled {
-            reasons.insert(.secureInput)
-        }
-        if !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable {
-            reasons.insert(.protectedDataUnavailable)
-        }
-
-        return unavailableReasonPriority.filter { reasons.contains($0) }
-    }
-
-    @discardableResult
-    private func updateUnavailableReason(
-        _ reason: SwitchingUnavailableReason,
-        isActive: Bool
-    ) -> Bool {
-        var reasons = Set(temporarilyUnavailableReasons)
-        if isActive {
-            reasons.insert(reason)
-        } else {
-            reasons.remove(reason)
-        }
-
-        let orderedReasons = Self.unavailableReasonPriority.filter { reasons.contains($0) }
-        guard orderedReasons != temporarilyUnavailableReasons else {
-            return false
-        }
-
-        temporarilyUnavailableReasons = orderedReasons
-        onChange?()
-        return true
-    }
-
-    private func reconcileProtectedState() {
-        let protectedState = protectedStateProvider.currentProtectedState()
-        var reasons = Set(temporarilyUnavailableReasons)
-
-        if protectedState.isSecureInputEnabled {
-            reasons.insert(.secureInput)
-        } else {
-            reasons.remove(.secureInput)
-        }
-
-        if !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable {
-            reasons.insert(.protectedDataUnavailable)
-        } else {
-            reasons.remove(.protectedDataUnavailable)
-        }
-
-        let orderedReasons = Self.unavailableReasonPriority.filter { reasons.contains($0) }
-        guard orderedReasons != temporarilyUnavailableReasons else {
-            return
-        }
-
-        temporarilyUnavailableReasons = orderedReasons
-        onChange?()
-    }
-
-    /// Exact saved Input Source identifier return ends unavailable; substitute names never clear it.
-    @discardableResult
-    private func reevaluateUnavailableKeyboardAssignments() -> Bool {
-        var changed = false
-        let eligibleIdentifiers = Set(eligibleInputSources.map(\.identifier))
-        var remainingUnavailableIDs = Set(
-            activeWarningByCause.keys.compactMap { cause -> PhysicalKeyboardRecordID? in
-                if case let .unavailableKeyboardAssignment(id) = cause {
-                    return id
-                }
-
-                return nil
-            }
-        )
-
-        for record in physicalKeyboardRecordStore.allRecords() {
-            guard let assignment = record.keyboardAssignment else {
-                continue
-            }
-
-            let physicalKeyboardID = record.recordID
-            if KeyboardAssignmentAvailability.isAvailable(
-                assignment,
-                eligibleIdentifiers: eligibleIdentifiers
-            ) {
-                if activeWarningByCause[.unavailableKeyboardAssignment(physicalKeyboardID)] != nil {
-                    clearWarning(cause: .unavailableKeyboardAssignment(physicalKeyboardID))
-                    changed = true
-                }
-                remainingUnavailableIDs.remove(physicalKeyboardID)
-            } else {
-                let before = activeWarningByCause[.unavailableKeyboardAssignment(physicalKeyboardID)]
-                openWarning(
-                    .unavailableKeyboardAssignment(
-                        physicalKeyboardID: physicalKeyboardID,
-                        inputSourceIdentifier: assignment.inputSourceIdentifier
-                    )
-                )
-                if before == nil
-                    || before?.inputSourceIdentifier != assignment.inputSourceIdentifier
-                {
-                    changed = true
-                }
-                remainingUnavailableIDs.remove(physicalKeyboardID)
-            }
-        }
-
-        for staleID in remainingUnavailableIDs {
-            clearWarning(cause: .unavailableKeyboardAssignment(staleID))
-            changed = true
-        }
-
-        return changed
-    }
-
-    private func applySwitchingStatus(listenPermission: ListenPermissionState) {
-        let newStatus = SwitchingStatus.resolve(
-            listenPermission: listenPermission,
-            isTemporarilyUnavailable: !temporarilyUnavailableReasons.isEmpty,
-            isPaused: isActivityTriggeredSwitchingPaused
-        )
-        if switchingStatus != newStatus {
-            switchingStatus = newStatus
-            diagnosticDataController.record(
-                code: .switchingStatusChanged,
-                identityKey: nil,
-                switchingStatus: newStatus
-            )
-            if newStatus == .permissionRequired {
-                diagnosticDataController.record(
-                    code: .permissionDenied,
-                    identityKey: nil,
-                    switchingStatus: newStatus
-                )
-            }
-            onChange?()
-        }
-    }
-
-    private func refreshObservedCurrentInputSource(publish: Bool) {
-        let currentIdentifier = inputSourceSelector.currentInputSourceIdentifier()
-        guard currentIdentifier != observedCurrentInputSourceIdentifier else {
-            return
-        }
-
-        observedCurrentInputSourceIdentifier = currentIdentifier
-        if publish {
-            onChange?()
-        }
-    }
-
-    private func updatePhysicalKeyboardDiscovery() {
-        guard canDiscoverPhysicalKeyboards else {
-            guard isDiscoveryStarted else {
-                publishPhysicalKeyboards()
-                return
-            }
-
-            physicalKeyboardDiscoverer.stop()
-            isDiscoveryStarted = false
-            physicalKeyboardCatalog = PhysicalKeyboardCatalog()
-            publishPhysicalKeyboards()
-            onChange?()
-            return
-        }
-
-        guard !isDiscoveryStarted else {
-            return
-        }
-
-        isDiscoveryStarted = true
-        physicalKeyboardDiscoverer.start { [weak self] change in
-            self?.apply(change)
-        }
-        publishPhysicalKeyboards()
-    }
-
-    private func updatePhysicalKeyboardEventObservation() {
-        guard canObservePhysicalKeyboards else {
-            guard isEventObservationStarted else {
-                return
-            }
-
-            physicalKeyboardEventObserver.stop()
-            isEventObservationStarted = false
-            return
-        }
-
-        guard !isEventObservationStarted else {
-            return
-        }
-
-        isEventObservationStarted = true
-        physicalKeyboardEventObserver.start { [weak self] event in
-            self?.handlePhysicalKeyboardEvent(event)
-        }
-    }
-
-    private func updateInputSourceChangeObservation() {
-        guard switchingStatus.allowsActivityTriggeredSwitching else {
-            guard isInputSourceChangeObservationStarted else {
-                return
-            }
-
-            inputSourceChangeObserver.stop()
-            isInputSourceChangeObservationStarted = false
-            return
-        }
-
-        guard !isInputSourceChangeObservationStarted else {
-            return
-        }
-
-        isInputSourceChangeObservationStarted = true
-        inputSourceChangeObserver.start { [weak self] in
-            self?.handleExternalInputSourceChange()
-        }
-    }
-
-    private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
-        guard canDiscoverPhysicalKeyboards else {
-            return
-        }
-
-        switch change {
-        case let .connected(facts):
-            physicalKeyboardCatalog.apply(change)
-            if let keyboard = physicalKeyboardCatalog.physicalKeyboard(forServiceID: facts.serviceID),
-               keyboard.id.isIdentityBased
-            {
-                diagnosticDataController.record(
-                    code: .physicalKeyboardConnected,
-                    identityKey: keyboard.id.rawValue,
-                    switchingStatus: nil
-                )
-            }
-        case .disconnected:
-            let previous = physicalKeyboardCatalog.physicalKeyboards
-            physicalKeyboardCatalog.apply(change)
-            let remainingIDs = Set(physicalKeyboardCatalog.physicalKeyboards.map(\.id))
-            for keyboard in previous where keyboard.id.isIdentityBased && !remainingIDs.contains(keyboard.id) {
-                diagnosticDataController.record(
-                    code: .physicalKeyboardDisconnected,
-                    identityKey: keyboard.id.rawValue,
-                    switchingStatus: nil
-                )
-            }
-        }
-        // Disconnect never rewrites Active Physical Keyboard and never requests Input Sources.
-        advanceManualDesignationSession()
-        publishPhysicalKeyboards()
-        onChange?()
-    }
-
-    private func advanceManualDesignationSession() {
-        switch manualDesignationPhase {
-        case .idle, .awaitingNameConfirmation:
-            return
-        case let .awaitingRemoval(recordID):
-            let stillConnected = physicalKeyboardCatalog.physicalKeyboards.contains {
-                $0.id == recordID
-            }
-            if !stillConnected {
-                manualDesignationPhase = .awaitingReturn(recordID)
-            }
-        case let .awaitingReturn(recordID):
-            let connected = physicalKeyboardCatalog.physicalKeyboards
-            if let returned = ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
-                connected: connected,
-                expectedID: recordID
-            ) {
-                manualDesignationPhase = .awaitingNameConfirmation(
-                    recordID,
-                    productName: returned.productName
-                )
-                return
-            }
-
-            // Invalid, incomplete, shared, or other rejected evidence aborts with no save.
-            if connected.contains(where: { $0.id == recordID }) {
-                manualDesignationPhase = .idle
-            }
-        }
-    }
-
     private func cancelManualDesignationIfMatching(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
         switch manualDesignationPhase {
         case .idle:
@@ -1470,10 +578,37 @@ final class KeyameleonSetupModel: ObservableObject {
         }
     }
 
+    private func advanceManualDesignationSession() {
+        switch manualDesignationPhase {
+        case .idle, .awaitingNameConfirmation:
+            return
+        case let .awaitingRemoval(recordID):
+            let stillConnected = physicalKeyboardDiscovery.physicalKeyboards.contains {
+                $0.id == recordID
+            }
+            if !stillConnected {
+                manualDesignationPhase = .awaitingReturn(recordID)
+            }
+        case let .awaitingReturn(recordID):
+            let connected = physicalKeyboardDiscovery.physicalKeyboards
+            if let returned = ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
+                connected: connected,
+                expectedID: recordID
+            ) {
+                manualDesignationPhase = .awaitingNameConfirmation(
+                    recordID,
+                    productName: returned.productName
+                )
+            } else if connected.contains(where: { $0.id == recordID }) {
+                manualDesignationPhase = .idle
+            }
+        }
+    }
+
     private func publishPhysicalKeyboards() {
-        let connected = physicalKeyboardCatalog.physicalKeyboards.map { keyboard in
-            let published = resolvePublishedPhysicalKeyboard(keyboard)
-                .markingActive(keyboard.id == activePhysicalKeyboardID)
+        let activeID = physicalKeyboardDiscovery.activePhysicalKeyboardID
+        let connected = physicalKeyboardDiscovery.physicalKeyboards.map { keyboard in
+            let published = resolver.resolve(keyboard).markingActive(keyboard.id == activeID)
             if keyboard.id.isIdentityBased {
                 lastKnownPhysicalKeyboards[keyboard.id.rawValue] = published.markingActive(false)
             }
@@ -1481,67 +616,30 @@ final class KeyameleonSetupModel: ObservableObject {
         }
 
         let connectedIdentityKeys = Set(
-            connected
-                .filter(\.id.isIdentityBased)
-                .map(\.id.rawValue)
+            connected.filter(\.id.isIdentityBased).map(\.id.rawValue)
         )
-
         var disconnected = physicalKeyboardRecordStore
             .allRecords()
             .filter { !connectedIdentityKeys.contains($0.identityKey) }
             .map { savedRecord in
                 PhysicalKeyboard
                     .disconnected(from: savedRecord)
-                    .markingActive(savedRecord.recordID == activePhysicalKeyboardID)
+                    .markingActive(savedRecord.recordID == activeID)
             }
-
         let disconnectedIdentityKeys = Set(disconnected.map(\.id.rawValue))
 
-        // Active stays visible as disconnected even when no saved name/assignment yet.
-        if let activePhysicalKeyboardID,
-           activePhysicalKeyboardID.isIdentityBased,
-           !connectedIdentityKeys.contains(activePhysicalKeyboardID.rawValue),
-           !disconnectedIdentityKeys.contains(activePhysicalKeyboardID.rawValue),
-           let lastKnown = lastKnownPhysicalKeyboards[activePhysicalKeyboardID.rawValue]
+        if let activeID,
+           activeID.isIdentityBased,
+           !connectedIdentityKeys.contains(activeID.rawValue),
+           !disconnectedIdentityKeys.contains(activeID.rawValue),
+           let lastKnown = lastKnownPhysicalKeyboards[activeID.rawValue]
         {
             disconnected.append(lastKnown.asDisconnected().markingActive(true))
         }
 
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
             connected + disconnected,
-            activeID: activePhysicalKeyboardID
+            activeID: activeID
         )
-    }
-
-    private func resolvePublishedPhysicalKeyboard(
-        _ keyboard: PhysicalKeyboard
-    ) -> PhysicalKeyboard {
-        guard keyboard.id.isIdentityBased else {
-            return keyboard
-        }
-
-        let savedRecord = physicalKeyboardRecordStore.record(
-            forIdentityKey: keyboard.id.rawValue
-        )
-
-        if keyboard.isAssignable {
-            return keyboard.applying(savedRecord: savedRecord)
-        }
-
-        guard
-            let designation = designationStore.designation(
-                forIdentityKey: keyboard.id.rawValue
-            ),
-            ManualPhysicalKeyboardDesignationAuthenticator.isAuthentic(
-                designation,
-                integrityKey: integrityKeyProvider.integrityKey()
-            )
-        else {
-            return keyboard
-        }
-
-        return keyboard
-            .elevatingWithManualDesignation(confirmedName: designation.confirmedName)
-            .applying(savedRecord: savedRecord)
     }
 }

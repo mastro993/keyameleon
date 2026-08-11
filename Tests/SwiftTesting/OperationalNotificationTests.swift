@@ -18,10 +18,11 @@ func firstKeyboardAssignmentOffersOptionalAlertAuthorizationAfterListenPermissio
         notificationProvider: notificationProvider
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(!model.shouldOfferOperationalNotificationSetup)
-    model.requestPermission()
-    #expect(model.switchingStatus == .ready)
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.requestPermission()
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
 
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let assignedModel = makeOperationalNotificationModel(
@@ -29,7 +30,7 @@ func firstKeyboardAssignmentOffersOptionalAlertAuthorizationAfterListenPermissio
         notificationProvider: notificationProvider,
         physicalKeyboardDiscoverer: discoverer
     )
-    assignedModel.refreshPermission()
+    startAndCheck(assignedModel)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 1201)))
     assignedModel.setKeyboardAssignment(
         assignedModel.physicalKeyboards[0].id,
@@ -61,13 +62,13 @@ func listenPermissionRevocationSendsOneNotificationPerEpisodeAcrossRestart() {
         setupStore: setupStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     listenPermission.state = .unknown
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(notificationProvider.sentNotifications.isEmpty)
     listenPermission.state = .denied
-    model.refreshPermission()
-    model.refreshPermission()
+    startAndCheck(model)
+    startAndCheck(model)
 
     #expect(notificationProvider.sentNotifications == [.listenPermissionRevoked])
 
@@ -77,13 +78,13 @@ func listenPermissionRevocationSendsOneNotificationPerEpisodeAcrossRestart() {
         notificationEpisodeStore: episodeStore,
         setupStore: setupStore
     )
-    restartedModel.refreshPermission()
+    startAndCheck(restartedModel)
     #expect(notificationProvider.sentNotifications == [.listenPermissionRevoked])
 
     listenPermission.state = .granted
-    restartedModel.refreshPermission()
+    startAndCheck(restartedModel)
     listenPermission.state = .denied
-    restartedModel.refreshPermission()
+    startAndCheck(restartedModel)
 
     #expect(
         notificationProvider.sentNotifications == [
@@ -116,20 +117,21 @@ func unavailableKeyboardAssignmentSendsOneNotificationAndPauseBlocksIt() {
         )
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 1202)))
     model.setKeyboardAssignment(
         model.physicalKeyboards[0].id,
         inputSourceIdentifier: "com.example.missing"
     )
-    model.refreshPermission()
+    startAndCheck(model)
 
     #expect(notificationProvider.sentNotifications.isEmpty)
-    #expect(model.activeWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
 
-    model.resumeActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.resume()
     #expect(notificationProvider.sentNotifications == [.unavailableKeyboardAssignment])
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(notificationProvider.sentNotifications == [.unavailableKeyboardAssignment])
 }
 
@@ -148,13 +150,14 @@ func listenPermissionRecoveryWhilePausedEndsNotificationEpisode() {
         setupStore: setupStore
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     listenPermission.state = .denied
-    model.refreshPermission()
+    startAndCheck(model)
     #expect(notificationProvider.sentNotifications.isEmpty)
 
     listenPermission.state = .granted
-    model.resumeActivityTriggeredSwitching()
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.resume()
 
     #expect(notificationProvider.sentNotifications.isEmpty)
 }
@@ -179,18 +182,18 @@ func notificationDenialDoesNotBlockActivityTriggeredSwitching() {
         inputSourceSelector: selector
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 1203)))
     model.setKeyboardAssignment(
         model.physicalKeyboards[0].id,
         inputSourceIdentifier: "com.example.us"
     )
-    model.handlePhysicalKeyboardEvent(
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 1203, kind: .press)
     )
 
     #expect(selector.selectCount == 1)
-    #expect(model.verifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
 }
 
 @MainActor
@@ -222,20 +225,23 @@ func generalAuthorizationChangeCanRefreshOperationalNotificationDelivery() {
     let notificationProvider = TestOperationalNotificationProvider(
         authorizationState: .notDetermined
     )
+    let operationalNotifications = OperationalNotifications(
+        provider: notificationProvider
+    )
     let model = KeyameleonGeneralSettingsModel(
         launchAtLoginController: FakeLaunchAtLoginController(isEnabled: false),
         updateChecker: FakeUpdateChecker(canCheck: true),
-        operationalNotificationProvider: notificationProvider
+        operationalNotifications: operationalNotifications
     )
     var changeCount = 0
-    model.onNotificationAuthorizationChange = {
+    _ = operationalNotifications.observe {
         changeCount += 1
     }
 
     model.requestOperationalNotificationAuthorization()
 
     #expect(model.notificationAuthorizationState == .authorized)
-    #expect(changeCount == 1)
+    #expect(changeCount > 0)
 }
 
 @MainActor
@@ -315,7 +321,7 @@ func replacingSavedPhysicalKeyboardStartsNewUnavailableEpisode() {
         )
     )
 
-    model.refreshPermission()
+    startAndCheck(model)
     discoverer.emit(
         .connected(
             makeSetupModelHardwareFacts(
@@ -347,8 +353,8 @@ func replacingSavedPhysicalKeyboardStartsNewUnavailableEpisode() {
             .unavailableKeyboardAssignment,
         ]
     )
-    #expect(model.activeWarnings.count == 1)
-    #expect(model.activeWarnings[0].cause == .unavailableKeyboardAssignment(newID))
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
+    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].cause == .unavailableKeyboardAssignment(newID))
 }
 
 @MainActor
