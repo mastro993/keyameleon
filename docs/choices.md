@@ -1,5 +1,14 @@
 # Choices
 
+## 2026-08-11 — Product validation and macOS 26 support
+
+### Defaults
+- This supersedes the qualification-process defaults recorded under Issues #17 and #19 below.
+- Supported Release targets macOS 26.
+- Pull requests run one focused product test suite with one fast safety audit.
+- Monitor-only behavior and no saved Key Content remain hard failures.
+- Repeated suites, fixed stress counts, human qualification matrices, qualification evidence files, and performance quotas are removed.
+
 ## 2026-08-11 — Issue #39 Activity-Triggered Switching module
 
 ### Seams
@@ -12,7 +21,7 @@
 
 - Internal identifiers, wanted generations, selection request evidence, warning episode evidence, raw Physical Keyboard Events, and lifecycle adapter facts do not cross the product outcome.
 - The production factory creates one shared discovery, Input Source, and Operational Notification module for the application lifetime.
-- Focused tests use deterministic adapters and assert the product outcome plus internal adapter evidence. The 10-suite qualification gate remains CI-only unless explicitly approved for local use.
+- Focused tests use deterministic adapters and assert the product outcome plus internal adapter evidence.
 
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification
 

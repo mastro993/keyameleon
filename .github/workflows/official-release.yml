@@ -33,7 +33,7 @@ jobs:
   produce:
     name: Produce Official Release artifacts
     needs: verify-tag
-    runs-on: macos-15
+    runs-on: macos-26
     environment: official-release
     steps:
       - uses: actions/checkout@v4

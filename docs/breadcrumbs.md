@@ -1,11 +1,17 @@
 # Breadcrumbs
 
+## 2026-08-11 — Product validation simplification
+
+- Reduced CI to one macOS 26 test job with the focused suite and safety audit.
+- Removed repeated qualification, 100,000-event stress, human qualification evidence, and performance quotas.
+- Replaced qualification guidance with `docs/testing.md` and recorded the decision in `docs/adr/0001-product-validation.md`.
+
 ## 2026-08-11 — Issue #39 Activity-Triggered Switching module
 
 - Added `Sources/App/ActivityTriggeredSwitching.swift` and `Sources/Domain/ActivityTriggeredSwitchingOutcome.swift`.
 - Added shared Physical Keyboard discovery, Input Source, Physical Keyboard record change observation, and Operational Notification modules.
 - Added `KeyameleonProductionFactory` at the application composition root. SetupModel now owns management only; RootView and Daily Status read the canonical switching outcome.
-- Focused Swift Testing covers the preserved activation, convergence, recovery, lifecycle, pause, notification, privacy, and qualification behavior through deterministic adapter evidence.
+- Focused Swift Testing covers the preserved activation, convergence, recovery, lifecycle, pause, notification, and privacy behavior through deterministic adapter evidence.
 
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification
 
