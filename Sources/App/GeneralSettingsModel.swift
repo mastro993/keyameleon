@@ -4,7 +4,7 @@ import Combine
 @MainActor
 final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var isLaunchAtLoginEnabled: Bool
-    @Published private(set) var launchAtLoginErrorMessage: String?
+    @Published private(set) var launchAtLoginError: LaunchAtLoginChangeError?
     @Published private(set) var canCheckForUpdates: Bool
     @Published private(set) var isDiagnosticSessionActive: Bool
     @Published private(set) var diagnosticRecordCount: Int
@@ -40,7 +40,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.operationalNotifications = notifications
         self.notificationSettingsOpener = notificationSettingsOpener
         self.isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
-        self.launchAtLoginErrorMessage = nil
+        self.launchAtLoginError = nil
         self.canCheckForUpdates = updateChecker.canCheckForUpdates
         self.isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
         self.diagnosticRecordCount = diagnosticDataController.recordCount
@@ -66,10 +66,10 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         switch launchAtLoginController.setEnabled(enabled) {
         case .success:
             isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
-            launchAtLoginErrorMessage = nil
+            launchAtLoginError = nil
         case .failure:
             isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
-            launchAtLoginErrorMessage = KeyameleonAppMetadata.launchAtLoginErrorMessage
+            launchAtLoginError = .registrationFailed
         }
     }
 

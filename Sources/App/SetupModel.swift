@@ -261,13 +261,13 @@ final class KeyameleonSetupModel {
         setupStore.isActivityTriggeredSwitchingPaused
     }
 
-    var menuFirstActionItems: [MenuFirstActionItem] {
+    var physicalKeyboardActionConditions: [PhysicalKeyboardActionCondition] {
         physicalKeyboards.compactMap { physicalKeyboard in
             switch physicalKeyboard.assignmentState {
             case .unassigned:
                 .unassigned(physicalKeyboardName: physicalKeyboard.name)
             case .assigned:
-                assignmentDisplayName(for: physicalKeyboard) == nil
+                assignedInputSourceName(for: physicalKeyboard) == nil
                     ? .unavailableKeyboardAssignment(physicalKeyboardName: physicalKeyboard.name)
                     : nil
             case .unsupported:
@@ -538,15 +538,15 @@ final class KeyameleonSetupModel {
         case .idle:
             nil
         case .awaitingRemoval:
-            KeyameleonAppMetadata.manualDesignationAwaitingRemovalMessage
+            "Unplug or turn off this Physical Keyboard, then return it."
         case .awaitingReturn:
-            KeyameleonAppMetadata.manualDesignationAwaitingReturnMessage
+            "Return the same Physical Keyboard to continue."
         case .awaitingNameConfirmation:
-            KeyameleonAppMetadata.manualDesignationAwaitingNameMessage
+            "Confirm the Physical Keyboard Name to save Manual Physical Keyboard Designation."
         }
     }
 
-    func assignmentDisplayName(for physicalKeyboard: PhysicalKeyboard) -> String? {
+    func assignedInputSourceName(for physicalKeyboard: PhysicalKeyboard) -> String? {
         guard let identifier = physicalKeyboard.keyboardAssignment?.inputSourceIdentifier else {
             return nil
         }

@@ -283,9 +283,20 @@ func systemNotificationsRequestAlertsOnlyAndSetNoSoundOrBadge() {
     provider.refreshAuthorization { _ in }
     provider.requestAlertAuthorization { _ in }
     provider.send(.listenPermissionRevoked)
+    provider.send(.unavailableKeyboardAssignment)
 
     #expect(center.requestedOptions == [.alert])
-    #expect(center.requests.count == 1)
+    #expect(center.requests.count == 2)
+    #expect(center.requests[0].content.title == "Keyameleon needs attention")
+    #expect(
+        center.requests[0].content.body
+            == "Input Monitoring permission was revoked. Open System Settings to restore Activity-Triggered Switching."
+    )
+    #expect(center.requests[1].content.title == "Keyameleon needs attention")
+    #expect(
+        center.requests[1].content.body
+            == "A Keyboard Assignment is unavailable. Open Keyameleon to change or remove it."
+    )
     #expect(center.requests[0].content.sound == nil)
     #expect(center.requests[0].content.badge == nil)
 }

@@ -73,9 +73,13 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate {
     }
 
     private func defaultUserAgentString() -> String {
+        let applicationName =
+            Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+            ?? "Keyameleon"
         let version =
             Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             ?? "0"
-        return "\(KeyameleonAppMetadata.displayName)/\(version)"
+        return "\(applicationName)/\(version)"
     }
 }

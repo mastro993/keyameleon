@@ -874,7 +874,7 @@ final class ActivityTriggeredSwitching {
 
         return physicalKeyboardRecordStore.record(
             forIdentityKey: physicalKeyboardID.rawValue
-        )?.displayName
+        )?.name
     }
 
     private func displayName(forInputSourceIdentifier identifier: String) -> String? {

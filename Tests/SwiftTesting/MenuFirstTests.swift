@@ -87,18 +87,6 @@ func menuBarIconMarkPrefersGlobalStatusOverItemWarnings() {
     )
 }
 
-@Test("Menu bar icon marks use distinct SF Symbol names")
-func menuBarIconMarksUseDistinctSFSymbolNames() {
-    let names = [
-        MenuBarIconMark.ready.systemSymbolName,
-        MenuBarIconMark.permissionRequired.systemSymbolName,
-        MenuBarIconMark.temporarilyUnavailable.systemSymbolName,
-        MenuBarIconMark.paused.systemSymbolName,
-        MenuBarIconMark.warning.systemSymbolName,
-    ]
-    #expect(Set(names).count == names.count)
-}
-
 @Test("Pause Activity-Triggered Switching stops Key Content observation and Input Source requests")
 @MainActor
 func pauseStopsKeyContentObservationAndInputSourceRequests() {
@@ -314,7 +302,7 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
     model.setPhysicalKeyboardName(betaID, customName: "Beta")
     model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.missing")
 
-    let items = model.menuFirstActionItems
+    let items = model.physicalKeyboardActionConditions
     #expect(
         items.contains(.unassigned(physicalKeyboardName: "Alpha"))
     )

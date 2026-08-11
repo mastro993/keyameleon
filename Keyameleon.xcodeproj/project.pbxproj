@@ -62,8 +62,6 @@
 		C0C969EF50297720863A4CF1 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EAAA7C23460CFB5FE490B2 /* UserNotifications.framework */; };
 		C1A606BD0243F455A1F60D87 /* QualificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52F6B0BF3DDF0504B7BB207E /* QualificationTests.swift */; };
 		C2E80761E04D1CB57A29B615 /* PhysicalKeyboardDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E448EF2582F9A857DE37EC7B /* PhysicalKeyboardDiscovery.swift */; };
-		C6A30BAE10D35667BEE3C532 /* AppMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A88FA81549C7865F5809310 /* AppMetadataTests.swift */; };
-		C8589E58F8EC3BEA31A3863B /* AppMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23C999C4B03D2895A2E4667 /* AppMetadata.swift */; };
 		CABD1BC3E4A2D1B54E22FC5B /* ListenPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = E182B1A00967D6ABCB27D357 /* ListenPermission.swift */; };
 		CC4D4CD3FDBEABF26DFD8779 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2F89B01FA50D2E2724A74C3 /* AppKit.framework */; };
 		CDEB08A343F64C57326A72EE /* ManualDesignationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */; };
@@ -106,7 +104,6 @@
 		02BECCA44F5BC3EBD06111BE /* DiagnosticDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataStore.swift; sourceTree = "<group>"; };
 		077A1A619B7B568508D1505F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0A301EAA639B770F7935C3B7 /* UncleanExitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UncleanExitTests.swift; sourceTree = "<group>"; };
-		0A88FA81549C7865F5809310 /* AppMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMetadataTests.swift; sourceTree = "<group>"; };
 		0E800175BE23F1A513268887 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
 		11414C3BBD0946C0653CE62E /* DiagnosticData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticData.swift; sourceTree = "<group>"; };
 		121A7F398BDBAFE53E28C58E /* SetupModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupModelTests.swift; sourceTree = "<group>"; };
@@ -156,7 +153,6 @@
 		A760C722DF4EA56CBAAB76C6 /* UncleanExitState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UncleanExitState.swift; sourceTree = "<group>"; };
 		AC6BDE001E72B645ABFC8A82 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		AEDB8B347F199B06902DF758 /* ReleasePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicy.swift; sourceTree = "<group>"; };
-		B23C999C4B03D2895A2E4667 /* AppMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMetadata.swift; sourceTree = "<group>"; };
 		B53925154A212D0013E930A2 /* ManualPhysicalKeyboardDesignationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignationStore.swift; sourceTree = "<group>"; };
 		B6F2F27F6D94088F0A945139 /* RecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryTests.swift; sourceTree = "<group>"; };
 		BAFD6C2C12E6744103679EBE /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
@@ -290,7 +286,6 @@
 			isa = PBXGroup;
 			children = (
 				D4618DF3A4D7D688A018029F /* ActivityTriggeredSwitchingOutcome.swift */,
-				B23C999C4B03D2895A2E4667 /* AppMetadata.swift */,
 				11414C3BBD0946C0653CE62E /* DiagnosticData.swift */,
 				A0DD2621A84D0D5ACCEFA2F4 /* InputSource.swift */,
 				24ED6FFDC073384B3CF3D346 /* ManualPhysicalKeyboardDesignation.swift */,
@@ -337,7 +332,6 @@
 			children = (
 				469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */,
 				21B40ED2A24EAC1F629D66B0 /* ActivityTriggeredSwitchingTestSupport.swift */,
-				0A88FA81549C7865F5809310 /* AppMetadataTests.swift */,
 				15E37E4A630DC2EC1DFDE3DE /* AssignmentTests.swift */,
 				6E98D0AC0DC16B488CC68F34 /* ConvergenceTests.swift */,
 				2524EEFA1711ADE5CEAF4EAA /* DiagnosticDataTests.swift */,
@@ -492,7 +486,6 @@
 				3E02FF3A6A4FDD305B87E364 /* ActivityTriggeredSwitching.swift in Sources */,
 				7B145D316009D170DF60B2EC /* ActivityTriggeredSwitchingOutcome.swift in Sources */,
 				63436FC2E915F0B83273023C /* App.swift in Sources */,
-				C8589E58F8EC3BEA31A3863B /* AppMetadata.swift in Sources */,
 				906721B0DAE0F8DF5F7B2847 /* ApplicationDelegate.swift in Sources */,
 				A7C36DFDA7414A19C6CDE713 /* DiagnosticBundleReviewView.swift in Sources */,
 				3CCBEAB699835B72E4EF0C59 /* DiagnosticData.swift in Sources */,
@@ -542,7 +535,6 @@
 			files = (
 				8CD922A19D618C9525EC5490 /* ActivationActivityTests.swift in Sources */,
 				740557F4153CE4F60FDA8632 /* ActivityTriggeredSwitchingTestSupport.swift in Sources */,
-				C6A30BAE10D35667BEE3C532 /* AppMetadataTests.swift in Sources */,
 				35C4F14DEBE88C93C6B5A2A3 /* AssignmentTests.swift in Sources */,
 				03C20AF1309BDDFD13859B7B /* ConvergenceTests.swift in Sources */,
 				744BCF16F1595722CC1E7D0F /* DiagnosticDataTests.swift in Sources */,

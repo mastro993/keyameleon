@@ -340,16 +340,6 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
     #expect(model.activePhysicalKeyboardID == iotaID)
 }
 
-@Test("Input Source mismatch copy explains later Activation Activity restores assignment")
-func inputSourceMismatchCopyExplainsLaterActivationActivityRestoresAssignment() {
-    #expect(KeyameleonAppMetadata.currentInputSourceLabel == "Current Input Source")
-    #expect(KeyameleonAppMetadata.assignedInputSourceLabel == "Assigned Input Source")
-    #expect(
-        KeyameleonAppMetadata.inputSourceRestoresAfterActivation
-            == "Later Activation Activity restores the Keyboard Assignment."
-    )
-}
-
 @MainActor
 final class SetupModelTestInputSourceChangeObserver: InputSourceChangeObserving {
     private var onChange: (@MainActor () -> Void)?

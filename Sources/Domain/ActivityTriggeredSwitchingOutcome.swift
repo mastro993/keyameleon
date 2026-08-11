@@ -29,7 +29,13 @@ struct ActivityTriggeredSwitchingWarning: Identifiable, Equatable, Hashable, Sen
     let recoveryAction: SwitchingRecoveryAction
 
     var id: String {
-        [category.rawValue, physicalKeyboardName ?? ""].joined(separator: "|")
+        let categoryKey = switch category {
+        case .selectionFailed:
+            "selection-failed"
+        case .unavailableKeyboardAssignment:
+            "unavailable-keyboard-assignment"
+        }
+        return [categoryKey, physicalKeyboardName ?? ""].joined(separator: "|")
     }
 
     var supportsRetryNow: Bool {

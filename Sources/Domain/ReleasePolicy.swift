@@ -63,7 +63,7 @@ struct KeyameleonReleaseEvidence: Equatable, Codable, Sendable {
     var feedURLString: String
 
     init(
-        product: String = KeyameleonAppMetadata.displayName,
+        product: String = "Keyameleon",
         licenseSPDXIdentifier: String = KeyameleonReleasePolicy.licenseSPDXIdentifier,
         tag: String,
         semanticVersion: String,

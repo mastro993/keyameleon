@@ -14,7 +14,7 @@ final class KeyameleonWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = KeyameleonAppMetadata.mainWindowTitle
+        window.title = "Keyameleon"
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.main-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false
