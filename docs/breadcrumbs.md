@@ -2,10 +2,19 @@
 
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification
 
-- Added `./Scripts/run.sh qualify` for source audit, application build, complete tests, and privacy-safe human evidence evaluation.
+- Added `./Scripts/run.sh qualify-setup-accessibility` for source audit, application build, complete tests, and privacy-safe human evidence evaluation.
 - Added required case rows for Guided setup, management, Switching Status and recovery, Diagnostic Bundle and General Settings, keyboard operation, VoiceOver, visible state, and Reduce Motion on macOS 15 and macOS 26.
 - Added stable SwiftUI accessibility identifiers for qualification discovery and verified the lifecycle UI journey through quit.
 - Human physical and accessibility qualification remains required. Missing or unrun evidence is `inconclusive` and blocks an Official Release.
+
+## 2026-08-10 — Issue #17 Automated Qualification
+
+- Added source, dependency, binary, network, and crash-surface audits.
+- Added deterministic 100,000 Physical Keyboard Event stress coverage and
+  Activation Activity privacy sentinels.
+- Added 10-consecutive-suite qualification with sanitized evidence and explicit
+  pass, fail, or inconclusive verdicts.
+- CI runs qualification on macOS 15 and macOS 26.
 
 ## 2026-08-10 — Issue #16
 

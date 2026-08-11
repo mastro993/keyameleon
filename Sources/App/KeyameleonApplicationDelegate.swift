@@ -420,6 +420,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     @objc
     private func openKeyameleon(_ sender: Any?) {
+        NSApp.activate(ignoringOtherApps: true)
+
         if windowController == nil {
             windowController = KeyameleonWindowController(
                 model: setupModel,
@@ -428,7 +430,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
 
         windowController?.showWindow(sender)
-        NSApp.activate(ignoringOtherApps: true)
+        windowController?.window?.orderFrontRegardless()
     }
 
     @objc
@@ -498,6 +500,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     @objc
     private func quitKeyameleon(_ sender: Any?) {
+        NSApp.activate(ignoringOtherApps: true)
         NSApp.terminate(sender)
     }
 
@@ -521,8 +524,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        if !isPopulatingOpenMenu, !isStatusMenuOpen {
-            statusItem.menu = makeMenu()
+        if !isPopulatingOpenMenu,
+           !isStatusMenuOpen,
+           let menu = statusItem.menu
+        {
+            // Keep one NSMenu instance. Replacing it while AppKit opens the status menu
+            // can invalidate the menu item that accessibility clients are traversing.
+            populateMenu(menu)
         }
         if let button = statusItem.button {
             applyMenuBarIcon(to: button)

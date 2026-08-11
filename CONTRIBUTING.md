@@ -20,6 +20,10 @@ not the contribution path. Each PR must:
 - Use XCTest under `Tests/XCTest` for AppKit shell contracts when needed
 - UI tests under `Tests/UITests` for lifecycle checks that need a running app
 - Run `./Scripts/run.sh test` before requesting review
+- Run `./Scripts/run.sh qualify` for the 10-run automated qualification gate;
+  read `docs/qualification.md` for platform coverage and verdict rules
+- Run `./Scripts/run.sh qualify-setup-accessibility` when collecting Guided
+  setup and accessibility evidence; read `docs/qualification/setup-accessibility.md`
 
 ## Code of collaboration
 

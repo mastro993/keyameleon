@@ -29,13 +29,20 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         closeWindow(initialWindow)
 
         statusItem.click()
-        menuItem("Open Keyameleon…", in: statusItem).click()
+        clickMenuItem("Open Keyameleon…", in: statusItem)
 
         let window = app.windows["Keyameleon"]
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
 
+        closeWindow(window)
+
         statusItem.click()
-        XCTAssertTrue(menuItem("Quit Keyameleon", in: statusItem).exists)
+        clickMenuItem("Open Keyameleon…", in: statusItem)
+        XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
+
+        statusItem.click()
+        let quitItem = statusItem.menuItems["Quit Keyameleon"]
+        XCTAssertTrue(quitItem.waitForExistence(timeout: menuTimeout))
         app.typeKey("q", modifierFlags: .command)
         if !app.wait(for: .notRunning, timeout: 2) {
             app.terminate()
@@ -43,10 +50,10 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         }
     }
 
-    private func menuItem(_ title: String, in statusItem: XCUIElement) -> XCUIElement {
+    private func clickMenuItem(_ title: String, in statusItem: XCUIElement) {
         let item = statusItem.menuItems[title]
         XCTAssertTrue(item.waitForExistence(timeout: menuTimeout))
-        return item
+        item.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
     }
 
     private func closeWindow(_ window: XCUIElement) {
