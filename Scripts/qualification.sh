@@ -45,15 +45,15 @@ run_case() {
 
 audit_network_and_crash_surfaces() {
     local network_pattern='URLSession|URLRequest|NSURLConnection|URLProtocol|uploadTask|dataTask|diagnostic[[:space:]]+(upload|endpoint|request)|crash[[:space:]]+(upload|endpoint|request)|Sentry|Crashlytics|MetricKit|PLCrashReporter'
-    if rg -n -i "$network_pattern" Sources; then
+    if grep -E -n -i "$network_pattern" -R Sources; then
         echo "diagnostic or crash network surface found" >&2
         return 1
     fi
 }
 
 audit_qualification_test_contract() {
-    rg -q '100_000' Tests/SwiftTesting/KeyameleonQualificationTests.swift
-    rg -q 'SENTINEL_IDENTITY|SENTINEL_SERIAL|KeyContentPayload' Tests/SwiftTesting/KeyameleonQualificationTests.swift
+    grep -E -q '100_000' Tests/SwiftTesting/KeyameleonQualificationTests.swift
+    grep -E -q 'SENTINEL_IDENTITY|SENTINEL_SERIAL|KeyContentPayload' Tests/SwiftTesting/KeyameleonQualificationTests.swift
 }
 
 audit_console_output() {
@@ -61,7 +61,7 @@ audit_console_output() {
     local log_path
     for log_path in "${run_dir}"/*.log; do
         [[ -f "$log_path" ]] || continue
-        if rg -n "$sentinel_pattern" "$log_path"; then
+        if grep -E -n "$sentinel_pattern" "$log_path"; then
             echo "controlled Key Content sentinel found in console output" >&2
             return 1
         fi
@@ -89,7 +89,7 @@ audit_files() {
         done < <(find "${app_path}/Contents" -type f ! -path "${app_path}/Contents/PlugIns/*" -print0)
     fi
 
-    if ((${#scan_paths[@]} > 0)) && rg -a -n "$sentinel_pattern" "${scan_paths[@]}"; then
+    if ((${#scan_paths[@]} > 0)) && grep -a -E -n "$sentinel_pattern" "${scan_paths[@]}"; then
         echo "controlled Key Content sentinel found in generated files" >&2
         return 1
     fi
@@ -127,13 +127,13 @@ audit_binary() {
     }
 
     local forbidden_pattern='HIDVirtualDevice|IOHIDUserDevice|IOHIDEventSystem|IOHIDPostEvent|seizeDevice|kIOHIDRequestTypePostEvent|CGEvent(Post|Create|Tap)?|CGRequest(Post|Preflight)EventAccess|DriverKit|Tauri|Electron|sendEvent|NSEvent.*(keyEvent|mouseEvent)|Sentry|Crashlytics|MetricKit|PLCrashReporter|diagnosticUpload|crashReportUpload|Analytics|Telemetry'
-    if rg -n -i "$forbidden_pattern" "$surface_path"; then
+    if grep -E -n -i "$forbidden_pattern" "$surface_path"; then
         echo "forbidden binary surface found" >&2
         return 1
     fi
 
     local sentinel_pattern='SENTINEL_IDENTITY|SENTINEL_SERIAL|KeyContentPayload|physical-identity-sensitive-sentinel|Key Content sensitive sentinel|macOS crash report sensitive sentinel|/Users/sensitive-sentinel'
-    if rg -n "$sentinel_pattern" "$surface_path"; then
+    if grep -E -n "$sentinel_pattern" "$surface_path"; then
         echo "controlled Key Content sentinel found in binary" >&2
         return 1
     fi
