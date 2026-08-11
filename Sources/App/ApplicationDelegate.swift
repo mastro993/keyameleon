@@ -1,4 +1,5 @@
 import AppKit
+import Darwin
 import Observation
 @preconcurrency import SwiftData
 
@@ -8,6 +9,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let activityTriggeredSwitching: ActivityTriggeredSwitching
     private let updateChecker: any UpdateChecking
     private let lifecycleObserver: any KeyameleonLifecycleObserving
+    private let singleInstanceLock: KeyameleonSingleInstanceLock
     private let startsUpdaterOnLaunch: Bool
     private let uncleanExitStateStore: any UncleanExitStateStoring
     let generalSettingsModel: KeyameleonGeneralSettingsModel
@@ -38,6 +40,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     override convenience init() {
+        guard let singleInstanceLock = KeyameleonSingleInstanceLock.acquire() else {
+            Darwin.exit(KeyameleonSingleInstanceLock.blockedLaunchExitCode)
+        }
+
         let setupStore = UserDefaultsSetupDecisionStore()
         let uncleanExitStateStore = UserDefaultsUncleanExitStateStore()
         if ProcessInfo.processInfo.arguments.contains("--reset-guided-setup") {
@@ -105,7 +111,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
             startsUpdaterOnLaunch: !isUITesting,
             modelContainer: modelContainer,
-            diagnosticModelContainer: diagnosticModelContainer
+            diagnosticModelContainer: diagnosticModelContainer,
+            singleInstanceLock: singleInstanceLock
         )
     }
 
@@ -119,10 +126,12 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         updateChecker: any UpdateChecking,
         startsUpdaterOnLaunch: Bool,
         modelContainer: ModelContainer?,
-        diagnosticModelContainer: ModelContainer?
+        diagnosticModelContainer: ModelContainer?,
+        singleInstanceLock: KeyameleonSingleInstanceLock
     ) {
         self.modelContainer = modelContainer
         self.diagnosticModelContainer = diagnosticModelContainer
+        self.singleInstanceLock = singleInstanceLock
         self.updateChecker = updateChecker
         self.lifecycleObserver = lifecycleObserver
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
@@ -152,6 +161,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         observePresentationChanges()
     }
 
+    /// Dependency-injection seam for AppKit tests. A lock is required so this
+    /// initializer cannot construct a delegate without single-instance ownership.
     convenience init(
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
@@ -185,7 +196,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
         modelContainer: ModelContainer? = nil,
-        diagnosticModelContainer: ModelContainer? = nil
+        diagnosticModelContainer: ModelContainer? = nil,
+        singleInstanceLock: KeyameleonSingleInstanceLock
     ) {
         let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
@@ -214,7 +226,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             updateChecker: updateChecker,
             startsUpdaterOnLaunch: startsUpdaterOnLaunch,
             modelContainer: modelContainer,
-            diagnosticModelContainer: diagnosticModelContainer
+            diagnosticModelContainer: diagnosticModelContainer,
+            singleInstanceLock: singleInstanceLock
         )
     }
 
@@ -242,6 +255,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         activityTriggeredSwitching.checkAgain()
         generalSettingsModel.refresh()
         refreshMenuBarPresentation()
+    }
+
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        false
     }
 
     func applicationWillTerminate(_ notification: Notification) {

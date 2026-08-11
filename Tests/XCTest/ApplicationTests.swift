@@ -3,9 +3,27 @@ import XCTest
 @testable import Keyameleon
 
 final class KeyameleonApplicationTests: XCTestCase {
+    private var keyameleonBundle: Bundle? {
+        Bundle(identifier: "dev.fedemas.keyameleon.development")
+            ?? Bundle(identifier: "dev.fedemas.keyameleon")
+    }
+
+    private func makeSingleInstanceLock() -> KeyameleonSingleInstanceLock {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("KeyameleonApplicationTests-\(UUID().uuidString).lock")
+        guard let lock = KeyameleonSingleInstanceLock.acquire(at: url) else {
+            fatalError("Could not acquire test single-instance lock")
+        }
+        try? FileManager.default.removeItem(at: url)
+        return lock
+    }
+
     @MainActor
     func testMenuContainsOpenAndQuitActions() {
-        let delegate = KeyameleonApplicationDelegate()
+        let delegate = KeyameleonApplicationDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            singleInstanceLock: makeSingleInstanceLock()
+        )
         let menu = delegate.makeMenu()
         let titles = menu.items.map(\.title)
 
@@ -35,7 +53,8 @@ final class KeyameleonApplicationTests: XCTestCase {
     @MainActor
     func testMenuShowsNoActivityObservedYetUntilActivation() {
         let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted)
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            singleInstanceLock: makeSingleInstanceLock()
         )
         let menu = delegate.makeMenu()
         let activeTitle = menu.items.first {
@@ -51,7 +70,8 @@ final class KeyameleonApplicationTests: XCTestCase {
         setupStore.setActivityTriggeredSwitchingPaused(true)
         let delegate = KeyameleonApplicationDelegate(
             permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            setupStore: setupStore
+            setupStore: setupStore,
+            singleInstanceLock: makeSingleInstanceLock()
         )
         let menu = delegate.makeMenu()
         let titles = menu.items.map(\.title)
@@ -63,7 +83,10 @@ final class KeyameleonApplicationTests: XCTestCase {
 
     @MainActor
     func testMenuBarIconPresentationMapsEveryStatusMark() {
-        let delegate = KeyameleonApplicationDelegate()
+        let delegate = KeyameleonApplicationDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            singleInstanceLock: makeSingleInstanceLock()
+        )
         let expected: [(MenuBarIconMark, String, String)] = [
             (.ready, "keyboard", "Keyameleon"),
             (.permissionRequired, "keyboard.badge.ellipsis", "Keyameleon — Permission Required"),
@@ -85,7 +108,8 @@ final class KeyameleonApplicationTests: XCTestCase {
     func testMenuShowsDismissibleUncleanExitNoticeAndReviewAction() {
         let uncleanExitState = ApplicationTestUncleanExitStateStore(hasNotice: true)
         let delegate = KeyameleonApplicationDelegate(
-            uncleanExitStateStore: uncleanExitState
+            uncleanExitStateStore: uncleanExitState,
+            singleInstanceLock: makeSingleInstanceLock()
         )
         let menu = delegate.makeMenu()
         let titles = menu.items.map(\.title)
@@ -106,7 +130,8 @@ final class KeyameleonApplicationTests: XCTestCase {
         let updates = ApplicationTestUpdateChecker()
         let delegate = KeyameleonApplicationDelegate(
             updateChecker: updates,
-            startsUpdaterOnLaunch: true
+            startsUpdaterOnLaunch: true,
+            singleInstanceLock: makeSingleInstanceLock()
         )
 
         delegate.applicationDidFinishLaunching(
@@ -121,7 +146,8 @@ final class KeyameleonApplicationTests: XCTestCase {
         let updates = ApplicationTestUpdateChecker()
         let delegate = KeyameleonApplicationDelegate(
             updateChecker: updates,
-            startsUpdaterOnLaunch: false
+            startsUpdaterOnLaunch: false,
+            singleInstanceLock: makeSingleInstanceLock()
         )
 
         delegate.applicationDidFinishLaunching(
@@ -133,7 +159,10 @@ final class KeyameleonApplicationTests: XCTestCase {
 
     @MainActor
     func testClosingLastWindowDoesNotTerminateApplication() {
-        let delegate = KeyameleonApplicationDelegate()
+        let delegate = KeyameleonApplicationDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            singleInstanceLock: makeSingleInstanceLock()
+        )
 
         XCTAssertFalse(
             delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared)
@@ -141,18 +170,35 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testReopenDoesNotReactivateOrOpenTheRunningApplication() {
+        let delegate = KeyameleonApplicationDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            singleInstanceLock: makeSingleInstanceLock()
+        )
+
+        XCTAssertFalse(
+            delegate.applicationShouldHandleReopen(NSApplication.shared, hasVisibleWindows: false)
+        )
+    }
+
+    @MainActor
     func testLaunchedApplicationUsesAccessoryPolicyAndAgentInfo() {
         XCTAssertEqual(NSApp.activationPolicy(), .accessory)
         XCTAssertEqual(
-            Bundle(identifier: "dev.fedemas.keyameleon")?
+            keyameleonBundle?
                 .object(forInfoDictionaryKey: "LSUIElement") as? Bool,
+            true
+        )
+        XCTAssertEqual(
+            keyameleonBundle?
+                .object(forInfoDictionaryKey: "LSMultipleInstancesProhibited") as? Bool,
             true
         )
     }
 
     @MainActor
     func testSparkleInfoPlistEncodesUserApprovedUpdatePolicy() {
-        let bundle = Bundle(identifier: "dev.fedemas.keyameleon")
+        let bundle = keyameleonBundle
         XCTAssertEqual(
             bundle?.object(forInfoDictionaryKey: "SUFeedURL") as? String,
             KeyameleonUpdatePolicy.feedURLString
