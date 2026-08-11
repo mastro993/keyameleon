@@ -18,7 +18,7 @@ func generalSettingsTogglesLaunchAtLogin() {
 
     #expect(launchAtLogin.isEnabled)
     #expect(model.isLaunchAtLoginEnabled)
-    #expect(model.launchAtLoginErrorMessage == nil)
+    #expect(model.launchAtLoginError == nil)
 }
 
 @MainActor
@@ -34,7 +34,7 @@ func generalSettingsSurfacesLaunchAtLoginFailures() {
     model.setLaunchAtLoginEnabled(true)
 
     #expect(model.isLaunchAtLoginEnabled == false)
-    #expect(model.launchAtLoginErrorMessage == KeyameleonAppMetadata.launchAtLoginErrorMessage)
+    #expect(model.launchAtLoginError == .registrationFailed)
 }
 
 @MainActor

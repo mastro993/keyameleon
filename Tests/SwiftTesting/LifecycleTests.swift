@@ -249,9 +249,9 @@ func replacementMovesNameAndAssignmentThenRemovesOldRecord() {
     #expect(returned?.customName == nil)
 }
 
-@Test("Forget confirmation states removed data and reconnect result")
+@Test("Forget candidates expose saved name and connection state")
 @MainActor
-func forgetConfirmationStatesRemovedDataAndReconnectResult() {
+func forgetCandidatesExposeSavedNameAndConnectionState() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
@@ -262,16 +262,15 @@ func forgetConfirmationStatesRemovedDataAndReconnectResult() {
     model.setPhysicalKeyboardName(keyboardID, customName: "Travel")
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.us")
 
-    let connectedMessage = model.forgetConfirmationMessage(for: keyboardID)
-    #expect(connectedMessage.contains("Travel"))
-    #expect(connectedMessage.contains("Physical Keyboard Name"))
-    #expect(connectedMessage.contains("Keyboard Assignment"))
-    #expect(connectedMessage.contains("new and unassigned"))
+    let connectedKeyboard = model.physicalKeyboards.first { $0.id == keyboardID }
+    #expect(connectedKeyboard?.name == "Travel")
+    #expect(connectedKeyboard?.connectionState == .connected)
+    #expect(connectedKeyboard?.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
 
     discoverer.emit(.disconnected(serviceID: 161))
-    let disconnectedMessage = model.forgetConfirmationMessage(for: keyboardID)
-    #expect(disconnectedMessage.contains("Travel"))
-    #expect(disconnectedMessage.contains("disappears"))
+    let disconnectedKeyboard = model.physicalKeyboards.first { $0.id == keyboardID }
+    #expect(disconnectedKeyboard?.name == "Travel")
+    #expect(disconnectedKeyboard?.connectionState == .disconnected)
 }
 
 @Test("Connected forgotten Physical Keyboard reappears unassigned; disconnected disappears")

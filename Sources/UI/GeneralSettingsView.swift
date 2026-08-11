@@ -12,108 +12,119 @@ struct KeyameleonGeneralSettingsView: View {
         Form {
             Section {
                 Toggle(
-                    KeyameleonAppMetadata.launchAtLoginToggleTitle,
+                    "Launch at Login",
                     isOn: launchAtLoginBinding
                 )
-                .accessibilityLabel(KeyameleonAppMetadata.launchAtLoginToggleTitle)
+                .accessibilityLabel("Launch at Login")
 
-                if let errorMessage = model.launchAtLoginErrorMessage {
-                    Text(errorMessage)
+                if model.launchAtLoginError != nil {
+                    Text(
+                        "Could not change Launch at Login. Open System Settings → General → Login Items if macOS requires approval."
+                    )
                         .foregroundStyle(.red)
                         .font(.callout)
                 }
             } header: {
-                Text(KeyameleonAppMetadata.generalSettingsTitle)
+                Text("General")
             } footer: {
-                Text(KeyameleonAppMetadata.launchAtLoginFooter)
+                Text(
+                    "Starts Keyameleon when you log in. Uses Service Management for the main app only."
+                )
                     .foregroundStyle(.secondary)
             }
 
             Section {
-                Text(model.notificationAuthorizationState.displayName)
+                Text(notificationAuthorizationName(model.notificationAuthorizationState))
                     .font(.callout)
-                    .accessibilityLabel(KeyameleonAppMetadata.notificationAuthorizationLabel)
-                    .accessibilityValue(model.notificationAuthorizationState.displayName)
+                    .accessibilityLabel("Notification Authorization")
+                    .accessibilityValue(notificationAuthorizationName(model.notificationAuthorizationState))
 
                 if model.notificationAuthorizationState == .notDetermined {
-                    Button(KeyameleonAppMetadata.enableOperationalNotificationsButtonTitle) {
+                    Button("Enable Operational Notifications") {
                         model.requestOperationalNotificationAuthorization()
                     }
-                    .accessibilityLabel(KeyameleonAppMetadata.enableOperationalNotificationsButtonTitle)
+                    .accessibilityLabel("Enable Operational Notifications")
                 }
 
-                Button(KeyameleonAppMetadata.openNotificationSettingsButtonTitle) {
+                Button("Open System Settings…") {
                     model.openNotificationSettings()
                 }
-                .accessibilityLabel(KeyameleonAppMetadata.openNotificationSettingsButtonTitle)
+                .accessibilityLabel("Open System Settings…")
             } header: {
-                Text(KeyameleonAppMetadata.operationalNotificationSetupTitle)
+                Text("Optional operational notifications")
             } footer: {
-                Text(KeyameleonAppMetadata.notificationAuthorizationFooter)
+                Text(
+                    "Operational notifications are optional. They never block Activity-Triggered Switching. Keyameleon requests alert access only; it does not request sound or icon badge access."
+                )
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
 
             Section {
-                Button(KeyameleonAppMetadata.checkForUpdatesButtonTitle) {
+                Button("Check for Updates…") {
                     model.checkForUpdates()
                 }
                 .disabled(!model.canCheckForUpdates)
-                .accessibilityLabel(KeyameleonAppMetadata.checkForUpdatesButtonTitle)
+                .accessibilityLabel("Check for Updates…")
 
-                Text(KeyameleonAppMetadata.updateApprovalExplanation)
+                Text(
+                    "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
+                )
                     .font(.callout)
                     .foregroundStyle(.secondary)
 
-                Text(KeyameleonAppMetadata.criticalUpdateWarningExplanation)
+                Text(
+                    "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
+                )
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } header: {
-                Text(KeyameleonAppMetadata.updatesSettingsSectionTitle)
+                Text("Updates")
             }
 
             Section {
                 Text(model.isDiagnosticSessionActive
-                    ? KeyameleonAppMetadata.diagnosticSessionActiveStatus
-                    : KeyameleonAppMetadata.diagnosticSessionInactiveStatus)
+                    ? "Active (ends automatically after 10 minutes)"
+                    : "Inactive")
                     .font(.callout)
-                    .accessibilityLabel(KeyameleonAppMetadata.diagnosticSessionStatusLabel)
+                    .accessibilityLabel("Diagnostic Session")
                     .accessibilityValue(
                         model.isDiagnosticSessionActive
-                            ? KeyameleonAppMetadata.diagnosticSessionActiveStatus
-                            : KeyameleonAppMetadata.diagnosticSessionInactiveStatus
+                            ? "Active (ends automatically after 10 minutes)"
+                            : "Inactive"
                     )
 
                 if model.isDiagnosticSessionActive {
-                    Button(KeyameleonAppMetadata.stopDiagnosticSessionButtonTitle) {
+                    Button("Stop Diagnostic Session") {
                         model.stopDiagnosticSession()
                     }
-                    .accessibilityLabel(KeyameleonAppMetadata.stopDiagnosticSessionButtonTitle)
+                    .accessibilityLabel("Stop Diagnostic Session")
                 } else {
-                    Button(KeyameleonAppMetadata.startDiagnosticSessionButtonTitle) {
+                    Button("Start Diagnostic Session") {
                         model.startDiagnosticSession()
                     }
-                    .accessibilityLabel(KeyameleonAppMetadata.startDiagnosticSessionButtonTitle)
+                    .accessibilityLabel("Start Diagnostic Session")
                 }
 
-                Text(KeyameleonAppMetadata.diagnosticDataSummary(
-                    recordCount: model.diagnosticRecordCount,
-                    byteCount: model.diagnosticEstimatedByteCount
-                ))
-                .font(.callout)
-                .foregroundStyle(.secondary)
+                Text(
+                    "\(model.diagnosticRecordCount) records · about \(model.diagnosticEstimatedByteCount) bytes retained"
+                )
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
 
-                Button(KeyameleonAppMetadata.clearAllDiagnosticDataButtonTitle, role: .destructive) {
+                Button("Clear All Diagnostic Data", role: .destructive) {
                     model.clearAllDiagnosticData()
                 }
                 .disabled(model.diagnosticRecordCount == 0)
-                .accessibilityLabel(KeyameleonAppMetadata.clearAllDiagnosticDataButtonTitle)
+                .accessibilityLabel("Clear All Diagnostic Data")
 
                 KeyameleonDiagnosticBundleReviewView(model: model)
             } header: {
-                Text(KeyameleonAppMetadata.diagnosticsSettingsSectionTitle)
+                Text("Diagnostics")
             } footer: {
-                Text(KeyameleonAppMetadata.diagnosticsSettingsFooter)
+                Text(
+                    "Diagnostic Data uses a closed allowlist. It never includes Key Content, exact Physical Keyboard Identity values, serial numbers, custom names, Keyboard Assignments, Input Source identifiers, paths, user names, or application names. Retention stops at 7 days or 5 MB."
+                )
                     .foregroundStyle(.secondary)
             }
         }
@@ -130,5 +141,20 @@ struct KeyameleonGeneralSettingsView: View {
             get: { model.isLaunchAtLoginEnabled },
             set: { model.setLaunchAtLoginEnabled($0) }
         )
+    }
+
+    private func notificationAuthorizationName(
+        _ state: OperationalNotificationAuthorizationState
+    ) -> String {
+        switch state {
+        case .unknown:
+            "Checking"
+        case .notDetermined:
+            "Not requested"
+        case .denied:
+            "Denied"
+        case .authorized:
+            "Authorized"
+        }
     }
 }

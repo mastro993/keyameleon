@@ -16,35 +16,37 @@ struct KeyameleonDiagnosticBundleReviewView: View {
         let summary = model.diagnosticBundle.summary
 
         VStack(alignment: .leading, spacing: 12) {
-            Text(KeyameleonAppMetadata.diagnosticBundleReviewTitle)
+            Text("Review Diagnostic Bundle")
                 .font(.headline)
 
-            Text(KeyameleonAppMetadata.diagnosticBundleReviewExplanation)
+            Text(
+                "Review included Diagnostic Data and exclusions before you save or share. Each action is explicit."
+            )
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
             if summary.recordCount == 0 {
-                Text(KeyameleonAppMetadata.diagnosticBundleNoData)
+                Text("No Diagnostic Data retained.")
                     .foregroundStyle(.secondary)
             }
 
             diagnosticBundleSummary(summary)
 
             HStack {
-                Button(KeyameleonAppMetadata.saveDiagnosticBundleButtonTitle) {
+                Button("Save Diagnostic Bundle…") {
                     prepareFileExport()
                 }
                 .disabled(summary.recordCount == 0)
-                .accessibilityLabel(KeyameleonAppMetadata.saveDiagnosticBundleButtonTitle)
+                .accessibilityLabel("Save Diagnostic Bundle…")
 
                 ShareLink(
                     item: DiagnosticBundleShareItem(data: model.diagnosticBundle.data),
-                    preview: SharePreview(KeyameleonAppMetadata.diagnosticBundleSharePreviewTitle)
+                    preview: SharePreview("Diagnostic Bundle")
                 ) {
-                    Text(KeyameleonAppMetadata.shareDiagnosticBundleButtonTitle)
+                    Text("Share Diagnostic Bundle…")
                 }
                 .disabled(summary.recordCount == 0)
-                .accessibilityLabel(KeyameleonAppMetadata.shareDiagnosticBundleButtonTitle)
+                .accessibilityLabel("Share Diagnostic Bundle…")
             }
 
             if let saveError {
@@ -56,15 +58,15 @@ struct KeyameleonDiagnosticBundleReviewView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-        .accessibilityIdentifier(KeyameleonAppMetadata.diagnosticBundleReviewAccessibilityIdentifier)
+        .accessibilityIdentifier("diagnostic-bundle-review")
         .fileExporter(
             isPresented: $isShowingFileExporter,
             document: fileDocument,
             contentType: .json,
-            defaultFilename: KeyameleonAppMetadata.diagnosticBundleDefaultFilename
+            defaultFilename: "Keyameleon-Diagnostic-Bundle"
         ) { result in
             if case .failure = result {
-                saveError = KeyameleonAppMetadata.diagnosticBundleSaveFailedMessage
+                saveError = "Could not save Diagnostic Bundle."
             }
         }
         .onAppear {
@@ -75,25 +77,25 @@ struct KeyameleonDiagnosticBundleReviewView: View {
     private func diagnosticBundleSummary(_ summary: DiagnosticBundleSummary) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             summaryLine(
-                label: KeyameleonAppMetadata.diagnosticBundleIncludedCategoriesLabel,
+                label: "Included categories",
                 value: summary.includedCategories.isEmpty
-                    ? KeyameleonAppMetadata.diagnosticBundleNoIncludedCategories
-                    : summary.includedCategories.map(\.displayName).joined(separator: ", ")
+                    ? "None"
+                    : summary.includedCategories.map(diagnosticCategoryName).joined(separator: ", ")
             )
             summaryLine(
-                label: KeyameleonAppMetadata.diagnosticBundleExcludedDataLabel,
+                label: "Excluded sensitive data",
                 value: summary.excludedSensitiveData.joined(separator: ", ")
             )
             summaryLine(
-                label: KeyameleonAppMetadata.diagnosticBundleDateRangeLabel,
+                label: "Date range",
                 value: dateRangeDescription(summary.dateRange)
             )
             summaryLine(
-                label: KeyameleonAppMetadata.diagnosticBundleRecordCountLabel,
+                label: "Record count",
                 value: summary.recordCount.formatted()
             )
             summaryLine(
-                label: KeyameleonAppMetadata.diagnosticBundleSizeLabel,
+                label: "Size",
                 value: ByteCountFormatter.string(
                     fromByteCount: Int64(summary.byteCount),
                     countStyle: .file
@@ -115,12 +117,27 @@ struct KeyameleonDiagnosticBundleReviewView: View {
 
     private func dateRangeDescription(_ dateRange: DiagnosticBundleDateRange?) -> String {
         guard let dateRange else {
-            return KeyameleonAppMetadata.diagnosticBundleNoDateRange
+            return "No records"
         }
 
         let start = dateRange.start.formatted(date: .abbreviated, time: .shortened)
         let end = dateRange.end.formatted(date: .abbreviated, time: .shortened)
         return start == end ? start : "\(start) – \(end)"
+    }
+
+    private func diagnosticCategoryName(_ category: DiagnosticCategory) -> String {
+        switch category {
+        case .operationalError:
+            "Operational errors"
+        case .operationalStateChange:
+            "Operational state changes"
+        case .observationOrder:
+            "Observation order"
+        case .inputSourceSelectionResult:
+            "Input Source selection results"
+        case .sessionLifecycle:
+            "Diagnostic Session lifecycle"
+        }
     }
 
     private func prepareFileExport() {

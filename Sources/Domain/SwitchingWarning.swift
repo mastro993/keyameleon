@@ -1,28 +1,15 @@
 import Foundation
 
-/// Plain failure category shown to the user. Never a raw platform error.
-enum SwitchingFailureCategory: String, Equatable, Sendable {
-    case selectionFailed = "Selection failed"
-    case unavailableKeyboardAssignment = "Unavailable Keyboard Assignment"
-
-    var displayName: String {
-        rawValue
-    }
+/// Typed failure category. Never a raw platform error.
+enum SwitchingFailureCategory: Equatable, Sendable {
+    case selectionFailed
+    case unavailableKeyboardAssignment
 }
 
 /// Explicit recovery the user can take for an active warning.
 enum SwitchingRecoveryAction: Equatable, Sendable {
     case retryNow
     case changeOrRemoveAssignment
-
-    var displayName: String {
-        switch self {
-        case .retryNow:
-            "Retry Now"
-        case .changeOrRemoveAssignment:
-            "Change Assignment or Remove Assignment"
-        }
-    }
 }
 
 /// One active cause of switching trouble. Repeated Physical Keyboard Events share this warning.

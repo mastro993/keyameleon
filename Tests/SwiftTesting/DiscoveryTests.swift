@@ -176,7 +176,7 @@ func readySwitchingStatusStartsDiscoveryAndPublishesConfigurationChoices() {
 
     #expect(discoverer.startCount == 1)
     #expect(model.physicalKeyboards.count == 1)
-    #expect(model.physicalKeyboards[0].statusDescription == "Unassigned")
+    #expect(model.physicalKeyboards[0].assignmentState == .unassigned)
     #expect(model.eligibleInputSources.map { $0.name } == ["U.S."])
 }
 

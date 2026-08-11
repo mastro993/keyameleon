@@ -62,11 +62,10 @@ final class SystemInputSourceChangeObserver: InputSourceChangeObserving {
     }
 }
 
-/// Presentation when the observed current Input Source differs from the Active assignment.
-struct InputSourceMismatchPresentation: Equatable, Sendable {
-    let currentName: String
-    let assignedName: String
-    let restorationExplanation: String
+/// Typed fact when the observed current Input Source differs from the Active assignment.
+struct InputSourceMismatch: Equatable, Sendable {
+    let currentInputSourceIdentifier: String
+    let assignedInputSourceIdentifier: String
 }
 
 @MainActor

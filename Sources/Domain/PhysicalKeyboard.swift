@@ -5,19 +5,6 @@ enum PhysicalKeyboardTransport: Equatable, Sendable {
     case bluetooth
     case bluetoothLowEnergy
     case other
-
-    var displayName: String {
-        switch self {
-        case .usb:
-            "USB"
-        case .bluetooth:
-            "Bluetooth"
-        case .bluetoothLowEnergy:
-            "Bluetooth Low Energy"
-        case .other:
-            "Other"
-        }
-    }
 }
 
 struct PhysicalKeyboardIdentity: Hashable, Sendable {
@@ -80,19 +67,6 @@ enum PhysicalKeyboardUnsupportedReason: Equatable, Sendable {
     case unstableIdentity
     case sharedIdentity
     case ambiguousIdentity
-
-    var displayName: String {
-        switch self {
-        case .missingIdentity:
-            "Physical Keyboard Identity unavailable"
-        case .unstableIdentity:
-            "Physical Keyboard Identity unstable"
-        case .sharedIdentity:
-            "Physical Keyboard Identity shared"
-        case .ambiguousIdentity:
-            "Physical Keyboard Identity ambiguous"
-        }
-    }
 }
 
 struct KeyboardAssignment: Equatable, Sendable {
@@ -182,15 +156,6 @@ struct PhysicalKeyboardRecordID: Hashable, Sendable {
 enum PhysicalKeyboardConnectionState: Equatable, Sendable {
     case connected
     case disconnected
-
-    var displayName: String {
-        switch self {
-        case .connected:
-            "Connected"
-        case .disconnected:
-            "Disconnected"
-        }
-    }
 }
 
 struct SavedPhysicalKeyboardRecord: Equatable, Sendable {
@@ -211,7 +176,7 @@ struct SavedPhysicalKeyboardRecord: Equatable, Sendable {
         self.keyboardAssignment = keyboardAssignment
     }
 
-    var displayName: String {
+    var name: String {
         customName ?? productName
     }
 
@@ -253,17 +218,6 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
             true
         case .unsupported:
             false
-        }
-    }
-
-    var statusDescription: String {
-        switch assignmentState {
-        case .unassigned:
-            "Unassigned"
-        case .assigned:
-            "Assigned"
-        case let .unsupported(reason):
-            "Unsupported — \(reason.displayName)"
         }
     }
 

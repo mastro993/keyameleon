@@ -176,44 +176,18 @@ final class KeyameleonSetupModel: ObservableObject {
         return physicalKeyboards.first { $0.id == activePhysicalKeyboardID }
     }
 
-    var activePhysicalKeyboardMenuValue: String {
-        activePhysicalKeyboard?.name ?? KeyameleonAppMetadata.noActivityObservedYet
-    }
-
-    var activeKeyboardAssignmentMenuValue: String {
-        guard let activePhysicalKeyboard else {
-            return KeyameleonAppMetadata.menuValueUnavailable
-        }
-
-        switch activePhysicalKeyboard.assignmentState {
-        case .unassigned:
-            return "Unassigned"
-        case .assigned:
-            return assignmentDisplayName(for: activePhysicalKeyboard)
-                ?? "Unavailable Keyboard Assignment"
-        case let .unsupported(reason):
-            return "Unsupported — \(reason.displayName)"
-        }
-    }
-
-    var currentInputSourceMenuValue: String {
-        if let identifier = observedCurrentInputSourceIdentifier
-            ?? inputSourceSelector.currentInputSourceIdentifier()
-        {
-            return displayName(forInputSourceIdentifier: identifier)
-        }
-
-        return KeyameleonAppMetadata.menuValueUnavailable
+    var currentInputSourceIdentifier: String? {
+        observedCurrentInputSourceIdentifier ?? inputSourceSelector.currentInputSourceIdentifier()
     }
 
     /// Item conditions that need user action. Global status stays separate.
-    var menuFirstActionItems: [MenuFirstActionItem] {
+    var physicalKeyboardActionConditions: [PhysicalKeyboardActionCondition] {
         physicalKeyboards.compactMap { physicalKeyboard in
             switch physicalKeyboard.assignmentState {
             case .unassigned:
                 .unassigned(physicalKeyboardName: physicalKeyboard.name)
             case .assigned:
-                if assignmentDisplayName(for: physicalKeyboard) == nil {
+                if assignedInputSourceName(for: physicalKeyboard) == nil {
                     .unavailableKeyboardAssignment(physicalKeyboardName: physicalKeyboard.name)
                 } else {
                     nil
@@ -225,7 +199,7 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     var hasItemConditionsNeedingAction: Bool {
-        !menuFirstActionItems.isEmpty || !isSetupComplete || activeInputSourceMismatch != nil
+        !physicalKeyboardActionConditions.isEmpty || !isSetupComplete || activeInputSourceMismatch != nil
     }
 
     var menuBarIconMark: MenuBarIconMark {
@@ -236,7 +210,7 @@ final class KeyameleonSetupModel: ObservableObject {
     }
 
     /// Current vs assigned when Active Physical Keyboard assignment differs from observed current.
-    var activeInputSourceMismatch: InputSourceMismatchPresentation? {
+    var activeInputSourceMismatch: InputSourceMismatch? {
         guard let activePhysicalKeyboard,
               case let .assigned(assignment) = activePhysicalKeyboard.assignmentState,
               let currentIdentifier = observedCurrentInputSourceIdentifier,
@@ -245,10 +219,9 @@ final class KeyameleonSetupModel: ObservableObject {
             return nil
         }
 
-        return InputSourceMismatchPresentation(
-            currentName: displayName(forInputSourceIdentifier: currentIdentifier),
-            assignedName: displayName(forInputSourceIdentifier: assignment.inputSourceIdentifier),
-            restorationExplanation: KeyameleonAppMetadata.inputSourceRestoresAfterActivation
+        return InputSourceMismatch(
+            currentInputSourceIdentifier: currentIdentifier,
+            assignedInputSourceIdentifier: assignment.inputSourceIdentifier
         )
     }
 
@@ -845,41 +818,6 @@ final class KeyameleonSetupModel: ObservableObject {
         onChange?()
     }
 
-    func forgetConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
-        else {
-            return ""
-        }
-
-        let removedData =
-            "This removes the saved Physical Keyboard Name, Keyboard Assignment, Manual Physical Keyboard Designation, and linked Diagnostic Data for \(physicalKeyboard.name)."
-        let reconnectResult =
-            switch physicalKeyboard.connectionState {
-            case .connected:
-                "This connected Physical Keyboard reappears as new and unassigned."
-            case .disconnected:
-                "This disconnected Physical Keyboard disappears."
-            }
-
-        return "\(removedData) \(reconnectResult)"
-    }
-
-    func replaceConfirmationMessage(
-        replacing disconnectedID: PhysicalKeyboardRecordID,
-        with connectedID: PhysicalKeyboardRecordID
-    ) -> String {
-        guard let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
-              let connected = physicalKeyboards.first(where: { $0.id == connectedID })
-        else {
-            return ""
-        }
-
-        return """
-        Move the Physical Keyboard Name and Keyboard Assignment from \(disconnected.name) to \(connected.name)? \
-        The old saved record is removed. If the old hardware returns later, it appears as new and unassigned.
-        """
-    }
-
     func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
         guard physicalKeyboards.contains(where: { $0.id == physicalKeyboardID }),
               physicalKeyboardID.isIdentityBased
@@ -991,20 +929,7 @@ final class KeyameleonSetupModel: ObservableObject {
         onChange?()
     }
 
-    func manualDesignationStatusText() -> String? {
-        switch manualDesignationPhase {
-        case .idle:
-            nil
-        case .awaitingRemoval:
-            KeyameleonAppMetadata.manualDesignationAwaitingRemovalMessage
-        case .awaitingReturn:
-            KeyameleonAppMetadata.manualDesignationAwaitingReturnMessage
-        case .awaitingNameConfirmation:
-            KeyameleonAppMetadata.manualDesignationAwaitingNameMessage
-        }
-    }
-
-    func assignmentDisplayName(for physicalKeyboard: PhysicalKeyboard) -> String? {
+    func assignedInputSourceName(for physicalKeyboard: PhysicalKeyboard) -> String? {
         guard let identifier = physicalKeyboard.keyboardAssignment?.inputSourceIdentifier else {
             return nil
         }
@@ -1109,10 +1034,6 @@ final class KeyameleonSetupModel: ObservableObject {
 
         notificationEpisodeStore.markNotificationSent(for: episode)
         operationalNotificationProvider.send(notification)
-    }
-
-    private func displayName(forInputSourceIdentifier identifier: String) -> String {
-        eligibleInputSources.first { $0.identifier == identifier }?.name ?? identifier
     }
 
     private func refreshInputSources() {

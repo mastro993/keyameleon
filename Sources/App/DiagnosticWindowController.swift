@@ -10,7 +10,7 @@ final class KeyameleonDiagnosticWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = KeyameleonAppMetadata.diagnosticBundleReviewTitle
+        window.title = "Review Diagnostic Bundle"
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.diagnostic-review-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false

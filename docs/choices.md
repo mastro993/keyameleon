@@ -183,3 +183,20 @@ Defaults:
 - **Replace**: explicit model API + confirmation UI; candidates are disconnected saved identity-based records only.
 - **Forget**: deletes store record only. Connected hardware republishes as new unassigned from catalog; disconnected vanishes.
 - **Schema**: keep PhysicalKeyboardSchemaV1. No new columns; disconnected rows reuse productName + assignment + identityKey. Transport for disconnected-only rows is `.other`.
+
+## 2026-08-11 — Issue #41 Local presentation ownership
+
+### Seams under test
+- AppKit menu and icon presentation — menu titles, order, accessibility values, status symbols, and unclean-exit actions.
+- SwiftUI presentation owners — Guided setup, Physical Keyboard configuration, General Settings, and Diagnostic Bundle review copy.
+- Typed domain and model facts — switching conditions, Physical Keyboard conditions, Input Source mismatches, and Launch at Login errors.
+- Independent UI-test contracts — bundle identity, accessibility identifiers, launch arguments, and externally visible copy.
+
+### Defaults
+- `KeyameleonAppMetadata` is deleted. No replacement registry, copy enum, or string-only file is added.
+- Each implementation owns its user-visible copy and private formatters. Duplicate copy remains local when presentation owners happen to share text.
+- Domain and model interfaces expose typed facts or domain data. Physical Keyboard Names, Input Source names, persisted codes, and Diagnostic Bundle exclusion labels remain domain-owned.
+- `SwitchingStatus.rawValue` values stay unchanged because Diagnostic Data persists them.
+- Runtime application identity comes from the application bundle. Published product and artifact identity remains deterministic in `KeyameleonReleasePolicy`.
+- UI tests keep independent expected literals. Production accessibility identifiers and launch arguments remain unchanged.
+- Earlier choices that named `KeyameleonAppMetadata` are superseded for ownership only; their external values and behavior remain unchanged.
