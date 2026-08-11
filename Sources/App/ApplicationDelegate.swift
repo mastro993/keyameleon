@@ -646,8 +646,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
 
-                refreshMenuBarPresentation()
-                observePresentationChanges()
+                self.refreshMenuBarPresentation()
+                self.observePresentationChanges()
             }
         }
     }
