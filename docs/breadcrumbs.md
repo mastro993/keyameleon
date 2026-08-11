@@ -28,7 +28,7 @@
 - Service: `KeyameleonDiagnosticDataService` + `InMemory`/`SwiftData` store; `ClockProviding`.
 - Wire: SetupModel records operational state/errors; session-only detailed codes; forget deletes linked diagnostics.
 - UI: General Settings → Diagnostics (start/stop session, clear all).
-- Tests: `KeyameleonDiagnosticDataTests.swift`. Diagnostic Bundle review, save, and share = #14.
+- Tests: `DiagnosticDataTests.swift`. Diagnostic Bundle review, save, and share = #14.
 
 ## 2026-08-10 — Issue #14 Review, save, and share Diagnostic Bundles
 
@@ -52,7 +52,7 @@
 - Domain: evidence rules + CryptoKit authenticator + phase enum.
 - App: Keychain integrity key, designation store, SetupModel session + elevation on publish/event.
 - UI: start button, status banner, name confirmation sheet.
-- Tests: `KeyameleonManualDesignationTests.swift` (eligibility, auth, flow, shared reject, empty name, no migrate, tamper).
+- Tests: `ManualDesignationTests.swift` (eligibility, auth, flow, shared reject, empty name, no migrate, tamper).
 - Suite green.
 - Merged main: keep #6 converge + #7 menu first / pause.
 
@@ -85,7 +85,7 @@
 
 ## 2026-08-10 — Issue #8 Manage Physical Keyboard lifecycle
 
-- Tests: `Tests/SwiftTesting/KeyameleonLifecycleTests.swift` (9 cases).
+- Tests: `Tests/SwiftTesting/LifecycleTests.swift` (9 cases).
 - Domain: `PhysicalKeyboardConnectionState`, `PhysicalKeyboardListOrdering`, disconnected factory.
 - Store: `allRecords`, `deleteRecord`, `transferRecord`.
 - Model: merge connected catalog + saved disconnected; active ID; forget/replace; no Input Source request on disconnect.

@@ -52,8 +52,8 @@ audit_network_and_crash_surfaces() {
 }
 
 audit_qualification_test_contract() {
-    grep -E -q '100_000' Tests/SwiftTesting/KeyameleonQualificationTests.swift
-    grep -E -q 'SENTINEL_IDENTITY|SENTINEL_SERIAL|KeyContentPayload' Tests/SwiftTesting/KeyameleonQualificationTests.swift
+    grep -E -q '100_000' Tests/SwiftTesting/QualificationTests.swift
+    grep -E -q 'SENTINEL_IDENTITY|SENTINEL_SERIAL|KeyContentPayload' Tests/SwiftTesting/QualificationTests.swift
 }
 
 audit_console_output() {
