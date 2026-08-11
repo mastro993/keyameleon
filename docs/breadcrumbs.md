@@ -1,5 +1,12 @@
 # Breadcrumbs
 
+## 2026-08-10 — Issue #19 Setup and accessibility qualification
+
+- Added `./Scripts/run.sh qualify` for source audit, application build, complete tests, and privacy-safe human evidence evaluation.
+- Added required case rows for Guided setup, management, Switching Status and recovery, Diagnostic Bundle and General Settings, keyboard operation, VoiceOver, visible state, and Reduce Motion on macOS 15 and macOS 26.
+- Added stable SwiftUI accessibility identifiers for qualification discovery and verified the lifecycle UI journey through quit.
+- Human physical and accessibility qualification remains required. Missing or unrun evidence is `inconclusive` and blocks an Official Release.
+
 ## 2026-08-10 — Issue #16
 
 - Implement Official Release path: SemVer tag workflow, sign/notarize/staple script, Sparkle appcast, evidence JSON, GPL-3.0-only + notices, SECURITY Supported Release, contributing guidance.

@@ -158,7 +158,9 @@ final class SystemOperationalNotificationProvider: OperationalNotificationProvid
     ) {
         // Alert authorization only. Sound and icon badge authorization are intentionally omitted.
         center.requestAuthorization(options: [.alert]) { [weak self] _ in
-            self?.refreshAuthorization(onChange: onChange)
+            Task { @MainActor in
+                self?.refreshAuthorization(onChange: onChange)
+            }
         }
     }
 

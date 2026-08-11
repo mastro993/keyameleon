@@ -56,6 +56,7 @@ struct KeyameleonDiagnosticBundleReviewView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .accessibilityIdentifier(KeyameleonAppMetadata.diagnosticBundleReviewAccessibilityIdentifier)
         .fileExporter(
             isPresented: $isShowingFileExporter,
             document: fileDocument,
