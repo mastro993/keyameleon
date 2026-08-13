@@ -1,5 +1,23 @@
 # Choices
 
+## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel
+
+### Seams
+
+- `KeyameleonMenuBarPanelController` — one AppKit module: show, toggle, and close one transient 360 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
+- `MenuBarPanelContent` — typed Menu first rows and actions. `KeyameleonMenuBarPanelView` renders that content on one native popover glass surface.
+- `NSStatusItem` stays the durable menu-bar lifecycle. Icon marks and accessibility descriptions stay on the status-item button.
+
+### Defaults
+
+- Keep AppKit `NSStatusItem`. Do not switch to `MenuBarExtra`.
+- Replace `NSMenu` with one `NSPopover` (`behavior = .transient`, `animates = false`) so click-outside and Escape close the panel. Close stays synchronous for tests and status-item toggle.
+- Native Liquid Glass comes from the macOS 26 popover chrome. Do not wrap the panel or its sections in extra `glassEffect` / `NSGlassEffectView` cards.
+- Opening the panel calls `ActivityTriggeredSwitching.checkAgain()` before show, then refreshes the status-item icon. That refreshes permission, observed Input Source, Keyboard Assignments, and Switching Status. Physical Keyboard list stays live through existing discovery observation.
+- Status-item toggle ignores a show that would land within 250 ms of a transient close, so the same click cannot close and reopen the panel.
+- Current Menu first rows and actions stay functional in the panel until #49/#50 replace that content.
+- Cmd+Q and Settings shortcuts live on the panel actions. UI tests click panel buttons, not `statusItem.menuItems`.
+
 ## 2026-08-13 — Debug Run package resolve / legacy build locations
 
 ### Defaults
