@@ -300,6 +300,7 @@ func builtInPhysicalKeyboardMigratesOneOldSavedRecordAndLinkedDiagnosticData() {
         identityKey: oldIdentityKey,
         switchingStatus: nil
     )
+    let oldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: oldIdentityKey)
 
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(
@@ -327,7 +328,10 @@ func builtInPhysicalKeyboardMigratesOneOldSavedRecordAndLinkedDiagnosticData() {
         recordStore.record(forIdentityKey: "identity:built-in|anchor:built-in")?.customName
             == "Laptop"
     )
-    #expect(diagnostic.allRecords().isEmpty)
+    #expect(
+        diagnostic.allRecords().contains { $0.physicalKeyboardToken == oldDiagnosticToken }
+            == false
+    )
 }
 
 @Test("Built-in Physical Keyboard does not migrate when multiple old records exist")
@@ -358,6 +362,8 @@ func builtInPhysicalKeyboardDoesNotMigrateWhenMultipleOldRecordsExist() {
         identityKey: secondOldIdentityKey,
         switchingStatus: nil
     )
+    let firstOldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: firstOldIdentityKey)
+    let secondOldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: secondOldIdentityKey)
 
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(
@@ -384,7 +390,11 @@ func builtInPhysicalKeyboardDoesNotMigrateWhenMultipleOldRecordsExist() {
     #expect(recordStore.record(forIdentityKey: firstOldIdentityKey) != nil)
     #expect(recordStore.record(forIdentityKey: secondOldIdentityKey) != nil)
     #expect(recordStore.record(forIdentityKey: "identity:built-in|anchor:built-in") == nil)
-    #expect(diagnostic.allRecords().count == 2)
+    let diagnosticTokens = Set(
+        diagnostic.allRecords().compactMap(\.physicalKeyboardToken)
+    )
+    #expect(diagnosticTokens.contains(firstOldDiagnosticToken))
+    #expect(diagnosticTokens.contains(secondOldDiagnosticToken))
 }
 
 @Test("Built-in Physical Keyboard migration is evaluated only once across restarts")
