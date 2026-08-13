@@ -1,5 +1,28 @@
 # Choices
 
+## 2026-08-13 — Issue #51 Complete accessible menu-bar panel
+
+### Seams
+
+- `MenuBarPanelContent` — typed complete panel: recovery banner, Keyboard Assignment rows, Quick Actions, footer/overflow, keyboard focus order, and VoiceOver announcements.
+- `MenuBarPanelChrome` — Reduce Transparency and Increase Contrast surface treatment. Native popover glass stays the default; opaque `windowBackground` replaces it when Reduce Transparency is on.
+- `KeyameleonMenuBarPanelController` — transient show/close. Escape and outside click close without mutating Switching Status, Keyboard Assignments, or Diagnostic Notice state.
+- `KeyameleonMenuBarPanelView` — applies content semantics, default keyboard focus, and live observation of switching + Physical Keyboard list.
+
+### Defaults
+
+- #51 ships the integrated #49/#50 surface. Blockers are still open; panel AC cannot pass on the #48 linear menu.
+- Only Physical Keyboards with a Keyboard Assignment appear. Unassigned stay out of the list.
+- Order: Active, then connected, then disconnected; alphabetical Physical Keyboard Name inside each group via `PhysicalKeyboardListOrdering`.
+- Unavailable Keyboard Assignment keeps the saved relation. Resolved Input Source name shows when present; otherwise "Unavailable Input Source" plus a warning mark. Warning note is "Unavailable Keyboard Assignment" so VoiceOver does not repeat the second line.
+- Banner only for Permission Required and Temporarily Unavailable. Paused uses Resume in Quick Actions. Permission recovery action is Open System Settings when available.
+- Quick Actions: wide Open Keyameleon, compact Pause or Resume. Pause/Resume keep the panel open. Overflow actions close the panel.
+- No Continue Setup row. Setup continues through Open Keyameleon.
+- Footer version is `Version` plus `CFBundleShortVersionString`. Empty marketing version falls back to `0.1.0`. No build number.
+- Keyboard Tab order is recovery action, Quick Actions, overflow. Assignment rows are VoiceOver-readable and not buttons.
+- Cmd+, and Cmd+Q stay on Settings and Quit. Cmd+Q is also hosted on a hidden panel button because SwiftUI `Menu` inside the popover is not in the XCUITest tree.
+- UI tests click Open Keyameleon and quit with Cmd+Q.
+
 ## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel
 
 ### Seams

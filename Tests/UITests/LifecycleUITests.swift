@@ -35,7 +35,7 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         closeWindow(initialWindow)
 
         statusItem.click()
-        clickPanelButton("Open Keyameleon…", in: app)
+        clickPanelButton("Open Keyameleon", in: app)
 
         let window = app.windows["Keyameleon"]
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
@@ -43,11 +43,14 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         closeWindow(window)
 
         statusItem.click()
-        clickPanelButton("Open Keyameleon…", in: app)
+        clickPanelButton("Open Keyameleon", in: app)
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
 
+        closeWindow(window)
+
         statusItem.click()
-        clickPanelButton("Quit Keyameleon", in: app)
+        XCTAssertTrue(app.buttons["Open Keyameleon"].waitForExistence(timeout: menuTimeout))
+        app.typeKey("q", modifierFlags: .command)
         if !app.wait(for: .notRunning, timeout: 2) {
             app.terminate()
             XCTAssertTrue(app.wait(for: .notRunning, timeout: launchTimeout))

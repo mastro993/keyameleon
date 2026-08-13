@@ -21,6 +21,7 @@
 		187E867991A04368B8582C70 /* SetupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D034ED3A59FFA8A4A8E5CD7 /* SetupModel.swift */; };
 		1E1179B5322D8292B3D7A9F4 /* ApplicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98542FD5C82032FA9E2F7AF9 /* ApplicationTests.swift */; };
 		24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1674D0EEAEDED584E05DF1C1 /* MenuBarPanelController.swift */; };
+		282D9BAC20038F7BAED0382B /* MenuBarPanelContentBuilding.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEED7247278E0DB7AFBA76BF /* MenuBarPanelContentBuilding.swift */; };
 		289DA25583F6E6AC2E0DF99B /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DD2621A84D0D5ACCEFA2F4 /* InputSource.swift */; };
 		2BFC773BE39EA5A451F1C185 /* OperationalNotificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */; };
 		2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9163A19B113812EA758F0681 /* ProductionFactory.swift */; };
@@ -64,6 +65,7 @@
 		ACA1D2A2F87C1D348122EE23 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */; };
 		ACBFAD8BC2BA205BD7E14575 /* InstallationIntegrityKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = E08F5F8AE410D0FB94462FA8 /* InstallationIntegrityKey.swift */; };
 		B0AE2EC67744B63A24235EF2 /* SwitchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B34AD2AC37423AEC5A62769 /* SwitchingTests.swift */; };
+		B0C94E4D8536078D5C6B4757 /* MenuBarPanelChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */; };
 		BA4F423F402D00CA146EFFAD /* LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E800175BE23F1A513268887 /* LifecycleTests.swift */; };
 		BD35E25C6361F8281935F1E1 /* OperationalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7DDA07E15C86A973F7EC71 /* OperationalNotifications.swift */; };
 		C0C969EF50297720863A4CF1 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EAAA7C23460CFB5FE490B2 /* UserNotifications.framework */; };
@@ -170,6 +172,7 @@
 		BBA6153A9F4D4EF18DDDE19D /* UpdatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePolicy.swift; sourceTree = "<group>"; };
 		BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelView.swift; sourceTree = "<group>"; };
 		C5D532AF0922ACF6FB01AFF1 /* Lifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lifecycle.swift; sourceTree = "<group>"; };
+		C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelChrome.swift; sourceTree = "<group>"; };
 		D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonSwiftTesting.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicyTests.swift; sourceTree = "<group>"; };
 		D29B24A67009EA8DCF50F391 /* DiagnosticDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataService.swift; sourceTree = "<group>"; };
@@ -184,6 +187,7 @@
 		F2F89B01FA50D2E2724A74C3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		FAF64CA3A3802AD87234A325 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		FC3803559762A26A22D58DB8 /* UpdatePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePolicyTests.swift; sourceTree = "<group>"; };
+		FEED7247278E0DB7AFBA76BF /* MenuBarPanelContentBuilding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelContentBuilding.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -249,7 +253,9 @@
 			children = (
 				55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */,
 				45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */,
+				C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */,
 				58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */,
+				FEED7247278E0DB7AFBA76BF /* MenuBarPanelContentBuilding.swift */,
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
 			);
@@ -521,7 +527,9 @@
 				CABD1BC3E4A2D1B54E22FC5B /* ListenPermission.swift in Sources */,
 				F709A33523FE9F750C0CA4C0 /* ManualPhysicalKeyboardDesignation.swift in Sources */,
 				10C10DA54CEEC81C6E86EC7A /* ManualPhysicalKeyboardDesignationStore.swift in Sources */,
+				B0C94E4D8536078D5C6B4757 /* MenuBarPanelChrome.swift in Sources */,
 				66192BBEB5CA3988AFEDD752 /* MenuBarPanelContent.swift in Sources */,
+				282D9BAC20038F7BAED0382B /* MenuBarPanelContentBuilding.swift in Sources */,
 				24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */,
 				A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */,
 				BD35E25C6361F8281935F1E1 /* OperationalNotifications.swift in Sources */,

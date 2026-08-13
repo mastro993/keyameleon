@@ -47,6 +47,7 @@ final class KeyameleonMenuBarPanelController: NSObject, NSPopoverDelegate {
         var size = popover.contentSize
         size.width = Self.panelWidth
         popover.contentSize = size
+        NSApp.activate(ignoringOtherApps: true)
         popover.show(
             relativeTo: positioningView.bounds,
             of: positioningView,

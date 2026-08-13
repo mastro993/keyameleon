@@ -53,9 +53,6 @@ extension KeyameleonApplicationDelegate {
                     openKeyameleon: { [weak self] in
                         self?.openKeyameleon(nil)
                     },
-                    continueSetup: { [weak self] in
-                        self?.continueSetup(nil)
-                    },
                     openSettings: { [weak self] in
                         self?.openSettings(nil)
                     },
@@ -67,9 +64,6 @@ extension KeyameleonApplicationDelegate {
                     },
                     reviewDiagnostics: { [weak self] in
                         self?.reviewDiagnostics(nil)
-                    },
-                    dismissDiagnosticsNotice: { [weak self] in
-                        self?.dismissDiagnosticsNotice(nil)
                     }
                 )
             ),
@@ -140,20 +134,6 @@ extension KeyameleonApplicationDelegate {
     }
 
     @objc
-    func dismissDiagnosticsNotice(_ sender: Any?) {
-        uncleanExitStateStore.dismissUncleanExitNotice()
-        refreshMenuBarPresentation()
-    }
-
-    @objc
-    func continueSetup(_ sender: Any?) {
-        if !setupModel.hasStartedGuidedSetup {
-            setupModel.beginGuidedSetup()
-        }
-        openKeyameleon(sender)
-    }
-
-    @objc
     func openSettings(_ sender: Any?) {
         closeMenuBarPanel()
         generalSettingsModel.refresh()
@@ -163,6 +143,7 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func checkForUpdates(_ sender: Any?) {
+        closeMenuBarPanel()
         generalSettingsModel.checkForUpdates()
         refreshMenuBarPresentation()
     }

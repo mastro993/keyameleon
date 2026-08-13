@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-13 — Issue #51 Complete accessible menu-bar panel
+
+- Integrated assignment list, recovery banner, Quick Actions, and footer on the #48 popover.
+- Accessibility and appearance live on `MenuBarPanelContent` + `MenuBarPanelChrome` so tests stay off SwiftUI internals.
+- #49 and #50 still open; this branch includes their surface because #51 AC names that product.
+
 ## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
 
 - Replacing status-item `NSMenu` with one transient 360 pt SwiftUI `NSPopover`.
