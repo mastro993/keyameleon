@@ -1,5 +1,12 @@
 # Choices
 
+## 2026-08-13 — Debug Run package resolve / legacy build locations
+
+### Defaults
+- Shared workspace settings use `BuildLocationStyle=UseAppPreferences` and `DerivedDataLocationStyle=Default`.
+- `./Scripts/run.sh generate` rewrites those shared settings and changes user `UseTargetSettings` to `UseAppPreferences`.
+- Sparkle stays a remote Swift package. No vendor, no exact-version pin for this fix.
+
 ## 2026-08-11 — Product validation and macOS 26 support
 
 ### Defaults
