@@ -1,5 +1,12 @@
 # Breadcrumbs
 
+## 2026-08-13 — Xcode Debug Run could not resolve packages
+
+- Repro: `WorkspaceSettings.xcsettings` with `BuildLocationStyle=UseTargetSettings` → `xcodebuild: error: Could not resolve package dependencies: Packages are not supported when using legacy build locations, but the current project has them enabled.`
+- User-facing Xcode phrasing: could not verify package dependencies.
+- Cause: user workspace settings (present on main checkout) force legacy project-relative locations. SPM refuses that layout. CLI with no xcuserdata was green.
+- Fix: commit shared modern workspace settings; `run.sh generate` rewrites them and neutralizes user `UseTargetSettings`.
+
 ## 2026-08-11 — Product validation simplification
 
 - Reduced CI to one macOS 26 test job with the focused suite and safety audit.

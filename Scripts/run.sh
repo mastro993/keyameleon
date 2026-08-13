@@ -31,8 +31,43 @@ audit_all() {
     audit_sources
 }
 
+# Xcode treats BuildLocationStyle=UseTargetSettings as legacy locations.
+# Swift packages refuse to resolve: "Could not resolve package dependencies:
+# Packages are not supported when using legacy build locations".
+write_modern_workspace_settings() {
+    local shared="Keyameleon.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"
+    mkdir -p "${shared:h}"
+    cat > "$shared" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildLocationStyle</key>
+	<string>UseAppPreferences</string>
+	<key>DerivedDataLocationStyle</key>
+	<string>Default</string>
+</dict>
+</plist>
+EOF
+}
+
+# User WorkspaceSettings override shared. Neutralize UseTargetSettings so
+# Xcode GUI Run (Debug) can resolve Sparkle.
+neutralize_legacy_user_build_locations() {
+    local settings style
+    while IFS= read -r settings; do
+        [[ -n "$settings" ]] || continue
+        style="$(/usr/libexec/PlistBuddy -c 'Print :BuildLocationStyle' "$settings" 2>/dev/null || true)"
+        if [[ "$style" == "UseTargetSettings" ]]; then
+            /usr/libexec/PlistBuddy -c 'Set :BuildLocationStyle UseAppPreferences' "$settings"
+        fi
+    done < <(find Keyameleon.xcodeproj -path '*/xcuserdata/*/WorkspaceSettings.xcsettings' -type f 2>/dev/null)
+}
+
 generate_project() {
     xcodegen generate --spec project.yml
+    write_modern_workspace_settings
+    neutralize_legacy_user_build_locations
 }
 
 run_tests() {
