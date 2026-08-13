@@ -12,11 +12,13 @@ protocol SetupDecisionStoring: AnyObject {
     var hasCompletedGuidedSetup: Bool { get }
     var guidedSetupStep: GuidedSetupStep { get }
     var isActivityTriggeredSwitchingPaused: Bool { get }
+    var hasEvaluatedBuiltInIdentityMigration: Bool { get }
 
     func markGuidedSetupStarted()
     func markGuidedSetupStep(_ step: GuidedSetupStep)
     func markGuidedSetupCompleted()
     func setActivityTriggeredSwitchingPaused(_ paused: Bool)
+    func markBuiltInIdentityMigrationEvaluated()
 }
 
 @MainActor
@@ -27,6 +29,8 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         static let guidedSetupStep = "keyameleon.guidedSetup.step"
         static let isActivityTriggeredSwitchingPaused =
             "keyameleon.activityTriggeredSwitching.paused"
+        static let hasEvaluatedBuiltInIdentityMigration =
+            "keyameleon.builtInIdentityMigration.evaluated"
     }
 
     private let defaults: UserDefaults
@@ -58,6 +62,10 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         defaults.bool(forKey: Key.isActivityTriggeredSwitchingPaused)
     }
 
+    var hasEvaluatedBuiltInIdentityMigration: Bool {
+        defaults.bool(forKey: Key.hasEvaluatedBuiltInIdentityMigration)
+    }
+
     func markGuidedSetupStarted() {
         defaults.set(true, forKey: Key.hasStartedGuidedSetup)
         if defaults.string(forKey: Key.guidedSetupStep) == nil {
@@ -80,11 +88,16 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         defaults.set(paused, forKey: Key.isActivityTriggeredSwitchingPaused)
     }
 
+    func markBuiltInIdentityMigrationEvaluated() {
+        defaults.set(true, forKey: Key.hasEvaluatedBuiltInIdentityMigration)
+    }
+
     func resetForUITesting() {
         defaults.removeObject(forKey: Key.hasStartedGuidedSetup)
         defaults.removeObject(forKey: Key.hasCompletedGuidedSetup)
         defaults.removeObject(forKey: Key.guidedSetupStep)
         defaults.removeObject(forKey: Key.isActivityTriggeredSwitchingPaused)
+        defaults.removeObject(forKey: Key.hasEvaluatedBuiltInIdentityMigration)
     }
 }
 
@@ -607,7 +620,9 @@ final class KeyameleonSetupModel {
 
     private func publishPhysicalKeyboards() {
         let activeID = physicalKeyboardDiscovery.activePhysicalKeyboardID
-        let connected = physicalKeyboardDiscovery.physicalKeyboards.map { keyboard in
+        let discovered = physicalKeyboardDiscovery.physicalKeyboards
+        migrateBuiltInRecordIfNeeded(from: discovered)
+        let connected = discovered.map { keyboard in
             let published = resolver.resolve(keyboard).markingActive(keyboard.id == activeID)
             if keyboard.id.isIdentityBased {
                 lastKnownPhysicalKeyboards[keyboard.id.rawValue] = published.markingActive(false)
@@ -640,6 +655,30 @@ final class KeyameleonSetupModel {
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
             connected + disconnected,
             activeID: activeID
+        )
+    }
+
+    private func migrateBuiltInRecordIfNeeded(
+        from discovered: [PhysicalKeyboard]
+    ) {
+        guard !setupStore.hasEvaluatedBuiltInIdentityMigration,
+              let builtIn = discovered.first(where: \.isBuiltIn)
+        else {
+            return
+        }
+
+        setupStore.markBuiltInIdentityMigrationEvaluated()
+        guard let migratedRecord = physicalKeyboardRecordStore.migrateSingleOldBuiltInRecord(
+            toIdentityKey: builtIn.id.rawValue,
+            productName: builtIn.productName
+        ) else {
+            return
+        }
+
+        // Diagnostic Data keeps a one-way token per identity. Migration does
+        // not relink that token to the fixed built-in identity.
+        diagnosticDataController.deleteDiagnosticData(
+            forIdentityKey: migratedRecord.identityKey
         )
     }
 }

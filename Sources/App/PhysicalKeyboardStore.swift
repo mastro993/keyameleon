@@ -28,6 +28,32 @@ protocol PhysicalKeyboardRecordStoring: AnyObject {
 extension PhysicalKeyboardRecordStoring {
     func startObservingChanges(onChange: @escaping @MainActor () -> Void) {}
     func stopObservingChanges() {}
+
+    /// Moves the only old built-in record to the fixed local identity.
+    /// Multiple old records are left untouched for the replacement flow.
+    @discardableResult
+    func migrateSingleOldBuiltInRecord(
+        toIdentityKey identityKey: String,
+        productName: String
+    ) -> SavedPhysicalKeyboardRecord? {
+        guard record(forIdentityKey: identityKey) == nil else {
+            return nil
+        }
+
+        let oldRecords = allRecords().filter {
+            $0.isBuiltInIdentity && $0.identityKey != identityKey
+        }
+        guard oldRecords.count == 1, let oldRecord = oldRecords.first else {
+            return nil
+        }
+
+        transferRecord(
+            fromIdentityKey: oldRecord.identityKey,
+            toIdentityKey: identityKey,
+            productName: productName
+        )
+        return oldRecord
+    }
 }
 
 enum PhysicalKeyboardSchemaV1: VersionedSchema {

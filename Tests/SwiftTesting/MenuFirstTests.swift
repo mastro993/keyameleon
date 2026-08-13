@@ -363,3 +363,20 @@ func userDefaultsPauseFlagSurvivesStoreReread() {
     let reloaded = UserDefaultsSetupDecisionStore(defaults: defaults)
     #expect(reloaded.isActivityTriggeredSwitchingPaused)
 }
+
+@Test("UserDefaults built-in identity migration decision survives store re-read")
+@MainActor
+func userDefaultsBuiltInIdentityMigrationDecisionSurvivesStoreReread() {
+    let suiteName = "dev.fedemas.keyameleon.tests.built-in-migration.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    defer {
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let store = UserDefaultsSetupDecisionStore(defaults: defaults)
+    #expect(store.hasEvaluatedBuiltInIdentityMigration == false)
+    store.markBuiltInIdentityMigrationEvaluated()
+
+    let reloaded = UserDefaultsSetupDecisionStore(defaults: defaults)
+    #expect(reloaded.hasEvaluatedBuiltInIdentityMigration)
+}

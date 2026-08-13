@@ -92,6 +92,96 @@ func differentSerialFactsMakeSharedPhysicalKeyboardIdentityUnsupported() {
     #expect(!catalog.physicalKeyboards[0].isAssignable)
 }
 
+@Test("Built-in HID services use one fixed assignable Physical Keyboard Identity")
+func builtInHIDServicesUseOneFixedAssignablePhysicalKeyboardIdentity() {
+    var catalog = PhysicalKeyboardCatalog()
+
+    catalog.apply(
+        .connected(
+            makeBuiltInHardwareFacts(
+                serviceID: 61,
+                identity: "macos.keyboard.first",
+                name: "Apple Internal Keyboard",
+                transport: .usb,
+                productID: 100
+            )
+        )
+    )
+    catalog.apply(
+        .connected(
+            makeBuiltInHardwareFacts(
+                serviceID: 62,
+                identity: nil,
+                name: "Other Internal Interface",
+                transport: .bluetooth,
+                productID: 200,
+                modelNumber: "Different Model"
+            )
+        )
+    )
+
+    #expect(catalog.physicalKeyboards.count == 1)
+    #expect(catalog.physicalKeyboards[0].id.rawValue == "identity:built-in|anchor:built-in")
+    #expect(catalog.physicalKeyboards[0].isBuiltIn)
+    #expect(catalog.physicalKeyboards[0].isAssignable)
+    #expect(catalog.physicalKeyboards[0].connectedServiceCount == 2)
+    #expect(catalog.physicalKeyboards[0].name == "Built-in Keyboard")
+}
+
+@Test("Built-in HID services keep one shared product name when all names match")
+func builtInHIDServicesKeepOneSharedProductNameWhenAllNamesMatch() {
+    var catalog = PhysicalKeyboardCatalog()
+
+    catalog.apply(
+        .connected(
+            makeBuiltInHardwareFacts(
+                serviceID: 63,
+                identity: "macos.keyboard.first",
+                name: "Apple Internal Keyboard"
+            )
+        )
+    )
+    catalog.apply(
+        .connected(
+            makeBuiltInHardwareFacts(
+                serviceID: 64,
+                identity: "macos.keyboard.second",
+                name: "Apple Internal Keyboard"
+            )
+        )
+    )
+
+    #expect(catalog.physicalKeyboards.count == 1)
+    #expect(catalog.physicalKeyboards[0].name == "Apple Internal Keyboard")
+}
+
+@Test("Built-in HID services use fallback name when one product name is missing")
+func builtInHIDServicesUseFallbackNameWhenOneProductNameIsMissing() {
+    var catalog = PhysicalKeyboardCatalog()
+
+    catalog.apply(
+        .connected(
+            makeBuiltInHardwareFacts(
+                serviceID: 65,
+                identity: "macos.keyboard.first",
+                name: "Apple Internal Keyboard"
+            )
+        )
+    )
+    catalog.apply(
+        .connected(
+            makeBuiltInHardwareFacts(
+                serviceID: 66,
+                identity: "macos.keyboard.second",
+                name: nil
+            )
+        )
+    )
+
+    #expect(catalog.physicalKeyboards.count == 1)
+    #expect(catalog.physicalKeyboards[0].name == "Built-in Keyboard")
+}
+
 @Test("Removing last HID service removes Physical Keyboard from catalog")
 func removingLastHIDServiceRemovesPhysicalKeyboardFromCatalog() {
     var catalog = PhysicalKeyboardCatalog()
@@ -227,6 +317,33 @@ private func makeHardwareFacts(
     )
 }
 
+private func makeBuiltInHardwareFacts(
+    serviceID: UInt64,
+    identity: String?,
+    name: String?,
+    transport: PhysicalKeyboardTransport = .usb,
+    productID: UInt32 = 100,
+    modelNumber: String = "Model"
+) -> PhysicalKeyboardHardwareFacts {
+    PhysicalKeyboardHardwareFacts(
+        serviceID: serviceID,
+        identity: identity.flatMap {
+            PhysicalKeyboardIdentity(
+                rawValue: $0,
+                isBuiltIn: true,
+                serialNumber: nil
+            )
+        },
+        name: name,
+        transport: transport,
+        isBuiltIn: true,
+        vendorID: 500,
+        productID: productID,
+        modelNumber: modelNumber,
+        serialNumber: nil
+    )
+}
+
 @MainActor
 private final class TestPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
     private var onChange: (@MainActor (PhysicalKeyboardDiscoveryChange) -> Void)?
@@ -284,6 +401,7 @@ private final class DiscoveryTestSetupDecisionStore: SetupDecisionStoring {
     var hasCompletedGuidedSetup = false
     var guidedSetupStep: GuidedSetupStep = .permission
     var isActivityTriggeredSwitchingPaused = false
+    var hasEvaluatedBuiltInIdentityMigration = false
 
     func markGuidedSetupStarted() {
         hasStartedGuidedSetup = true
@@ -301,6 +419,10 @@ private final class DiscoveryTestSetupDecisionStore: SetupDecisionStoring {
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
         isActivityTriggeredSwitchingPaused = paused
+    }
+
+    func markBuiltInIdentityMigrationEvaluated() {
+        hasEvaluatedBuiltInIdentityMigration = true
     }
 }
 

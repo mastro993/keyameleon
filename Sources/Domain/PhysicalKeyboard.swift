@@ -25,6 +25,14 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
     private let value: String
     private let hardwareAnchor: HardwareAnchor?
 
+    /// One local identity represents every built-in Physical Keyboard service.
+    /// It does not contain CoreHID or Mac hardware identifiers.
+    static let builtIn = PhysicalKeyboardIdentity(
+        rawValue: "built-in",
+        isBuiltIn: true,
+        serialNumber: nil
+    )!
+
     init?(rawValue: String, isBuiltIn: Bool, serialNumber: String?) {
         let normalized = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else {
@@ -144,12 +152,20 @@ enum PhysicalKeyboardDiscoveryChange: Sendable {
 struct PhysicalKeyboardRecordID: Hashable, Sendable {
     let rawValue: String
 
+    static let builtIn = PhysicalKeyboardRecordID(
+        rawValue: "identity:\(PhysicalKeyboardIdentity.builtIn.rawValue)"
+    )
+
     init(rawValue: String) {
         self.rawValue = rawValue
     }
 
     var isIdentityBased: Bool {
         rawValue.hasPrefix("identity:")
+    }
+
+    var isFixedBuiltInIdentity: Bool {
+        self == .builtIn
     }
 }
 
@@ -185,7 +201,8 @@ struct SavedPhysicalKeyboardRecord: Equatable, Sendable {
     }
 
     var isBuiltInIdentity: Bool {
-        identityKey.contains("|anchor:built-in")
+        identityKey == PhysicalKeyboardRecordID.builtIn.rawValue
+            || identityKey.contains("|anchor:built-in")
     }
 }
 
@@ -384,7 +401,19 @@ struct PhysicalKeyboardCatalog: Sendable {
     ) -> (records: [PhysicalKeyboard], serviceToRecordID: [UInt64: PhysicalKeyboardRecordID]) {
         var serviceToRecordID: [UInt64: PhysicalKeyboardRecordID] = [:]
 
-        let missingIdentityRecords = services
+        let builtInServices = services.filter(\.isBuiltIn)
+        let externalServices = services.filter { !$0.isBuiltIn }
+
+        var builtInRecords: [PhysicalKeyboard] = []
+        if !builtInServices.isEmpty {
+            let builtInRecord = makeBuiltInRecord(for: Array(builtInServices))
+            for facts in builtInServices {
+                serviceToRecordID[facts.serviceID] = builtInRecord.id
+            }
+            builtInRecords.append(builtInRecord)
+        }
+
+        let missingIdentityRecords = externalServices
             .filter { $0.identity == nil }
             .map { facts -> PhysicalKeyboard in
                 let record = makeUnsupportedRecord(for: [facts], reason: .missingIdentity)
@@ -392,7 +421,7 @@ struct PhysicalKeyboardCatalog: Sendable {
                 return record
             }
 
-        let identityGroups = Dictionary(grouping: services.compactMap { facts in
+        let identityGroups = Dictionary(grouping: externalServices.compactMap { facts in
             facts.identity == nil ? nil : facts
         }, by: { $0.identity!.groupingKey })
 
@@ -404,7 +433,7 @@ struct PhysicalKeyboardCatalog: Sendable {
             return record
         }
 
-        let records = (missingIdentityRecords + identityRecords).sorted { left, right in
+        let records = (builtInRecords + missingIdentityRecords + identityRecords).sorted { left, right in
             let nameComparison = left.name.localizedCaseInsensitiveCompare(right.name)
             if nameComparison != .orderedSame {
                 return nameComparison == .orderedAscending
@@ -414,6 +443,27 @@ struct PhysicalKeyboardCatalog: Sendable {
         }
 
         return (records, serviceToRecordID)
+    }
+
+    private func makeBuiltInRecord(
+        for group: [PhysicalKeyboardHardwareFacts]
+    ) -> PhysicalKeyboard {
+        let sortedGroup = group.sorted { $0.serviceID < $1.serviceID }
+        let sharedProductName: String? = if let firstName = sortedGroup.first?.name,
+                                            sortedGroup.allSatisfy({ $0.name == firstName })
+        {
+            firstName
+        } else {
+            nil
+        }
+        let productName = sharedProductName ?? "Built-in Keyboard"
+
+        return makeRecord(
+            for: sortedGroup,
+            identity: .builtIn,
+            assignmentState: .unassigned,
+            productName: productName
+        )
     }
 
     private func makeIdentityRecord(
@@ -463,7 +513,8 @@ struct PhysicalKeyboardCatalog: Sendable {
     private func makeRecord(
         for group: [PhysicalKeyboardHardwareFacts],
         identity: PhysicalKeyboardIdentity?,
-        assignmentState: PhysicalKeyboardAssignmentState
+        assignmentState: PhysicalKeyboardAssignmentState,
+        productName: String? = nil
     ) -> PhysicalKeyboard {
         let representative = group.sorted { $0.serviceID < $1.serviceID }[0]
         let recordID = if let identity {
@@ -474,7 +525,7 @@ struct PhysicalKeyboardCatalog: Sendable {
 
         return PhysicalKeyboard(
             id: recordID,
-            productName: representative.name ?? "Physical Keyboard",
+            productName: productName ?? representative.name ?? "Physical Keyboard",
             customName: nil,
             transport: representative.transport,
             isBuiltIn: representative.isBuiltIn,
