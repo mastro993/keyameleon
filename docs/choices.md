@@ -1,5 +1,24 @@
 # Choices
 
+## 2026-08-13 — Issue #50 Menu-bar Quick Actions, recovery banner, footer
+
+### Seams
+
+- `MenuBarPanelContent` — typed Quick Actions, optional recovery banner, leftover status rows, unclean-exit notice, and footer. Tests live here.
+- `KeyameleonMenuBarPanelView` — renders that content. Glass is on the Quick Action buttons only; no extra glass cards.
+- `MenuBarPanelContent.Action.closesPanel` — dismissal contract. View closes the popover before running a closing action.
+
+### Defaults
+
+- Quick Actions: one `HStack`. Wide primary `Open Keyameleon` (`.glassProminent`). Compact `Pause` or `Resume` (`.glass`).
+- Pause / Resume keep the panel open. Open Keyameleon closes it and opens the main window. Incomplete setup continues through Open Keyameleon; no Continue Setup action.
+- Recovery banner only for Permission Required and Temporarily Unavailable. Paused has no banner. Recovery actions (Open System Settings, Check Again) appear only when `ActivityTriggeredSwitchingOutcome` offers them.
+- Open System Settings closes the panel. Check Again keeps it open.
+- Footer left: `Version <marketing>` from `CFBundleShortVersionString`. No build number. Blank or missing → `Version —`.
+- Footer overflow: Settings…, Check for Updates…, Review Diagnostics… when an unclean-exit notice is pending, Quit Keyameleon. Overflow actions close the panel.
+- Overflow control is an AppKit `NSButton` + `NSMenu`. SwiftUI `Menu` inside the transient popover is not in the XCUITest tree.
+- Unclean-exit copy + Dismiss stay in the panel body. Review Diagnostics lives only in the overflow.
+
 ## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel
 
 ### Seams

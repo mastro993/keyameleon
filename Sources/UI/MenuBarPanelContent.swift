@@ -4,7 +4,6 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
     case openKeyameleon
-    case continueSetup
     case openSystemSettings
     case checkAgain
     case settings
@@ -14,14 +13,41 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case dismissDiagnosticsNotice
 }
 
-/// Typed Menu first rows and actions for the live menu-bar panel.
+/// Typed Menu first regions and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
     static let panelWidth: CGFloat = 360
+
+    struct Action: Equatable, Identifiable, Sendable {
+        let id: MenuBarPanelActionID
+        let title: String
+        let isEnabled: Bool
+        let closesPanel: Bool
+    }
+
+    struct QuickActions: Equatable, Sendable {
+        let openKeyameleon: Action
+        let pauseOrResume: Action
+    }
+
+    struct RecoveryBanner: Equatable, Sendable {
+        let statusName: String
+        let detailLines: [String]
+        let recoveryActions: [Action]
+    }
+
+    struct UncleanExitNotice: Equatable, Sendable {
+        let title: String
+        let dismiss: Action
+    }
+
+    struct Footer: Equatable, Sendable {
+        let versionText: String
+        let overflowActions: [Action]
+    }
 
     struct Item: Equatable, Identifiable, Sendable {
         enum Kind: Equatable, Sendable {
             case status
-            case action(MenuBarPanelActionID, enabled: Bool)
         }
 
         let id: String
@@ -31,19 +57,29 @@ struct MenuBarPanelContent: Equatable, Sendable {
         let accessibilityValue: String?
     }
 
-    var items: [Item]
+    let quickActions: QuickActions
+    let recoveryBanner: RecoveryBanner?
+    let uncleanExitNotice: UncleanExitNotice?
+    let statusItems: [Item]
+    let footer: Footer
 
-    var titles: [String] {
-        items.map(\.title)
+    var statusTitles: [String] {
+        statusItems.map(\.title)
     }
 
     var actionTitles: [String] {
-        items.compactMap { item in
-            if case .action = item.kind {
-                return item.title
-            }
-            return nil
+        var titles = [
+            quickActions.openKeyameleon.title,
+            quickActions.pauseOrResume.title,
+        ]
+        if let recoveryBanner {
+            titles.append(contentsOf: recoveryBanner.recoveryActions.map(\.title))
         }
+        if let uncleanExitNotice {
+            titles.append(uncleanExitNotice.dismiss.title)
+        }
+        titles.append(contentsOf: footer.overflowActions.map(\.title))
+        return titles
     }
 
     var panelWidth: CGFloat {
@@ -53,75 +89,172 @@ struct MenuBarPanelContent: Equatable, Sendable {
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
         actionConditions: [PhysicalKeyboardActionCondition],
-        isSetupComplete: Bool,
         canCheckForUpdates: Bool,
-        hasPendingUncleanExitNotice: Bool
+        hasPendingUncleanExitNotice: Bool,
+        marketingVersion: String?
     ) {
-        var items: [Item] = []
-        let switchingStatus = Self.switchingStatusName(outcome.switchingStatus)
-        items.append(
-            Item(
-                id: "switching-status",
-                title: "Switching Status: \(switchingStatus)",
-                kind: .status,
-                accessibilityLabel: "Switching Status",
-                accessibilityValue: switchingStatus
+        self.quickActions = Self.makeQuickActions(outcome: outcome)
+        self.recoveryBanner = Self.makeRecoveryBanner(outcome: outcome)
+        self.uncleanExitNotice = Self.makeUncleanExitNotice(
+            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice
+        )
+        self.statusItems = Self.makeStatusItems(
+            outcome: outcome,
+            actionConditions: actionConditions
+        )
+        self.footer = Footer(
+            versionText: Self.versionText(marketingVersion: marketingVersion),
+            overflowActions: Self.makeOverflowActions(
+                canCheckForUpdates: canCheckForUpdates,
+                hasPendingUncleanExitNotice: hasPendingUncleanExitNotice
             )
         )
+    }
 
+    static func versionText(marketingVersion: String?) -> String {
+        let trimmed = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !trimmed.isEmpty else {
+            return "Version —"
+        }
+
+        return "Version \(trimmed)"
+    }
+
+    private static func makeQuickActions(
+        outcome: ActivityTriggeredSwitchingOutcome
+    ) -> QuickActions {
+        let pauseOrResume: Action
+        if outcome.hasAction(.resume) {
+            pauseOrResume = Action(
+                id: .resume,
+                title: "Resume",
+                isEnabled: true,
+                closesPanel: false
+            )
+        } else {
+            pauseOrResume = Action(
+                id: .pause,
+                title: "Pause",
+                isEnabled: true,
+                closesPanel: false
+            )
+        }
+
+        return QuickActions(
+            openKeyameleon: Action(
+                id: .openKeyameleon,
+                title: "Open Keyameleon",
+                isEnabled: true,
+                closesPanel: true
+            ),
+            pauseOrResume: pauseOrResume
+        )
+    }
+
+    private static func makeRecoveryBanner(
+        outcome: ActivityTriggeredSwitchingOutcome
+    ) -> RecoveryBanner? {
+        switch outcome.switchingStatus {
+        case .ready, .paused:
+            return nil
+        case .permissionRequired, .temporarilyUnavailable:
+            break
+        }
+
+        var detailLines: [String] = []
         if let reason = outcome.temporarilyUnavailableReasons.first {
-            let reasonName = Self.unavailableReasonName(reason)
-            items.append(
-                Item(
-                    id: "unavailable-reason",
-                    title: "Detected reason: \(reasonName)",
-                    kind: .status,
-                    accessibilityLabel: "Detected reason:",
-                    accessibilityValue: reasonName
-                )
-            )
-            items.append(
-                Item(
-                    id: "unavailable-recovery",
-                    title: "Resumes automatically when macOS allows Activity-Triggered Switching.",
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
+            detailLines.append("Detected reason: \(unavailableReasonName(reason))")
+            detailLines.append(
+                "Resumes automatically when macOS allows Activity-Triggered Switching."
             )
         }
 
+        return RecoveryBanner(
+            statusName: switchingStatusName(outcome.switchingStatus),
+            detailLines: detailLines,
+            recoveryActions: makeRecoveryActions(outcome: outcome)
+        )
+    }
+
+    private static func makeRecoveryActions(
+        outcome: ActivityTriggeredSwitchingOutcome
+    ) -> [Action] {
+        var actions: [Action] = []
+        if outcome.hasAction(.openSystemSettings) {
+            actions.append(
+                Action(
+                    id: .openSystemSettings,
+                    title: "Open System Settings",
+                    isEnabled: true,
+                    closesPanel: true
+                )
+            )
+        }
+        if outcome.hasAction(.checkAgain) {
+            actions.append(
+                Action(
+                    id: .checkAgain,
+                    title: "Check Again",
+                    isEnabled: true,
+                    closesPanel: false
+                )
+            )
+        }
+        return actions
+    }
+
+    private static func makeUncleanExitNotice(
+        hasPendingUncleanExitNotice: Bool
+    ) -> UncleanExitNotice? {
+        guard hasPendingUncleanExitNotice else {
+            return nil
+        }
+
+        return UncleanExitNotice(
+            title: "Keyameleon did not exit cleanly.",
+            dismiss: Action(
+                id: .dismissDiagnosticsNotice,
+                title: "Dismiss Diagnostics Notice",
+                isEnabled: true,
+                closesPanel: false
+            )
+        )
+    }
+
+    private static func makeOverflowActions(
+        canCheckForUpdates: Bool,
+        hasPendingUncleanExitNotice: Bool
+    ) -> [Action] {
+        var actions = [
+            Action(id: .settings, title: "Settings…", isEnabled: true, closesPanel: true),
+            Action(
+                id: .checkForUpdates,
+                title: "Check for Updates…",
+                isEnabled: canCheckForUpdates,
+                closesPanel: true
+            ),
+        ]
         if hasPendingUncleanExitNotice {
-            items.append(
-                Item(
-                    id: "unclean-exit",
-                    title: "Keyameleon did not exit cleanly.",
-                    kind: .status,
-                    accessibilityLabel: "Keyameleon did not exit cleanly.",
-                    accessibilityValue:
-                        "Review local Diagnostic Data. Keyameleon sends no notification for an unclean exit."
-                )
-            )
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.reviewDiagnostics.rawValue,
+            actions.append(
+                Action(
+                    id: .reviewDiagnostics,
                     title: "Review Diagnostics…",
-                    kind: .action(.reviewDiagnostics, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.dismissDiagnosticsNotice.rawValue,
-                    title: "Dismiss Diagnostics Notice",
-                    kind: .action(.dismissDiagnosticsNotice, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
+                    isEnabled: true,
+                    closesPanel: true
                 )
             )
         }
+        actions.append(
+            Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true)
+        )
+        return actions
+    }
 
+    private static func makeStatusItems(
+        outcome: ActivityTriggeredSwitchingOutcome,
+        actionConditions: [PhysicalKeyboardActionCondition]
+    ) -> [Item] {
+        var items: [Item] = []
         let activePhysicalKeyboardValue =
             outcome.activePhysicalKeyboard?.name ?? "No activity observed yet"
         items.append(
@@ -134,7 +267,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         )
 
-        let assignmentValue = Self.keyboardAssignmentValue(outcome.currentKeyboardAssignment)
+        let assignmentValue = keyboardAssignmentValue(outcome.currentKeyboardAssignment)
         items.append(
             Item(
                 id: "keyboard-assignment",
@@ -178,7 +311,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         }
 
         for actionCondition in actionConditions {
-            let title = Self.actionConditionTitle(actionCondition)
+            let title = actionConditionTitle(actionCondition)
             items.append(
                 Item(
                     id: "action-condition-\(title)",
@@ -190,100 +323,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         }
 
-        if outcome.hasAction(.resume) {
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.resume.rawValue,
-                    title: "Resume Activity-Triggered Switching",
-                    kind: .action(.resume, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        } else if outcome.hasAction(.pause) {
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.pause.rawValue,
-                    title: "Pause Activity-Triggered Switching",
-                    kind: .action(.pause, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        items.append(
-            Item(
-                id: MenuBarPanelActionID.openKeyameleon.rawValue,
-                title: "Open Keyameleon…",
-                kind: .action(.openKeyameleon, enabled: true),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
-        )
-
-        if !isSetupComplete {
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.continueSetup.rawValue,
-                    title: "Continue Setup…",
-                    kind: .action(.continueSetup, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        if outcome.hasAction(.openSystemSettings) && outcome.hasAction(.checkAgain) {
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.openSystemSettings.rawValue,
-                    title: "Open System Settings",
-                    kind: .action(.openSystemSettings, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-            items.append(
-                Item(
-                    id: MenuBarPanelActionID.checkAgain.rawValue,
-                    title: "Check Again",
-                    kind: .action(.checkAgain, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        items.append(
-            Item(
-                id: MenuBarPanelActionID.settings.rawValue,
-                title: "Settings…",
-                kind: .action(.settings, enabled: true),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
-        )
-        items.append(
-            Item(
-                id: MenuBarPanelActionID.checkForUpdates.rawValue,
-                title: "Check for Updates…",
-                kind: .action(.checkForUpdates, enabled: canCheckForUpdates),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
-        )
-        items.append(
-            Item(
-                id: MenuBarPanelActionID.quit.rawValue,
-                title: "Quit Keyameleon",
-                kind: .action(.quit, enabled: true),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
-        )
-
-        self.items = items
+        return items
     }
 
     private static func keyboardAssignmentValue(

@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-13 — Issue #50 Menu-bar Quick Actions, recovery banner, footer
+
+- Typed `MenuBarPanelContent` regions replace the flat action list: Quick Actions, status banner, leftover assignment rows, unclean-exit notice, footer.
+- Pause / Resume stay in Quick Actions. Recovery banner is Permission Required / Temporarily Unavailable only.
+- Footer version from marketing string. Overflow owns Settings, updates, conditional Review Diagnostics, Quit.
+
 ## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
 
 - Replacing status-item `NSMenu` with one transient 360 pt SwiftUI `NSPopover`.

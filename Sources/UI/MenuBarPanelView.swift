@@ -2,17 +2,18 @@ import SwiftUI
 
 struct MenuBarPanelActions {
     var openKeyameleon: () -> Void
-    var continueSetup: () -> Void
     var openSettings: () -> Void
     var checkForUpdates: () -> Void
     var quit: () -> Void
     var reviewDiagnostics: () -> Void
     var dismissDiagnosticsNotice: () -> Void
+    var closePanel: () -> Void
 }
 
 /// Live Menu first surface hosted in the native Liquid Glass popover.
 ///
-/// The popover supplies glass. This view does not add stacked glass cards.
+/// The popover supplies the panel glass. Quick Actions use glass buttons.
+/// Other regions stay on the popover surface without stacked glass cards.
 @MainActor
 struct KeyameleonMenuBarPanelView: View {
     private let setupModel: KeyameleonSetupModel
@@ -43,31 +44,102 @@ struct KeyameleonMenuBarPanelView: View {
         let content = MenuBarPanelContent(
             outcome: switching.outcome,
             actionConditions: setupModel.physicalKeyboardActionConditions,
-            isSetupComplete: setupModel.isSetupComplete,
             canCheckForUpdates: generalSettingsModel.canCheckForUpdates,
-            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice
+            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice,
+            marketingVersion: Bundle.main.object(
+                forInfoDictionaryKey: "CFBundleShortVersionString"
+            ) as? String
         )
 
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(content.items) { item in
-                switch item.kind {
-                case .status:
-                    statusLine(item)
-                case let .action(actionID, enabled):
-                    Button(item.title) {
-                        perform(actionID)
-                    }
-                    .disabled(!enabled)
-                    .optionalKeyboardShortcut(shortcut(for: actionID))
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            quickActions(content.quickActions)
+
+            if let recoveryBanner = content.recoveryBanner {
+                recoveryBannerView(recoveryBanner)
             }
+
+            if let uncleanExitNotice = content.uncleanExitNotice {
+                uncleanExitNoticeView(uncleanExitNotice)
+            }
+
+            ForEach(content.statusItems) { item in
+                statusLine(item)
+            }
+
+            footer(content.footer)
         }
         .padding(16)
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("menu-bar-panel")
         .onAppear {
             hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
         }
+    }
+
+    private func quickActions(_ quickActions: MenuBarPanelContent.QuickActions) -> some View {
+        GlassEffectContainer(spacing: 8) {
+            HStack(spacing: 8) {
+                Button(quickActions.openKeyameleon.title) {
+                    perform(quickActions.openKeyameleon)
+                }
+                .buttonStyle(.glassProminent)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("menu-bar-open-keyameleon")
+
+                Button(quickActions.pauseOrResume.title) {
+                    perform(quickActions.pauseOrResume)
+                }
+                .buttonStyle(.glass)
+                .accessibilityIdentifier("menu-bar-pause-resume")
+            }
+        }
+    }
+
+    private func recoveryBannerView(
+        _ banner: MenuBarPanelContent.RecoveryBanner
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(banner.statusName)
+                .font(.headline)
+            ForEach(banner.detailLines, id: \.self) { line in
+                Text(line)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if !banner.recoveryActions.isEmpty {
+                HStack {
+                    ForEach(banner.recoveryActions) { action in
+                        Button(action.title) {
+                            perform(action)
+                        }
+                        .disabled(!action.isEnabled)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Switching Status")
+        .accessibilityValue(banner.statusName)
+        .accessibilityIdentifier("menu-bar-recovery-banner")
+    }
+
+    private func uncleanExitNoticeView(
+        _ notice: MenuBarPanelContent.UncleanExitNotice
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(notice.title)
+                .font(.callout)
+            Button(notice.dismiss.title) {
+                perform(notice.dismiss)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(notice.title)
+        .accessibilityValue(
+            "Review local Diagnostic Data. Keyameleon sends no notification for an unclean exit."
+        )
     }
 
     @ViewBuilder
@@ -87,16 +159,31 @@ struct KeyameleonMenuBarPanelView: View {
         }
     }
 
-    private func perform(_ actionID: MenuBarPanelActionID) {
-        switch actionID {
+    private func footer(_ footer: MenuBarPanelContent.Footer) -> some View {
+        HStack {
+            Text(footer.versionText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("Version")
+                .accessibilityValue(footer.versionText)
+            Spacer()
+            MenuBarOverflowButton(actions: footer.overflowActions, perform: perform)
+                .frame(width: 44, height: 20)
+        }
+    }
+
+    private func perform(_ action: MenuBarPanelContent.Action) {
+        if action.closesPanel {
+            actions.closePanel()
+        }
+
+        switch action.id {
         case .pause:
             switching.pause()
         case .resume:
             switching.resume()
         case .openKeyameleon:
             actions.openKeyameleon()
-        case .continueSetup:
-            actions.continueSetup()
         case .openSystemSettings:
             setupModel.openSystemSettings()
         case .checkAgain:
@@ -113,28 +200,6 @@ struct KeyameleonMenuBarPanelView: View {
         case .dismissDiagnosticsNotice:
             actions.dismissDiagnosticsNotice()
             hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
-        }
-    }
-
-    private func shortcut(for actionID: MenuBarPanelActionID) -> KeyboardShortcut? {
-        switch actionID {
-        case .settings:
-            KeyboardShortcut(",", modifiers: .command)
-        case .quit:
-            KeyboardShortcut("q", modifiers: .command)
-        default:
-            nil
-        }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func optionalKeyboardShortcut(_ shortcut: KeyboardShortcut?) -> some View {
-        if let shortcut {
-            self.keyboardShortcut(shortcut)
-        } else {
-            self
         }
     }
 }

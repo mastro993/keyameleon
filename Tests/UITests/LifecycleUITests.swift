@@ -35,7 +35,7 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         closeWindow(initialWindow)
 
         statusItem.click()
-        clickPanelButton("Open Keyameleon…", in: app)
+        clickPanelButton("Open Keyameleon", in: app)
 
         let window = app.windows["Keyameleon"]
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
@@ -43,11 +43,11 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         closeWindow(window)
 
         statusItem.click()
-        clickPanelButton("Open Keyameleon…", in: app)
+        clickPanelButton("Open Keyameleon", in: app)
         XCTAssertTrue(window.waitForExistence(timeout: windowTimeout))
 
         statusItem.click()
-        clickPanelButton("Quit Keyameleon", in: app)
+        clickOverflowItem("Quit Keyameleon", in: app)
         if !app.wait(for: .notRunning, timeout: 2) {
             app.terminate()
             XCTAssertTrue(app.wait(for: .notRunning, timeout: launchTimeout))
@@ -58,6 +58,16 @@ final class KeyameleonLifecycleUITests: XCTestCase {
         let button = app.buttons[title]
         XCTAssertTrue(button.waitForExistence(timeout: menuTimeout))
         button.click()
+    }
+
+    private func clickOverflowItem(_ title: String, in app: XCUIApplication) {
+        XCTAssertTrue(app.buttons["Open Keyameleon"].waitForExistence(timeout: menuTimeout))
+        let overflow = app.buttons["More"]
+        XCTAssertTrue(overflow.waitForExistence(timeout: menuTimeout))
+        overflow.click()
+        let item = overflow.menuItems[title]
+        XCTAssertTrue(item.waitForExistence(timeout: menuTimeout))
+        item.click()
     }
 
     private func closeWindow(_ window: XCUIElement) {

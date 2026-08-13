@@ -78,6 +78,7 @@
 		E7ECA56E3601A3B66CA7F3F3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8FEB7EE535E8C18BD9D70E /* RootView.swift */; };
 		F5723A6F857F899E97BDC980 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C710797D8D223EBD0663F59 /* UpdateChecker.swift */; };
 		F709A33523FE9F750C0CA4C0 /* ManualPhysicalKeyboardDesignation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ED6FFDC073384B3CF3D346 /* ManualPhysicalKeyboardDesignation.swift */; };
+		F9F6DAE8ADF9D02FDC59AF07 /* MenuBarOverflowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */; };
 		FA91956D06B52529439BF8D0 /* PhysicalKeyboardEventObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7344A958EDF1CC3454029751 /* PhysicalKeyboardEventObserver.swift */; };
 		FB39E04074F5D3884F9FC645 /* UpdatePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC3803559762A26A22D58DB8 /* UpdatePolicyTests.swift */; };
 /* End PBXBuildFile section */
@@ -149,6 +150,7 @@
 		81634072FBBCD7BCF66DC8CC /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
 		8AD8FB5FFB9840099C00C830 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
+		8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarOverflowButton.swift; sourceTree = "<group>"; };
 		8E726E51A5724616DEE3DC78 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		8F6A7020C94F2FD13853D645 /* InputSources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSources.swift; sourceTree = "<group>"; };
 		9163A19B113812EA758F0681 /* ProductionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionFactory.swift; sourceTree = "<group>"; };
@@ -249,6 +251,7 @@
 			children = (
 				55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */,
 				45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */,
+				8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */,
 				58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */,
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
@@ -521,6 +524,7 @@
 				CABD1BC3E4A2D1B54E22FC5B /* ListenPermission.swift in Sources */,
 				F709A33523FE9F750C0CA4C0 /* ManualPhysicalKeyboardDesignation.swift in Sources */,
 				10C10DA54CEEC81C6E86EC7A /* ManualPhysicalKeyboardDesignationStore.swift in Sources */,
+				F9F6DAE8ADF9D02FDC59AF07 /* MenuBarOverflowButton.swift in Sources */,
 				66192BBEB5CA3988AFEDD752 /* MenuBarPanelContent.swift in Sources */,
 				24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */,
 				A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */,
