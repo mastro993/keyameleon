@@ -502,6 +502,7 @@ private final class DesignationTestSetupDecisionStore: SetupDecisionStoring {
     var hasCompletedGuidedSetup = false
     var guidedSetupStep: GuidedSetupStep = .permission
     var isActivityTriggeredSwitchingPaused = false
+    var hasEvaluatedBuiltInIdentityMigration = false
 
     func markGuidedSetupStarted() {
         hasStartedGuidedSetup = true
@@ -519,6 +520,10 @@ private final class DesignationTestSetupDecisionStore: SetupDecisionStoring {
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
         isActivityTriggeredSwitchingPaused = paused
+    }
+
+    func markBuiltInIdentityMigrationEvaluated() {
+        hasEvaluatedBuiltInIdentityMigration = true
     }
 }
 
