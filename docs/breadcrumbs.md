@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
+
+- Replacing status-item `NSMenu` with one transient 360 pt SwiftUI `NSPopover`.
+- Native macOS 26 popover glass; no stacked glass cards.
+- Refresh-before-show via `checkAgain()`. Icon marks stay on the `NSStatusItem` button.
+
 ## 2026-08-13 — Xcode Debug Run could not resolve packages
 
 - Repro: `WorkspaceSettings.xcsettings` with `BuildLocationStyle=UseTargetSettings` → `xcodebuild: error: Could not resolve package dependencies: Packages are not supported when using legacy build locations, but the current project has them enabled.`

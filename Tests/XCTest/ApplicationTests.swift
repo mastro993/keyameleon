@@ -19,66 +19,46 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testMenuContainsOpenAndQuitActions() {
+    func testStatusItemOpensTransient360PointPanelAndCloses() throws {
+        let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            permissionProvider: permission,
+            setupStore: ApplicationTestSetupDecisionStore(),
+            startsUpdaterOnLaunch: false,
             singleInstanceLock: makeSingleInstanceLock()
         )
-        let menu = delegate.makeMenu()
-        let titles = menu.items.map(\.title)
-
-        XCTAssertTrue(titles.contains { $0.hasPrefix("Switching Status:") })
-        XCTAssertTrue(titles.contains { $0.hasPrefix("Active Physical Keyboard:") })
-        XCTAssertTrue(titles.contains { $0.hasPrefix("Keyboard Assignment:") })
-        XCTAssertTrue(titles.contains { $0.hasPrefix("Current Input Source:") })
-        XCTAssertTrue(titles.contains("Pause Activity-Triggered Switching"))
-        XCTAssertTrue(titles.contains("Open Keyameleon…"))
-        XCTAssertTrue(titles.contains("Open System Settings"))
-        XCTAssertTrue(titles.contains("Check Again"))
-        XCTAssertTrue(titles.contains("Settings…"))
-        XCTAssertTrue(titles.contains("Check for Updates…"))
-        XCTAssertTrue(titles.contains("Quit Keyameleon"))
-        XCTAssertTrue(menu.item(withTitle: "Open Keyameleon…")?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: "Open System Settings")?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: "Check Again")?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: "Settings…")?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: "Check for Updates…")?.target === delegate)
-        XCTAssertTrue(menu.item(withTitle: "Quit Keyameleon")?.target === delegate)
-        XCTAssertTrue(
-            menu.item(withTitle: "Pause Activity-Triggered Switching")?
-                .target === delegate
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
         )
-    }
+        let anchor = MenuBarPanelTestAnchorWindow()
+        defer {
+            delegate.closeMenuBarPanel()
+            anchor.close()
+        }
 
-    @MainActor
-    func testMenuShowsNoActivityObservedYetUntilActivation() {
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            singleInstanceLock: makeSingleInstanceLock()
+        XCTAssertNil(delegate.menuBarStatusItem?.menu)
+        XCTAssertEqual(
+            delegate.menuBarStatusItem?.button?.action,
+            #selector(KeyameleonApplicationDelegate.toggleMenuBarPanel(_:))
         )
-        let menu = delegate.makeMenu()
-        let activeTitle = menu.items.first {
-            $0.title.hasPrefix("Active Physical Keyboard:")
-        }?.title
+        XCTAssertTrue(delegate.menuBarStatusItem?.button?.target === delegate)
+        let panel = try XCTUnwrap(delegate.menuBarPanelController)
+        XCTAssertEqual(panel.behavior, .transient)
+        XCTAssertEqual(panel.panelWidth, 360)
+        XCTAssertFalse(delegate.isMenuBarPanelShown)
 
-        XCTAssertEqual(activeTitle, "Active Physical Keyboard: No activity observed yet")
-    }
+        let checksAfterLaunch = permission.checkCount
+        panel.show(from: anchor.positioningView)
 
-    @MainActor
-    func testMenuShowsResumeWhenPaused() {
-        let setupStore = ApplicationTestSetupDecisionStore()
-        setupStore.setActivityTriggeredSwitchingPaused(true)
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            setupStore: setupStore,
-            singleInstanceLock: makeSingleInstanceLock()
-        )
-        let menu = delegate.makeMenu()
-        let titles = menu.items.map(\.title)
+        XCTAssertTrue(delegate.isMenuBarPanelShown)
+        XCTAssertGreaterThan(permission.checkCount, checksAfterLaunch)
+        XCTAssertEqual(panel.panelWidth, 360)
 
-        XCTAssertTrue(titles.contains("Resume Activity-Triggered Switching"))
-        XCTAssertFalse(titles.contains("Pause Activity-Triggered Switching"))
-        XCTAssertTrue(titles.contains("Switching Status: Paused"))
+        delegate.closeMenuBarPanel()
+        XCTAssertFalse(delegate.isMenuBarPanelShown)
+
+        panel.toggle(from: anchor.positioningView)
+        XCTAssertFalse(delegate.isMenuBarPanelShown)
     }
 
     @MainActor
@@ -102,27 +82,6 @@ final class KeyameleonApplicationTests: XCTestCase {
                 accessibilityDescription
             )
         }
-    }
-
-    @MainActor
-    func testMenuShowsDismissibleUncleanExitNoticeAndReviewAction() {
-        let uncleanExitState = ApplicationTestUncleanExitStateStore(hasNotice: true)
-        let delegate = KeyameleonApplicationDelegate(
-            uncleanExitStateStore: uncleanExitState,
-            singleInstanceLock: makeSingleInstanceLock()
-        )
-        let menu = delegate.makeMenu()
-        let titles = menu.items.map(\.title)
-
-        XCTAssertTrue(titles.contains("Keyameleon did not exit cleanly."))
-        XCTAssertTrue(titles.contains("Review Diagnostics…"))
-        XCTAssertTrue(titles.contains("Dismiss Diagnostics Notice"))
-        XCTAssertTrue(
-            menu.item(withTitle: "Review Diagnostics…")?.target === delegate
-        )
-        XCTAssertTrue(
-            menu.item(withTitle: "Dismiss Diagnostics Notice")?.target === delegate
-        )
     }
 
     @MainActor
@@ -215,6 +174,30 @@ final class KeyameleonApplicationTests: XCTestCase {
 }
 
 @MainActor
+private final class MenuBarPanelTestAnchorWindow {
+    private let window: NSWindow
+    let positioningView: NSView
+
+    init() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 40, height: 24),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isReleasedWhenClosed = false
+        window.alphaValue = 0
+        window.orderFrontRegardless()
+        self.window = window
+        self.positioningView = window.contentView!
+    }
+
+    func close() {
+        window.close()
+    }
+}
+
+@MainActor
 private final class ApplicationTestUpdateChecker: UpdateChecking {
     private(set) var startCallCount = 0
     var canCheckForUpdates = false
@@ -230,13 +213,15 @@ private final class ApplicationTestUpdateChecker: UpdateChecking {
 @MainActor
 private final class ApplicationTestListenPermissionProvider: ListenPermissionProviding {
     var state: ListenPermissionState
+    private(set) var checkCount = 0
 
     init(state: ListenPermissionState) {
         self.state = state
     }
 
     func checkListenPermission() -> ListenPermissionState {
-        state
+        checkCount += 1
+        return state
     }
 
     func requestListenPermission() -> Bool {
