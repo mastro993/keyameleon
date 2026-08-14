@@ -25,12 +25,18 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
     struct Footer: Equatable, Sendable {
         let versionText: String
+        let versionAccessibilityValue: String
         let openKeyameleon: Action
         let overflowActions: [Action]
     }
 
+    let switchingStatus: SwitchingStatus
     let assignmentList: MenuBarAssignmentList
     let footer: Footer
+
+    var accessibility: MenuBarPanelAccessibility {
+        MenuBarPanelAccessibility(content: self)
+    }
 
     var actionTitles: [String] {
         [footer.openKeyameleon.title] + footer.overflowActions.map(\.title)
@@ -47,12 +53,15 @@ struct MenuBarPanelContent: Equatable, Sendable {
         canCheckForUpdates: Bool,
         marketingVersion: String?
     ) {
+        self.switchingStatus = outcome.switchingStatus
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
             assignedInputSourceNames: assignedInputSourceNames
         )
+        let versionParts = Self.versionParts(marketingVersion: marketingVersion)
         self.footer = Footer(
-            versionText: Self.versionText(marketingVersion: marketingVersion),
+            versionText: versionParts.visible,
+            versionAccessibilityValue: versionParts.accessibilityValue,
             openKeyameleon: Action(
                 id: .openKeyameleon,
                 title: "Open Keyameleon",
@@ -67,12 +76,18 @@ struct MenuBarPanelContent: Equatable, Sendable {
     }
 
     static func versionText(marketingVersion: String?) -> String {
+        versionParts(marketingVersion: marketingVersion).visible
+    }
+
+    private static func versionParts(
+        marketingVersion: String?
+    ) -> (visible: String, accessibilityValue: String) {
         let trimmed = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !trimmed.isEmpty else {
-            return "Keyameleon —"
+            return ("Keyameleon —", "—")
         }
 
-        return "Keyameleon \(trimmed)"
+        return ("Keyameleon \(trimmed)", trimmed)
     }
 
     private static func makeOverflowActions(

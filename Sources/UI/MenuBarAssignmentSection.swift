@@ -3,6 +3,8 @@ import SwiftUI
 /// Keyboards block. Actions stay outside this view so they remain fixed.
 struct MenuBarAssignmentSection: View {
     let list: MenuBarAssignmentList
+    var emphasis: MenuBarAssignmentEmphasis = .rainbow
+    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
     @ScaledMetric(relativeTo: .body) private var assignmentRowHeight = 64
 
     var body: some View {
@@ -21,7 +23,9 @@ struct MenuBarAssignmentSection: View {
             } else {
                 MenuBarAssignmentRows(
                     list: list,
-                    rowHeight: assignmentRowHeight
+                    rowHeight: assignmentRowHeight,
+                    emphasis: emphasis,
+                    focusedTarget: focusedTarget
                 )
             }
         }
@@ -59,19 +63,28 @@ private struct MenuBarAssignmentEmptyState: View {
             Color.primary.opacity(0.06),
             in: RoundedRectangle(cornerRadius: 16, style: .continuous)
         )
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue(description)
     }
 }
 
 private struct MenuBarAssignmentRows: View {
     let list: MenuBarAssignmentList
     let rowHeight: CGFloat
+    let emphasis: MenuBarAssignmentEmphasis
+    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
 
     var body: some View {
         let stack = LazyVStack(alignment: .leading, spacing: 8) {
             ForEach(list.rows) { row in
-                MenuBarAssignmentPill(row: row)
+                MenuBarAssignmentPill(row: row, emphasis: emphasis)
                     .frame(minHeight: rowHeight, alignment: .top)
+                    .focusable()
+                    .modifier(MenuBarAssignmentFocusBinding(
+                        target: .assignment(id: row.id),
+                        focusedTarget: focusedTarget
+                    ))
             }
         }
 
@@ -95,6 +108,7 @@ private struct MenuBarAssignmentRows: View {
 
 struct MenuBarAssignmentPill: View {
     let row: MenuBarAssignmentList.Row
+    var emphasis: MenuBarAssignmentEmphasis = .rainbow
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -102,11 +116,11 @@ struct MenuBarAssignmentPill: View {
                 Text(row.physicalKeyboardName)
                     .font(.body.weight(row.isActive ? .semibold : .medium))
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(MenuBarPanelLayout.nameLineLimit)
                 Text(row.assignedInputSourceName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(MenuBarPanelLayout.inputSourceLineLimit)
                 if let warningNote = row.warningNote {
                     Text(warningNote)
                         .font(.caption2)
@@ -138,31 +152,36 @@ struct MenuBarAssignmentPill: View {
         .modifier(
             MenuBarAssignmentPillStyle(
                 isActive: row.isActive,
-                isDimmed: row.isDimmed
+                isDimmed: row.isDimmed,
+                emphasis: emphasis
             )
         )
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: row.isActive)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(row.physicalKeyboardName)
-        .accessibilityValue(accessibilityValue)
+        .accessibilityLabel(row.accessibilityLabel)
+        .accessibilityValue(row.accessibilityValue)
         .accessibilityAddTraits(.isStaticText)
         .allowsHitTesting(false)
     }
+}
 
-    private var accessibilityValue: String {
-        [
-            row.accessibilityMark,
-            row.assignedInputSourceName,
-            row.warningNote
-        ]
-        .compactMap { $0 }
-        .joined(separator: ", ")
+private struct MenuBarAssignmentFocusBinding: ViewModifier {
+    let target: MenuBarPanelAccessibility.FocusTarget
+    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
+
+    func body(content: Content) -> some View {
+        if let focusedTarget {
+            content.focused(focusedTarget, equals: target)
+        } else {
+            content
+        }
     }
 }
 
 private struct MenuBarAssignmentPillStyle: ViewModifier {
     let isActive: Bool
     let isDimmed: Bool
+    let emphasis: MenuBarAssignmentEmphasis
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -174,17 +193,27 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             .background(Color(nsColor: .controlBackgroundColor), in: shape)
             .overlay {
                 if isActive {
-                    shape.strokeBorder(
-                        AngularGradient(
-                            colors: [.red, .orange, .yellow, .green, .cyan, .blue, .purple, .red],
-                            center: .center
-                        ),
-                        lineWidth: 2
-                    )
+                    activeBorder(in: shape)
                 }
             }
             .compositingGroup()
             .clipShape(shape)
+    }
+
+    @ViewBuilder
+    private func activeBorder(in shape: RoundedRectangle) -> some View {
+        switch emphasis {
+        case .rainbow:
+            shape.strokeBorder(
+                AngularGradient(
+                    colors: [.red, .orange, .yellow, .green, .cyan, .blue, .purple, .red],
+                    center: .center
+                ),
+                lineWidth: 2
+            )
+        case .highContrastAccent:
+            shape.strokeBorder(Color.accentColor, lineWidth: 2)
+        }
     }
 }
 

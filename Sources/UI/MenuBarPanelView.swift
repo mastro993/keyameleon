@@ -18,6 +18,9 @@ struct KeyameleonMenuBarPanelView: View {
     private let switching: ActivityTriggeredSwitching
     @ObservedObject private var generalSettingsModel: KeyameleonGeneralSettingsModel
     private let actions: MenuBarPanelActions
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+    @FocusState private var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
 
     init(
         setupModel: KeyameleonSetupModel,
@@ -33,18 +36,47 @@ struct KeyameleonMenuBarPanelView: View {
 
     var body: some View {
         let content = makeContent()
+        let chrome = MenuBarPanelChrome.resolve(
+            reduceTransparency: reduceTransparency,
+            increasedContrast: colorSchemeContrast == .increased
+        )
+        let accessibility = content.accessibility
 
         VStack(alignment: .leading, spacing: 0) {
-            MenuBarAssignmentSection(list: content.assignmentList)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 4)
+            MenuBarAssignmentSection(
+                list: content.assignmentList,
+                emphasis: chrome.assignmentEmphasis,
+                focusedTarget: $focusedTarget
+            )
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 4)
 
             footer(content.footer)
         }
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
+        .background(panelBackground(chrome.surface))
+        .focusSection()
+        .modifier(
+            MenuBarPanelDefaultFocus(
+                target: accessibility.keyboardFocusOrder.first,
+                focusedTarget: $focusedTarget
+            )
+        )
         .accessibilityElement(children: .contain)
+        .accessibilityLabel(accessibility.panel.label)
+        .accessibilityValue(accessibility.panel.value ?? "")
         .accessibilityIdentifier("menu-bar-panel")
+    }
+
+    @ViewBuilder
+    private func panelBackground(_ surface: MenuBarPanelSurface) -> some View {
+        switch surface {
+        case .liquidGlass:
+            Color.clear
+        case .opaque:
+            Color(nsColor: .windowBackgroundColor)
+        }
     }
 
     private func makeContent() -> MenuBarPanelContent {
@@ -74,13 +106,15 @@ struct KeyameleonMenuBarPanelView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .accessibilityLabel("Version")
-                .accessibilityValue(footer.versionText)
+                .accessibilityValue(footer.versionAccessibilityValue)
             Spacer()
             HStack(spacing: 6) {
                 MenuBarSettingsButton {
                     perform(footer.openKeyameleon)
                 }
                 .fixedSize()
+                .focusable()
+                .focused($focusedTarget, equals: .openKeyameleon)
 
                 MenuBarOverflowButton(
                     actions: footer.overflowActions,
@@ -88,6 +122,8 @@ struct KeyameleonMenuBarPanelView: View {
                     closePanel: actions.closePanel
                 )
                 .fixedSize()
+                .focusable()
+                .focused($focusedTarget, equals: .overflow)
             }
         }
         .padding(.horizontal, 16)
@@ -127,6 +163,19 @@ struct KeyameleonMenuBarPanelView: View {
             actions.checkForUpdates()
         case .quit:
             actions.quit()
+        }
+    }
+}
+
+private struct MenuBarPanelDefaultFocus: ViewModifier {
+    let target: MenuBarPanelAccessibility.FocusTarget?
+    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding
+
+    func body(content: Content) -> some View {
+        if let target {
+            content.defaultFocus(focusedTarget, target)
+        } else {
+            content
         }
     }
 }

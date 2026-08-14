@@ -87,6 +87,47 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testDismissingTheMenuBarPanelDoesNotMutateProductState() throws {
+        let permission = ApplicationTestListenPermissionProvider(state: .granted)
+        let delegate = KeyameleonApplicationDelegate(
+            permissionProvider: permission,
+            setupStore: ApplicationTestSetupDecisionStore(),
+            startsUpdaterOnLaunch: false,
+            singleInstanceLock: makeSingleInstanceLock()
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        let anchor = MenuBarPanelTestAnchorWindow()
+        defer {
+            delegate.closeMenuBarPanel()
+            anchor.close()
+        }
+
+        let panel = try XCTUnwrap(delegate.menuBarPanelController)
+        panel.show(from: anchor.positioningView)
+        XCTAssertTrue(delegate.isMenuBarPanelShown)
+
+        let statusAfterShow = delegate.activityTriggeredSwitching.outcome.switchingStatus
+        let pausedAfterShow = delegate.setupModel.isActivityTriggeredSwitchingPaused
+        let keyboardsAfterShow = delegate.setupModel.physicalKeyboards
+        let checksAfterShow = permission.checkCount
+
+        delegate.closeMenuBarPanel()
+        XCTAssertFalse(delegate.isMenuBarPanelShown)
+        XCTAssertEqual(
+            delegate.activityTriggeredSwitching.outcome.switchingStatus,
+            statusAfterShow
+        )
+        XCTAssertEqual(
+            delegate.setupModel.isActivityTriggeredSwitchingPaused,
+            pausedAfterShow
+        )
+        XCTAssertEqual(delegate.setupModel.physicalKeyboards, keyboardsAfterShow)
+        XCTAssertEqual(permission.checkCount, checksAfterShow)
+    }
+
+    @MainActor
     func testMenuBarIconPresentationMapsEveryStatusMark() {
         let delegate = KeyameleonApplicationDelegate(
             permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),

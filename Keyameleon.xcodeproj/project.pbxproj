@@ -26,8 +26,10 @@
 		2BFC773BE39EA5A451F1C185 /* OperationalNotificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */; };
 		2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9163A19B113812EA758F0681 /* ProductionFactory.swift */; };
 		2FBE8C1CF0C837F0FD7A7B22 /* GeneralSettingsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD75A61707183BD0E107165 /* GeneralSettingsModelTests.swift */; };
+		2FFFD00E71BC5958CE9E67D6 /* MenuBarPanelAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40C2DA9F0561DCC5F989B318 /* MenuBarPanelAccessibilityTests.swift */; };
 		34EFF25115723D444C623637 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F3881EDB96F08B18FD0F617B /* Sparkle */; };
 		35C4F14DEBE88C93C6B5A2A3 /* AssignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E37E4A630DC2EC1DFDE3DE /* AssignmentTests.swift */; };
+		3610D1886B9AF7CF91FCBE9D /* MenuBarPanelAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */; };
 		3CCBEAB699835B72E4EF0C59 /* DiagnosticData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11414C3BBD0946C0653CE62E /* DiagnosticData.swift */; };
 		3E02FF3A6A4FDD305B87E364 /* ActivityTriggeredSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */; };
 		4619577154F398B850D4BE8E /* DiagnosticDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BECCA44F5BC3EBD06111BE /* DiagnosticDataStore.swift */; };
@@ -53,6 +55,7 @@
 		82EA08D271944A6E1DE10B38 /* GeneralSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D03E89D0E631882E1FEECD2 /* GeneralSettingsModel.swift */; };
 		831F87F612659C8281EC3FE9 /* Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D532AF0922ACF6FB01AFF1 /* Lifecycle.swift */; };
 		8CD922A19D618C9525EC5490 /* ActivationActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */; };
+		8ED122D2ED4DCCD7B84993B8 /* MenuBarPanelPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257933278E9C49F4D70D56CB /* MenuBarPanelPreviews.swift */; };
 		906721B0DAE0F8DF5F7B2847 /* ApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFD6C2C12E6744103679EBE /* ApplicationDelegate.swift */; };
 		91E6DD5CBEB5B2DAE4AC91F1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAF64CA3A3802AD87234A325 /* SwiftUI.framework */; };
 		94965581A0590A5E82DB2793 /* DiscoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173FB63477CD7B6BCA3482A3 /* DiscoveryTests.swift */; };
@@ -66,6 +69,7 @@
 		ACA1D2A2F87C1D348122EE23 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */; };
 		ACBFAD8BC2BA205BD7E14575 /* InstallationIntegrityKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = E08F5F8AE410D0FB94462FA8 /* InstallationIntegrityKey.swift */; };
 		B0AE2EC67744B63A24235EF2 /* SwitchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B34AD2AC37423AEC5A62769 /* SwitchingTests.swift */; };
+		B0C94E4D8536078D5C6B4757 /* MenuBarPanelChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */; };
 		BA4F423F402D00CA146EFFAD /* LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E800175BE23F1A513268887 /* LifecycleTests.swift */; };
 		BD35E25C6361F8281935F1E1 /* OperationalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7DDA07E15C86A973F7EC71 /* OperationalNotifications.swift */; };
 		C0C969EF50297720863A4CF1 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EAAA7C23460CFB5FE490B2 /* UserNotifications.framework */; };
@@ -123,6 +127,7 @@
 		21E1EEE59CDB66576D042F49 /* MenuBarPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelTests.swift; sourceTree = "<group>"; };
 		24ED6FFDC073384B3CF3D346 /* ManualPhysicalKeyboardDesignation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignation.swift; sourceTree = "<group>"; };
 		2524EEFA1711ADE5CEAF4EAA /* DiagnosticDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataTests.swift; sourceTree = "<group>"; };
+		257933278E9C49F4D70D56CB /* MenuBarPanelPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelPreviews.swift; sourceTree = "<group>"; };
 		25859C507998EB873999F385 /* PhysicalKeyboardEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardEvent.swift; sourceTree = "<group>"; };
 		27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		292B87F6B6EB98598837DB1B /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
@@ -130,6 +135,7 @@
 		3C710797D8D223EBD0663F59 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		3FD75A61707183BD0E107165 /* GeneralSettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsModelTests.swift; sourceTree = "<group>"; };
 		4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardStore.swift; sourceTree = "<group>"; };
+		40C2DA9F0561DCC5F989B318 /* MenuBarPanelAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelAccessibilityTests.swift; sourceTree = "<group>"; };
 		45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentList.swift; sourceTree = "<group>"; };
 		469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationActivityTests.swift; sourceTree = "<group>"; };
@@ -138,6 +144,7 @@
 		5225FE09338A066FF3E0C002 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		556A0239D8D2035B0CF38C0C /* SwitchingWarning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchingWarning.swift; sourceTree = "<group>"; };
 		55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticBundleReviewView.swift; sourceTree = "<group>"; };
+		564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelAccessibility.swift; sourceTree = "<group>"; };
 		5730AC35BECDCBDCA89C6DA3 /* SwitchingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchingStatus.swift; sourceTree = "<group>"; };
 		58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelContent.swift; sourceTree = "<group>"; };
 		5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualDesignationTests.swift; sourceTree = "<group>"; };
@@ -176,6 +183,7 @@
 		BBA6153A9F4D4EF18DDDE19D /* UpdatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePolicy.swift; sourceTree = "<group>"; };
 		BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelView.swift; sourceTree = "<group>"; };
 		C5D532AF0922ACF6FB01AFF1 /* Lifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lifecycle.swift; sourceTree = "<group>"; };
+		C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelChrome.swift; sourceTree = "<group>"; };
 		D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonSwiftTesting.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicyTests.swift; sourceTree = "<group>"; };
 		D29B24A67009EA8DCF50F391 /* DiagnosticDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataService.swift; sourceTree = "<group>"; };
@@ -258,7 +266,10 @@
 				463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */,
 				82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */,
 				8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */,
+				564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */,
+				C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */,
 				58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */,
+				257933278E9C49F4D70D56CB /* MenuBarPanelPreviews.swift */,
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
 			);
@@ -365,6 +376,7 @@
 				3FD75A61707183BD0E107165 /* GeneralSettingsModelTests.swift */,
 				0E800175BE23F1A513268887 /* LifecycleTests.swift */,
 				5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */,
+				40C2DA9F0561DCC5F989B318 /* MenuBarPanelAccessibilityTests.swift */,
 				21E1EEE59CDB66576D042F49 /* MenuBarPanelTests.swift */,
 				7BEC56C6D332AED3772C92D9 /* MenuFirstTests.swift */,
 				F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */,
@@ -533,8 +545,11 @@
 				80E073726A86C6F91B1265F4 /* MenuBarAssignmentList.swift in Sources */,
 				285CA87B73B33712DF22ADA7 /* MenuBarAssignmentSection.swift in Sources */,
 				F9F6DAE8ADF9D02FDC59AF07 /* MenuBarOverflowButton.swift in Sources */,
+				3610D1886B9AF7CF91FCBE9D /* MenuBarPanelAccessibility.swift in Sources */,
+				B0C94E4D8536078D5C6B4757 /* MenuBarPanelChrome.swift in Sources */,
 				66192BBEB5CA3988AFEDD752 /* MenuBarPanelContent.swift in Sources */,
 				24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */,
+				8ED122D2ED4DCCD7B84993B8 /* MenuBarPanelPreviews.swift in Sources */,
 				A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */,
 				BD35E25C6361F8281935F1E1 /* OperationalNotifications.swift in Sources */,
 				67C45F69D56D4B0C48C92E23 /* PhysicalKeyboard.swift in Sources */,
@@ -577,6 +592,7 @@
 				2FBE8C1CF0C837F0FD7A7B22 /* GeneralSettingsModelTests.swift in Sources */,
 				BA4F423F402D00CA146EFFAD /* LifecycleTests.swift in Sources */,
 				CDEB08A343F64C57326A72EE /* ManualDesignationTests.swift in Sources */,
+				2FFFD00E71BC5958CE9E67D6 /* MenuBarPanelAccessibilityTests.swift in Sources */,
 				5CCE8E9FCCC4037D738F8EB9 /* MenuBarPanelTests.swift in Sources */,
 				DE506B45896CE93DFB607813 /* MenuFirstTests.swift in Sources */,
 				2BFC773BE39EA5A451F1C185 /* OperationalNotificationTests.swift in Sources */,

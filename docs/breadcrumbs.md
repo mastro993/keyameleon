@@ -1,5 +1,10 @@
 # Breadcrumbs
 
+## 2026-08-14 — Issue #51 accessible panel
+
+- Complete #49/#50 panel: VoiceOver, keyboard order, Reduce Transparency, contrast, dismiss-safe close.
+- No Quick Actions row or recovery banner. Speech + More cover Switching Status and recovery.
+
 ## 2026-08-14 — Tighter footer, no panel diagnostics
 
 - List-to-footer gap: 4 + 6. Overflow drops Review/Dismiss Diagnostics.
