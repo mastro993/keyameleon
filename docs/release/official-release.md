@@ -165,9 +165,9 @@ with `GITHUB_TOKEN`. If Actions cannot bypass, publish fails at `git push`.
 ### 6. Land this workflow on `main`
 
 1. Merge the pull request (squash is the only allowed merge method).
-2. Wait for **Actions → CI** on the merge commit on `main` to finish
-   **success**. `verify` requires a successful `CI` run on that exact SHA.
-3. Do not dispatch until that check is green.
+2. `verify` waits up to 45 minutes for **Build and test** on that SHA.
+   You may dispatch as soon as the merge commit is on `main`.
+   If CI fails, `verify` fails. If CI never starts, `verify` times out.
 
 ### 7. Negative checks (optional, no tag created)
 
@@ -178,7 +178,7 @@ From **Actions → Official Release → Run workflow**:
 | this feature branch | `0.1.0` | `verify` fails: not default branch |
 | `main` | `v0.1.0` | `verify` fails: tag would be `vv0.1.0` |
 | `main` | `0.1.0-beta.1` | `verify` fails: not SemVer core |
-| `main` | `0.1.0` before CI is green | `verify` fails: no successful CI |
+| `main` | `0.1.0` while CI is running | `verify` waits; continues when **Build and test** succeeds |
 
 ### 8. Publish `0.1.0`
 
