@@ -18,6 +18,23 @@ func menuBarAssignmentListUsesCompactHeading() {
     #expect(list.heading.contains("1") == false)
 }
 
+@Test("Menu-bar assignment pill uses Physical Keyboard Name and assigned Input Source")
+func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throws {
+    let renamed = makeAssignedPanelKeyboard(
+        name: "Keychron K2",
+        identifier: "k2",
+        customName: "Travel"
+    )
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [renamed],
+        assignedInputSourceNames: panelNames("k2", "Italian")
+    )
+    let travel = try #require(list.rows.first { $0.id == "k2" })
+
+    #expect(travel.physicalKeyboardName == "Travel")
+    #expect(travel.assignedInputSourceName == "Italian")
+}
+
 @Test("Menu-bar assignment list shows only Physical Keyboards with Keyboard Assignments")
 func menuBarAssignmentListShowsOnlyAssignedPhysicalKeyboards() throws {
     let assigned = makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
@@ -119,6 +136,7 @@ func menuBarAssignmentRowsUseDistinctMarksAndDimDisconnected() throws {
     let disconnected = try #require(list.rows.first { $0.physicalKeyboardName == "Away Board" })
 
     #expect(active.connectionMark == .active)
+    #expect(active.isActive)
     #expect(active.accessibilityMark == "Active")
     #expect(active.isDimmed == false)
     #expect(connected.connectionMark == .connected)
@@ -210,9 +228,27 @@ func menuBarAssignmentListScrollsOnlyAfterFiveRows() {
     #expect(six.scrolls)
 }
 
+@Test("Menu-bar assignment list keeps every assigned row")
+func menuBarAssignmentListKeepsEveryAssignedRow() {
+    let count = 64
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: (1...count).map { index in
+            makeAssignedPanelKeyboard(name: "Board \(index)", identifier: "board-\(index)")
+        },
+        assignedInputSourceNames: Dictionary(
+            uniqueKeysWithValues: (1...count).map { index in
+                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), "US")
+            }
+        )
+    )
+
+    #expect(list.rows.count == count)
+    #expect(list.scrolls)
+}
+
 @Test("Menu-bar panel content keeps Keyboard Assignments heading, empty copy, and actions")
 @MainActor
-func menuBarPanelContentKeepsStatusAndActions() {
+func menuBarPanelContentKeepsStatusAndActions() throws {
     let content = MenuBarPanelContent(
         outcome: .readyFixture(),
         physicalKeyboards: [],
@@ -222,13 +258,16 @@ func menuBarPanelContentKeepsStatusAndActions() {
         hasPendingUncleanExitNotice: false
     )
     let titles = content.titles
+    let headingIndex = try #require(titles.firstIndex(of: "Keyboard Assignments"))
+    let statusIndex = try #require(titles.firstIndex { $0.hasPrefix("Switching Status:") })
 
-    #expect(titles.contains("Keyboard Assignments"))
+    #expect(titles.first == "Keyboard Assignments")
     #expect(titles.contains("No Keyboard Assignments"))
-    #expect(titles.contains { $0.hasPrefix("Switching Status:") })
+    #expect(headingIndex < statusIndex)
     #expect(titles.contains { $0.hasPrefix("Active Physical Keyboard:") } == false)
     #expect(content.assignmentList.rows.isEmpty)
     #expect(content.actionTitles.contains("Pause Activity-Triggered Switching"))
+    #expect(content.actionTitles.contains("Request Permission") == false)
     #expect(content.actionTitles.contains("Open Keyameleon…"))
     #expect(content.actionTitles.contains("Open System Settings"))
     #expect(content.actionTitles.contains("Check Again"))
@@ -264,6 +303,25 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
     })
 }
 
+@Test("Menu-bar panel shows Request Permission when listen permission is required")
+@MainActor
+func menuBarPanelShowsRequestPermissionWhenListenPermissionIsRequired() {
+    let content = MenuBarPanelContent(
+        outcome: .permissionRequiredFixture(),
+        physicalKeyboards: [],
+        assignedInputSourceNames: [:],
+        isSetupComplete: true,
+        canCheckForUpdates: true,
+        hasPendingUncleanExitNotice: false
+    )
+
+    #expect(content.titles.contains("Switching Status: Permission Required"))
+    #expect(content.actionTitles.contains("Request Permission"))
+    #expect(content.actionTitles.contains("Open System Settings"))
+    #expect(content.actionTitles.contains("Check Again"))
+    #expect(content.actionTitles.contains("Pause Activity-Triggered Switching") == false)
+}
+
 @Test("Menu-bar panel shows Resume when Activity-Triggered Switching is paused")
 @MainActor
 func menuBarPanelShowsResumeWhenPaused() {
@@ -284,7 +342,7 @@ func menuBarPanelShowsResumeWhenPaused() {
 
 @Test("Menu-bar panel shows dismissible unclean-exit notice and review action")
 @MainActor
-func menuBarPanelShowsDismissibleUncleanExitNoticeAndReviewAction() {
+func menuBarPanelShowsDismissibleUncleanExitNoticeAndReviewAction() throws {
     let content = MenuBarPanelContent(
         outcome: .readyFixture(),
         physicalKeyboards: [],
@@ -294,12 +352,29 @@ func menuBarPanelShowsDismissibleUncleanExitNoticeAndReviewAction() {
         hasPendingUncleanExitNotice: true
     )
 
-    #expect(content.titles.contains("Keyameleon did not exit cleanly."))
+    let titles = content.titles
+    let headingIndex = try #require(titles.firstIndex(of: "Keyboard Assignments"))
+    let diagnosticsIndex = try #require(titles.firstIndex(of: "Keyameleon did not exit cleanly."))
+
+    #expect(headingIndex < diagnosticsIndex)
     #expect(content.actionTitles.contains("Review Diagnostics…"))
     #expect(content.actionTitles.contains("Dismiss Diagnostics Notice"))
 }
 
 private extension ActivityTriggeredSwitchingOutcome {
+    static func permissionRequiredFixture() -> ActivityTriggeredSwitchingOutcome {
+        ActivityTriggeredSwitchingOutcome(
+            switchingStatus: .permissionRequired,
+            temporarilyUnavailableReasons: [],
+            activePhysicalKeyboard: nil,
+            currentKeyboardAssignment: .none,
+            currentInputSourceName: nil,
+            mismatch: nil,
+            warnings: [],
+            availableActions: [.requestPermission, .openSystemSettings, .checkAgain]
+        )
+    }
+
     static func readyFixture() -> ActivityTriggeredSwitchingOutcome {
         ActivityTriggeredSwitchingOutcome(
             switchingStatus: .ready,
@@ -339,14 +414,16 @@ private func makeAssignedPanelKeyboard(
     name: String,
     identifier: String,
     connectionState: PhysicalKeyboardConnectionState = .connected,
-    isActive: Bool = false
+    isActive: Bool = false,
+    customName: String? = nil
 ) -> PhysicalKeyboard {
     makePanelKeyboard(
         name: name,
         identifier: identifier,
         assignmentState: .assigned(KeyboardAssignment(inputSourceIdentifier: "com.example.us")!),
         connectionState: connectionState,
-        isActive: isActive
+        isActive: isActive,
+        customName: customName
     )
 }
 
@@ -355,12 +432,13 @@ private func makePanelKeyboard(
     identifier: String,
     assignmentState: PhysicalKeyboardAssignmentState,
     connectionState: PhysicalKeyboardConnectionState = .connected,
-    isActive: Bool = false
+    isActive: Bool = false,
+    customName: String? = nil
 ) -> PhysicalKeyboard {
     PhysicalKeyboard(
         id: PhysicalKeyboardRecordID(rawValue: identifier),
         productName: name,
-        customName: nil,
+        customName: customName,
         transport: .usb,
         isBuiltIn: false,
         assignmentState: assignmentState,

@@ -3,6 +3,7 @@ import Foundation
 enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
+    case requestPermission
     case openKeyameleon
     case continueSetup
     case openSystemSettings
@@ -16,7 +17,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
 
 /// Typed Menu first rows and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
-    static let panelWidth: CGFloat = 360
+    static let panelWidth: CGFloat = 320
 
     struct Item: Equatable, Identifiable, Sendable {
         enum Kind: Equatable, Sendable {
@@ -40,9 +41,9 @@ struct MenuBarPanelContent: Equatable, Sendable {
     }
 
     var titles: [String] {
-        noticeItems.map(\.title)
-            + [assignmentList.heading]
+        [assignmentList.heading]
             + [assignmentList.emptyMessage].compactMap { $0 }
+            + noticeItems.map(\.title)
             + footerItems.map(\.title)
     }
 
@@ -83,6 +84,18 @@ struct MenuBarPanelContent: Equatable, Sendable {
                 accessibilityValue: switchingStatus
             )
         )
+
+        if outcome.hasAction(.requestPermission) {
+            noticeItems.append(
+                Item(
+                    id: MenuBarPanelActionID.requestPermission.rawValue,
+                    title: "Request Permission",
+                    kind: .action(.requestPermission, enabled: true),
+                    accessibilityLabel: nil,
+                    accessibilityValue: nil
+                )
+            )
+        }
 
         if let reason = outcome.temporarilyUnavailableReasons.first {
             let reasonName = Self.unavailableReasonName(reason)

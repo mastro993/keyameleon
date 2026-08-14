@@ -86,7 +86,33 @@ build_app() {
         -scheme Keyameleon \
         -configuration Debug \
         -destination 'platform=macOS,arch=arm64' \
-        -derivedDataPath "${DERIVED_DATA_PATH}"
+        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        "$@"
+}
+
+development_signing_identity() {
+    local identity
+    identity="$(
+        security find-identity -v -p codesigning 2>/dev/null \
+            | awk -F '"' '/Apple Development:/{ print $2; exit }'
+    )"
+
+    if [[ -z "${identity}" ]]; then
+        print -u2 'No Apple Development signing identity found.'
+        print -u2 'A stable signature is required for macOS to retain Input Monitoring permission.'
+        return 1
+    fi
+
+    print -r -- "${identity}"
+}
+
+build_development_app() {
+    local identity
+    identity="$(development_signing_identity)"
+    build_app \
+        CODE_SIGN_STYLE=Manual \
+        "CODE_SIGN_IDENTITY=${identity}" \
+        CODE_SIGNING_REQUIRED=YES
 }
 
 audit_all
@@ -107,7 +133,7 @@ case "${1:-test}" in
         ;;
     open)
         generate_project
-        build_app
+        build_development_app
         open "${PRODUCTS_PATH}/Keyameleon.app"
         ;;
     release-tag)

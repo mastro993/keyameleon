@@ -1,5 +1,19 @@
 # Choices
 
+## 2026-08-14 — Menu-bar assignment pills
+
+### Seams
+- `MenuBarAssignmentList.Row` — title (Physical Keyboard Name), subtitle (assigned Input Source), `isActive`. No trailing value.
+- `MenuBarAssignmentPill` — squircle pill; hash-stable distinctive fill; Active = accent stroke + soft accent wash.
+- `MenuBarAssignmentRows` — `LazyVStack`; viewport still `visibleRowLimit == 5`; no data cap.
+
+### Defaults
+- Squircle = `RoundedRectangle(cornerRadius: 16, style: .continuous)`.
+- Distinctive fill from FNV-1a hue of row id.
+- Active: opaque `controlBackgroundColor` plate + 10–18% accent wash + 2 pt accent border. Title `.primary` / `.semibold`; subtitle `primary` at 72% (not `.secondary`) so type stays readable on the tint.
+- Disconnected stays 0.5 opacity. Rows stay read-only.
+- More than five pills: assignment area scrolls. Actions stay fixed.
+
 ## 2026-08-14 — Request Permission no-op
 
 ### Seams
@@ -30,13 +44,15 @@
 - Distinct accessible marks: Active, Connected, Disconnected. Disconnected rows use 0.5 opacity.
 - More than five rows: assignment area scrolls; actions stay outside the scroll view.
 - Keep Switching Status, Temporarily Unavailable copy, unclean-exit notice, and current actions until #50 replaces them.
+- When `outcome` has `.requestPermission`, panel shows **Request Permission** next to Switching Status. Action calls `SetupModel.requestPermission()`.
+- Panel order: Keyboard Assignments first, then Switching Status / diagnostics notices, then actions.
 - Drop Active Physical Keyboard / Keyboard Assignment / Current Input Source / mismatch / Needs action status lines. The assignment list replaces that dump.
 
 ## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel
 
 ### Seams
 
-- `KeyameleonMenuBarPanelController` — one AppKit module: show, toggle, and close one transient 360 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
+- `KeyameleonMenuBarPanelController` — one AppKit module: show, toggle, and close one transient 320 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
 - `MenuBarPanelContent` — typed Menu first rows and actions. `KeyameleonMenuBarPanelView` renders that content on one native popover glass surface.
 - `NSStatusItem` stays the durable menu-bar lifecycle. Icon marks and accessibility descriptions stay on the status-item button.
 

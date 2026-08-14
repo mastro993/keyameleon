@@ -1,5 +1,16 @@
 # Breadcrumbs
 
+## 2026-08-14 — Menu-bar Request Permission missing
+
+- Outcome already had `.requestPermission` on Permission Required. Panel never rendered it.
+- Add notice action **Request Permission** → `SetupModel.requestPermission()`.
+
+## 2026-08-14 — Menu-bar assignment pills
+
+- Assigned rows render as squircle pills: Physical Keyboard Name title / assigned Input Source subtitle / no trailing value.
+- Active (last Activation Activity) gets accent border + accent wash. Others keep hash-stable fills.
+- List unbounded via `LazyVStack`; 5-pill viewport still scrolls overflow.
+
 ## 2026-08-14 — Request Permission click did nothing
 
 - Cause: no `NSInputMonitoringUsageDescription` → `IOHIDRequestAccess` returns false with no prompt. Denied path also opened nothing.
@@ -9,10 +20,11 @@
 
 - Seam: `MenuBarAssignmentList` filters/orders assigned rows; panel view renders read-only section with 5-row scroll cap.
 - Keep #48 actions/footer until #50. Drop Menu first assignment status dump.
+- Order: Keyboard Assignments, then Switching Status / unclean-exit diagnostics, then actions.
 
 ## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
 
-- Replacing status-item `NSMenu` with one transient 360 pt SwiftUI `NSPopover`.
+- Replacing status-item `NSMenu` with one transient 320 pt SwiftUI `NSPopover`.
 - Native macOS 26 popover glass; no stacked glass cards.
 - Refresh-before-show via `checkAgain()`. Icon marks stay on the `NSStatusItem` button.
 

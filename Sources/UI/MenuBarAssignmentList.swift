@@ -6,6 +6,7 @@ struct MenuBarAssignmentList: Equatable, Sendable {
     static let emptyMessage = "No Keyboard Assignments"
     static let unavailableInputSourceName = "Unavailable Input Source"
     static let unavailableNote = "Unavailable Keyboard Assignment"
+    /// Visible pill viewport. The list itself is unbounded.
     static let visibleRowLimit = 5
 
     enum ConnectionMark: Equatable, Sendable {
@@ -36,6 +37,10 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
         var accessibilityMark: String {
             connectionMark.accessibilityName
+        }
+
+        var isActive: Bool {
+            connectionMark == .active
         }
     }
 

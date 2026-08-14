@@ -43,6 +43,8 @@ struct KeyameleonMenuBarPanelView: View {
         let content = makeContent()
 
         VStack(alignment: .leading, spacing: 8) {
+            MenuBarAssignmentSection(list: content.assignmentList)
+
             ForEach(content.noticeItems) { item in
                 MenuBarPanelItemView(
                     item: item,
@@ -50,8 +52,6 @@ struct KeyameleonMenuBarPanelView: View {
                     shortcut: shortcut(for:)
                 )
             }
-
-            MenuBarAssignmentSection(list: content.assignmentList)
 
             ForEach(content.footerItems) { item in
                 MenuBarPanelItemView(
@@ -99,6 +99,8 @@ struct KeyameleonMenuBarPanelView: View {
             actions.openKeyameleon()
         case .continueSetup:
             actions.continueSetup()
+        case .requestPermission:
+            setupModel.requestPermission()
         case .openSystemSettings:
             setupModel.openSystemSettings()
         case .checkAgain:
