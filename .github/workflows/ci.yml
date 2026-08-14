@@ -51,7 +51,7 @@ jobs:
           echo "macos_required=${macos_required}" >> "${GITHUB_OUTPUT}"
 
   macos:
-    name: macOS product tests
+    name: Build and test
     needs: changes
     if: needs.changes.outputs.macos_required == 'true'
     runs-on: macos-26
