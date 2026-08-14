@@ -1,10 +1,57 @@
 # Choices
 
+## 2026-08-14 — Menu-bar assignment pills
+
+### Seams
+- `MenuBarAssignmentList.Row` — title (Physical Keyboard Name), subtitle (assigned Input Source), `isActive`. No trailing value.
+- `MenuBarAssignmentPill` — white squircle pill; Active = 2 pt angular rainbow border + soft neutral badge at top right.
+- `MenuBarAssignmentRows` — `LazyVStack`; viewport still `visibleRowLimit == 5`; no data cap.
+
+### Defaults
+- Squircle = `RoundedRectangle(cornerRadius: 16, style: .continuous)`.
+- Theme-aware control background stays opaque for all pills. Active adds the rainbow border and a soft neutral `Active` badge. Text uses primary and secondary system styles.
+- Disconnected content stays 0.5 opacity without dimming the adaptive background. Rows stay read-only.
+- More than five pills: assignment area scrolls. Actions stay fixed.
+
+## 2026-08-14 — Request Permission no-op
+
+### Seams
+- `NSInputMonitoringUsageDescription` in `Info.plist` / `project.yml` — required for `IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)` to show the Input Monitoring prompt.
+- `KeyameleonSetupModel.requestPermission()` — Guided setup action: request listen permission, then open System Settings only if Switching Status stays Permission Required.
+- `SystemListenPermissionProvider.requestListenPermission()` — activate the accessory app before `IOHIDRequestAccess`.
+
+### Defaults
+- Request Permission on Guided setup uses `SetupModel.requestPermission()`, not the switching module alone.
+- Denied or already-denied requests open Privacy → Input Monitoring. Granted requests do not.
+- Usage description names Activation Activity and Activity-Triggered Switching. No Key Content claim.
+
+## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
+
+### Seams
+
+- `MenuBarAssignmentList` — pure presentation: assigned-only filter, Active/connected/disconnected order, row marks, Unavailable Keyboard Assignment copy, empty state, scroll boundary (`visibleRowLimit == 5`).
+- `MenuBarPanelContent` — still owns remaining Menu first notices and actions; embeds one `MenuBarAssignmentList`.
+- `MenuBarAssignmentSection` / `MenuBarAssignmentRowView` — render typed rows only. Rows are not buttons.
+
+### Defaults
+
+- Reuse `PhysicalKeyboardListOrdering` (Active, other connected, disconnected; alphabetical Physical Keyboard Name inside each group).
+- A Keyboard Assignment is `assignmentState == .assigned`. Unassigned and unsupported Physical Keyboards stay out of the list.
+- Resolved Input Source name when eligible catalog has it. Otherwise second line is `Unavailable Input Source` plus warning symbol and note `Unavailable Keyboard Assignment`.
+- Heading is `Keyboards`. No app-name header. No assignment count.
+- Empty state uses a theme-aware soft gray keyboard card: `No assigned keyboards` and `Open Keyameleon Settings to assign keyboards.` Open Settings stays in the existing action list.
+- Distinct accessible marks: Active, Connected, Disconnected. Disconnected rows use 0.5 opacity.
+- More than five rows: assignment area scrolls; actions stay outside the scroll view.
+- Keep Switching Status, Temporarily Unavailable copy, unclean-exit notice, and current actions until #50 replaces them.
+- When `outcome` has `.requestPermission`, panel shows **Request Permission** next to Switching Status. Action calls `SetupModel.requestPermission()`.
+- Panel order: Keyboards first, then Switching Status / diagnostics notices, then actions.
+- Drop Active Physical Keyboard / Keyboard Assignment / Current Input Source / mismatch / Needs action status lines. The assignment list replaces that dump.
+
 ## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel
 
 ### Seams
 
-- `KeyameleonMenuBarPanelController` — one AppKit module: show, toggle, and close one transient 360 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
+- `KeyameleonMenuBarPanelController` — one AppKit module: show, toggle, and close one transient 320 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
 - `MenuBarPanelContent` — typed Menu first rows and actions. `KeyameleonMenuBarPanelView` renders that content on one native popover glass surface.
 - `NSStatusItem` stays the durable menu-bar lifecycle. Icon marks and accessibility descriptions stay on the status-item button.
 

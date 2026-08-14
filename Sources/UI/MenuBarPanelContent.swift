@@ -3,6 +3,7 @@ import Foundation
 enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
+    case requestPermission
     case openKeyameleon
     case continueSetup
     case openSystemSettings
@@ -16,7 +17,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
 
 /// Typed Menu first rows and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
-    static let panelWidth: CGFloat = 360
+    static let panelWidth: CGFloat = 320
 
     struct Item: Equatable, Identifiable, Sendable {
         enum Kind: Equatable, Sendable {
@@ -31,10 +32,19 @@ struct MenuBarPanelContent: Equatable, Sendable {
         let accessibilityValue: String?
     }
 
-    var items: [Item]
+    var assignmentList: MenuBarAssignmentList
+    var noticeItems: [Item]
+    var footerItems: [Item]
+
+    var items: [Item] {
+        noticeItems + footerItems
+    }
 
     var titles: [String] {
-        items.map(\.title)
+        [assignmentList.heading]
+            + [assignmentList.emptyTitle, assignmentList.emptyDescription].compactMap { $0 }
+            + noticeItems.map(\.title)
+            + footerItems.map(\.title)
     }
 
     var actionTitles: [String] {
@@ -52,14 +62,20 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
-        actionConditions: [PhysicalKeyboardActionCondition],
+        physicalKeyboards: [PhysicalKeyboard],
+        assignedInputSourceNames: [PhysicalKeyboardRecordID: String],
         isSetupComplete: Bool,
         canCheckForUpdates: Bool,
         hasPendingUncleanExitNotice: Bool
     ) {
-        var items: [Item] = []
+        assignmentList = MenuBarAssignmentList(
+            physicalKeyboards: physicalKeyboards,
+            assignedInputSourceNames: assignedInputSourceNames
+        )
+
+        var noticeItems: [Item] = []
         let switchingStatus = Self.switchingStatusName(outcome.switchingStatus)
-        items.append(
+        noticeItems.append(
             Item(
                 id: "switching-status",
                 title: "Switching Status: \(switchingStatus)",
@@ -69,9 +85,21 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         )
 
+        if outcome.hasAction(.requestPermission) {
+            noticeItems.append(
+                Item(
+                    id: MenuBarPanelActionID.requestPermission.rawValue,
+                    title: "Request Permission",
+                    kind: .action(.requestPermission, enabled: true),
+                    accessibilityLabel: nil,
+                    accessibilityValue: nil
+                )
+            )
+        }
+
         if let reason = outcome.temporarilyUnavailableReasons.first {
             let reasonName = Self.unavailableReasonName(reason)
-            items.append(
+            noticeItems.append(
                 Item(
                     id: "unavailable-reason",
                     title: "Detected reason: \(reasonName)",
@@ -80,7 +108,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                     accessibilityValue: reasonName
                 )
             )
-            items.append(
+            noticeItems.append(
                 Item(
                     id: "unavailable-recovery",
                     title: "Resumes automatically when macOS allows Activity-Triggered Switching.",
@@ -92,7 +120,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         }
 
         if hasPendingUncleanExitNotice {
-            items.append(
+            noticeItems.append(
                 Item(
                     id: "unclean-exit",
                     title: "Keyameleon did not exit cleanly.",
@@ -102,7 +130,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                         "Review local Diagnostic Data. Keyameleon sends no notification for an unclean exit."
                 )
             )
-            items.append(
+            noticeItems.append(
                 Item(
                     id: MenuBarPanelActionID.reviewDiagnostics.rawValue,
                     title: "Review Diagnostics…",
@@ -111,7 +139,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                     accessibilityValue: nil
                 )
             )
-            items.append(
+            noticeItems.append(
                 Item(
                     id: MenuBarPanelActionID.dismissDiagnosticsNotice.rawValue,
                     title: "Dismiss Diagnostics Notice",
@@ -122,76 +150,9 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         }
 
-        let activePhysicalKeyboardValue =
-            outcome.activePhysicalKeyboard?.name ?? "No activity observed yet"
-        items.append(
-            Item(
-                id: "active-physical-keyboard",
-                title: "Active Physical Keyboard: \(activePhysicalKeyboardValue)",
-                kind: .status,
-                accessibilityLabel: "Active",
-                accessibilityValue: activePhysicalKeyboardValue
-            )
-        )
-
-        let assignmentValue = Self.keyboardAssignmentValue(outcome.currentKeyboardAssignment)
-        items.append(
-            Item(
-                id: "keyboard-assignment",
-                title: "Keyboard Assignment: \(assignmentValue)",
-                kind: .status,
-                accessibilityLabel: "Keyboard Assignment",
-                accessibilityValue: assignmentValue
-            )
-        )
-
-        let currentInputSourceValue = outcome.currentInputSourceName ?? "—"
-        items.append(
-            Item(
-                id: "current-input-source",
-                title: "Current Input Source: \(currentInputSourceValue)",
-                kind: .status,
-                accessibilityLabel: "Current Input Source",
-                accessibilityValue: currentInputSourceValue
-            )
-        )
-
-        if let mismatch = outcome.mismatch {
-            items.append(
-                Item(
-                    id: "assigned-input-source",
-                    title: "Assigned Input Source: \(mismatch.assignedName)",
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-            items.append(
-                Item(
-                    id: "restore-assignment",
-                    title: "Later Activation Activity restores the Keyboard Assignment.",
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        for actionCondition in actionConditions {
-            let title = Self.actionConditionTitle(actionCondition)
-            items.append(
-                Item(
-                    id: "action-condition-\(title)",
-                    title: title,
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
+        var footerItems: [Item] = []
         if outcome.hasAction(.resume) {
-            items.append(
+            footerItems.append(
                 Item(
                     id: MenuBarPanelActionID.resume.rawValue,
                     title: "Resume Activity-Triggered Switching",
@@ -201,7 +162,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                 )
             )
         } else if outcome.hasAction(.pause) {
-            items.append(
+            footerItems.append(
                 Item(
                     id: MenuBarPanelActionID.pause.rawValue,
                     title: "Pause Activity-Triggered Switching",
@@ -212,7 +173,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         }
 
-        items.append(
+        footerItems.append(
             Item(
                 id: MenuBarPanelActionID.openKeyameleon.rawValue,
                 title: "Open Keyameleon…",
@@ -223,7 +184,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         )
 
         if !isSetupComplete {
-            items.append(
+            footerItems.append(
                 Item(
                     id: MenuBarPanelActionID.continueSetup.rawValue,
                     title: "Continue Setup…",
@@ -235,7 +196,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         }
 
         if outcome.hasAction(.openSystemSettings) && outcome.hasAction(.checkAgain) {
-            items.append(
+            footerItems.append(
                 Item(
                     id: MenuBarPanelActionID.openSystemSettings.rawValue,
                     title: "Open System Settings",
@@ -244,7 +205,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                     accessibilityValue: nil
                 )
             )
-            items.append(
+            footerItems.append(
                 Item(
                     id: MenuBarPanelActionID.checkAgain.rawValue,
                     title: "Check Again",
@@ -255,7 +216,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         }
 
-        items.append(
+        footerItems.append(
             Item(
                 id: MenuBarPanelActionID.settings.rawValue,
                 title: "Settings…",
@@ -264,7 +225,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                 accessibilityValue: nil
             )
         )
-        items.append(
+        footerItems.append(
             Item(
                 id: MenuBarPanelActionID.checkForUpdates.rawValue,
                 title: "Check for Updates…",
@@ -273,7 +234,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                 accessibilityValue: nil
             )
         )
-        items.append(
+        footerItems.append(
             Item(
                 id: MenuBarPanelActionID.quit.rawValue,
                 title: "Quit Keyameleon",
@@ -283,24 +244,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
             )
         )
 
-        self.items = items
-    }
-
-    private static func keyboardAssignmentValue(
-        _ assignment: ActivityTriggeredSwitchingKeyboardAssignment
-    ) -> String {
-        switch assignment {
-        case .none:
-            "—"
-        case .unassigned:
-            "Unassigned"
-        case let .assigned(name):
-            name
-        case .unavailable:
-            "Unavailable Keyboard Assignment"
-        case let .unsupported(reason):
-            "Unsupported — \(unsupportedReasonName(reason))"
-        }
+        self.noticeItems = noticeItems
+        self.footerItems = footerItems
     }
 
     private static func switchingStatusName(_ status: SwitchingStatus) -> String {
@@ -326,30 +271,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
             "Secure Input is active"
         case .protectedDataUnavailable:
             "Protected data is unavailable"
-        }
-    }
-
-    private static func unsupportedReasonName(_ reason: PhysicalKeyboardUnsupportedReason) -> String {
-        switch reason {
-        case .missingIdentity:
-            "Physical Keyboard Identity unavailable"
-        case .unstableIdentity:
-            "Physical Keyboard Identity unstable"
-        case .sharedIdentity:
-            "Physical Keyboard Identity shared"
-        case .ambiguousIdentity:
-            "Physical Keyboard Identity ambiguous"
-        }
-    }
-
-    private static func actionConditionTitle(
-        _ condition: PhysicalKeyboardActionCondition
-    ) -> String {
-        switch condition {
-        case let .unassigned(name):
-            "Needs action: \(name) — Unassigned"
-        case let .unavailableKeyboardAssignment(name):
-            "Needs action: \(name) — Unavailable Keyboard Assignment"
         }
     }
 }

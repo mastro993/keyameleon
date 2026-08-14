@@ -311,6 +311,13 @@ final class KeyameleonSetupModel {
         guidedSetupStep = setupStore.guidedSetupStep
     }
 
+    func requestPermission() {
+        activityTriggeredSwitching.requestPermission()
+        if activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired {
+            openSystemSettings()
+        }
+    }
+
     func continueToAssignments() {
         setupStore.markGuidedSetupStep(.assignments)
         hasStartedGuidedSetup = true

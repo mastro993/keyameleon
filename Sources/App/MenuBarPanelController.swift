@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// One transient 360 pt menu-bar panel anchored to the existing status item.
+/// One transient 320 pt menu-bar panel anchored to the existing status item.
 ///
 /// Native macOS 26 Liquid Glass comes from `NSPopover` chrome. Callers must not
 /// wrap this surface in extra glass cards.
