@@ -1,5 +1,14 @@
 # Breadcrumbs
 
+## 2026-08-14 — Release README grill
+
+- Drop glossary terms **Multilingual Professional** and **First-Key Guarantee**.
+- Product sentence now: same Mac, Physical Keyboards with different physical layouts.
+- Guided setup + completed-setup copy no longer names First-Key Guarantee.
+- Public README rewritten: user-first, Official Release install, Privacy,
+  Architecture, Releasing secrets table. Screenshot placeholder at
+  `assets/screenshot.png`.
+
 ## 2026-08-14 — Menu-bar Request Permission missing
 
 - Outcome already had `.requestPermission` on Permission Required. Panel never rendered it.

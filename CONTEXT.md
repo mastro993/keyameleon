@@ -1,6 +1,6 @@
 # Keyameleon
 
-Keyameleon keeps the macOS Input Source aligned with the Physical Keyboard that produces input. It serves a Multilingual Professional who uses keyboards with different physical layouts.
+Keyameleon keeps the macOS Input Source aligned with the Physical Keyboard that produces input. It serves a person who uses the same Mac with Physical Keyboards that have different physical layouts.
 
 ## Language
 
@@ -76,15 +76,7 @@ _Avoid_: App status, operational status
 
 **Activity-Triggered Switching**:
 The product behavior that requests and verifies a Keyboard Assignment after Keyameleon observes Activation Activity. It does not delay or change the original Physical Keyboard Event. That event and later events that macOS processes before verification can use the previous Input Source.
-_Avoid_: First-activity guarantee, next-key guarantee, best-effort switching
-
-**First-Key Guarantee**:
-The product promise that the first key pressed after the user changes Physical Keyboard uses that keyboard's assigned Input Source.
-_Avoid_: Next-key switching, best-effort switching
-
-**Multilingual Professional**:
-The primary V1 user: one person who uses the same Mac with keyboards that have different physical layouts.
-_Avoid_: Power user, general Mac user
+_Avoid_: First-activity guarantee, next-key guarantee, first-key guarantee, best-effort switching
 
 **Official Release**:
 A version of Keyameleon that the person with release authority publishes for users. It has a source version that users can inspect.
