@@ -102,7 +102,7 @@ func menuBarPanelQuickActionsDismissal() {
     )
 }
 
-@Test("Footer shows Version from the marketing version and omits the build number")
+@Test("Footer shows Keyameleon from the marketing version and omits the build number")
 @MainActor
 func menuBarPanelFooterShowsMarketingVersion() {
     let content = makeMenuBarPanelContent(
@@ -110,7 +110,7 @@ func menuBarPanelFooterShowsMarketingVersion() {
         marketingVersion: "0.1.0"
     )
 
-    #expect(content.footer.versionText == "Version 0.1.0")
+    #expect(content.footer.versionText == "Keyameleon 0.1.0")
     #expect(content.footer.versionText.contains("(") == false)
 }
 
@@ -119,15 +119,26 @@ func menuBarPanelFooterShowsMarketingVersion() {
 func menuBarPanelFooterVersionFallback() {
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: nil)
-            .footer.versionText == "Version —"
+            .footer.versionText == "Keyameleon —"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "   ")
-            .footer.versionText == "Version —"
+            .footer.versionText == "Keyameleon —"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "")
-            .footer.versionText == "Version —"
+            .footer.versionText == "Keyameleon —"
+    )
+}
+
+@Test("Dismissing More without a selection closes the menu-bar panel")
+func menuBarOverflowOutsideClickClosesPanel() {
+    #expect(
+        MenuBarOverflowMenuDismissal.shouldClosePanelAfterMenuDismiss(didSelectItem: false)
+    )
+    #expect(
+        MenuBarOverflowMenuDismissal.shouldClosePanelAfterMenuDismiss(didSelectItem: true)
+            == false
     )
 }
 

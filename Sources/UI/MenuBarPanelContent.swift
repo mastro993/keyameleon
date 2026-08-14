@@ -100,10 +100,10 @@ struct MenuBarPanelContent: Equatable, Sendable {
     static func versionText(marketingVersion: String?) -> String {
         let trimmed = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !trimmed.isEmpty else {
-            return "Version —"
+            return "Keyameleon —"
         }
 
-        return "Version \(trimmed)"
+        return "Keyameleon \(trimmed)"
     }
 
     private static func makeQuickActions(

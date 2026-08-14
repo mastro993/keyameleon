@@ -43,22 +43,24 @@ struct KeyameleonMenuBarPanelView: View {
     var body: some View {
         let content = makeContent()
 
-        VStack(alignment: .leading, spacing: 12) {
-            quickActions(content.quickActions)
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
+                MenuBarAssignmentSection(list: content.assignmentList)
 
-            if let recoveryBanner = content.recoveryBanner {
-                recoveryBannerView(recoveryBanner)
+                quickActions(content.quickActions)
+
+                if let recoveryBanner = content.recoveryBanner {
+                    recoveryBannerView(recoveryBanner)
+                }
+
+                if let uncleanExitNotice = content.uncleanExitNotice {
+                    uncleanExitNoticeView(uncleanExitNotice)
+                }
             }
-
-            MenuBarAssignmentSection(list: content.assignmentList)
-
-            if let uncleanExitNotice = content.uncleanExitNotice {
-                uncleanExitNoticeView(uncleanExitNotice)
-            }
+            .padding(16)
 
             footer(content.footer)
         }
-        .padding(16)
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("menu-bar-panel")
@@ -162,9 +164,23 @@ struct KeyameleonMenuBarPanelView: View {
                 .accessibilityLabel("Version")
                 .accessibilityValue(footer.versionText)
             Spacer()
-            MenuBarOverflowButton(actions: footer.overflowActions, perform: perform)
-                .frame(width: 44, height: 20)
+            MenuBarOverflowButton(
+                actions: footer.overflowActions,
+                perform: perform,
+                closePanel: actions.closePanel
+            )
+                .fixedSize()
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(.separator)
+                .frame(height: 1)
+                .allowsHitTesting(false)
+        }
+        .accessibilityElement(children: .contain)
     }
 
     private func perform(_ action: MenuBarPanelContent.Action) {
