@@ -6,6 +6,15 @@
 - No Quick Actions row or recovery banner. Speech + More cover Switching Status and recovery.
 - Silent container first responder on open. Tab (and Shift-Tab) starts the ring.
 
+## 2026-08-14 — Release README grill
+
+- Drop glossary terms **Multilingual Professional** and **First-Key Guarantee**.
+- Product sentence now: same Mac, Physical Keyboards with different physical layouts.
+- Guided setup + completed-setup copy no longer names First-Key Guarantee.
+- Public README rewritten: user-first, Official Release install, Privacy,
+  Architecture, Releasing secrets table. Screenshot placeholder at
+  `assets/screenshot.png`.
+
 ## 2026-08-14 — Tighter footer, no panel diagnostics
 
 - List-to-footer gap: 4 + 6. Overflow drops Review/Dismiss Diagnostics.

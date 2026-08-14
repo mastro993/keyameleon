@@ -229,7 +229,7 @@ struct KeyameleonRootView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Activity-Triggered Switching keeps each Physical Keyboard aligned with its assigned Input Source after Keyameleon observes Activation Activity.")
 
-            Text("Keyameleon does not provide a First-Key Guarantee. Your normal input remains available, and macOS can process events before Input Source verification finishes.")
+            Text("Keyameleon does not delay or change the original Physical Keyboard Event. Your normal input remains available, and macOS can process events before Input Source verification finishes.")
 
             Text("Key Content stays inside observation and classification. Keyameleon does not save or export Key Content.")
 
@@ -331,7 +331,7 @@ struct KeyameleonRootView: View {
 
             Text(switchingStatusExplanation(for: switching.outcome.switchingStatus))
 
-            Text("Keyameleon does not provide a First-Key Guarantee. Events before verification can use the previous Input Source.")
+            Text("Events that macOS processes before Input Source verification finishes can use the previous Input Source.")
                 .foregroundStyle(.secondary)
 
             recoveryActions
