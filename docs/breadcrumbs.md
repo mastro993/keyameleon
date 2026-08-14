@@ -8,7 +8,7 @@
 ## 2026-08-14 — Menu-bar assignment pills
 
 - Assigned rows render as squircle pills: Physical Keyboard Name title / assigned Input Source subtitle / no trailing value.
-- All assigned rows stay white. Active (last Activation Activity) gets a 2 pt rainbow border and a soft neutral `Active` badge at top right.
+- All assigned rows use a theme-aware control background. Active (last Activation Activity) gets a 2 pt rainbow border and a soft neutral `Active` badge at top right.
 - List unbounded via `LazyVStack`; 5-pill viewport still scrolls overflow.
 
 ## 2026-08-14 — Request Permission click did nothing

@@ -101,16 +101,16 @@ struct MenuBarAssignmentPill: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.physicalKeyboardName)
                     .font(.body.weight(row.isActive ? .semibold : .medium))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                     .lineLimit(1)
                 Text(row.assignedInputSourceName)
                     .font(.caption)
-                    .foregroundStyle(Color.black.opacity(0.65))
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                 if let warningNote = row.warningNote {
                     Text(warningNote)
                         .font(.caption2)
-                        .foregroundStyle(Color.black.opacity(0.65))
+                        .foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -119,10 +119,10 @@ struct MenuBarAssignmentPill: View {
                 if row.isActive {
                     Text("Active")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(Color.black.opacity(0.62))
+                        .foregroundStyle(.secondary)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
-                        .background(Color.black.opacity(0.07), in: Capsule())
+                        .background(Color.primary.opacity(0.07), in: Capsule())
                         .accessibilityHidden(true)
                 }
 
@@ -130,7 +130,7 @@ struct MenuBarAssignmentPill: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.body)
                         .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(Color.black.opacity(0.65))
+                        .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
             }
@@ -171,7 +171,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white, in: shape)
+            .background(Color(nsColor: .controlBackgroundColor), in: shape)
             .overlay {
                 if isActive {
                     shape.strokeBorder(

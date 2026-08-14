@@ -9,8 +9,8 @@
 
 ### Defaults
 - Squircle = `RoundedRectangle(cornerRadius: 16, style: .continuous)`.
-- White background stays opaque for all pills. Active adds the rainbow border and a soft gray `Active` badge. Text stays black for contrast.
-- Disconnected content stays 0.5 opacity without dimming the white background. Rows stay read-only.
+- Theme-aware control background stays opaque for all pills. Active adds the rainbow border and a soft neutral `Active` badge. Text uses primary and secondary system styles.
+- Disconnected content stays 0.5 opacity without dimming the adaptive background. Rows stay read-only.
 - More than five pills: assignment area scrolls. Actions stay fixed.
 
 ## 2026-08-14 — Request Permission no-op
