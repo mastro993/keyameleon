@@ -1,5 +1,10 @@
 # Breadcrumbs
 
+## 2026-08-14 — Request Permission click did nothing
+
+- Cause: no `NSInputMonitoringUsageDescription` → `IOHIDRequestAccess` returns false with no prompt. Denied path also opened nothing.
+- Fix: add usage description; `SetupModel.requestPermission()` opens System Settings when status stays Permission Required; activate app before request.
+
 ## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
 
 - Seam: `MenuBarAssignmentList` filters/orders assigned rows; panel view renders read-only section with 5-row scroll cap.

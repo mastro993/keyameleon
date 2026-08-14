@@ -22,6 +22,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSInputMonitoringUsageDescription</key>
+	<string>Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.</string>
 	<key>LSMultipleInstancesProhibited</key>
 	<true/>
 	<key>SUAllowsAutomaticUpdates</key>

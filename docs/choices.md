@@ -1,5 +1,17 @@
 # Choices
 
+## 2026-08-14 — Request Permission no-op
+
+### Seams
+- `NSInputMonitoringUsageDescription` in `Info.plist` / `project.yml` — required for `IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)` to show the Input Monitoring prompt.
+- `KeyameleonSetupModel.requestPermission()` — Guided setup action: request listen permission, then open System Settings only if Switching Status stays Permission Required.
+- `SystemListenPermissionProvider.requestListenPermission()` — activate the accessory app before `IOHIDRequestAccess`.
+
+### Defaults
+- Request Permission on Guided setup uses `SetupModel.requestPermission()`, not the switching module alone.
+- Denied or already-denied requests open Privacy → Input Monitoring. Granted requests do not.
+- Usage description names Activation Activity and Activity-Triggered Switching. No Key Content claim.
+
 ## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
 
 ### Seams

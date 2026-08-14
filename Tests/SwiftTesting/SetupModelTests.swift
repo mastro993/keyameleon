@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import Keyameleon
 
@@ -27,20 +28,61 @@ func requestPermissionKeepsDeniedStatusAndDoesNotCompleteSetup() {
         stateAfterRequest: .denied
     )
     let setupStore = SetupModelTestSetupDecisionStore()
+    let settingsOpener = SetupModelTestSystemSettingsOpener()
     let model = KeyameleonSetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        systemSettingsOpener: settingsOpener
     )
 
     model.activityTriggeredSwitching.start()
-    model.activityTriggeredSwitching.requestPermission()
+    model.requestPermission()
 
     #expect(permissionProvider.requestCount == 1)
-    #expect(!model.isSetupComplete)
-    #expect(!setupStore.hasCompletedGuidedSetup)
+    #expect(settingsOpener.openCount == 1)
+    #expect(model.isSetupComplete == false)
+    #expect(setupStore.hasCompletedGuidedSetup == false)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(model.guidedSetupStep == .permission)
+}
+
+@Test("Request Permission does not open System Settings when listen permission is granted")
+@MainActor
+func requestPermissionDoesNotOpenSystemSettingsWhenListenPermissionIsGranted() {
+    let permissionProvider = SetupModelTestListenPermissionProvider(
+        state: .unknown,
+        stateAfterRequest: .granted
+    )
+    let settingsOpener = SetupModelTestSystemSettingsOpener()
+    let model = KeyameleonSetupModel(
+        permissionProvider: permissionProvider,
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: settingsOpener
+    )
+
+    model.activityTriggeredSwitching.start()
+    model.requestPermission()
+
+    #expect(permissionProvider.requestCount == 1)
+    #expect(settingsOpener.openCount == 0)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
+}
+
+@Test("Info.plist declares Input Monitoring usage description")
+func infoPlistDeclaresInputMonitoringUsageDescription() throws {
+    let testsDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    let infoPlistURL = testsDirectory
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appending(path: "Sources/App/Info.plist")
+    let data = try Data(contentsOf: infoPlistURL)
+    let plist = try #require(
+        PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+    )
+    let usageDescription = try #require(
+        plist["NSInputMonitoringUsageDescription"] as? String
+    )
+    #expect(usageDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
 }
 
 @Test("Check Again refreshes permission without requesting it")

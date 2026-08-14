@@ -642,6 +642,7 @@
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Keyameleon;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSInputMonitoringUsageDescription = "Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -850,6 +851,7 @@
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Keyameleon;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSInputMonitoringUsageDescription = "Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

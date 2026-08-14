@@ -39,6 +39,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Keyameleon
         INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_NSInputMonitoringUsageDescription: Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.
       configs:
         Debug:
           PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.development
@@ -50,6 +51,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         LSMultipleInstancesProhibited: true
+        NSInputMonitoringUsageDescription: Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.
         # Sparkle 2: user-approved, 24h-bounded checks; no auto-install; no system profiling.
         SUFeedURL: https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml
         SUEnableAutomaticChecks: true
