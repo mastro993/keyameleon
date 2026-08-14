@@ -3,7 +3,8 @@ import Foundation
 /// Assigned-only filter/order seam for the menu-bar panel. Actions stay out.
 struct MenuBarAssignmentList: Equatable, Sendable {
     static let heading = "Keyboards"
-    static let emptyMessage = "No Keyboard Assignments"
+    static let emptyTitle = "No assigned keyboards"
+    static let emptyDescription = "Open Keyameleon Settings to assign keyboards."
     static let unavailableInputSourceName = "Unavailable Input Source"
     static let unavailableNote = "Unavailable Keyboard Assignment"
     /// Visible pill viewport. The list itself is unbounded.
@@ -46,7 +47,8 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
     let heading: String
     let rows: [Row]
-    let emptyMessage: String?
+    let emptyTitle: String?
+    let emptyDescription: String?
 
     var scrolls: Bool {
         rows.count > Self.visibleRowLimit
@@ -74,7 +76,8 @@ struct MenuBarAssignmentList: Equatable, Sendable {
                 showsWarningSymbol: isUnavailable
             )
         }
-        emptyMessage = rows.isEmpty ? Self.emptyMessage : nil
+        emptyTitle = rows.isEmpty ? Self.emptyTitle : nil
+        emptyDescription = rows.isEmpty ? Self.emptyDescription : nil
     }
 
     private static func connectionMark(for physicalKeyboard: PhysicalKeyboard) -> ConnectionMark {

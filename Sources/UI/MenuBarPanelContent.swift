@@ -42,7 +42,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
     var titles: [String] {
         [assignmentList.heading]
-            + [assignmentList.emptyMessage].compactMap { $0 }
+            + [assignmentList.emptyTitle, assignmentList.emptyDescription].compactMap { $0 }
             + noticeItems.map(\.title)
             + footerItems.map(\.title)
     }

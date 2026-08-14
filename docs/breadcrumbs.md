@@ -19,6 +19,7 @@
 ## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
 
 - Seam: `MenuBarAssignmentList` filters/orders assigned rows; panel view renders read-only section with 5-row scroll cap.
+- Empty Keyboards section uses a theme-aware soft gray keyboard card with a title and Settings guidance.
 - Keep #48 actions/footer until #50. Drop Menu first assignment status dump.
 - Order: Keyboards, then Switching Status / unclean-exit diagnostics, then actions.
 

@@ -194,7 +194,8 @@ func menuBarAssignmentListEmptyStateIsCompact() {
     )
 
     #expect(list.rows.isEmpty)
-    #expect(list.emptyMessage == "No Keyboard Assignments")
+    #expect(list.emptyTitle == "No assigned keyboards")
+    #expect(list.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(list.scrolls == false)
 }
 
@@ -262,7 +263,8 @@ func menuBarPanelContentKeepsStatusAndActions() throws {
     let statusIndex = try #require(titles.firstIndex { $0.hasPrefix("Switching Status:") })
 
     #expect(titles.first == "Keyboards")
-    #expect(titles.contains("No Keyboard Assignments"))
+    #expect(titles.contains("No assigned keyboards"))
+    #expect(titles.contains("Open Keyameleon Settings to assign keyboards."))
     #expect(headingIndex < statusIndex)
     #expect(titles.contains { $0.hasPrefix("Active Physical Keyboard:") } == false)
     #expect(content.assignmentList.rows.isEmpty)

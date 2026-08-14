@@ -39,7 +39,7 @@
 - A Keyboard Assignment is `assignmentState == .assigned`. Unassigned and unsupported Physical Keyboards stay out of the list.
 - Resolved Input Source name when eligible catalog has it. Otherwise second line is `Unavailable Input Source` plus warning symbol and note `Unavailable Keyboard Assignment`.
 - Heading is `Keyboards`. No app-name header. No assignment count.
-- Empty copy is `No Keyboard Assignments`. Open Keyameleon stays in the existing action list.
+- Empty state uses a theme-aware soft gray keyboard card: `No assigned keyboards` and `Open Keyameleon Settings to assign keyboards.` Open Settings stays in the existing action list.
 - Distinct accessible marks: Active, Connected, Disconnected. Disconnected rows use 0.5 opacity.
 - More than five rows: assignment area scrolls; actions stay outside the scroll view.
 - Keep Switching Status, Temporarily Unavailable copy, unclean-exit notice, and current actions until #50 replaces them.
