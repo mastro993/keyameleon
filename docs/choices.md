@@ -4,14 +4,13 @@
 
 ### Seams
 - `MenuBarAssignmentList.Row` — title (Physical Keyboard Name), subtitle (assigned Input Source), `isActive`. No trailing value.
-- `MenuBarAssignmentPill` — squircle pill; hash-stable distinctive fill; Active = accent stroke + soft accent wash.
+- `MenuBarAssignmentPill` — white squircle pill; Active = 2 pt angular rainbow border + soft neutral badge at top right.
 - `MenuBarAssignmentRows` — `LazyVStack`; viewport still `visibleRowLimit == 5`; no data cap.
 
 ### Defaults
 - Squircle = `RoundedRectangle(cornerRadius: 16, style: .continuous)`.
-- Distinctive fill from FNV-1a hue of row id.
-- Active: opaque `controlBackgroundColor` plate + 10–18% accent wash + 2 pt accent border. Title `.primary` / `.semibold`; subtitle `primary` at 72% (not `.secondary`) so type stays readable on the tint.
-- Disconnected stays 0.5 opacity. Rows stay read-only.
+- White background stays opaque for all pills. Active adds the rainbow border and a soft gray `Active` badge. Text stays black for contrast.
+- Disconnected content stays 0.5 opacity without dimming the white background. Rows stay read-only.
 - More than five pills: assignment area scrolls. Actions stay fixed.
 
 ## 2026-08-14 — Request Permission no-op
@@ -39,13 +38,13 @@
 - Reuse `PhysicalKeyboardListOrdering` (Active, other connected, disconnected; alphabetical Physical Keyboard Name inside each group).
 - A Keyboard Assignment is `assignmentState == .assigned`. Unassigned and unsupported Physical Keyboards stay out of the list.
 - Resolved Input Source name when eligible catalog has it. Otherwise second line is `Unavailable Input Source` plus warning symbol and note `Unavailable Keyboard Assignment`.
-- Heading is `Keyboard Assignments`. No app-name header. No assignment count.
+- Heading is `Keyboards`. No app-name header. No assignment count.
 - Empty copy is `No Keyboard Assignments`. Open Keyameleon stays in the existing action list.
 - Distinct accessible marks: Active, Connected, Disconnected. Disconnected rows use 0.5 opacity.
 - More than five rows: assignment area scrolls; actions stay outside the scroll view.
 - Keep Switching Status, Temporarily Unavailable copy, unclean-exit notice, and current actions until #50 replaces them.
 - When `outcome` has `.requestPermission`, panel shows **Request Permission** next to Switching Status. Action calls `SetupModel.requestPermission()`.
-- Panel order: Keyboard Assignments first, then Switching Status / diagnostics notices, then actions.
+- Panel order: Keyboards first, then Switching Status / diagnostics notices, then actions.
 - Drop Active Physical Keyboard / Keyboard Assignment / Current Input Source / mismatch / Needs action status lines. The assignment list replaces that dump.
 
 ## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel

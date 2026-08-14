@@ -13,7 +13,7 @@ func menuBarAssignmentListUsesCompactHeading() {
         ]
     )
 
-    #expect(list.heading == "Keyboard Assignments")
+    #expect(list.heading == "Keyboards")
     #expect(list.heading.contains("Keyameleon") == false)
     #expect(list.heading.contains("1") == false)
 }
@@ -246,7 +246,7 @@ func menuBarAssignmentListKeepsEveryAssignedRow() {
     #expect(list.scrolls)
 }
 
-@Test("Menu-bar panel content keeps Keyboard Assignments heading, empty copy, and actions")
+@Test("Menu-bar panel content keeps Keyboards heading, empty copy, and actions")
 @MainActor
 func menuBarPanelContentKeepsStatusAndActions() throws {
     let content = MenuBarPanelContent(
@@ -258,10 +258,10 @@ func menuBarPanelContentKeepsStatusAndActions() throws {
         hasPendingUncleanExitNotice: false
     )
     let titles = content.titles
-    let headingIndex = try #require(titles.firstIndex(of: "Keyboard Assignments"))
+    let headingIndex = try #require(titles.firstIndex(of: "Keyboards"))
     let statusIndex = try #require(titles.firstIndex { $0.hasPrefix("Switching Status:") })
 
-    #expect(titles.first == "Keyboard Assignments")
+    #expect(titles.first == "Keyboards")
     #expect(titles.contains("No Keyboard Assignments"))
     #expect(headingIndex < statusIndex)
     #expect(titles.contains { $0.hasPrefix("Active Physical Keyboard:") } == false)
@@ -353,7 +353,7 @@ func menuBarPanelShowsDismissibleUncleanExitNoticeAndReviewAction() throws {
     )
 
     let titles = content.titles
-    let headingIndex = try #require(titles.firstIndex(of: "Keyboard Assignments"))
+    let headingIndex = try #require(titles.firstIndex(of: "Keyboards"))
     let diagnosticsIndex = try #require(titles.firstIndex(of: "Keyameleon did not exit cleanly."))
 
     #expect(headingIndex < diagnosticsIndex)

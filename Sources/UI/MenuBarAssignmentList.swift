@@ -2,7 +2,7 @@ import Foundation
 
 /// Assigned-only filter/order seam for the menu-bar panel. Actions stay out.
 struct MenuBarAssignmentList: Equatable, Sendable {
-    static let heading = "Keyboard Assignments"
+    static let heading = "Keyboards"
     static let emptyMessage = "No Keyboard Assignments"
     static let unavailableInputSourceName = "Unavailable Input Source"
     static let unavailableNote = "Unavailable Keyboard Assignment"

@@ -8,7 +8,7 @@
 ## 2026-08-14 — Menu-bar assignment pills
 
 - Assigned rows render as squircle pills: Physical Keyboard Name title / assigned Input Source subtitle / no trailing value.
-- Active (last Activation Activity) gets accent border + accent wash. Others keep hash-stable fills.
+- All assigned rows stay white. Active (last Activation Activity) gets a 2 pt rainbow border and a soft neutral `Active` badge at top right.
 - List unbounded via `LazyVStack`; 5-pill viewport still scrolls overflow.
 
 ## 2026-08-14 — Request Permission click did nothing
@@ -20,7 +20,7 @@
 
 - Seam: `MenuBarAssignmentList` filters/orders assigned rows; panel view renders read-only section with 5-row scroll cap.
 - Keep #48 actions/footer until #50. Drop Menu first assignment status dump.
-- Order: Keyboard Assignments, then Switching Status / unclean-exit diagnostics, then actions.
+- Order: Keyboards, then Switching Status / unclean-exit diagnostics, then actions.
 
 ## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
 
