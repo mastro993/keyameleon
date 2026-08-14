@@ -17,6 +17,7 @@ jobs:
   build-and-test:
     name: Build and test
     runs-on: macos-26
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +40,7 @@ jobs:
           python3 Tests/Scripts/test_official_release_notes.py
 
       - name: Run tests and safety audit
+        timeout-minutes: 10
         run: ./Scripts/run.sh test
 
       - name: Check license and third-party notices
