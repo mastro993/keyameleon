@@ -63,9 +63,6 @@ struct MenuBarSettingsButton: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSButton, context: Context) {
         context.coordinator.perform = perform
-        if context.environment.isFocused {
-            nsView.window?.makeFirstResponder(nsView)
-        }
     }
 
     @MainActor
@@ -104,9 +101,6 @@ struct MenuBarOverflowButton: NSViewRepresentable {
         context.coordinator.actions = actions
         context.coordinator.perform = perform
         context.coordinator.closePanel = closePanel
-        if context.environment.isFocused {
-            nsView.window?.makeFirstResponder(nsView)
-        }
     }
 
     @MainActor

@@ -57,12 +57,6 @@ struct KeyameleonMenuBarPanelView: View {
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
         .background(panelBackground(chrome.surface))
         .focusSection()
-        .modifier(
-            MenuBarPanelDefaultFocus(
-                target: accessibility.keyboardFocusOrder.first,
-                focusedTarget: $focusedTarget
-            )
-        )
         .accessibilityElement(children: .contain)
         .accessibilityLabel(accessibility.panel.label)
         .accessibilityValue(accessibility.panel.value ?? "")
@@ -113,7 +107,7 @@ struct KeyameleonMenuBarPanelView: View {
                     perform(footer.openKeyameleon)
                 }
                 .fixedSize()
-                .focusable()
+                .focusable(interactions: .activate)
                 .focused($focusedTarget, equals: .openKeyameleon)
 
                 MenuBarOverflowButton(
@@ -122,7 +116,7 @@ struct KeyameleonMenuBarPanelView: View {
                     closePanel: actions.closePanel
                 )
                 .fixedSize()
-                .focusable()
+                .focusable(interactions: .activate)
                 .focused($focusedTarget, equals: .overflow)
             }
         }
@@ -163,19 +157,6 @@ struct KeyameleonMenuBarPanelView: View {
             actions.checkForUpdates()
         case .quit:
             actions.quit()
-        }
-    }
-}
-
-private struct MenuBarPanelDefaultFocus: ViewModifier {
-    let target: MenuBarPanelAccessibility.FocusTarget?
-    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding
-
-    func body(content: Content) -> some View {
-        if let target {
-            content.defaultFocus(focusedTarget, target)
-        } else {
-            content
         }
     }
 }

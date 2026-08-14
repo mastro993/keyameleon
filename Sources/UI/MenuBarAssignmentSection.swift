@@ -80,7 +80,7 @@ private struct MenuBarAssignmentRows: View {
             ForEach(list.rows) { row in
                 MenuBarAssignmentPill(row: row, emphasis: emphasis)
                     .frame(minHeight: rowHeight, alignment: .top)
-                    .focusable()
+                    .focusable(interactions: .activate)
                     .modifier(MenuBarAssignmentFocusBinding(
                         target: .assignment(id: row.id),
                         focusedTarget: focusedTarget
