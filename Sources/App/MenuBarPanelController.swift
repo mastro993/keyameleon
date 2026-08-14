@@ -53,7 +53,11 @@ final class KeyameleonMenuBarPanelController: NSObject, NSPopoverDelegate {
             of: positioningView,
             preferredEdge: .minY
         )
-        popover.contentViewController?.view.window?.makeKey()
+        if let window = popover.contentViewController?.view.window {
+            window.makeKey()
+            // Keep first responder on the host so AppKit does not ring a footer button on open.
+            window.makeFirstResponder(popover.contentViewController?.view)
+        }
     }
 
     func close() {

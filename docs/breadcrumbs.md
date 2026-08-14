@@ -4,7 +4,7 @@
 
 - Complete #49/#50 panel: VoiceOver, keyboard order, Reduce Transparency, contrast, dismiss-safe close.
 - No Quick Actions row or recovery banner. Speech + More cover Switching Status and recovery.
-- Drop default focus + always-on `.focusable()`. Ring only when Full Keyboard Access is on.
+- Silent container first responder on open. Tab (and Shift-Tab) starts the ring.
 
 ## 2026-08-14 — Tighter footer, no panel diagnostics
 

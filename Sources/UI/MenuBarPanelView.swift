@@ -56,7 +56,22 @@ struct KeyameleonMenuBarPanelView: View {
         }
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
         .background(panelBackground(chrome.surface))
+        .focusable()
+        .focused($focusedTarget, equals: .container)
+        .focusEffectDisabled(focusedTarget == .container)
+        .defaultFocus($focusedTarget, .container)
         .focusSection()
+        .onKeyPress { press in
+            guard press.key == .tab,
+                  focusedTarget == nil || focusedTarget == .container
+            else {
+                return .ignored
+            }
+
+            let order = accessibility.keyboardFocusOrder
+            focusedTarget = press.modifiers.contains(.shift) ? order.last : order.first
+            return focusedTarget == nil ? .ignored : .handled
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(accessibility.panel.label)
         .accessibilityValue(accessibility.panel.value ?? "")
@@ -107,7 +122,7 @@ struct KeyameleonMenuBarPanelView: View {
                     perform(footer.openKeyameleon)
                 }
                 .fixedSize()
-                .focusable(interactions: .activate)
+                .focusable()
                 .focused($focusedTarget, equals: .openKeyameleon)
 
                 MenuBarOverflowButton(
@@ -116,7 +131,7 @@ struct KeyameleonMenuBarPanelView: View {
                     closePanel: actions.closePanel
                 )
                 .fixedSize()
-                .focusable(interactions: .activate)
+                .focusable()
                 .focused($focusedTarget, equals: .overflow)
             }
         }

@@ -8,6 +8,8 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
     }
 
     enum FocusTarget: Hashable, Sendable {
+        /// Silent initial first responder. No ring until Tab.
+        case container
         case assignment(id: String)
         case openKeyameleon
         case overflow

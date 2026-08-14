@@ -16,7 +16,7 @@
 - Row speech: label = Physical Keyboard Name; value = `Italian, Active` / `US, Connected` / `French, Disconnected` plus warning once. Badge and warning symbol stay hidden.
 - Version speech: label `Version`, value marketing number or `—`. Visible text stays `Keyameleon 0.1.0`.
 - Keyboard Tab: assignment rows (read-only), then Open Keyameleon, then More. Pause/recovery/Settings/Quit via More menu.
-- Focusable with `.activate` only. No `.defaultFocus` on open. Pointer users see no focus ring. Full Keyboard Access still Tabs the order.
+- Open focuses a silent container (no ring). Tab moves to the first assignment or Open Keyameleon and shows the ring. Footer AppKit buttons become first responder only after Tab.
 - Empty list: Tab starts at Open Keyameleon. Empty card is VoiceOver-only.
 - Reduce Transparency → opaque `windowBackgroundColor` fill. No extra glass cards.
 - Increased contrast → Active uses 2 pt accent stroke, not rainbow.
