@@ -26,7 +26,7 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 ## Start an Official Release
 
 1. Ensure the intended commit is on `main` and CI is green for that commit.
-2. Run **Actions → Official Release → Run workflow** on `main`.
+2. Run **Actions → Release → Run workflow** on `main`.
 3. Set **version** to Semantic Versioning core only, for example `1.2.3`.
    Do not type a leading `v`. Pre-release values (`1.2.3-beta.1`) fail.
 4. Job `verify` checks default branch, unused tag `vMAJOR.MINOR.PATCH`, and a
@@ -171,7 +171,7 @@ with `GITHUB_TOKEN`. If Actions cannot bypass, publish fails at `git push`.
 
 ### 7. Negative checks (optional, no tag created)
 
-From **Actions → Official Release → Run workflow**:
+From **Actions → Release → Run workflow**:
 
 | Use workflow from | version | Expected |
 | --- | --- | --- |
@@ -182,7 +182,7 @@ From **Actions → Official Release → Run workflow**:
 
 ### 8. Publish `0.1.0`
 
-1. Actions → Official Release → Run workflow.
+1. Actions → Release → Run workflow.
 2. Use workflow from: `main`.
 3. version: `0.1.0` (no `v`).
 4. Run workflow.

@@ -119,7 +119,7 @@ source-traceable, Developer ID signed, hardened-runtime, notarized, and
 stapled. Sparkle `appcast.xml` ships on GitHub Releases. V1 has one Channel:
 Stable.
 
-Run **Actions → Official Release → Run workflow** on a reviewed, green `main`.
+Run **Actions → Release → Run workflow** on a reviewed, green `main`.
 Set **version** to Semantic Versioning core only (`1.2.3`). The workflow
 creates tag `v1.2.3`. Do not push Official Release tags. Pre-release values
 (`1.2.3-beta.1`) fail.

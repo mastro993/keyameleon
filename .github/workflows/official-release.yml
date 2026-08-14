@@ -1,4 +1,4 @@
-name: Official Release
+name: Release
 
 # Only workflow_dispatch on the default branch starts an Official Release.
 # The annotated tag is created after artifacts exist. A tag push does not publish.
