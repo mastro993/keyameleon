@@ -2,22 +2,232 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("Menu-bar panel content keeps Switching Status, Active Physical Keyboard, and actions")
+@Test("Menu-bar assignment list heading has no app name or assignment count")
+func menuBarAssignmentListUsesCompactHeading() {
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
+        ],
+        assignedInputSourceNames: [
+            PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
+        ]
+    )
+
+    #expect(list.heading == "Keyboard Assignments")
+    #expect(list.heading.contains("Keyameleon") == false)
+    #expect(list.heading.contains("1") == false)
+}
+
+@Test("Menu-bar assignment list shows only Physical Keyboards with Keyboard Assignments")
+func menuBarAssignmentListShowsOnlyAssignedPhysicalKeyboards() throws {
+    let assigned = makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
+    let unassigned = makePanelKeyboard(
+        name: "Studio",
+        identifier: "studio",
+        assignmentState: .unassigned
+    )
+    let unsupported = makePanelKeyboard(
+        name: "Shared",
+        identifier: "shared",
+        assignmentState: .unsupported(.sharedIdentity)
+    )
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [unassigned, assigned, unsupported],
+        assignedInputSourceNames: [
+            PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
+        ]
+    )
+    let row = try #require(list.rows.first)
+
+    #expect(list.rows.count == 1)
+    #expect(row.physicalKeyboardName == "Travel")
+    #expect(row.assignedInputSourceName == "Italian")
+}
+
+@Test("Menu-bar assignment list orders Active, connected, then disconnected by name")
+func menuBarAssignmentListOrdersActiveConnectedThenDisconnected() {
+    let zebra = makeAssignedPanelKeyboard(
+        name: "Zebra",
+        identifier: "zebra",
+        connectionState: .connected
+    )
+    let active = makeAssignedPanelKeyboard(
+        name: "Later Active",
+        identifier: "active",
+        connectionState: .connected,
+        isActive: true
+    )
+    let apple = makeAssignedPanelKeyboard(
+        name: "Apple",
+        identifier: "apple",
+        connectionState: .connected
+    )
+    let zeta = makeAssignedPanelKeyboard(
+        name: "Zeta",
+        identifier: "zeta",
+        connectionState: .disconnected
+    )
+    let desk = makeAssignedPanelKeyboard(
+        name: "Desk",
+        identifier: "desk",
+        connectionState: .disconnected
+    )
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [zeta, zebra, desk, apple, active],
+        assignedInputSourceNames: panelNames(
+            "active", "Later",
+            "apple", "US",
+            "zebra", "Italian",
+            "desk", "French",
+            "zeta", "German"
+        )
+    )
+
+    #expect(list.rows.map(\.physicalKeyboardName) == [
+        "Later Active",
+        "Apple",
+        "Zebra",
+        "Desk",
+        "Zeta"
+    ])
+}
+
+@Test("Menu-bar assignment rows use distinct accessible marks and dim disconnected")
+func menuBarAssignmentRowsUseDistinctMarksAndDimDisconnected() throws {
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            makeAssignedPanelKeyboard(
+                name: "Active Board",
+                identifier: "active",
+                isActive: true
+            ),
+            makeAssignedPanelKeyboard(name: "Connected Board", identifier: "connected"),
+            makeAssignedPanelKeyboard(
+                name: "Away Board",
+                identifier: "away",
+                connectionState: .disconnected
+            )
+        ],
+        assignedInputSourceNames: panelNames(
+            "active", "Italian",
+            "connected", "US",
+            "away", "French"
+        )
+    )
+    let active = try #require(list.rows.first { $0.physicalKeyboardName == "Active Board" })
+    let connected = try #require(list.rows.first { $0.physicalKeyboardName == "Connected Board" })
+    let disconnected = try #require(list.rows.first { $0.physicalKeyboardName == "Away Board" })
+
+    #expect(active.connectionMark == .active)
+    #expect(active.accessibilityMark == "Active")
+    #expect(active.isDimmed == false)
+    #expect(connected.connectionMark == .connected)
+    #expect(connected.accessibilityMark == "Connected")
+    #expect(connected.isDimmed == false)
+    #expect(disconnected.connectionMark == .disconnected)
+    #expect(disconnected.accessibilityMark == "Disconnected")
+    #expect(disconnected.isDimmed)
+}
+
+@Test("Unavailable Keyboard Assignment keeps the saved row and shows Unavailable Input Source")
+func menuBarAssignmentListKeepsUnavailableAssignmentWithoutDroppingTheRow() throws {
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
+        ],
+        assignedInputSourceNames: [:]
+    )
+    let row = try #require(list.rows.first)
+
+    #expect(list.rows.count == 1)
+    #expect(row.physicalKeyboardName == "Travel")
+    #expect(row.assignedInputSourceName == "Unavailable Input Source")
+    #expect(row.showsWarningSymbol)
+    #expect(row.warningNote == "Unavailable Keyboard Assignment")
+}
+
+@Test("Menu-bar assignment rows warn only when action is needed")
+func menuBarAssignmentRowsWarnOnlyWhenActionIsNeeded() throws {
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            makeAssignedPanelKeyboard(name: "Ready", identifier: "ready"),
+            makeAssignedPanelKeyboard(name: "Broken", identifier: "broken")
+        ],
+        assignedInputSourceNames: [
+            PhysicalKeyboardRecordID(rawValue: "ready"): "Italian"
+        ]
+    )
+    let ready = try #require(list.rows.first { $0.physicalKeyboardName == "Ready" })
+    let broken = try #require(list.rows.first { $0.physicalKeyboardName == "Broken" })
+
+    #expect(ready.showsWarningSymbol == false)
+    #expect(ready.warningNote == nil)
+    #expect(broken.showsWarningSymbol)
+    #expect(broken.warningNote == "Unavailable Keyboard Assignment")
+}
+
+@Test("Menu-bar assignment list empty state is compact")
+func menuBarAssignmentListEmptyStateIsCompact() {
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Studio", identifier: "studio", assignmentState: .unassigned)
+        ],
+        assignedInputSourceNames: [:]
+    )
+
+    #expect(list.rows.isEmpty)
+    #expect(list.emptyMessage == "No Keyboard Assignments")
+    #expect(list.scrolls == false)
+}
+
+@Test("Menu-bar assignment list scrolls only after five rows")
+func menuBarAssignmentListScrollsOnlyAfterFiveRows() {
+    let five = MenuBarAssignmentList(
+        physicalKeyboards: (1...5).map { index in
+            makeAssignedPanelKeyboard(name: "Board \(index)", identifier: "board-\(index)")
+        },
+        assignedInputSourceNames: Dictionary(
+            uniqueKeysWithValues: (1...5).map { index in
+                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), "US")
+            }
+        )
+    )
+    let six = MenuBarAssignmentList(
+        physicalKeyboards: (1...6).map { index in
+            makeAssignedPanelKeyboard(name: "Board \(index)", identifier: "board-\(index)")
+        },
+        assignedInputSourceNames: Dictionary(
+            uniqueKeysWithValues: (1...6).map { index in
+                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), "US")
+            }
+        )
+    )
+
+    #expect(MenuBarAssignmentList.visibleRowLimit == 5)
+    #expect(five.rows.count == 5)
+    #expect(five.scrolls == false)
+    #expect(six.rows.count == 6)
+    #expect(six.scrolls)
+}
+
+@Test("Menu-bar panel content keeps Keyboard Assignments heading, empty copy, and actions")
 @MainActor
 func menuBarPanelContentKeepsStatusAndActions() {
     let content = MenuBarPanelContent(
         outcome: .readyFixture(),
-        actionConditions: [],
+        physicalKeyboards: [],
+        assignedInputSourceNames: [:],
         isSetupComplete: true,
         canCheckForUpdates: true,
         hasPendingUncleanExitNotice: false
     )
     let titles = content.titles
 
+    #expect(titles.contains("Keyboard Assignments"))
+    #expect(titles.contains("No Keyboard Assignments"))
     #expect(titles.contains { $0.hasPrefix("Switching Status:") })
-    #expect(titles.contains { $0.hasPrefix("Active Physical Keyboard:") })
-    #expect(titles.contains { $0.hasPrefix("Keyboard Assignment:") })
-    #expect(titles.contains { $0.hasPrefix("Current Input Source:") })
+    #expect(titles.contains { $0.hasPrefix("Active Physical Keyboard:") } == false)
+    #expect(content.assignmentList.rows.isEmpty)
     #expect(content.actionTitles.contains("Pause Activity-Triggered Switching"))
     #expect(content.actionTitles.contains("Open Keyameleon…"))
     #expect(content.actionTitles.contains("Open System Settings"))
@@ -27,19 +237,31 @@ func menuBarPanelContentKeepsStatusAndActions() {
     #expect(content.actionTitles.contains("Quit Keyameleon"))
 }
 
-@Test("Menu-bar panel shows no activity observed yet until Activation Activity")
+@Test("Menu-bar panel assignment rows stay read-only")
 @MainActor
-func menuBarPanelShowsNoActivityObservedYetUntilActivation() {
+func menuBarPanelAssignmentRowsStayReadOnly() throws {
+    let keyboard = makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
     let content = MenuBarPanelContent(
         outcome: .readyFixture(),
-        actionConditions: [],
+        physicalKeyboards: [keyboard],
+        assignedInputSourceNames: [
+            PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
+        ],
         isSetupComplete: true,
         canCheckForUpdates: true,
         hasPendingUncleanExitNotice: false
     )
-    let activeTitle = content.titles.first { $0.hasPrefix("Active Physical Keyboard:") }
+    let row = try #require(content.assignmentList.rows.first)
 
-    #expect(activeTitle == "Active Physical Keyboard: No activity observed yet")
+    #expect(row.id == "travel")
+    #expect(content.noticeItems.contains { $0.id.hasPrefix("assignment-") } == false)
+    #expect(content.footerItems.contains { $0.id.hasPrefix("assignment-") } == false)
+    #expect(content.footerItems.contains { item in
+        if case .action(.openKeyameleon, enabled: true) = item.kind {
+            return true
+        }
+        return false
+    })
 }
 
 @Test("Menu-bar panel shows Resume when Activity-Triggered Switching is paused")
@@ -47,7 +269,8 @@ func menuBarPanelShowsNoActivityObservedYetUntilActivation() {
 func menuBarPanelShowsResumeWhenPaused() {
     let content = MenuBarPanelContent(
         outcome: .pausedFixture(),
-        actionConditions: [],
+        physicalKeyboards: [],
+        assignedInputSourceNames: [:],
         isSetupComplete: true,
         canCheckForUpdates: true,
         hasPendingUncleanExitNotice: false
@@ -64,7 +287,8 @@ func menuBarPanelShowsResumeWhenPaused() {
 func menuBarPanelShowsDismissibleUncleanExitNoticeAndReviewAction() {
     let content = MenuBarPanelContent(
         outcome: .readyFixture(),
-        actionConditions: [],
+        physicalKeyboards: [],
+        assignedInputSourceNames: [:],
         isSetupComplete: true,
         canCheckForUpdates: true,
         hasPendingUncleanExitNotice: true
@@ -101,4 +325,47 @@ private extension ActivityTriggeredSwitchingOutcome {
             availableActions: [.resume]
         )
     }
+}
+
+private func panelNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: String] {
+    Dictionary(
+        uniqueKeysWithValues: stride(from: 0, to: pairs.count, by: 2).map { index in
+            (PhysicalKeyboardRecordID(rawValue: pairs[index]), pairs[index + 1])
+        }
+    )
+}
+
+private func makeAssignedPanelKeyboard(
+    name: String,
+    identifier: String,
+    connectionState: PhysicalKeyboardConnectionState = .connected,
+    isActive: Bool = false
+) -> PhysicalKeyboard {
+    makePanelKeyboard(
+        name: name,
+        identifier: identifier,
+        assignmentState: .assigned(KeyboardAssignment(inputSourceIdentifier: "com.example.us")!),
+        connectionState: connectionState,
+        isActive: isActive
+    )
+}
+
+private func makePanelKeyboard(
+    name: String,
+    identifier: String,
+    assignmentState: PhysicalKeyboardAssignmentState,
+    connectionState: PhysicalKeyboardConnectionState = .connected,
+    isActive: Bool = false
+) -> PhysicalKeyboard {
+    PhysicalKeyboard(
+        id: PhysicalKeyboardRecordID(rawValue: identifier),
+        productName: name,
+        customName: nil,
+        transport: .usb,
+        isBuiltIn: false,
+        assignmentState: assignmentState,
+        connectedServiceCount: connectionState == .connected ? 1 : 0,
+        connectionState: connectionState,
+        isActive: isActive
+    )
 }

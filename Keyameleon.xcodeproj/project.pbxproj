@@ -21,6 +21,7 @@
 		187E867991A04368B8582C70 /* SetupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D034ED3A59FFA8A4A8E5CD7 /* SetupModel.swift */; };
 		1E1179B5322D8292B3D7A9F4 /* ApplicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98542FD5C82032FA9E2F7AF9 /* ApplicationTests.swift */; };
 		24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1674D0EEAEDED584E05DF1C1 /* MenuBarPanelController.swift */; };
+		285CA87B73B33712DF22ADA7 /* MenuBarAssignmentSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */; };
 		289DA25583F6E6AC2E0DF99B /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DD2621A84D0D5ACCEFA2F4 /* InputSource.swift */; };
 		2BFC773BE39EA5A451F1C185 /* OperationalNotificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */; };
 		2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9163A19B113812EA758F0681 /* ProductionFactory.swift */; };
@@ -48,6 +49,7 @@
 		7B145D316009D170DF60B2EC /* ActivityTriggeredSwitchingOutcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4618DF3A4D7D688A018029F /* ActivityTriggeredSwitchingOutcome.swift */; };
 		7FDB18B30F2508DBF4354A47 /* SwitchingWarning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556A0239D8D2035B0CF38C0C /* SwitchingWarning.swift */; };
 		801C74CE0102A0B052B40287 /* CoreHID.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77C809ABBA1C70D9822B5BA5 /* CoreHID.framework */; };
+		80E073726A86C6F91B1265F4 /* MenuBarAssignmentList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */; };
 		82EA08D271944A6E1DE10B38 /* GeneralSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D03E89D0E631882E1FEECD2 /* GeneralSettingsModel.swift */; };
 		831F87F612659C8281EC3FE9 /* Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D532AF0922ACF6FB01AFF1 /* Lifecycle.swift */; };
 		8CD922A19D618C9525EC5490 /* ActivationActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */; };
@@ -128,6 +130,7 @@
 		3FD75A61707183BD0E107165 /* GeneralSettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsModelTests.swift; sourceTree = "<group>"; };
 		4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardStore.swift; sourceTree = "<group>"; };
 		45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentList.swift; sourceTree = "<group>"; };
 		469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationActivityTests.swift; sourceTree = "<group>"; };
 		4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
 		4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitching.swift; sourceTree = "<group>"; };
@@ -147,6 +150,7 @@
 		7BEC56C6D332AED3772C92D9 /* MenuFirstTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuFirstTests.swift; sourceTree = "<group>"; };
 		7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		81634072FBBCD7BCF66DC8CC /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
+		82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentSection.swift; sourceTree = "<group>"; };
 		8AD8FB5FFB9840099C00C830 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
 		8E726E51A5724616DEE3DC78 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
@@ -249,6 +253,8 @@
 			children = (
 				55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */,
 				45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */,
+				463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */,
+				82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */,
 				58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */,
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
@@ -521,6 +527,8 @@
 				CABD1BC3E4A2D1B54E22FC5B /* ListenPermission.swift in Sources */,
 				F709A33523FE9F750C0CA4C0 /* ManualPhysicalKeyboardDesignation.swift in Sources */,
 				10C10DA54CEEC81C6E86EC7A /* ManualPhysicalKeyboardDesignationStore.swift in Sources */,
+				80E073726A86C6F91B1265F4 /* MenuBarAssignmentList.swift in Sources */,
+				285CA87B73B33712DF22ADA7 /* MenuBarAssignmentSection.swift in Sources */,
 				66192BBEB5CA3988AFEDD752 /* MenuBarPanelContent.swift in Sources */,
 				24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */,
 				A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */,

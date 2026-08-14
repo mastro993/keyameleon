@@ -1,5 +1,10 @@
 # Breadcrumbs
 
+## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
+
+- Seam: `MenuBarAssignmentList` filters/orders assigned rows; panel view renders read-only section with 5-row scroll cap.
+- Keep #48 actions/footer until #50. Drop Menu first assignment status dump.
+
 ## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
 
 - Replacing status-item `NSMenu` with one transient 360 pt SwiftUI `NSPopover`.

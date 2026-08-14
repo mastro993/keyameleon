@@ -40,26 +40,25 @@ struct KeyameleonMenuBarPanelView: View {
     }
 
     var body: some View {
-        let content = MenuBarPanelContent(
-            outcome: switching.outcome,
-            actionConditions: setupModel.physicalKeyboardActionConditions,
-            isSetupComplete: setupModel.isSetupComplete,
-            canCheckForUpdates: generalSettingsModel.canCheckForUpdates,
-            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice
-        )
+        let content = makeContent()
 
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(content.items) { item in
-                switch item.kind {
-                case .status:
-                    statusLine(item)
-                case let .action(actionID, enabled):
-                    Button(item.title) {
-                        perform(actionID)
-                    }
-                    .disabled(!enabled)
-                    .optionalKeyboardShortcut(shortcut(for: actionID))
-                }
+            ForEach(content.noticeItems) { item in
+                MenuBarPanelItemView(
+                    item: item,
+                    perform: perform,
+                    shortcut: shortcut(for:)
+                )
+            }
+
+            MenuBarAssignmentSection(list: content.assignmentList)
+
+            ForEach(content.footerItems) { item in
+                MenuBarPanelItemView(
+                    item: item,
+                    perform: perform,
+                    shortcut: shortcut(for:)
+                )
             }
         }
         .padding(16)
@@ -70,21 +69,24 @@ struct KeyameleonMenuBarPanelView: View {
         }
     }
 
-    @ViewBuilder
-    private func statusLine(_ item: MenuBarPanelContent.Item) -> some View {
-        let line = Text(item.title)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        if let accessibilityLabel = item.accessibilityLabel {
-            if let accessibilityValue = item.accessibilityValue {
-                line
-                    .accessibilityLabel(accessibilityLabel)
-                    .accessibilityValue(accessibilityValue)
-            } else {
-                line.accessibilityLabel(accessibilityLabel)
+    private func makeContent() -> MenuBarPanelContent {
+        MenuBarPanelContent(
+            outcome: switching.outcome,
+            physicalKeyboards: setupModel.physicalKeyboards,
+            assignedInputSourceNames: assignedInputSourceNames,
+            isSetupComplete: setupModel.isSetupComplete,
+            canCheckForUpdates: generalSettingsModel.canCheckForUpdates,
+            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice
+        )
+    }
+
+    private var assignedInputSourceNames: [PhysicalKeyboardRecordID: String] {
+        Dictionary(
+            uniqueKeysWithValues: setupModel.physicalKeyboards.compactMap { physicalKeyboard in
+                setupModel.assignedInputSourceName(for: physicalKeyboard)
+                    .map { (physicalKeyboard.id, $0) }
             }
-        } else {
-            line
-        }
+        )
     }
 
     private func perform(_ actionID: MenuBarPanelActionID) {
@@ -124,6 +126,42 @@ struct KeyameleonMenuBarPanelView: View {
             KeyboardShortcut("q", modifiers: .command)
         default:
             nil
+        }
+    }
+}
+
+private struct MenuBarPanelItemView: View {
+    let item: MenuBarPanelContent.Item
+    let perform: (MenuBarPanelActionID) -> Void
+    let shortcut: (MenuBarPanelActionID) -> KeyboardShortcut?
+
+    var body: some View {
+        switch item.kind {
+        case .status:
+            statusLine
+        case let .action(actionID, enabled):
+            Button(item.title) {
+                perform(actionID)
+            }
+            .disabled(!enabled)
+            .optionalKeyboardShortcut(shortcut(actionID))
+        }
+    }
+
+    @ViewBuilder
+    private var statusLine: some View {
+        let line = Text(item.title)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        if let accessibilityLabel = item.accessibilityLabel {
+            if let accessibilityValue = item.accessibilityValue {
+                line
+                    .accessibilityLabel(accessibilityLabel)
+                    .accessibilityValue(accessibilityValue)
+            } else {
+                line.accessibilityLabel(accessibilityLabel)
+            }
+        } else {
+            line
         }
     }
 }

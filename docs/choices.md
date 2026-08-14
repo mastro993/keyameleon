@@ -1,5 +1,25 @@
 # Choices
 
+## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
+
+### Seams
+
+- `MenuBarAssignmentList` — pure presentation: assigned-only filter, Active/connected/disconnected order, row marks, Unavailable Keyboard Assignment copy, empty state, scroll boundary (`visibleRowLimit == 5`).
+- `MenuBarPanelContent` — still owns remaining Menu first notices and actions; embeds one `MenuBarAssignmentList`.
+- `MenuBarAssignmentSection` / `MenuBarAssignmentRowView` — render typed rows only. Rows are not buttons.
+
+### Defaults
+
+- Reuse `PhysicalKeyboardListOrdering` (Active, other connected, disconnected; alphabetical Physical Keyboard Name inside each group).
+- A Keyboard Assignment is `assignmentState == .assigned`. Unassigned and unsupported Physical Keyboards stay out of the list.
+- Resolved Input Source name when eligible catalog has it. Otherwise second line is `Unavailable Input Source` plus warning symbol and note `Unavailable Keyboard Assignment`.
+- Heading is `Keyboard Assignments`. No app-name header. No assignment count.
+- Empty copy is `No Keyboard Assignments`. Open Keyameleon stays in the existing action list.
+- Distinct accessible marks: Active, Connected, Disconnected. Disconnected rows use 0.5 opacity.
+- More than five rows: assignment area scrolls; actions stay outside the scroll view.
+- Keep Switching Status, Temporarily Unavailable copy, unclean-exit notice, and current actions until #50 replaces them.
+- Drop Active Physical Keyboard / Keyboard Assignment / Current Input Source / mismatch / Needs action status lines. The assignment list replaces that dump.
+
 ## 2026-08-13 — Issue #48 Live Liquid Glass menu-bar panel
 
 ### Seams
