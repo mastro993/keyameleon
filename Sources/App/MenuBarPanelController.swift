@@ -44,6 +44,7 @@ final class KeyameleonMenuBarPanelController: NSObject, NSPopoverDelegate {
         }
 
         refresh()
+        applyChrome()
         var size = popover.contentSize
         size.width = Self.panelWidth
         popover.contentSize = size
@@ -52,7 +53,11 @@ final class KeyameleonMenuBarPanelController: NSObject, NSPopoverDelegate {
             of: positioningView,
             preferredEdge: .minY
         )
-        popover.contentViewController?.view.window?.makeKey()
+        if let window = popover.contentViewController?.view.window {
+            window.makeKey()
+            // Keep first responder on the host so AppKit does not ring a footer button on open.
+            window.makeFirstResponder(popover.contentViewController?.view)
+        }
     }
 
     func close() {
@@ -84,5 +89,23 @@ final class KeyameleonMenuBarPanelController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         lastClosedAt = Date()
+    }
+
+    private func applyChrome() {
+        let chrome = MenuBarPanelChrome.resolve(
+            reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency,
+            increasedContrast: NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+        )
+        guard let view = popover.contentViewController?.view else {
+            return
+        }
+
+        view.wantsLayer = true
+        switch chrome.surface {
+        case .liquidGlass:
+            view.layer?.backgroundColor = nil
+        case .opaque:
+            view.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        }
     }
 }

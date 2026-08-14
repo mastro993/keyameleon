@@ -40,6 +40,16 @@ struct MenuBarAssignmentList: Equatable, Sendable {
             connectionMark.accessibilityName
         }
 
+        var accessibilityLabel: String {
+            physicalKeyboardName
+        }
+
+        var accessibilityValue: String {
+            [assignedInputSourceName, accessibilityMark, warningNote]
+                .compactMap { $0 }
+                .joined(separator: ", ")
+        }
+
         var isActive: Bool {
             connectionMark == .active
         }

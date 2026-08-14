@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-14 — Issue #51 accessible panel
+
+- Complete #49/#50 panel: VoiceOver, keyboard order, Reduce Transparency, contrast, dismiss-safe close.
+- No Quick Actions row or recovery banner. Speech + More cover Switching Status and recovery.
+- Silent container first responder on open. Tab (and Shift-Tab) starts the ring.
+
 ## 2026-08-14 — Release README grill
 
 - Drop glossary terms **Multilingual Professional** and **First-Key Guarantee**.
