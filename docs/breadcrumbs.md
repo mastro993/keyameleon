@@ -1,5 +1,22 @@
 # Breadcrumbs
 
+## 2026-08-14 — Official Release workflow_dispatch
+
+- ADR 0004. Tag-push trigger removed. Notes script + tests. Docs match dispatch-only publish.
+- First Official Release runbook in `docs/release/official-release.md`. Host today: env empty, no tag ruleset.
+
+## 2026-08-14 — Drop Beta Channel
+
+- Beta reopened then dropped. V1 stays one Channel: Stable. Q21–Q28 discarded.
+
+## 2026-08-14 — Official Release workflow grill
+
+- Reversed #16 tag-push trigger and #1 Homebrew OOS. Kept #1 prerelease OOS (no Beta Channel).
+- Glossary: **Channel** (not Track). Official Release belongs to one Channel and is not replaced.
+- V1 Channel = Stable only. Dispatch on green `main`.
+- Homebrew descoped for this workflow. Agreed later shape (not built): own tap `mastro993/homebrew-keyameleon`, cask inside tap, Sparkle `auto_updates`.
+- Notes = `git log` since previous Official Release tag.
+
 ## 2026-08-14 — Issue #51 accessible panel
 
 - Complete #49/#50 panel: VoiceOver, keyboard order, Reduce Transparency, contrast, dismiss-safe close.

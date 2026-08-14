@@ -4,8 +4,8 @@
 
 The **latest Official Release** is the only **Supported Release**.
 
-- An Official Release is a version published for users through the stable GitHub
-  Releases channel. It is source-traceable, Developer ID signed, hardened-runtime
+- An Official Release is a version published for users on the Stable Channel
+  through GitHub Releases. It is source-traceable, Developer ID signed, hardened-runtime
   enabled, timestamped, notarized, and stapled.
 - Older Official Releases and any non-release builds (local Debug, CI artifacts,
   forks) are **not** Supported Releases and do not receive maintenance guarantees.

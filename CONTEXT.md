@@ -79,8 +79,12 @@ The product behavior that requests and verifies a Keyboard Assignment after Keya
 _Avoid_: First-activity guarantee, next-key guarantee, first-key guarantee, best-effort switching
 
 **Official Release**:
-A version of Keyameleon that the person with release authority publishes for users. It has a source version that users can inspect.
+A version of Keyameleon that the person with release authority publishes for users. It has a source version that users can inspect. It belongs to one Channel. It is not replaced.
 _Avoid_: Official build, production build
+
+**Channel**:
+A named line of Official Releases a user may receive updates from. V1 has one Channel: Stable.
+_Avoid_: Track, stream, ring. Do not use Channel for GitHub Releases as a host.
 
 **Supported Release**:
 The latest Official Release. It receives maintenance for the supported macOS versions.

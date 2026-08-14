@@ -116,22 +116,18 @@ Input Monitoring across launches.
 
 The latest Official Release is the only Supported Release. Artifacts are
 source-traceable, Developer ID signed, hardened-runtime, notarized, and
-stapled. Sparkle `appcast.xml` ships on the same GitHub Releases channel.
+stapled. Sparkle `appcast.xml` ships on GitHub Releases. V1 has one Channel:
+Stable.
 
-Push an annotated Semantic Versioning tag on a reviewed, green `main`:
-
-```sh
-git tag -a v1.2.3 -m "Keyameleon 1.2.3"
-git push origin v1.2.3
-```
-
-Only `vMAJOR.MINOR.PATCH` starts the Official Release workflow. Pre-release
-tags (`v1.2.3-beta.1`) and bare versions (`1.2.3`) do not.
+Run **Actions → Official Release → Run workflow** on a reviewed, green `main`.
+Set **version** to Semantic Versioning core only (`1.2.3`). The workflow
+creates tag `v1.2.3`. Do not push Official Release tags. Pre-release values
+(`1.2.3-beta.1`) fail.
 
 The `produce` job targets the `official-release` GitHub Environment. After
 approval (when the host plan enforces reviewers), CI builds, signs,
-notarizes, staples, writes `appcast.xml` and `release-evidence.json`, and
-publishes:
+notarizes, staples, writes `appcast.xml` and `release-evidence.json`, tags,
+and publishes:
 
 - `Keyameleon-<version>.zip`
 - `Keyameleon-source-<version>.tar.gz`

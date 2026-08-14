@@ -1,38 +1,79 @@
 name: Official Release
 
-# Only a protected Semantic Versioning tag starts an Official Release.
+# Only workflow_dispatch on the default branch starts an Official Release.
+# The annotated tag is created after artifacts exist. A tag push does not publish.
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic Versioning core (MAJOR.MINOR.PATCH)
+        required: true
+        type: string
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
-  group: official-release-${{ github.ref }}
+  group: official-release
   cancel-in-progress: false
 
 jobs:
-  verify-tag:
-    name: Verify Official Release tag
+  verify:
+    name: Verify Official Release
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Reject non-SemVer-core tags
+      - name: Require default branch
+        run: |
+          set -euo pipefail
+          default="${{ github.event.repository.default_branch }}"
+          if [[ "${{ github.ref_name }}" != "${default}" ]]; then
+            echo "Official Release only from ${default}; got ${{ github.ref_name }}" >&2
+            exit 1
+          fi
+
+      - name: Reject used or invalid Official Release version
         id: version
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          VERSION="$(./Scripts/verify-official-release-tag.sh "$TAG")"
+          set -euo pipefail
+          chmod +x Scripts/*.sh
+          VERSION="${{ inputs.version }}"
+          TAG="v${VERSION}"
+          ./Scripts/verify-official-release-tag.sh "$TAG"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            echo "Official Release already exists: ${TAG}" >&2
+            exit 1
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Official Release tag ${TAG} -> ${VERSION}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Require green CI on this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          SHA="${{ github.sha }}"
+          conclusions="$(gh run list \
+            --workflow CI \
+            --commit "$SHA" \
+            --json conclusion,status \
+            --jq '.[] | select(.status=="completed") | .conclusion')"
+          if ! grep -qx success <<<"$conclusions"; then
+            echo "no successful CI run for ${SHA}" >&2
+            echo "${conclusions:-<none>}" >&2
+            exit 1
+          fi
 
   produce:
     name: Produce Official Release artifacts
-    needs: verify-tag
+    needs: verify
     runs-on: macos-26
     environment: official-release
     steps:
@@ -40,12 +81,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Reject published Official Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.verify.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Official Release already exists: ${TAG}" >&2
+            exit 1
+          fi
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
       - name: Produce signed, notarized, stapled artifacts
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.verify.outputs.tag }}
           APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64 }}
           APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
@@ -65,7 +117,7 @@ jobs:
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: official-release-${{ needs.verify-tag.outputs.version }}
+          name: official-release-${{ needs.verify.outputs.version }}
           path: |
             dist/Keyameleon-*.zip
             dist/Keyameleon-source-*.tar.gz
@@ -76,10 +128,26 @@ jobs:
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.verify-tag.outputs.version }}
-          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          TAG: ${{ needs.verify.outputs.tag }}
         run: |
           set -euo pipefail
+          chmod +x Scripts/*.sh
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Official Release already exists: ${TAG}" >&2
+            exit 1
+          fi
+
+          # Notes before the new tag exists so the previous Official Release is still previous.
+          CHANGES="$(./Scripts/official-release-notes.sh)"
+
+          if ! git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "Keyameleon ${VERSION}"
+            git push origin "$TAG"
+          fi
+
           ARCHIVE="dist/Keyameleon-${VERSION}.zip"
           SOURCE="dist/Keyameleon-source-${VERSION}.tar.gz"
           APPCAST="dist/appcast.xml"
@@ -89,6 +157,10 @@ jobs:
             echo "## Keyameleon ${VERSION}"
             echo
             echo "Official Release of Keyameleon under \`GPL-3.0-only\`."
+            echo
+            echo "### Changes"
+            echo
+            printf '%s\n' "$CHANGES"
             echo
             echo "### Artifacts"
             echo
@@ -108,21 +180,11 @@ jobs:
             echo '```'
           } >"$NOTES"
 
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" \
-              "$ARCHIVE" \
-              "$SOURCE" \
-              "$APPCAST" \
-              "$EVIDENCE" \
-              --clobber
-            gh release edit "$TAG" --notes-file "$NOTES"
-          else
-            gh release create "$TAG" \
-              "$ARCHIVE" \
-              "$SOURCE" \
-              "$APPCAST" \
-              "$EVIDENCE" \
-              --title "Keyameleon ${VERSION}" \
-              --notes-file "$NOTES" \
-              --verify-tag
-          fi
+          gh release create "$TAG" \
+            "$ARCHIVE" \
+            "$SOURCE" \
+            "$APPCAST" \
+            "$EVIDENCE" \
+            --title "Keyameleon ${VERSION}" \
+            --notes-file "$NOTES" \
+            --verify-tag

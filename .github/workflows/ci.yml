@@ -36,6 +36,7 @@ jobs:
             echo "expected pre-release tag to fail" >&2
             exit 1
           fi
+          python3 Tests/Scripts/test_official_release_notes.py
 
       - name: Run tests and safety audit
         run: ./Scripts/run.sh test

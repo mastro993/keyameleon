@@ -1,5 +1,25 @@
 # Choices
 
+## 2026-08-14 — Official Release workflow (grill)
+
+### Defaults
+
+- Start an Official Release only with `workflow_dispatch` on `main`. The workflow creates the annotated tag. Kill the tag-push trigger.
+- Dispatch only when the chosen SHA is on `main` and CI is green. No feature-branch release.
+- V1 has one Channel: Stable. Beta ignored. No in-app Channel picker. One Sparkle feed: `releases/latest/download/appcast.xml`.
+- Tag stays `vMAJOR.MINOR.PATCH`. Dispatch `version` is SemVer core (`1.2.3`). Inject marketing and build numbers at Official Release build. Do not commit a version bump.
+- Official Release is immutable. Fail if the tag already exists. Do not `--clobber` the zip.
+- Homebrew descoped. No tap, no cask, no brew job. README stays zip primary, source-build secondary.
+- Notes: `git log` since previous Official Release tag. Subjects only. No merge commits. No author names. No dispatch `notes`. First Official Release body starts with `Initial Official Release`. Empty range (new version, same commit): `No source changes since <previous tag>`.
+- Same `main` SHA may receive a new Official Release version. Same version may not.
+- Dispatch inputs: `version` only (SemVer core). `ref` is `main`.
+- Environment `official-release` deployment branches: `main` (produce runs before the tag exists).
+- Tag after artifacts. Notes from `official-release-notes.sh` before the new tag exists.
+- Re-run of `produce` may finish a tag that has no GitHub Release. A new dispatch of the same version still fails if the tag exists.
+- Reuse GitHub Environment `official-release`. Same secrets. Lead maintainer only until required reviewers exist.
+- Local `SKIP_NOTARIZE=1` stays a non-Official path. No dispatch dry-run.
+- Appcast is latest item only. No Sparkle deltas.
+
 ## 2026-08-14 — Issue #51 Complete accessible menu-bar panel
 
 ### Seams

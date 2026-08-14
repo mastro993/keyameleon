@@ -8,7 +8,7 @@ enum KeyameleonReleasePolicy {
     /// Only the latest Official Release receives maintenance.
     static let supportedReleaseIsLatestOnly = true
 
-    /// Artifact basename published on the stable GitHub Releases channel.
+    /// Artifact basename published for the Stable Channel on GitHub Releases.
     static let applicationArchiveNamePrefix = "Keyameleon"
 
     /// Sparkle feed filename published next to the archive.

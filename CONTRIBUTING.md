@@ -32,8 +32,7 @@ not the contribution path. Each PR must:
 
 ## Official Releases
 
-Contributors do not publish Official Releases. Only a protected Semantic
-Versioning tag (`vMAJOR.MINOR.PATCH`) starts the Official Release workflow, and
-the `official-release` environment requires lead-maintainer approval when the
-hosting plan supports environment reviewers. See `docs/release/official-release.md`
-and `SECURITY.md`.
+Contributors do not publish Official Releases. Only Official Release
+`workflow_dispatch` on `main` starts the workflow. The `official-release`
+environment requires lead-maintainer approval when the hosting plan supports
+environment reviewers. See `docs/release/official-release.md` and `SECURITY.md`.

@@ -220,7 +220,7 @@ print -n "$SPARKLE_PRIVATE_ED_KEY" | "${generate_appcast}" \
     -o "${dist_dir}/appcast.xml" \
     "${work_tmpdir}/updates"
 
-# Point enclosure URLs at the stable GitHub Releases channel.
+# Point enclosure URLs at GitHub Releases for the Stable Channel.
 python3 - "$version" "${dist_dir}/appcast.xml" <<'PY'
 import re
 import sys
