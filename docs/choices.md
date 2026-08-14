@@ -1,5 +1,19 @@
 # Choices
 
+## 2026-08-14 — Release README audience and claims
+
+### Defaults
+- Public README is user-first: hook, install, use, privacy, then build / architecture / release / contribute.
+- User is a person with multiple Physical Keyboards of different physical layouts. Not a language persona.
+- No First-Key Guarantee in glossary, README, or UI. Activity-Triggered Switching is the named behavior.
+- No user-persona glossary term. README uses prose only.
+- Screenshot later at `assets/screenshot.png`: menu-bar icon + open panel, heading Keyboards, ≥2 assigned pills, one Active, Switching Status Ready.
+- Install: Official Release zip primary. Source-build secondary. No Homebrew until a cask exists.
+- Screenshot: placeholder + intended-shot description. No image file in this pass.
+- Features: full user-visible surface, short bullets.
+- Privacy: own README section.
+- Maintainer block: build commands, short architecture, Official Release workflow + secrets table. Detail remains in `docs/release/official-release.md`.
+
 ## 2026-08-14 — Issue #50 Menu-bar Quick Actions, recovery banner, footer
 
 ### Seams
