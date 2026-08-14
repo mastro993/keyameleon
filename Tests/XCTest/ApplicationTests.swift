@@ -62,6 +62,31 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testCheckForUpdatesClosesTheMenuBarPanel() throws {
+        let delegate = KeyameleonApplicationDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            setupStore: ApplicationTestSetupDecisionStore(),
+            startsUpdaterOnLaunch: false,
+            singleInstanceLock: makeSingleInstanceLock()
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        let anchor = MenuBarPanelTestAnchorWindow()
+        defer {
+            delegate.closeMenuBarPanel()
+            anchor.close()
+        }
+
+        let panel = try XCTUnwrap(delegate.menuBarPanelController)
+        panel.show(from: anchor.positioningView)
+        XCTAssertTrue(delegate.isMenuBarPanelShown)
+
+        delegate.checkForUpdates(nil)
+        XCTAssertFalse(delegate.isMenuBarPanelShown)
+    }
+
+    @MainActor
     func testMenuBarIconPresentationMapsEveryStatusMark() {
         let delegate = KeyameleonApplicationDelegate(
             permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),

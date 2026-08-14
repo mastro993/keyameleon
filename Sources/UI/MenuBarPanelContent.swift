@@ -5,55 +5,35 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case resume
     case requestPermission
     case openKeyameleon
-    case continueSetup
     case openSystemSettings
     case checkAgain
     case settings
     case checkForUpdates
     case quit
-    case reviewDiagnostics
-    case dismissDiagnosticsNotice
 }
 
-/// Typed Menu first rows and actions for the live menu-bar panel.
+/// Typed Menu first regions and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
     static let panelWidth: CGFloat = 320
 
-    struct Item: Equatable, Identifiable, Sendable {
-        enum Kind: Equatable, Sendable {
-            case status
-            case action(MenuBarPanelActionID, enabled: Bool)
-        }
-
-        let id: String
+    struct Action: Equatable, Identifiable, Sendable {
+        let id: MenuBarPanelActionID
         let title: String
-        let kind: Kind
-        let accessibilityLabel: String?
-        let accessibilityValue: String?
+        let isEnabled: Bool
+        let closesPanel: Bool
     }
 
-    var assignmentList: MenuBarAssignmentList
-    var noticeItems: [Item]
-    var footerItems: [Item]
-
-    var items: [Item] {
-        noticeItems + footerItems
+    struct Footer: Equatable, Sendable {
+        let versionText: String
+        let openKeyameleon: Action
+        let overflowActions: [Action]
     }
 
-    var titles: [String] {
-        [assignmentList.heading]
-            + [assignmentList.emptyTitle, assignmentList.emptyDescription].compactMap { $0 }
-            + noticeItems.map(\.title)
-            + footerItems.map(\.title)
-    }
+    let assignmentList: MenuBarAssignmentList
+    let footer: Footer
 
     var actionTitles: [String] {
-        items.compactMap { item in
-            if case .action = item.kind {
-                return item.title
-            }
-            return nil
-        }
+        [footer.openKeyameleon.title] + footer.overflowActions.map(\.title)
     }
 
     var panelWidth: CGFloat {
@@ -64,213 +44,121 @@ struct MenuBarPanelContent: Equatable, Sendable {
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSourceNames: [PhysicalKeyboardRecordID: String],
-        isSetupComplete: Bool,
         canCheckForUpdates: Bool,
-        hasPendingUncleanExitNotice: Bool
+        marketingVersion: String?
     ) {
-        assignmentList = MenuBarAssignmentList(
+        self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
             assignedInputSourceNames: assignedInputSourceNames
         )
-
-        var noticeItems: [Item] = []
-        let switchingStatus = Self.switchingStatusName(outcome.switchingStatus)
-        noticeItems.append(
-            Item(
-                id: "switching-status",
-                title: "Switching Status: \(switchingStatus)",
-                kind: .status,
-                accessibilityLabel: "Switching Status",
-                accessibilityValue: switchingStatus
+        self.footer = Footer(
+            versionText: Self.versionText(marketingVersion: marketingVersion),
+            openKeyameleon: Action(
+                id: .openKeyameleon,
+                title: "Open Keyameleon",
+                isEnabled: true,
+                closesPanel: true
+            ),
+            overflowActions: Self.makeOverflowActions(
+                outcome: outcome,
+                canCheckForUpdates: canCheckForUpdates
             )
         )
+    }
 
-        if outcome.hasAction(.requestPermission) {
-            noticeItems.append(
-                Item(
-                    id: MenuBarPanelActionID.requestPermission.rawValue,
-                    title: "Request Permission",
-                    kind: .action(.requestPermission, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
+    static func versionText(marketingVersion: String?) -> String {
+        let trimmed = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !trimmed.isEmpty else {
+            return "Keyameleon —"
         }
 
-        if let reason = outcome.temporarilyUnavailableReasons.first {
-            let reasonName = Self.unavailableReasonName(reason)
-            noticeItems.append(
-                Item(
-                    id: "unavailable-reason",
-                    title: "Detected reason: \(reasonName)",
-                    kind: .status,
-                    accessibilityLabel: "Detected reason:",
-                    accessibilityValue: reasonName
-                )
-            )
-            noticeItems.append(
-                Item(
-                    id: "unavailable-recovery",
-                    title: "Resumes automatically when macOS allows Activity-Triggered Switching.",
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
+        return "Keyameleon \(trimmed)"
+    }
 
-        if hasPendingUncleanExitNotice {
-            noticeItems.append(
-                Item(
-                    id: "unclean-exit",
-                    title: "Keyameleon did not exit cleanly.",
-                    kind: .status,
-                    accessibilityLabel: "Keyameleon did not exit cleanly.",
-                    accessibilityValue:
-                        "Review local Diagnostic Data. Keyameleon sends no notification for an unclean exit."
-                )
-            )
-            noticeItems.append(
-                Item(
-                    id: MenuBarPanelActionID.reviewDiagnostics.rawValue,
-                    title: "Review Diagnostics…",
-                    kind: .action(.reviewDiagnostics, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-            noticeItems.append(
-                Item(
-                    id: MenuBarPanelActionID.dismissDiagnosticsNotice.rawValue,
-                    title: "Dismiss Diagnostics Notice",
-                    kind: .action(.dismissDiagnosticsNotice, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        var footerItems: [Item] = []
-        if outcome.hasAction(.resume) {
-            footerItems.append(
-                Item(
-                    id: MenuBarPanelActionID.resume.rawValue,
-                    title: "Resume Activity-Triggered Switching",
-                    kind: .action(.resume, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        } else if outcome.hasAction(.pause) {
-            footerItems.append(
-                Item(
-                    id: MenuBarPanelActionID.pause.rawValue,
-                    title: "Pause Activity-Triggered Switching",
-                    kind: .action(.pause, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        footerItems.append(
-            Item(
-                id: MenuBarPanelActionID.openKeyameleon.rawValue,
-                title: "Open Keyameleon…",
-                kind: .action(.openKeyameleon, enabled: true),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
-        )
-
-        if !isSetupComplete {
-            footerItems.append(
-                Item(
-                    id: MenuBarPanelActionID.continueSetup.rawValue,
-                    title: "Continue Setup…",
-                    kind: .action(.continueSetup, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        if outcome.hasAction(.openSystemSettings) && outcome.hasAction(.checkAgain) {
-            footerItems.append(
-                Item(
-                    id: MenuBarPanelActionID.openSystemSettings.rawValue,
-                    title: "Open System Settings",
-                    kind: .action(.openSystemSettings, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-            footerItems.append(
-                Item(
-                    id: MenuBarPanelActionID.checkAgain.rawValue,
-                    title: "Check Again",
-                    kind: .action(.checkAgain, enabled: true),
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        footerItems.append(
-            Item(
-                id: MenuBarPanelActionID.settings.rawValue,
-                title: "Settings…",
-                kind: .action(.settings, enabled: true),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
-        )
-        footerItems.append(
-            Item(
-                id: MenuBarPanelActionID.checkForUpdates.rawValue,
+    private static func makeOverflowActions(
+        outcome: ActivityTriggeredSwitchingOutcome,
+        canCheckForUpdates: Bool
+    ) -> [Action] {
+        var actions = [pauseOrResume(outcome: outcome)]
+        actions.append(contentsOf: recoveryActions(outcome: outcome))
+        actions.append(
+            Action(
+                id: .checkForUpdates,
                 title: "Check for Updates…",
-                kind: .action(.checkForUpdates, enabled: canCheckForUpdates),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
+                isEnabled: canCheckForUpdates,
+                closesPanel: true
             )
         )
-        footerItems.append(
-            Item(
-                id: MenuBarPanelActionID.quit.rawValue,
-                title: "Quit Keyameleon",
-                kind: .action(.quit, enabled: true),
-                accessibilityLabel: nil,
-                accessibilityValue: nil
-            )
+        actions.append(
+            Action(id: .settings, title: "Settings…", isEnabled: true, closesPanel: true)
         )
-
-        self.noticeItems = noticeItems
-        self.footerItems = footerItems
+        actions.append(
+            Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true)
+        )
+        return actions
     }
 
-    private static func switchingStatusName(_ status: SwitchingStatus) -> String {
-        switch status {
-        case .ready:
-            "Ready"
-        case .permissionRequired:
-            "Permission Required"
-        case .paused:
-            "Paused"
-        case .temporarilyUnavailable:
-            "Temporarily Unavailable"
+    private static func pauseOrResume(
+        outcome: ActivityTriggeredSwitchingOutcome
+    ) -> Action {
+        if outcome.hasAction(.resume) {
+            return Action(
+                id: .resume,
+                title: "Resume",
+                isEnabled: true,
+                closesPanel: false
+            )
         }
+
+        return Action(
+            id: .pause,
+            title: "Pause",
+            isEnabled: true,
+            closesPanel: false
+        )
     }
 
-    private static func unavailableReasonName(_ reason: SwitchingUnavailableReason) -> String {
-        switch reason {
-        case .sleeping:
-            "macOS is asleep"
-        case .inactiveSession:
-            "The user session is inactive"
-        case .secureInput:
-            "Secure Input is active"
-        case .protectedDataUnavailable:
-            "Protected data is unavailable"
+    private static func recoveryActions(
+        outcome: ActivityTriggeredSwitchingOutcome
+    ) -> [Action] {
+        switch outcome.switchingStatus {
+        case .ready, .paused:
+            return []
+        case .permissionRequired, .temporarilyUnavailable:
+            break
         }
+
+        var actions: [Action] = []
+        if outcome.hasAction(.requestPermission) {
+            actions.append(
+                Action(
+                    id: .requestPermission,
+                    title: "Request Permission",
+                    isEnabled: true,
+                    closesPanel: true
+                )
+            )
+        }
+        if outcome.hasAction(.openSystemSettings) {
+            actions.append(
+                Action(
+                    id: .openSystemSettings,
+                    title: "Open System Settings",
+                    isEnabled: true,
+                    closesPanel: true
+                )
+            )
+        }
+        if outcome.hasAction(.checkAgain) {
+            actions.append(
+                Action(
+                    id: .checkAgain,
+                    title: "Check Again",
+                    isEnabled: true,
+                    closesPanel: false
+                )
+            )
+        }
+        return actions
     }
 }

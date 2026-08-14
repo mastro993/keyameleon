@@ -1,5 +1,26 @@
 # Choices
 
+## 2026-08-14 — Issue #50 Menu-bar Quick Actions, recovery banner, footer
+
+### Seams
+
+- `MenuBarPanelContent` — `MenuBarAssignmentList` plus footer. Overflow actions are typed here. Tests live here.
+- `KeyameleonMenuBarPanelView` — renders keyboards and footer only.
+- `MenuBarPanelContent.Action.closesPanel` — dismissal contract. View closes the popover before running a closing action.
+
+### Defaults
+
+- Panel body is Keyboards + footer. No Quick Actions row, recovery banner, or unclean-exit notice.
+- Footer cog (`gearshape`) opens the main window (`Open Keyameleon`) and closes the panel. Incomplete setup continues there. No Continue Setup action.
+- Overflow (ellipsis): Pause/Resume, recovery actions when Permission Required or Temporarily Unavailable offers them, Check for Updates…, Settings…, Quit Keyameleon. Diagnostics stay in the main window only.
+- Pause / Resume and Check Again / Dismiss keep the panel open. Other overflow actions close it.
+- Footer left: `Keyameleon <marketing>` from `CFBundleShortVersionString`. No build number. Blank or missing → `Keyameleon —`.
+- Footer is its own full-width container. 1 pt `.separator` top border. List bottom pad 4, footer top pad 6.
+- Footer right: two small `.circular` icon buttons. Cog a11y is `Open Keyameleon`. Ellipsis a11y is `More`.
+- Overflow control is an AppKit `NSButton` + `NSMenu`. Do not add `sizeThatFits` — the safety audit treats `CGSize` as a forbidden `CGS*` surface. SwiftUI `Menu` inside the transient popover is not in the XCUITest tree.
+- Click away from More cancels menu tracking and closes the panel. `NSMenu.popUp` would otherwise eat the click the transient popover needs.
+- Panel order: Keyboards, footer.
+
 ## 2026-08-14 — Menu-bar assignment pills
 
 ### Seams
