@@ -41,15 +41,7 @@ struct KeyameleonMenuBarPanelView: View {
     }
 
     var body: some View {
-        let content = MenuBarPanelContent(
-            outcome: switching.outcome,
-            actionConditions: setupModel.physicalKeyboardActionConditions,
-            canCheckForUpdates: generalSettingsModel.canCheckForUpdates,
-            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice,
-            marketingVersion: Bundle.main.object(
-                forInfoDictionaryKey: "CFBundleShortVersionString"
-            ) as? String
-        )
+        let content = makeContent()
 
         VStack(alignment: .leading, spacing: 12) {
             quickActions(content.quickActions)
@@ -58,12 +50,10 @@ struct KeyameleonMenuBarPanelView: View {
                 recoveryBannerView(recoveryBanner)
             }
 
+            MenuBarAssignmentSection(list: content.assignmentList)
+
             if let uncleanExitNotice = content.uncleanExitNotice {
                 uncleanExitNoticeView(uncleanExitNotice)
-            }
-
-            ForEach(content.statusItems) { item in
-                statusLine(item)
             }
 
             footer(content.footer)
@@ -75,6 +65,28 @@ struct KeyameleonMenuBarPanelView: View {
         .onAppear {
             hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
         }
+    }
+
+    private func makeContent() -> MenuBarPanelContent {
+        MenuBarPanelContent(
+            outcome: switching.outcome,
+            physicalKeyboards: setupModel.physicalKeyboards,
+            assignedInputSourceNames: assignedInputSourceNames,
+            canCheckForUpdates: generalSettingsModel.canCheckForUpdates,
+            hasPendingUncleanExitNotice: hasPendingUncleanExitNotice,
+            marketingVersion: Bundle.main.object(
+                forInfoDictionaryKey: "CFBundleShortVersionString"
+            ) as? String
+        )
+    }
+
+    private var assignedInputSourceNames: [PhysicalKeyboardRecordID: String] {
+        Dictionary(
+            uniqueKeysWithValues: setupModel.physicalKeyboards.compactMap { physicalKeyboard in
+                setupModel.assignedInputSourceName(for: physicalKeyboard)
+                    .map { (physicalKeyboard.id, $0) }
+            }
+        )
     }
 
     private func quickActions(_ quickActions: MenuBarPanelContent.QuickActions) -> some View {
@@ -142,23 +154,6 @@ struct KeyameleonMenuBarPanelView: View {
         )
     }
 
-    @ViewBuilder
-    private func statusLine(_ item: MenuBarPanelContent.Item) -> some View {
-        let line = Text(item.title)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        if let accessibilityLabel = item.accessibilityLabel {
-            if let accessibilityValue = item.accessibilityValue {
-                line
-                    .accessibilityLabel(accessibilityLabel)
-                    .accessibilityValue(accessibilityValue)
-            } else {
-                line.accessibilityLabel(accessibilityLabel)
-            }
-        } else {
-            line
-        }
-    }
-
     private func footer(_ footer: MenuBarPanelContent.Footer) -> some View {
         HStack {
             Text(footer.versionText)
@@ -182,6 +177,8 @@ struct KeyameleonMenuBarPanelView: View {
             switching.pause()
         case .resume:
             switching.resume()
+        case .requestPermission:
+            setupModel.requestPermission()
         case .openKeyameleon:
             actions.openKeyameleon()
         case .openSystemSettings:

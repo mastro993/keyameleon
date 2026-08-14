@@ -242,7 +242,7 @@ struct KeyameleonRootView: View {
             {
                 HStack {
                     Button("Request Permission") {
-                        switching.requestPermission()
+                        model.requestPermission()
                     }
                     .disabled(!switching.outcome.hasAction(.requestPermission))
                     .accessibilityIdentifier("request-permission")

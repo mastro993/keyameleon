@@ -19,7 +19,7 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testStatusItemOpensTransient360PointPanelAndCloses() throws {
+    func testStatusItemOpensTransient320PointPanelAndCloses() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = KeyameleonApplicationDelegate(
             permissionProvider: permission,
@@ -44,7 +44,7 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertTrue(delegate.menuBarStatusItem?.button?.target === delegate)
         let panel = try XCTUnwrap(delegate.menuBarPanelController)
         XCTAssertEqual(panel.behavior, .transient)
-        XCTAssertEqual(panel.panelWidth, 360)
+        XCTAssertEqual(panel.panelWidth, 320)
         XCTAssertFalse(delegate.isMenuBarPanelShown)
 
         let checksAfterLaunch = permission.checkCount
@@ -52,7 +52,7 @@ final class KeyameleonApplicationTests: XCTestCase {
 
         XCTAssertTrue(delegate.isMenuBarPanelShown)
         XCTAssertGreaterThan(permission.checkCount, checksAfterLaunch)
-        XCTAssertEqual(panel.panelWidth, 360)
+        XCTAssertEqual(panel.panelWidth, 320)
 
         delegate.closeMenuBarPanel()
         XCTAssertFalse(delegate.isMenuBarPanelShown)

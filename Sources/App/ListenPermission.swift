@@ -21,7 +21,8 @@ final class SystemListenPermissionProvider: ListenPermissionProviding {
     }
 
     func requestListenPermission() -> Bool {
-        IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+        NSApp.activate(ignoringOtherApps: true)
+        return IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
     }
 }
 

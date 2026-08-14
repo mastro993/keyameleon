@@ -1,14 +1,36 @@
 # Breadcrumbs
 
-## 2026-08-13 — Issue #50 Menu-bar Quick Actions, recovery banner, footer
+## 2026-08-14 — Merge #49 assignment list into #50 panel
 
-- Typed `MenuBarPanelContent` regions replace the flat action list: Quick Actions, status banner, leftover assignment rows, unclean-exit notice, footer.
-- Pause / Resume stay in Quick Actions. Recovery banner is Permission Required / Temporarily Unavailable only.
-- Footer version from marketing string. Overflow owns Settings, updates, conditional Review Diagnostics, Quit.
+- Keep #50 Quick Actions, recovery banner, footer. Replace leftover status dump with `MenuBarAssignmentList`.
+- Request Permission lives in the recovery banner when the outcome offers it.
+
+## 2026-08-14 — Menu-bar Request Permission missing
+
+- Outcome already had `.requestPermission` on Permission Required. Panel never rendered it.
+- Add notice action **Request Permission** → `SetupModel.requestPermission()`.
+
+## 2026-08-14 — Menu-bar assignment pills
+
+- Assigned rows render as squircle pills: Physical Keyboard Name title / assigned Input Source subtitle / no trailing value.
+- All assigned rows use a theme-aware control background. Active (last Activation Activity) gets a 2 pt rainbow border and a soft neutral `Active` badge at top right.
+- List unbounded via `LazyVStack`; 5-pill viewport still scrolls overflow.
+
+## 2026-08-14 — Request Permission click did nothing
+
+- Cause: no `NSInputMonitoringUsageDescription` → `IOHIDRequestAccess` returns false with no prompt. Denied path also opened nothing.
+- Fix: add usage description; `SetupModel.requestPermission()` opens System Settings when status stays Permission Required; activate app before request.
+
+## 2026-08-14 — Issue #49 Assigned Physical Keyboards in menu-bar panel
+
+- Seam: `MenuBarAssignmentList` filters/orders assigned rows; panel view renders read-only section with 5-row scroll cap.
+- Empty Keyboards section uses a theme-aware soft gray keyboard card with a title and Settings guidance.
+- Keep #48 actions/footer until #50. Drop Menu first assignment status dump.
+- Order: Keyboards, then Switching Status / unclean-exit diagnostics, then actions.
 
 ## 2026-08-13 — Issue #48 Open live Liquid Glass menu-bar panel
 
-- Replacing status-item `NSMenu` with one transient 360 pt SwiftUI `NSPopover`.
+- Replacing status-item `NSMenu` with one transient 320 pt SwiftUI `NSPopover`.
 - Native macOS 26 popover glass; no stacked glass cards.
 - Refresh-before-show via `checkAgain()`. Icon marks stay on the `NSStatusItem` button.
 

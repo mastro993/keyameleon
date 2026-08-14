@@ -3,6 +3,7 @@ import Foundation
 enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
+    case requestPermission
     case openKeyameleon
     case openSystemSettings
     case checkAgain
@@ -15,7 +16,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
 
 /// Typed Menu first regions and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
-    static let panelWidth: CGFloat = 360
+    static let panelWidth: CGFloat = 320
 
     struct Action: Equatable, Identifiable, Sendable {
         let id: MenuBarPanelActionID
@@ -45,27 +46,11 @@ struct MenuBarPanelContent: Equatable, Sendable {
         let overflowActions: [Action]
     }
 
-    struct Item: Equatable, Identifiable, Sendable {
-        enum Kind: Equatable, Sendable {
-            case status
-        }
-
-        let id: String
-        let title: String
-        let kind: Kind
-        let accessibilityLabel: String?
-        let accessibilityValue: String?
-    }
-
     let quickActions: QuickActions
     let recoveryBanner: RecoveryBanner?
+    let assignmentList: MenuBarAssignmentList
     let uncleanExitNotice: UncleanExitNotice?
-    let statusItems: [Item]
     let footer: Footer
-
-    var statusTitles: [String] {
-        statusItems.map(\.title)
-    }
 
     var actionTitles: [String] {
         var titles = [
@@ -88,19 +73,20 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
-        actionConditions: [PhysicalKeyboardActionCondition],
+        physicalKeyboards: [PhysicalKeyboard],
+        assignedInputSourceNames: [PhysicalKeyboardRecordID: String],
         canCheckForUpdates: Bool,
         hasPendingUncleanExitNotice: Bool,
         marketingVersion: String?
     ) {
         self.quickActions = Self.makeQuickActions(outcome: outcome)
         self.recoveryBanner = Self.makeRecoveryBanner(outcome: outcome)
+        self.assignmentList = MenuBarAssignmentList(
+            physicalKeyboards: physicalKeyboards,
+            assignedInputSourceNames: assignedInputSourceNames
+        )
         self.uncleanExitNotice = Self.makeUncleanExitNotice(
             hasPendingUncleanExitNotice: hasPendingUncleanExitNotice
-        )
-        self.statusItems = Self.makeStatusItems(
-            outcome: outcome,
-            actionConditions: actionConditions
         )
         self.footer = Footer(
             versionText: Self.versionText(marketingVersion: marketingVersion),
@@ -180,6 +166,16 @@ struct MenuBarPanelContent: Equatable, Sendable {
         outcome: ActivityTriggeredSwitchingOutcome
     ) -> [Action] {
         var actions: [Action] = []
+        if outcome.hasAction(.requestPermission) {
+            actions.append(
+                Action(
+                    id: .requestPermission,
+                    title: "Request Permission",
+                    isEnabled: true,
+                    closesPanel: true
+                )
+            )
+        }
         if outcome.hasAction(.openSystemSettings) {
             actions.append(
                 Action(
@@ -250,99 +246,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
         return actions
     }
 
-    private static func makeStatusItems(
-        outcome: ActivityTriggeredSwitchingOutcome,
-        actionConditions: [PhysicalKeyboardActionCondition]
-    ) -> [Item] {
-        var items: [Item] = []
-        let activePhysicalKeyboardValue =
-            outcome.activePhysicalKeyboard?.name ?? "No activity observed yet"
-        items.append(
-            Item(
-                id: "active-physical-keyboard",
-                title: "Active Physical Keyboard: \(activePhysicalKeyboardValue)",
-                kind: .status,
-                accessibilityLabel: "Active",
-                accessibilityValue: activePhysicalKeyboardValue
-            )
-        )
-
-        let assignmentValue = keyboardAssignmentValue(outcome.currentKeyboardAssignment)
-        items.append(
-            Item(
-                id: "keyboard-assignment",
-                title: "Keyboard Assignment: \(assignmentValue)",
-                kind: .status,
-                accessibilityLabel: "Keyboard Assignment",
-                accessibilityValue: assignmentValue
-            )
-        )
-
-        let currentInputSourceValue = outcome.currentInputSourceName ?? "—"
-        items.append(
-            Item(
-                id: "current-input-source",
-                title: "Current Input Source: \(currentInputSourceValue)",
-                kind: .status,
-                accessibilityLabel: "Current Input Source",
-                accessibilityValue: currentInputSourceValue
-            )
-        )
-
-        if let mismatch = outcome.mismatch {
-            items.append(
-                Item(
-                    id: "assigned-input-source",
-                    title: "Assigned Input Source: \(mismatch.assignedName)",
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-            items.append(
-                Item(
-                    id: "restore-assignment",
-                    title: "Later Activation Activity restores the Keyboard Assignment.",
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        for actionCondition in actionConditions {
-            let title = actionConditionTitle(actionCondition)
-            items.append(
-                Item(
-                    id: "action-condition-\(title)",
-                    title: title,
-                    kind: .status,
-                    accessibilityLabel: nil,
-                    accessibilityValue: nil
-                )
-            )
-        }
-
-        return items
-    }
-
-    private static func keyboardAssignmentValue(
-        _ assignment: ActivityTriggeredSwitchingKeyboardAssignment
-    ) -> String {
-        switch assignment {
-        case .none:
-            "—"
-        case .unassigned:
-            "Unassigned"
-        case let .assigned(name):
-            name
-        case .unavailable:
-            "Unavailable Keyboard Assignment"
-        case let .unsupported(reason):
-            "Unsupported — \(unsupportedReasonName(reason))"
-        }
-    }
-
     private static func switchingStatusName(_ status: SwitchingStatus) -> String {
         switch status {
         case .ready:
@@ -366,30 +269,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
             "Secure Input is active"
         case .protectedDataUnavailable:
             "Protected data is unavailable"
-        }
-    }
-
-    private static func unsupportedReasonName(_ reason: PhysicalKeyboardUnsupportedReason) -> String {
-        switch reason {
-        case .missingIdentity:
-            "Physical Keyboard Identity unavailable"
-        case .unstableIdentity:
-            "Physical Keyboard Identity unstable"
-        case .sharedIdentity:
-            "Physical Keyboard Identity shared"
-        case .ambiguousIdentity:
-            "Physical Keyboard Identity ambiguous"
-        }
-    }
-
-    private static func actionConditionTitle(
-        _ condition: PhysicalKeyboardActionCondition
-    ) -> String {
-        switch condition {
-        case let .unassigned(name):
-            "Needs action: \(name) — Unassigned"
-        case let .unavailableKeyboardAssignment(name):
-            "Needs action: \(name) — Unavailable Keyboard Assignment"
         }
     }
 }
