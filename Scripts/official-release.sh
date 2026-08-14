@@ -146,12 +146,7 @@ codesign \
     "$app_path"
 
 codesign --verify --deep --strict --verbose=2 "$app_path"
-# spctl may fail before notarization; codesign --verify above is the pre-notary gate.
-if [[ "${SKIP_NOTARIZE:-0}" == "1" ]]; then
-    print "SKIP_NOTARIZE=1: skipping spctl assess"
-else
-    spctl --assess --type execute --verbose=4 "$app_path"
-fi
+# Gatekeeper assess is only valid after notarization + staple.
 
 mkdir -p "$dist_dir" "${work_tmpdir}/updates"
 archive_path="${dist_dir}/Keyameleon-${version}.zip"
@@ -171,6 +166,7 @@ if [[ "${SKIP_NOTARIZE:-0}" != "1" ]]; then
     # Staple the app, then re-zip so the stapled ticket ships in the archive.
     xcrun stapler staple "$app_path"
     xcrun stapler validate "$app_path"
+    spctl --assess --type execute --verbose=4 "$app_path"
     rm -f "$archive_path"
     ditto -c -k --sequesterRsrc --keepParent "$app_path" "$archive_path"
 fi
