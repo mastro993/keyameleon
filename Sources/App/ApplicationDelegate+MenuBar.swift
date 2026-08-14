@@ -48,7 +48,6 @@ extension KeyameleonApplicationDelegate {
                 setupModel: setupModel,
                 switching: activityTriggeredSwitching,
                 generalSettingsModel: generalSettingsModel,
-                uncleanExitStateStore: uncleanExitStateStore,
                 actions: MenuBarPanelActions(
                     openKeyameleon: { [weak self] in
                         self?.openKeyameleon(nil)
@@ -61,12 +60,6 @@ extension KeyameleonApplicationDelegate {
                     },
                     quit: { [weak self] in
                         self?.quitKeyameleon(nil)
-                    },
-                    reviewDiagnostics: { [weak self] in
-                        self?.reviewDiagnostics(nil)
-                    },
-                    dismissDiagnosticsNotice: { [weak self] in
-                        self?.dismissDiagnosticsNotice(nil)
                     },
                     closePanel: { [weak self] in
                         self?.closeMenuBarPanel()

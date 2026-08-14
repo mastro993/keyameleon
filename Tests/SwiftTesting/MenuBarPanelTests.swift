@@ -2,104 +2,84 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("Ready Quick Actions are Open Keyameleon and Pause, with no recovery banner")
+@Test("Ready overflow has Pause and no recovery actions")
 @MainActor
-func menuBarPanelReadyShowsOpenAndPauseWithoutBanner() {
+func menuBarPanelReadyShowsPauseWithoutRecovery() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.quickActions.openKeyameleon.title == "Open Keyameleon")
-    #expect(content.quickActions.openKeyameleon.id == .openKeyameleon)
-    #expect(content.quickActions.pauseOrResume.title == "Pause")
-    #expect(content.quickActions.pauseOrResume.id == .pause)
-    #expect(content.recoveryBanner == nil)
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(overflow(content, .pause)?.title == "Pause")
+    #expect(overflowIDs(content).contains(.requestPermission) == false)
+    #expect(overflowIDs(content).contains(.checkAgain) == false)
     #expect(content.actionTitles.contains("Continue Setup…") == false)
 }
 
-@Test("Paused Quick Actions show Resume and hide the recovery banner")
+@Test("Paused overflow shows Resume")
 @MainActor
-func menuBarPanelPausedShowsResumeWithoutBanner() {
+func menuBarPanelPausedShowsResume() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.quickActions.openKeyameleon.title == "Open Keyameleon")
-    #expect(content.quickActions.pauseOrResume.title == "Resume")
-    #expect(content.quickActions.pauseOrResume.id == .resume)
-    #expect(content.recoveryBanner == nil)
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(overflow(content, .resume)?.title == "Resume")
+    #expect(overflowIDs(content).contains(.pause) == false)
 }
 
-@Test("Permission Required shows a recovery banner with applicable actions")
+@Test("Permission Required puts recovery actions in overflow")
 @MainActor
-func menuBarPanelPermissionRequiredShowsRecoveryBanner() throws {
+func menuBarPanelPermissionRequiredShowsRecoveryInOverflow() {
     let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
-    let banner = try #require(content.recoveryBanner)
 
-    #expect(banner.statusName == "Permission Required")
-    #expect(banner.recoveryActions.map(\.id) == [
-        .requestPermission, .openSystemSettings, .checkAgain,
-    ])
-    #expect(banner.recoveryActions.map(\.title) == [
-        "Request Permission", "Open System Settings", "Check Again",
-    ])
-    #expect(content.quickActions.openKeyameleon.id == .openKeyameleon)
-    #expect(content.quickActions.pauseOrResume.id == .pause)
+    #expect(overflowIDs(content).contains(.requestPermission))
+    #expect(overflowIDs(content).contains(.openSystemSettings))
+    #expect(overflowIDs(content).contains(.checkAgain))
+    #expect(overflow(content, .requestPermission)?.title == "Request Permission")
+    #expect(overflow(content, .openSystemSettings)?.title == "Open System Settings")
+    #expect(overflow(content, .checkAgain)?.title == "Check Again")
+    #expect(overflow(content, .pause)?.id == .pause)
 }
 
-@Test("Temporarily Unavailable shows a recovery banner without actions")
+@Test("Temporarily Unavailable overflow has Pause and no recovery actions")
 @MainActor
-func menuBarPanelTemporarilyUnavailableShowsBannerWithoutActions() throws {
+func menuBarPanelTemporarilyUnavailableHasNoRecoveryActions() {
     let content = makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture())
-    let banner = try #require(content.recoveryBanner)
 
-    #expect(banner.statusName == "Temporarily Unavailable")
-    #expect(banner.detailLines.contains("Detected reason: macOS is asleep"))
-    #expect(
-        banner.detailLines.contains(
-            "Resumes automatically when macOS allows Activity-Triggered Switching."
-        )
-    )
-    #expect(banner.recoveryActions.isEmpty)
-    #expect(content.quickActions.openKeyameleon.id == .openKeyameleon)
-    #expect(content.quickActions.pauseOrResume.id == .pause)
+    #expect(overflow(content, .pause)?.id == .pause)
+    #expect(overflowIDs(content).contains(.requestPermission) == false)
+    #expect(overflowIDs(content).contains(.openSystemSettings) == false)
+    #expect(overflowIDs(content).contains(.checkAgain) == false)
 }
 
-@Test("Recovery actions appear in the banner only when the outcome offers them")
+@Test("Recovery actions appear in overflow only when the outcome offers them")
 @MainActor
-func menuBarPanelRecoveryActionsFollowOutcomeAvailability() throws {
+func menuBarPanelRecoveryActionsFollowOutcomeAvailability() {
     let withoutRecovery = makeMenuBarPanelContent(
         outcome: .permissionRequiredFixture(availableActions: [.pause])
     )
-    let banner = try #require(withoutRecovery.recoveryBanner)
-    #expect(banner.recoveryActions.isEmpty)
+    #expect(overflowIDs(withoutRecovery).contains(.requestPermission) == false)
+    #expect(overflowIDs(withoutRecovery).contains(.checkAgain) == false)
 
     let withCheckAgain = makeMenuBarPanelContent(
         outcome: .permissionRequiredFixture(availableActions: [.pause, .checkAgain])
     )
-    let checkAgainBanner = try #require(withCheckAgain.recoveryBanner)
-    #expect(checkAgainBanner.recoveryActions.map(\.id) == [.checkAgain])
+    #expect(overflowIDs(withCheckAgain).contains(.checkAgain))
+    #expect(overflowIDs(withCheckAgain).contains(.requestPermission) == false)
 }
 
 @Test("Pause and Resume keep the panel open; Open Keyameleon dismisses it")
 @MainActor
-func menuBarPanelQuickActionsDismissal() {
+func menuBarPanelOverflowDismissal() {
     let ready = makeMenuBarPanelContent(outcome: .readyFixture())
-    #expect(ready.quickActions.openKeyameleon.closesPanel)
-    #expect(ready.quickActions.pauseOrResume.closesPanel == false)
+    #expect(ready.footer.openKeyameleon.closesPanel)
+    #expect(overflow(ready, .pause)?.closesPanel == false)
 
     let paused = makeMenuBarPanelContent(outcome: .pausedFixture())
-    #expect(paused.quickActions.pauseOrResume.closesPanel == false)
+    #expect(overflow(paused, .resume)?.closesPanel == false)
 
     let permission = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
-    #expect(
-        permission.recoveryBanner?.recoveryActions.first { $0.id == .requestPermission }?.closesPanel
-            == true
-    )
-    #expect(
-        permission.recoveryBanner?.recoveryActions.first { $0.id == .openSystemSettings }?.closesPanel
-            == true
-    )
-    #expect(
-        permission.recoveryBanner?.recoveryActions.first { $0.id == .checkAgain }?.closesPanel
-            == false
-    )
+    #expect(overflow(permission, .requestPermission)?.closesPanel == true)
+    #expect(overflow(permission, .openSystemSettings)?.closesPanel == true)
+    #expect(overflow(permission, .checkAgain)?.closesPanel == false)
 }
 
 @Test("Footer shows Keyameleon from the marketing version and omits the build number")
@@ -142,7 +122,20 @@ func menuBarOverflowOutsideClickClosesPanel() {
     )
 }
 
-@Test("Footer overflow contains Settings, Check for Updates, and Quit")
+@Test("Footer cog opens the main window and is omitted from overflow")
+@MainActor
+func menuBarPanelFooterCogOpensMainWindow() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
+
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.openKeyameleon.isEnabled)
+    #expect(content.footer.openKeyameleon.closesPanel)
+    #expect(overflowIDs(content).contains(.openKeyameleon) == false)
+    #expect(content.actionTitles.contains("Open Keyameleon"))
+}
+
+@Test("Footer overflow contains Pause, updates, Settings, and Quit")
 @MainActor
 func menuBarPanelFooterOverflowDefaultActions() {
     let content = makeMenuBarPanelContent(
@@ -151,40 +144,29 @@ func menuBarPanelFooterOverflowDefaultActions() {
     )
 
     #expect(
-        content.footer.overflowActions.map(\.id)
-            == [.settings, .checkForUpdates, .quit]
+        overflowIDs(content)
+            == [.pause, .checkForUpdates, .settings, .quit]
     )
     #expect(content.footer.overflowActions.map(\.title) == [
-        "Settings…",
+        "Pause",
         "Check for Updates…",
+        "Settings…",
         "Quit Keyameleon",
     ])
-    #expect(content.footer.overflowActions.map(\.closesPanel) == [true, true, true])
-    #expect(content.footer.overflowActions.first { $0.id == .checkForUpdates }?.isEnabled == false)
+    #expect(overflow(content, .checkForUpdates)?.isEnabled == false)
+    #expect(overflow(content, .settings)?.closesPanel == true)
 }
 
-@Test("Footer overflow includes Review Diagnostics only when an unclean-exit notice is pending")
+@Test("Footer overflow never includes diagnostics")
 @MainActor
-func menuBarPanelFooterOverflowConditionalReviewDiagnostics() {
-    let withoutNotice = makeMenuBarPanelContent(
-        outcome: .readyFixture(),
-        hasPendingUncleanExitNotice: false
-    )
-    #expect(withoutNotice.footer.overflowActions.map(\.id).contains(.reviewDiagnostics) == false)
-    #expect(withoutNotice.uncleanExitNotice == nil)
+func menuBarPanelFooterOverflowOmitsDiagnostics() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    let withNotice = makeMenuBarPanelContent(
-        outcome: .readyFixture(),
-        hasPendingUncleanExitNotice: true
-    )
+    #expect(content.actionTitles.contains("Review Diagnostics…") == false)
+    #expect(content.actionTitles.contains("Dismiss Diagnostics Notice") == false)
     #expect(
-        withNotice.footer.overflowActions.map(\.id)
-            == [.settings, .checkForUpdates, .reviewDiagnostics, .quit]
+        overflowIDs(content) == [.pause, .checkForUpdates, .settings, .quit]
     )
-    #expect(withNotice.footer.overflowActions.first { $0.id == .reviewDiagnostics }?.closesPanel == true)
-    #expect(withNotice.uncleanExitNotice?.title == "Keyameleon did not exit cleanly.")
-    #expect(withNotice.uncleanExitNotice?.dismiss.id == .dismissDiagnosticsNotice)
-    #expect(withNotice.uncleanExitNotice?.dismiss.closesPanel == false)
 }
 
 @Test("Incomplete setup continues through Open Keyameleon with no Continue Setup action")
@@ -192,7 +174,7 @@ func menuBarPanelFooterOverflowConditionalReviewDiagnostics() {
 func menuBarPanelIncompleteSetupUsesOpenKeyameleon() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.quickActions.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
     #expect(content.actionTitles.contains("Continue Setup…") == false)
     #expect(content.actionTitles.contains("Continue Setup") == false)
 }
@@ -451,10 +433,9 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
     #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
-    #expect(content.recoveryBanner == nil)
-    #expect(content.quickActions.openKeyameleon.title == "Open Keyameleon")
-    #expect(content.quickActions.pauseOrResume.title == "Pause")
-    #expect(content.footer.overflowActions.map(\.id) == [.settings, .checkForUpdates, .quit])
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(overflow(content, .pause)?.title == "Pause")
+    #expect(overflowIDs(content) == [.pause, .checkForUpdates, .settings, .quit])
 }
 
 @Test("Menu-bar panel assignment rows stay read-only")
@@ -472,7 +453,7 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
 
     #expect(row.id == "travel")
     #expect(content.assignmentList.rows.count == 1)
-    #expect(content.quickActions.openKeyameleon.id == .openKeyameleon)
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
 }
 
 private func makeMenuBarPanelContent(
@@ -480,7 +461,6 @@ private func makeMenuBarPanelContent(
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
     canCheckForUpdates: Bool = true,
-    hasPendingUncleanExitNotice: Bool = false,
     marketingVersion: String? = "0.1.0"
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
@@ -488,7 +468,6 @@ private func makeMenuBarPanelContent(
         physicalKeyboards: physicalKeyboards,
         assignedInputSourceNames: assignedInputSourceNames,
         canCheckForUpdates: canCheckForUpdates,
-        hasPendingUncleanExitNotice: hasPendingUncleanExitNotice,
         marketingVersion: marketingVersion
     )
 }
@@ -540,6 +519,17 @@ private extension ActivityTriggeredSwitchingOutcome {
             availableActions: availableActions
         )
     }
+}
+
+private func overflow(
+    _ content: MenuBarPanelContent,
+    _ id: MenuBarPanelActionID
+) -> MenuBarPanelContent.Action? {
+    content.footer.overflowActions.first { $0.id == id }
+}
+
+private func overflowIDs(_ content: MenuBarPanelContent) -> [MenuBarPanelActionID] {
+    content.footer.overflowActions.map(\.id)
 }
 
 private func panelNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: String] {

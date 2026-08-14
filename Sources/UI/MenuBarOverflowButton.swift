@@ -10,6 +10,72 @@ enum MenuBarOverflowMenuDismissal {
     }
 }
 
+enum MenuBarFooterIconButton {
+    @MainActor
+    static func make(
+        systemSymbolName: String,
+        accessibilityLabel: String,
+        accessibilityIdentifier: String,
+        target: AnyObject?,
+        action: Selector
+    ) -> NSButton {
+        let button = NSButton(title: "", target: target, action: action)
+        button.bezelStyle = .circular
+        button.controlSize = .small
+        button.isBordered = true
+        button.setButtonType(.momentaryPushIn)
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
+        let symbolSize = NSFont.systemFontSize(for: .small) + 1
+        button.symbolConfiguration = NSImage.SymbolConfiguration(
+            pointSize: symbolSize,
+            weight: .medium
+        )
+        button.image = NSImage(systemSymbolName: systemSymbolName, accessibilityDescription: nil)
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.setContentHuggingPriority(.required, for: .vertical)
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+        button.setContentCompressionResistancePriority(.required, for: .vertical)
+        button.setAccessibilityLabel(accessibilityLabel)
+        button.setAccessibilityIdentifier(accessibilityIdentifier)
+        return button
+    }
+}
+
+/// Footer Settings icon. Same chrome as the overflow control.
+@MainActor
+struct MenuBarSettingsButton: NSViewRepresentable {
+    var perform: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeNSView(context: Context) -> NSButton {
+        MenuBarFooterIconButton.make(
+            systemSymbolName: "gearshape",
+            accessibilityLabel: "Open Keyameleon",
+            accessibilityIdentifier: "menu-bar-open-keyameleon",
+            target: context.coordinator,
+            action: #selector(Coordinator.run)
+        )
+    }
+
+    func updateNSView(_ nsView: NSButton, context: Context) {
+        context.coordinator.perform = perform
+    }
+
+    @MainActor
+    final class Coordinator: NSObject {
+        var perform: (() -> Void)?
+
+        @objc
+        func run(_: NSButton) {
+            perform?()
+        }
+    }
+}
+
 /// AppKit overflow control so XCUITest can open the footer menu inside the popover.
 @MainActor
 struct MenuBarOverflowButton: NSViewRepresentable {
@@ -22,26 +88,13 @@ struct MenuBarOverflowButton: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSButton {
-        let button = NSButton(title: "More", target: context.coordinator, action: #selector(Coordinator.showMenu(_:)))
-        button.bezelStyle = .flexiblePush
-        button.controlSize = .small
-        button.isBordered = true
-        button.setButtonType(.momentaryPushIn)
-        button.alignment = .center
-        let titleSize = NSFont.systemFontSize(for: .small) + 1
-        button.font = NSFont.systemFont(ofSize: titleSize, weight: .bold)
-        button.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: titleSize, weight: .bold)
-        button.image = NSImage(systemSymbolName: "chevron.down", accessibilityDescription: nil)
-        button.imagePosition = .imageTrailing
-        button.imageHugsTitle = true
-        button.imageScaling = .scaleProportionallyDown
-        button.setContentHuggingPriority(.required, for: .horizontal)
-        button.setContentHuggingPriority(.required, for: .vertical)
-        button.setContentCompressionResistancePriority(.required, for: .horizontal)
-        button.setContentCompressionResistancePriority(.required, for: .vertical)
-        button.setAccessibilityLabel("More")
-        button.setAccessibilityIdentifier("menu-bar-panel-overflow")
-        return button
+        MenuBarFooterIconButton.make(
+            systemSymbolName: "ellipsis",
+            accessibilityLabel: "More",
+            accessibilityIdentifier: "menu-bar-panel-overflow",
+            target: context.coordinator,
+            action: #selector(Coordinator.showMenu(_:))
+        )
     }
 
     func updateNSView(_ nsView: NSButton, context: Context) {
@@ -95,7 +148,7 @@ struct MenuBarOverflowButton: NSViewRepresentable {
             let menu = NSMenu()
             menu.autoenablesItems = false
             for action in actions {
-                if action.id == .quit {
+                if action.id == .checkForUpdates || action.id == .quit {
                     menu.addItem(.separator())
                 }
 

@@ -1,5 +1,18 @@
 # Breadcrumbs
 
+## 2026-08-14 — Tighter footer, no panel diagnostics
+
+- List-to-footer gap: 4 + 6. Overflow drops Review/Dismiss Diagnostics.
+
+## 2026-08-14 — Panel is keyboards + footer
+
+- Body: assignment list + footer only. Pause/recovery/diagnostics/Settings live in ellipsis.
+- Cog opens main window (`Open Keyameleon`), not Settings.
+
+## 2026-08-14 — Footer cog and ellipsis
+
+- Footer right: circular `gearshape` Settings icon + `ellipsis` overflow. Settings leave the menu.
+
 ## 2026-08-14 — More outside click
 
 - Click away from More: cancel `NSMenu` tracking + close the panel. Transient popover never saw that click.

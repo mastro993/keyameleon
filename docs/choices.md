@@ -4,23 +4,22 @@
 
 ### Seams
 
-- `MenuBarPanelContent` — typed Quick Actions, optional recovery banner, `MenuBarAssignmentList`, unclean-exit notice, and footer. Tests live here.
-- `KeyameleonMenuBarPanelView` — renders that content. Glass is on the Quick Action buttons only; no extra glass cards.
+- `MenuBarPanelContent` — `MenuBarAssignmentList` plus footer. Overflow actions are typed here. Tests live here.
+- `KeyameleonMenuBarPanelView` — renders keyboards and footer only.
 - `MenuBarPanelContent.Action.closesPanel` — dismissal contract. View closes the popover before running a closing action.
 
 ### Defaults
 
-- Quick Actions: one `HStack`. Wide primary `Open Keyameleon` (`.glassProminent`). Compact `Pause` or `Resume` (`.glass`).
-- Pause / Resume keep the panel open. Open Keyameleon closes it and opens the main window. Incomplete setup continues through Open Keyameleon; no Continue Setup action.
-- Recovery banner only for Permission Required and Temporarily Unavailable. Paused has no banner. Recovery actions (Request Permission, Open System Settings, Check Again) appear only when `ActivityTriggeredSwitchingOutcome` offers them.
-- Request Permission and Open System Settings close the panel. Check Again keeps it open.
+- Panel body is Keyboards + footer. No Quick Actions row, recovery banner, or unclean-exit notice.
+- Footer cog (`gearshape`) opens the main window (`Open Keyameleon`) and closes the panel. Incomplete setup continues there. No Continue Setup action.
+- Overflow (ellipsis): Pause/Resume, recovery actions when Permission Required or Temporarily Unavailable offers them, Check for Updates…, Settings…, Quit Keyameleon. Diagnostics stay in the main window only.
+- Pause / Resume and Check Again / Dismiss keep the panel open. Other overflow actions close it.
 - Footer left: `Keyameleon <marketing>` from `CFBundleShortVersionString`. No build number. Blank or missing → `Keyameleon —`.
-- Footer is its own full-width container. 1 pt `.separator` top border. Own padding (16 / 10). Not inside the content stack spacing.
-- Footer overflow: Settings…, Check for Updates…, Review Diagnostics… when an unclean-exit notice is pending, Quit Keyameleon. Overflow actions close the panel.
-- Overflow control is an AppKit `NSButton` + `NSMenu`. Small `.flexiblePush` pill. Title `More` with trailing `chevron.down`. Bold title, one point above small control size. Do not add `sizeThatFits` — the safety audit treats `CGSize` as a forbidden `CGS*` surface. SwiftUI `Menu` inside the transient popover is not in the XCUITest tree.
+- Footer is its own full-width container. 1 pt `.separator` top border. List bottom pad 4, footer top pad 6.
+- Footer right: two small `.circular` icon buttons. Cog a11y is `Open Keyameleon`. Ellipsis a11y is `More`.
+- Overflow control is an AppKit `NSButton` + `NSMenu`. Do not add `sizeThatFits` — the safety audit treats `CGSize` as a forbidden `CGS*` surface. SwiftUI `Menu` inside the transient popover is not in the XCUITest tree.
 - Click away from More cancels menu tracking and closes the panel. `NSMenu.popUp` would otherwise eat the click the transient popover needs.
-- Unclean-exit copy + Dismiss stay in the panel body. Review Diagnostics lives only in the overflow.
-- Panel order: Keyboards, Quick Actions, recovery banner, unclean-exit notice, footer.
+- Panel order: Keyboards, footer.
 
 ## 2026-08-14 — Menu-bar assignment pills
 
