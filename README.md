@@ -2,16 +2,18 @@
 
 Every keyboard speaks its own language.
 
-Keyameleon is a native macOS menu bar app. It keeps the Input Source aligned
-with the Physical Keyboard that produces input. Use it when you have more than
+---
+
+**Keyameleon** is a native macOS menu bar app that keeps the Input Source aligned  
+with the Physical Keyboard that produces input. Use it when you have more than  
 one Physical Keyboard, and those keyboards have different physical layouts.
 
 ![Keyameleon menu bar panel with assigned Physical Keyboards and Switching Status Ready](assets/screenshot.png)
 
-Add `assets/screenshot.png`: the menu-bar icon and the open panel. Heading
+<!--Add `assets/screenshot.png`: the menu-bar icon and the open panel. Heading
 **Keyboards**. At least two assigned pills, each showing a Physical Keyboard
 Name and its assigned Input Source. One pill marked **Active**. Switching
-Status **Ready**. No Key Content. No Settings window.
+Status **Ready**. No Key Content. No Settings window.-->
 
 ## Installation
 
