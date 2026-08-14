@@ -2,6 +2,183 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
+@Test("Ready overflow has Pause and no recovery actions")
+@MainActor
+func menuBarPanelReadyShowsPauseWithoutRecovery() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
+
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(overflow(content, .pause)?.title == "Pause")
+    #expect(overflowIDs(content).contains(.requestPermission) == false)
+    #expect(overflowIDs(content).contains(.checkAgain) == false)
+    #expect(content.actionTitles.contains("Continue Setup…") == false)
+}
+
+@Test("Paused overflow shows Resume")
+@MainActor
+func menuBarPanelPausedShowsResume() {
+    let content = makeMenuBarPanelContent(outcome: .pausedFixture())
+
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(overflow(content, .resume)?.title == "Resume")
+    #expect(overflowIDs(content).contains(.pause) == false)
+}
+
+@Test("Permission Required puts recovery actions in overflow")
+@MainActor
+func menuBarPanelPermissionRequiredShowsRecoveryInOverflow() {
+    let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
+
+    #expect(overflowIDs(content).contains(.requestPermission))
+    #expect(overflowIDs(content).contains(.openSystemSettings))
+    #expect(overflowIDs(content).contains(.checkAgain))
+    #expect(overflow(content, .requestPermission)?.title == "Request Permission")
+    #expect(overflow(content, .openSystemSettings)?.title == "Open System Settings")
+    #expect(overflow(content, .checkAgain)?.title == "Check Again")
+    #expect(overflow(content, .pause)?.id == .pause)
+}
+
+@Test("Temporarily Unavailable overflow has Pause and no recovery actions")
+@MainActor
+func menuBarPanelTemporarilyUnavailableHasNoRecoveryActions() {
+    let content = makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture())
+
+    #expect(overflow(content, .pause)?.id == .pause)
+    #expect(overflowIDs(content).contains(.requestPermission) == false)
+    #expect(overflowIDs(content).contains(.openSystemSettings) == false)
+    #expect(overflowIDs(content).contains(.checkAgain) == false)
+}
+
+@Test("Recovery actions appear in overflow only when the outcome offers them")
+@MainActor
+func menuBarPanelRecoveryActionsFollowOutcomeAvailability() {
+    let withoutRecovery = makeMenuBarPanelContent(
+        outcome: .permissionRequiredFixture(availableActions: [.pause])
+    )
+    #expect(overflowIDs(withoutRecovery).contains(.requestPermission) == false)
+    #expect(overflowIDs(withoutRecovery).contains(.checkAgain) == false)
+
+    let withCheckAgain = makeMenuBarPanelContent(
+        outcome: .permissionRequiredFixture(availableActions: [.pause, .checkAgain])
+    )
+    #expect(overflowIDs(withCheckAgain).contains(.checkAgain))
+    #expect(overflowIDs(withCheckAgain).contains(.requestPermission) == false)
+}
+
+@Test("Pause and Resume keep the panel open; Open Keyameleon dismisses it")
+@MainActor
+func menuBarPanelOverflowDismissal() {
+    let ready = makeMenuBarPanelContent(outcome: .readyFixture())
+    #expect(ready.footer.openKeyameleon.closesPanel)
+    #expect(overflow(ready, .pause)?.closesPanel == false)
+
+    let paused = makeMenuBarPanelContent(outcome: .pausedFixture())
+    #expect(overflow(paused, .resume)?.closesPanel == false)
+
+    let permission = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
+    #expect(overflow(permission, .requestPermission)?.closesPanel == true)
+    #expect(overflow(permission, .openSystemSettings)?.closesPanel == true)
+    #expect(overflow(permission, .checkAgain)?.closesPanel == false)
+}
+
+@Test("Footer shows Keyameleon from the marketing version and omits the build number")
+@MainActor
+func menuBarPanelFooterShowsMarketingVersion() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        marketingVersion: "0.1.0"
+    )
+
+    #expect(content.footer.versionText == "Keyameleon 0.1.0")
+    #expect(content.footer.versionText.contains("(") == false)
+}
+
+@Test("Footer version falls back when the marketing version is missing or blank")
+@MainActor
+func menuBarPanelFooterVersionFallback() {
+    #expect(
+        makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: nil)
+            .footer.versionText == "Keyameleon —"
+    )
+    #expect(
+        makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "   ")
+            .footer.versionText == "Keyameleon —"
+    )
+    #expect(
+        makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "")
+            .footer.versionText == "Keyameleon —"
+    )
+}
+
+@Test("Dismissing More without a selection closes the menu-bar panel")
+func menuBarOverflowOutsideClickClosesPanel() {
+    #expect(
+        MenuBarOverflowMenuDismissal.shouldClosePanelAfterMenuDismiss(didSelectItem: false)
+    )
+    #expect(
+        MenuBarOverflowMenuDismissal.shouldClosePanelAfterMenuDismiss(didSelectItem: true)
+            == false
+    )
+}
+
+@Test("Footer cog opens the main window and is omitted from overflow")
+@MainActor
+func menuBarPanelFooterCogOpensMainWindow() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
+
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.openKeyameleon.isEnabled)
+    #expect(content.footer.openKeyameleon.closesPanel)
+    #expect(overflowIDs(content).contains(.openKeyameleon) == false)
+    #expect(content.actionTitles.contains("Open Keyameleon"))
+}
+
+@Test("Footer overflow contains Pause, updates, Settings, and Quit")
+@MainActor
+func menuBarPanelFooterOverflowDefaultActions() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        canCheckForUpdates: false
+    )
+
+    #expect(
+        overflowIDs(content)
+            == [.pause, .checkForUpdates, .settings, .quit]
+    )
+    #expect(content.footer.overflowActions.map(\.title) == [
+        "Pause",
+        "Check for Updates…",
+        "Settings…",
+        "Quit Keyameleon",
+    ])
+    #expect(overflow(content, .checkForUpdates)?.isEnabled == false)
+    #expect(overflow(content, .settings)?.closesPanel == true)
+}
+
+@Test("Footer overflow never includes diagnostics")
+@MainActor
+func menuBarPanelFooterOverflowOmitsDiagnostics() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
+
+    #expect(content.actionTitles.contains("Review Diagnostics…") == false)
+    #expect(content.actionTitles.contains("Dismiss Diagnostics Notice") == false)
+    #expect(
+        overflowIDs(content) == [.pause, .checkForUpdates, .settings, .quit]
+    )
+}
+
+@Test("Incomplete setup continues through Open Keyameleon with no Continue Setup action")
+@MainActor
+func menuBarPanelIncompleteSetupUsesOpenKeyameleon() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
+
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.actionTitles.contains("Continue Setup…") == false)
+    #expect(content.actionTitles.contains("Continue Setup") == false)
+}
+
 @Test("Menu-bar assignment list heading has no app name or assignment count")
 func menuBarAssignmentListUsesCompactHeading() {
     let list = MenuBarAssignmentList(
@@ -247,161 +424,112 @@ func menuBarAssignmentListKeepsEveryAssignedRow() {
     #expect(list.scrolls)
 }
 
-@Test("Menu-bar panel content keeps Keyboards heading, empty copy, and actions")
+@Test("Menu-bar panel content keeps Keyboards heading, empty copy, and Quick Actions")
 @MainActor
-func menuBarPanelContentKeepsStatusAndActions() throws {
-    let content = MenuBarPanelContent(
-        outcome: .readyFixture(),
-        physicalKeyboards: [],
-        assignedInputSourceNames: [:],
-        isSetupComplete: true,
-        canCheckForUpdates: true,
-        hasPendingUncleanExitNotice: false
-    )
-    let titles = content.titles
-    let headingIndex = try #require(titles.firstIndex(of: "Keyboards"))
-    let statusIndex = try #require(titles.firstIndex { $0.hasPrefix("Switching Status:") })
+func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(titles.first == "Keyboards")
-    #expect(titles.contains("No assigned keyboards"))
-    #expect(titles.contains("Open Keyameleon Settings to assign keyboards."))
-    #expect(headingIndex < statusIndex)
-    #expect(titles.contains { $0.hasPrefix("Active Physical Keyboard:") } == false)
+    #expect(content.assignmentList.heading == "Keyboards")
+    #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
+    #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
-    #expect(content.actionTitles.contains("Pause Activity-Triggered Switching"))
-    #expect(content.actionTitles.contains("Request Permission") == false)
-    #expect(content.actionTitles.contains("Open Keyameleon…"))
-    #expect(content.actionTitles.contains("Open System Settings"))
-    #expect(content.actionTitles.contains("Check Again"))
-    #expect(content.actionTitles.contains("Settings…"))
-    #expect(content.actionTitles.contains("Check for Updates…"))
-    #expect(content.actionTitles.contains("Quit Keyameleon"))
+    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(overflow(content, .pause)?.title == "Pause")
+    #expect(overflowIDs(content) == [.pause, .checkForUpdates, .settings, .quit])
 }
 
 @Test("Menu-bar panel assignment rows stay read-only")
 @MainActor
 func menuBarPanelAssignmentRowsStayReadOnly() throws {
     let keyboard = makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
-    let content = MenuBarPanelContent(
+    let content = makeMenuBarPanelContent(
         outcome: .readyFixture(),
         physicalKeyboards: [keyboard],
         assignedInputSourceNames: [
             PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
-        ],
-        isSetupComplete: true,
-        canCheckForUpdates: true,
-        hasPendingUncleanExitNotice: false
+        ]
     )
     let row = try #require(content.assignmentList.rows.first)
 
     #expect(row.id == "travel")
-    #expect(content.noticeItems.contains { $0.id.hasPrefix("assignment-") } == false)
-    #expect(content.footerItems.contains { $0.id.hasPrefix("assignment-") } == false)
-    #expect(content.footerItems.contains { item in
-        if case .action(.openKeyameleon, enabled: true) = item.kind {
-            return true
-        }
-        return false
-    })
+    #expect(content.assignmentList.rows.count == 1)
+    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
 }
 
-@Test("Menu-bar panel shows Request Permission when listen permission is required")
-@MainActor
-func menuBarPanelShowsRequestPermissionWhenListenPermissionIsRequired() {
-    let content = MenuBarPanelContent(
-        outcome: .permissionRequiredFixture(),
-        physicalKeyboards: [],
-        assignedInputSourceNames: [:],
-        isSetupComplete: true,
-        canCheckForUpdates: true,
-        hasPendingUncleanExitNotice: false
+private func makeMenuBarPanelContent(
+    outcome: ActivityTriggeredSwitchingOutcome,
+    physicalKeyboards: [PhysicalKeyboard] = [],
+    assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
+    canCheckForUpdates: Bool = true,
+    marketingVersion: String? = "0.1.0"
+) -> MenuBarPanelContent {
+    MenuBarPanelContent(
+        outcome: outcome,
+        physicalKeyboards: physicalKeyboards,
+        assignedInputSourceNames: assignedInputSourceNames,
+        canCheckForUpdates: canCheckForUpdates,
+        marketingVersion: marketingVersion
     )
-
-    #expect(content.titles.contains("Switching Status: Permission Required"))
-    #expect(content.actionTitles.contains("Request Permission"))
-    #expect(content.actionTitles.contains("Open System Settings"))
-    #expect(content.actionTitles.contains("Check Again"))
-    #expect(content.actionTitles.contains("Pause Activity-Triggered Switching") == false)
-}
-
-@Test("Menu-bar panel shows Resume when Activity-Triggered Switching is paused")
-@MainActor
-func menuBarPanelShowsResumeWhenPaused() {
-    let content = MenuBarPanelContent(
-        outcome: .pausedFixture(),
-        physicalKeyboards: [],
-        assignedInputSourceNames: [:],
-        isSetupComplete: true,
-        canCheckForUpdates: true,
-        hasPendingUncleanExitNotice: false
-    )
-
-    #expect(content.titles.contains("Switching Status: Paused"))
-    #expect(content.actionTitles.contains("Resume Activity-Triggered Switching"))
-    #expect(content.actionTitles.contains("Open Keyameleon…") == true)
-    #expect(content.actionTitles.contains("Pause Activity-Triggered Switching") == false)
-}
-
-@Test("Menu-bar panel shows dismissible unclean-exit notice and review action")
-@MainActor
-func menuBarPanelShowsDismissibleUncleanExitNoticeAndReviewAction() throws {
-    let content = MenuBarPanelContent(
-        outcome: .readyFixture(),
-        physicalKeyboards: [],
-        assignedInputSourceNames: [:],
-        isSetupComplete: true,
-        canCheckForUpdates: true,
-        hasPendingUncleanExitNotice: true
-    )
-
-    let titles = content.titles
-    let headingIndex = try #require(titles.firstIndex(of: "Keyboards"))
-    let diagnosticsIndex = try #require(titles.firstIndex(of: "Keyameleon did not exit cleanly."))
-
-    #expect(headingIndex < diagnosticsIndex)
-    #expect(content.actionTitles.contains("Review Diagnostics…"))
-    #expect(content.actionTitles.contains("Dismiss Diagnostics Notice"))
 }
 
 private extension ActivityTriggeredSwitchingOutcome {
-    static func permissionRequiredFixture() -> ActivityTriggeredSwitchingOutcome {
-        ActivityTriggeredSwitchingOutcome(
-            switchingStatus: .permissionRequired,
-            temporarilyUnavailableReasons: [],
-            activePhysicalKeyboard: nil,
-            currentKeyboardAssignment: .none,
-            currentInputSourceName: nil,
-            mismatch: nil,
-            warnings: [],
-            availableActions: [.requestPermission, .openSystemSettings, .checkAgain]
-        )
-    }
-
     static func readyFixture() -> ActivityTriggeredSwitchingOutcome {
-        ActivityTriggeredSwitchingOutcome(
+        fixture(
             switchingStatus: .ready,
-            temporarilyUnavailableReasons: [],
-            activePhysicalKeyboard: nil,
-            currentKeyboardAssignment: .none,
-            currentInputSourceName: nil,
-            mismatch: nil,
-            warnings: [],
             availableActions: [.pause, .openSystemSettings, .checkAgain]
         )
     }
 
     static func pausedFixture() -> ActivityTriggeredSwitchingOutcome {
+        fixture(switchingStatus: .paused, availableActions: [.resume])
+    }
+
+    static func permissionRequiredFixture(
+        availableActions: Set<ActivityTriggeredSwitchingAction> = [
+            .pause, .requestPermission, .openSystemSettings, .checkAgain,
+        ]
+    ) -> ActivityTriggeredSwitchingOutcome {
+        fixture(
+            switchingStatus: .permissionRequired,
+            availableActions: availableActions
+        )
+    }
+
+    static func temporarilyUnavailableFixture() -> ActivityTriggeredSwitchingOutcome {
+        fixture(
+            switchingStatus: .temporarilyUnavailable,
+            temporarilyUnavailableReasons: [.sleeping],
+            availableActions: [.pause]
+        )
+    }
+
+    static func fixture(
+        switchingStatus: SwitchingStatus,
+        temporarilyUnavailableReasons: [SwitchingUnavailableReason] = [],
+        availableActions: Set<ActivityTriggeredSwitchingAction>
+    ) -> ActivityTriggeredSwitchingOutcome {
         ActivityTriggeredSwitchingOutcome(
-            switchingStatus: .paused,
-            temporarilyUnavailableReasons: [],
+            switchingStatus: switchingStatus,
+            temporarilyUnavailableReasons: temporarilyUnavailableReasons,
             activePhysicalKeyboard: nil,
             currentKeyboardAssignment: .none,
             currentInputSourceName: nil,
             mismatch: nil,
             warnings: [],
-            availableActions: [.resume]
+            availableActions: availableActions
         )
     }
+}
+
+private func overflow(
+    _ content: MenuBarPanelContent,
+    _ id: MenuBarPanelActionID
+) -> MenuBarPanelContent.Action? {
+    content.footer.overflowActions.first { $0.id == id }
+}
+
+private func overflowIDs(_ content: MenuBarPanelContent) -> [MenuBarPanelActionID] {
+    content.footer.overflowActions.map(\.id)
 }
 
 private func panelNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: String] {

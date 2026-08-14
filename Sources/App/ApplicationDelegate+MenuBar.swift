@@ -48,13 +48,9 @@ extension KeyameleonApplicationDelegate {
                 setupModel: setupModel,
                 switching: activityTriggeredSwitching,
                 generalSettingsModel: generalSettingsModel,
-                uncleanExitStateStore: uncleanExitStateStore,
                 actions: MenuBarPanelActions(
                     openKeyameleon: { [weak self] in
                         self?.openKeyameleon(nil)
-                    },
-                    continueSetup: { [weak self] in
-                        self?.continueSetup(nil)
                     },
                     openSettings: { [weak self] in
                         self?.openSettings(nil)
@@ -65,11 +61,8 @@ extension KeyameleonApplicationDelegate {
                     quit: { [weak self] in
                         self?.quitKeyameleon(nil)
                     },
-                    reviewDiagnostics: { [weak self] in
-                        self?.reviewDiagnostics(nil)
-                    },
-                    dismissDiagnosticsNotice: { [weak self] in
-                        self?.dismissDiagnosticsNotice(nil)
+                    closePanel: { [weak self] in
+                        self?.closeMenuBarPanel()
                     }
                 )
             ),
@@ -108,6 +101,9 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func openKeyameleon(_ sender: Any?) {
+        if !setupModel.hasStartedGuidedSetup {
+            setupModel.beginGuidedSetup()
+        }
         closeMenuBarPanel()
         NSApp.activate(ignoringOtherApps: true)
 
@@ -163,6 +159,7 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func checkForUpdates(_ sender: Any?) {
+        closeMenuBarPanel()
         generalSettingsModel.checkForUpdates()
         refreshMenuBarPresentation()
     }

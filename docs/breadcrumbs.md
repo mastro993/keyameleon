@@ -9,6 +9,45 @@
   Architecture, Releasing secrets table. Screenshot placeholder at
   `assets/screenshot.png`.
 
+## 2026-08-14 — Tighter footer, no panel diagnostics
+
+- List-to-footer gap: 4 + 6. Overflow drops Review/Dismiss Diagnostics.
+
+## 2026-08-14 — Panel is keyboards + footer
+
+- Body: assignment list + footer only. Pause/recovery/diagnostics/Settings live in ellipsis.
+- Cog opens main window (`Open Keyameleon`), not Settings.
+
+## 2026-08-14 — Footer cog and ellipsis
+
+- Footer right: circular `gearshape` Settings icon + `ellipsis` overflow. Settings leave the menu.
+
+## 2026-08-14 — More outside click
+
+- Click away from More: cancel `NSMenu` tracking + close the panel. Transient popover never saw that click.
+
+## 2026-08-14 — More is pull-down
+
+- Footer overflow: small `.flexiblePush` pill. `More` + trailing `chevron.down`. A11y title `More` for UI tests.
+- Do not name `CGSize` in Sources. `run.sh` audit `CGS[A-Za-z]` matches it and blocks `open` / `test`.
+
+## 2026-08-14 — Footer container
+
+- Footer is own full-width region. 1 pt `.separator` top border. Content stack keeps 16 pt padding.
+
+## 2026-08-14 — Keyboards first in menu-bar panel
+
+- Panel order: Keyboards, Quick Actions, recovery banner, unclean-exit notice, footer.
+
+## 2026-08-14 — Footer version label
+
+- Visible footer: `Keyameleon <marketing>` not `Version <marketing>`. Blank → `Keyameleon —`.
+
+## 2026-08-14 — Merge #49 assignment list into #50 panel
+
+- Keep #50 Quick Actions, recovery banner, footer. Replace leftover status dump with `MenuBarAssignmentList`.
+- Request Permission lives in the recovery banner when the outcome offers it.
+
 ## 2026-08-14 — Menu-bar Request Permission missing
 
 - Outcome already had `.requestPermission` on Permission Required. Panel never rendered it.
