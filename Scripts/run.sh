@@ -71,12 +71,29 @@ generate_project() {
 }
 
 run_tests() {
-    # The menu-bar app and hosted macOS test bundles must not launch in parallel.
-    xcodebuild test \
+    # Build once. Run the app-driving lifecycle test before hosted test bundles
+    # so a delayed UI runner cannot hold completed product tests for 30 minutes.
+    xcodebuild build-for-testing \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
+        -derivedDataPath "${DERIVED_DATA_PATH}"
+
+    xcodebuild test-without-building \
+        -project Keyameleon.xcodeproj \
+        -scheme Keyameleon \
+        -destination 'platform=macOS,arch=arm64' \
+        -parallel-testing-enabled NO \
+        -only-testing:KeyameleonUITests \
+        -derivedDataPath "${DERIVED_DATA_PATH}"
+
+    xcodebuild test-without-building \
+        -project Keyameleon.xcodeproj \
+        -scheme Keyameleon \
+        -destination 'platform=macOS,arch=arm64' \
+        -parallel-testing-enabled NO \
+        -skip-testing:KeyameleonUITests \
         -derivedDataPath "${DERIVED_DATA_PATH}"
 }
 
