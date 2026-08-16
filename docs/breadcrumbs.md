@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-16 — Release verify gh api --arg
+
+- Run 31941940548 `Require green CI on this commit` died: `accepts 1 arg(s), received 4`.
+- Cause: `wait-for-ci.sh` passed `jq --arg` to `gh api --jq`.
+- Fix: pipe `gh api` JSON to `jq --arg`. Add workflow `checks: read` for check-runs.
+
 ## 2026-08-14 — Official Release workflow_dispatch
 
 - ADR 0004. Tag-push trigger removed. Notes script + tests. Docs match dispatch-only publish.

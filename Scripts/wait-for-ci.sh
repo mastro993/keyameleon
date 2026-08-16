@@ -16,8 +16,9 @@ repo="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 deadline=$((SECONDS + timeout_s))
 
 latest_check() {
+    # gh api --jq does not accept jq --arg (becomes extra endpoint args).
     gh api "repos/${repo}/commits/${sha}/check-runs" \
-        --jq --arg name "$check_name" '
+        | jq --arg name "$check_name" '
           [.check_runs[] | select(.name == $name)]
           | sort_by(.started_at // .completed_at // "")
           | last
