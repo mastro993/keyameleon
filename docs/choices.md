@@ -1,5 +1,13 @@
 # Choices
 
+## 2026-08-16 — wait-for-ci query
+
+### Defaults
+
+- Poll check-runs for **Required CI gate**. Do not wait on skippable `Build and test`.
+- Filter with standalone `jq --arg`. Do not pass `--arg` to `gh api --jq`.
+- Release workflow grants `checks: read` so `GITHUB_TOKEN` can list check-runs.
+
 ## 2026-08-14 — Official Release workflow (grill)
 
 ### Defaults
