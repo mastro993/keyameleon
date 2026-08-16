@@ -1,5 +1,12 @@
 # Breadcrumbs
 
+## 2026-08-16 — Sparkle key "isn't base64"
+
+- Run 31942341947 `produce` died after staple:
+  `Private key not decoded from the argument because it isn't base64 encoded`.
+- Local `sparkle_eddsa_private.key.one` is valid 44-byte seed. Same key quoted or PEM-wrapped reproduces the error.
+- Env secret was wrapped/pasted wrong. Reset from local export. Script now normalizes + `--ed-key-file` temp path.
+
 ## 2026-08-16 — Release verify gh api --arg
 
 - Run 31941940548 `Require green CI on this commit` died: `accepts 1 arg(s), received 4`.
