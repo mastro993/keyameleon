@@ -52,7 +52,7 @@ Same commit as the previous tag: `No source changes since <tag>`.
 Host check on 2026-08-14: Environment `official-release` exists and has **no**
 secrets, **no** variables, and **no** required reviewers. Repository secrets
 are empty. Branch ruleset `Main branch protection` is active (pull request +
-required check `Build and test`). There is **no** tag ruleset. There are **no**
+required check `Required CI gate`). There is **no** tag ruleset. There are **no**
 tags and **no** GitHub Releases. `produce` will fail until the secrets below
 exist.
 
@@ -165,7 +165,7 @@ with `GITHUB_TOKEN`. If Actions cannot bypass, publish fails at `git push`.
 ### 6. Land this workflow on `main`
 
 1. Merge the pull request (squash is the only allowed merge method).
-2. `verify` waits up to 45 minutes for **Build and test** on that SHA.
+2. `verify` waits up to 45 minutes for **Required CI gate** on that SHA.
    You may dispatch as soon as the merge commit is on `main`.
    If CI fails, `verify` fails. If CI never starts, `verify` times out.
 
@@ -178,7 +178,7 @@ From **Actions → Release → Run workflow**:
 | this feature branch | `0.1.0` | `verify` fails: not default branch |
 | `main` | `v0.1.0` | `verify` fails: tag would be `vv0.1.0` |
 | `main` | `0.1.0-beta.1` | `verify` fails: not SemVer core |
-| `main` | `0.1.0` while CI is running | `verify` waits; continues when **Build and test** succeeds |
+| `main` | `0.1.0` while CI is running | `verify` waits; continues when **Required CI gate** succeeds |
 
 ### 8. Publish `0.1.0`
 
@@ -237,7 +237,7 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 ### `main` branch (Settings → Branches / Rulesets)
 
 - Require a pull request before merging
-- Require status check: `CI` / Build and test
+- Require status check: `Required CI gate`
 - Restrict who can push / bypass
 
 ### Tags (Settings → Rulesets)

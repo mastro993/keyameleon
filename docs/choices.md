@@ -5,7 +5,7 @@
 ### Defaults
 
 - Start an Official Release only with `workflow_dispatch` on `main`. The workflow creates the annotated tag. Kill the tag-push trigger.
-- Dispatch only when the chosen SHA is on `main`. `verify` waits for **Build and test** (45m). No feature-branch release.
+- Dispatch only when the chosen SHA is on `main`. `verify` waits for **Required CI gate** (45m). No feature-branch release.
 - V1 has one Channel: Stable. Beta ignored. No in-app Channel picker. One Sparkle feed: `releases/latest/download/appcast.xml`.
 - Tag stays `vMAJOR.MINOR.PATCH`. Dispatch `version` is SemVer core (`1.2.3`). Inject marketing and build numbers at Official Release build. Do not commit a version bump.
 - Official Release is immutable. Fail if the tag already exists. Do not `--clobber` the zip.

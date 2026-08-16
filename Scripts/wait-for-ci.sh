@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Wait until GitHub check "Build and test" succeeds on a commit.
+# Wait until GitHub check "Required CI gate" succeeds on a commit.
 # Usage: wait-for-ci.sh <sha> [timeout-seconds]
 set -euo pipefail
 
@@ -11,7 +11,7 @@ fi
 
 timeout_s="${2:-2700}"
 poll_s=20
-check_name="Build and test"
+check_name="Required CI gate"
 repo="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 deadline=$((SECONDS + timeout_s))
 

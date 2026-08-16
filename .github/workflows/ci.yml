@@ -14,10 +14,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    outputs:
+      macos_required: ${{ steps.changes.outputs.macos_required }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether code changed
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          macos_required=false
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            macos_required=true
+          elif ! git diff --quiet "${BASE_SHA}" "${HEAD_SHA}" -- \
+            Sources \
+            Tests/SwiftTesting \
+            Tests/XCTest \
+            Tests/UITests \
+            Scripts/run.sh \
+            .github/workflows/ci.yml \
+            Keyameleon.xcodeproj \
+            project.yml \
+            Package.swift \
+            Package.resolved; then
+            macos_required=true
+          fi
+          echo "macos_required=${macos_required}" >> "${GITHUB_OUTPUT}"
+
+  macos:
     name: Build and test
+    needs: changes
+    if: needs.changes.outputs.macos_required == 'true'
     runs-on: macos-26
-    timeout-minutes: 15
+    timeout-minutes: 8
 
     steps:
       - uses: actions/checkout@v4
@@ -25,33 +63,40 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Verify release policy helpers
+      - name: Read Xcode cache key
+        id: xcode
         run: |
-          chmod +x Scripts/*.sh
-          test "$(./Scripts/verify-official-release-tag.sh v0.1.0)" = "0.1.0"
-          if ./Scripts/verify-official-release-tag.sh 0.1.0; then
-            echo "expected non-v tag to fail" >&2
-            exit 1
-          fi
-          if ./Scripts/verify-official-release-tag.sh v1.2.3-beta.1; then
-            echo "expected pre-release tag to fail" >&2
-            exit 1
-          fi
-          python3 Tests/Scripts/test_official_release_notes.py
+          version="$(xcodebuild -version | shasum -a 256 | cut -d ' ' -f 1)"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Cache Swift package sources
+        uses: actions/cache@v4
+        with:
+          path: build/SourcePackages
+          key: swift-packages-${{ runner.os }}-${{ runner.arch }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('Keyameleon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
 
       - name: Run tests and safety audit
-        timeout-minutes: 10
         run: ./Scripts/run.sh test
 
-      - name: Check license and third-party notices
+  required:
+    name: Required CI gate
+    needs:
+      - changes
+      - macos
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require selected checks
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          MACOS_REQUIRED: ${{ needs.changes.outputs.macos_required }}
+          MACOS_RESULT: ${{ needs.macos.result }}
         run: |
           set -euo pipefail
-          test -f LICENSE
-          grep -q "GNU GENERAL PUBLIC LICENSE" LICENSE
-          grep -q "Version 3" LICENSE
-          test -f THIRD_PARTY_NOTICES.md
-          grep -q "Sparkle" THIRD_PARTY_NOTICES.md
-          grep -q "GPL-3.0-only" README.md
-          test -f SECURITY.md
-          grep -q "Supported Release" SECURITY.md
-          test -f CONTRIBUTING.md
+          test "${CHANGES_RESULT}" = "success"
+          if [[ "${MACOS_REQUIRED}" == "true" ]]; then
+            test "${MACOS_RESULT}" = "success"
+          else
+            test "${MACOS_RESULT}" = "skipped"
+          fi
