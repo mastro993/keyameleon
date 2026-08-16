@@ -9,8 +9,8 @@
 #   APPLE_API_ISSUER_ID
 #   APPLE_API_KEY_P8_BASE64   # contents of AuthKey_XXX.p8, base64
 #   APPLE_TEAM_ID
-#   SPARKLE_PRIVATE_ED_KEY    # single-line private key for generate_appcast
-#   SPARKLE_PUBLIC_ED_KEY     # base64 public key embedded as SUPublicEDKey
+#   SPARKLE_PRIVATE_ED_KEY    # generate_keys -x output (32-byte seed, base64)
+#   SPARKLE_PUBLIC_ED_KEY     # generate_keys -p output (base64 SUPublicEDKey)
 #
 # Optional:
 #   RELEASE_TAG               # default: current git tag at HEAD
@@ -76,6 +76,19 @@ codesign_identity="${CODESIGN_IDENTITY:-Developer ID Application}"
 print "Official Release ${tag} (${version}) @ ${git_commit}"
 
 work_tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/keyameleon-release.XXXXXX")"
+
+# Normalize Sparkle keys before archive/notary.
+# GH secret paste often wraps the seed (quotes, PEM, trailing newline).
+# generate_appcast --ed-key-file - then dies: "isn't base64 encoded".
+sparkle_private_key_path="${work_tmpdir}/sparkle_eddsa_private.key"
+sparkle_public_key_path="${work_tmpdir}/sparkle_eddsa_public.key"
+printf '%s' "$SPARKLE_PRIVATE_ED_KEY" | python3 "${script_dir}/normalize-sparkle-ed-key.py" \
+    "$sparkle_private_key_path"
+printf '%s' "$SPARKLE_PUBLIC_ED_KEY" | python3 "${script_dir}/normalize-sparkle-ed-key.py" \
+    "$sparkle_public_key_path"
+chmod 600 "$sparkle_private_key_path"
+SPARKLE_PUBLIC_ED_KEY="$(cat "$sparkle_public_key_path")"
+
 cert_path="${work_tmpdir}/developer-id.p12"
 print -n "$APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64" | base64 --decode >"$cert_path"
 
@@ -210,9 +223,9 @@ if [[ -z "$generate_appcast" || ! -x "$generate_appcast" ]]; then
 fi
 
 cp "$archive_path" "${work_tmpdir}/updates/Keyameleon-${version}.zip"
-# Sparkle 2: private key via --ed-key-file - (stdin); never write key to the repo tree.
-print -n "$SPARKLE_PRIVATE_ED_KEY" | "${generate_appcast}" \
-    --ed-key-file - \
+# Key file lives in work_tmpdir only (cleaned on EXIT). Never write to the repo tree.
+"${generate_appcast}" \
+    --ed-key-file "$sparkle_private_key_path" \
     -o "${dist_dir}/appcast.xml" \
     "${work_tmpdir}/updates"
 

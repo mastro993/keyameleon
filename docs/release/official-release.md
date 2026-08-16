@@ -106,6 +106,10 @@ a trailing newline before storing:
 tr -d '\n' < sparkle_eddsa_private.key > sparkle_eddsa_private.key.one
 ```
 
+The secret value is the raw 44-character base64 seed only. Do not wrap it in
+quotes, PEM headers, or extra text. `generate_appcast` then fails with
+`Private key not decoded from the argument because it isn't base64 encoded`.
+
 Keep the Keychain copy and the export offline. Losing the private key blocks
 signed updates for existing Official Release binaries.
 

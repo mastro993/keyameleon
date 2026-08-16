@@ -1,5 +1,13 @@
 # Choices
 
+## 2026-08-16 — Sparkle EdDSA secret shape
+
+### Defaults
+
+- `SPARKLE_PRIVATE_ED_KEY` is `generate_keys -x` output: 32-byte seed, one-line base64.
+- Normalize (strip quotes / PEM / whitespace) and write a temp key file. Do not pipe `--ed-key-file -`.
+- Fail in `normalize-sparkle-ed-key.py` if decode is not 32 or 64 bytes.
+
 ## 2026-08-16 — wait-for-ci query
 
 ### Defaults
