@@ -1,5 +1,13 @@
 # Breadcrumbs
 
+## 2026-08-17 — Release notes contributor avatars
+
+- v0.1.1 Contributors used git names (`Federico Mastrini`). PR lookup needed
+  `pull-requests: read` (explicit permissions override).
+- Keep ADR 0006 heading. Emit avatar markdown
+  (`avatars.githubusercontent.com/u/{id}?s=64&v=4`). Lookup PR user, then
+  commit author.
+
 ## 2026-08-17 — Merge main #65 into DMG-only release
 
 - Kept both choice blocks: CI hang-after-pass and DMG-only Official Release.
