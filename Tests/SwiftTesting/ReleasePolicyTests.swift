@@ -8,13 +8,13 @@ func officialReleaseTagsRequireStrictSemVer() {
     #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2.3"))
     #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("v10.20.30"))
 
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag("1.2.3"))
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2"))
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2.3-beta.1"))
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2.3+build.1"))
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag("release-1.2.3"))
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag("v01.2.3"))
-    #expect(!KeyameleonReleasePolicy.isOfficialReleaseTag(""))
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("1.2.3") == false)
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2") == false)
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2.3-beta.1") == false)
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("v1.2.3+build.1") == false)
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("release-1.2.3") == false)
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("v01.2.3") == false)
+    #expect(KeyameleonReleasePolicy.isOfficialReleaseTag("") == false)
 }
 
 @Test("Official Release tag maps to Semantic Versioning core")
@@ -27,12 +27,8 @@ func officialReleaseTagMapsToSemanticVersion() {
 @Test("Release artifact names use product and version")
 func releaseArtifactNamesUseProductAndVersion() {
     #expect(
-        KeyameleonReleasePolicy.applicationArchiveFileName(version: "1.2.3")
-            == "Keyameleon-1.2.3.zip"
-    )
-    #expect(
-        KeyameleonReleasePolicy.sourceArchiveFileName(version: "1.2.3")
-            == "Keyameleon-source-1.2.3.tar.gz"
+        KeyameleonReleasePolicy.diskImageFileName(version: "1.2.3")
+            == "Keyameleon-1.2.3.dmg"
     )
     #expect(KeyameleonReleasePolicy.appcastFileName == "appcast.xml")
     #expect(KeyameleonReleasePolicy.evidenceFileName == "release-evidence.json")
@@ -61,9 +57,8 @@ func releaseEvidenceBindsArtifactHashToTag() throws {
     #expect(evidence.tag == "v1.4.0")
     #expect(evidence.semanticVersion == "1.4.0")
     #expect(evidence.gitCommit == "abc123def456")
-    #expect(evidence.artifactFileName == "Keyameleon-1.4.0.zip")
+    #expect(evidence.artifactFileName == "Keyameleon-1.4.0.dmg")
     #expect(evidence.artifactSHA256 == sha)
-    #expect(evidence.sourceArchiveFileName == "Keyameleon-source-1.4.0.tar.gz")
     #expect(evidence.appcastFileName == "appcast.xml")
     #expect(evidence.feedURLString == KeyameleonUpdatePolicy.feedURLString)
 

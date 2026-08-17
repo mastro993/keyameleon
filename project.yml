@@ -53,7 +53,7 @@ targets:
         LSMultipleInstancesProhibited: true
         NSInputMonitoringUsageDescription: Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.
         # Sparkle 2: user-approved, 24h-bounded checks; no auto-install; no system profiling.
-        SUFeedURL: https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml
+        SUFeedURL: https://mastro993.github.io/Keyameleon/appcast.xml
         SUEnableAutomaticChecks: true
         SUScheduledCheckInterval: 86400
         SUAutomaticallyUpdate: false

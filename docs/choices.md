@@ -1,5 +1,18 @@
 # Choices
 
+## 2026-08-16 — DMG-only Official Release distribution (grill)
+
+### Defaults
+
+- Supersede the ZIP-primary and GitHub-Releases-feed defaults from the 2026-08-14 Official Release workflow decision.
+- Publish only `Keyameleon-<version>.dmg` as a Keyameleon-managed GitHub Release asset. GitHub-generated source links remain.
+- Put `Keyameleon.app` and an Applications shortcut in the disk image.
+- Do not publish a ZIP, custom source archive, `appcast.xml`, `release-evidence.json`, `CHANGELOG.md`, or changelog artifact on the release page.
+- Publish the Sparkle appcast through GitHub Pages. Keep release evidence as a workflow artifact.
+- Do not change `v0.1.0` or preserve its old GitHub Releases feed. Its installed copies may require a manual update.
+- Copy the OpenUsage release-note structure: categorized changes, separator, Changelog with full comparison and change list, Contributors.
+- See ADR 0005.
+
 ## 2026-08-16 — Sparkle EdDSA secret shape
 
 ### Defaults

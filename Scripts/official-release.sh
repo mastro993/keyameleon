@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Produce Official Release artifacts: Developer ID signed, hardened runtime,
-# timestamped, notarized, stapled archive + Sparkle appcast + release evidence.
+# timestamped, notarized, stapled DMG + Sparkle appcast + release evidence.
 #
 # Required environment (never commit these values):
 #   APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64
@@ -15,7 +15,7 @@
 # Optional:
 #   RELEASE_TAG               # default: current git tag at HEAD
 #   CODESIGN_IDENTITY         # default: Developer ID Application
-#   SKIP_NOTARIZE=1           # build+sign+zip only (local dry path)
+#   SKIP_NOTARIZE=1           # build+sign only (local dry path)
 set -euo pipefail
 
 cd "${0:A:h}/.."
@@ -161,27 +161,68 @@ codesign \
 codesign --verify --deep --strict --verbose=2 "$app_path"
 # Gatekeeper assess is only valid after notarization + staple.
 
+# Remove only outputs for this version. Preserve unrelated files in dist. The
+# ZIP used for app notarization lives in the temporary directory and is never a
+# release artifact.
 mkdir -p "$dist_dir" "${work_tmpdir}/updates"
-archive_path="${dist_dir}/Keyameleon-${version}.zip"
-rm -f "$archive_path"
-ditto -c -k --sequesterRsrc --keepParent "$app_path" "$archive_path"
+rm -f \
+    "${dist_dir}/Keyameleon-${version}.dmg" \
+    "${dist_dir}/Keyameleon-${version}.zip" \
+    "${dist_dir}/Keyameleon-source-${version}.tar.gz" \
+    "${dist_dir}/appcast.xml" \
+    "${dist_dir}/release-evidence.json"
 
 if [[ "${SKIP_NOTARIZE:-0}" != "1" ]]; then
     api_key_path="${work_tmpdir}/AuthKey_${APPLE_API_KEY_ID}.p8"
     print -n "$APPLE_API_KEY_P8_BASE64" | base64 --decode >"$api_key_path"
 
-    xcrun notarytool submit "$archive_path" \
+    app_notarize_zip="${work_tmpdir}/Keyameleon-${version}-notarize.zip"
+    ditto -c -k --sequesterRsrc --keepParent "$app_path" "$app_notarize_zip"
+
+    xcrun notarytool submit "$app_notarize_zip" \
         --key "$api_key_path" \
         --key-id "$APPLE_API_KEY_ID" \
         --issuer "$APPLE_API_ISSUER_ID" \
         --wait
 
-    # Staple the app, then re-zip so the stapled ticket ships in the archive.
+    # Staple the app before putting it in the disk image. The transient ZIP
+    # is removed after notarization and never leaves the runner.
     xcrun stapler staple "$app_path"
     xcrun stapler validate "$app_path"
     spctl --assess --type execute --verbose=4 "$app_path"
-    rm -f "$archive_path"
-    ditto -c -k --sequesterRsrc --keepParent "$app_path" "$archive_path"
+    rm -f "$app_notarize_zip"
+fi
+
+# Build the only public installer. It contains the signed app and the standard
+# Applications shortcut used by macOS disk-image installers.
+stage_dir="${work_tmpdir}/dmg-stage"
+mkdir -p "$stage_dir"
+ditto "$app_path" "${stage_dir}/Keyameleon.app"
+ln -s /Applications "${stage_dir}/Applications"
+
+dmg_path="${dist_dir}/Keyameleon-${version}.dmg"
+rm -f "$dmg_path"
+hdiutil create \
+    -volname "Keyameleon" \
+    -srcfolder "$stage_dir" \
+    -ov \
+    -format UDZO \
+    "$dmg_path" >/dev/null
+
+# A disk image has its own code signature. Sign it after creation and before
+# notarization so the stapled ticket belongs to the exact public bytes.
+codesign --force --timestamp --sign "$codesign_identity" "$dmg_path"
+codesign --verify --verbose=2 "$dmg_path"
+
+if [[ "${SKIP_NOTARIZE:-0}" != "1" ]]; then
+    xcrun notarytool submit "$dmg_path" \
+        --key "$api_key_path" \
+        --key-id "$APPLE_API_KEY_ID" \
+        --issuer "$APPLE_API_ISSUER_ID" \
+        --wait
+    xcrun stapler staple "$dmg_path"
+    xcrun stapler validate "$dmg_path"
+    spctl --assess --type open --context context:primary-signature --verbose=4 "$dmg_path"
 fi
 
 # Sparkle tools live in the resolved package checkout after the archive build.
@@ -222,7 +263,7 @@ if [[ -z "$generate_appcast" || ! -x "$generate_appcast" ]]; then
     exit 1
 fi
 
-cp "$archive_path" "${work_tmpdir}/updates/Keyameleon-${version}.zip"
+cp "$dmg_path" "${work_tmpdir}/updates/Keyameleon-${version}.dmg"
 # Key file lives in work_tmpdir only (cleaned on EXIT). Never write to the repo tree.
 "${generate_appcast}" \
     --ed-key-file "$sparkle_private_key_path" \
@@ -240,15 +281,15 @@ text = path.read_text(encoding="utf-8")
 base = "https://github.com/mastro993/Keyameleon/releases/download"
 # generate_appcast may emit file URLs; rewrite to the tag download URL.
 pattern = re.compile(
-    r'url="[^"]*Keyameleon-' + re.escape(version) + r'\.zip"'
+    r'url="[^"]*Keyameleon-' + re.escape(version) + r'\.dmg"'
 )
-replacement = f'url="{base}/v{version}/Keyameleon-{version}.zip"'
+replacement = f'url="{base}/v{version}/Keyameleon-{version}.dmg"'
 text, count = pattern.subn(replacement, text)
 if count == 0:
     # Also rewrite generic enclosure urls ending with the archive name.
     pattern = re.compile(r'(<enclosure[^>]*url=")[^"]+(")')
     def repl(match: re.Match[str]) -> str:
-        return match.group(1) + f"{base}/v{version}/Keyameleon-{version}.zip" + match.group(2)
+        return match.group(1) + f"{base}/v{version}/Keyameleon-{version}.dmg" + match.group(2)
     text, count = pattern.subn(repl, text)
 if count == 0:
     raise SystemExit("failed to rewrite appcast enclosure URL")
@@ -260,15 +301,10 @@ evidence_path="${dist_dir}/release-evidence.json"
 "${script_dir}/write-release-evidence.sh" \
     --tag "$tag" \
     --commit "$git_commit" \
-    --artifact "$archive_path" \
+    --artifact "$dmg_path" \
     --output "$evidence_path"
 
-# Source archive for the stable channel (reproducible tree at the tag commit).
-source_archive="${dist_dir}/Keyameleon-source-${version}.tar.gz"
-git archive --format=tar.gz --prefix="Keyameleon-${version}/" -o "$source_archive" "$git_commit"
-
 print "artifacts:"
-print "  ${archive_path}"
-print "  ${source_archive}"
+print "  ${dmg_path}"
 print "  ${dist_dir}/appcast.xml"
 print "  ${evidence_path}"

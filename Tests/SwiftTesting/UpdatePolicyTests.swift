@@ -11,7 +11,7 @@ func updatePolicyBoundsChecksAndPrivacy() {
     #expect(KeyameleonUpdatePolicy.sendsSystemProfile == false)
     #expect(
         KeyameleonUpdatePolicy.feedURLString
-            == "https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml"
+            == "https://mastro993.github.io/Keyameleon/appcast.xml"
     )
 }
 

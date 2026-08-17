@@ -37,11 +37,13 @@ jobs:
             macos_required=true
           elif ! git diff --quiet "${BASE_SHA}" "${HEAD_SHA}" -- \
             Sources \
+            Scripts \
+            Tests/Scripts \
             Tests/SwiftTesting \
             Tests/XCTest \
             Tests/UITests \
-            Scripts/run.sh \
             .github/workflows/ci.yml \
+            .github/workflows/release.yml \
             Keyameleon.xcodeproj \
             project.yml \
             Package.swift \

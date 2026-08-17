@@ -17,9 +17,9 @@ enum KeyameleonUpdatePolicy {
     /// Anonymous system profiling is off.
     static let sendsSystemProfile = false
 
-    /// Official Release appcast location until release tooling publishes another URL.
+    /// Official Release appcast published on the Keyameleon GitHub Pages site.
     static let feedURLString =
-        "https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml"
+        "https://mastro993.github.io/Keyameleon/appcast.xml"
 
     static func shouldCheckForUpdates(
         lastCheckDate: Date?,

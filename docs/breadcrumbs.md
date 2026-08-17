@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-17 — DMG-only Official Release
+
+- ADR 0005. GitHub Release publishes only `Keyameleon-<version>.dmg`. Appcast goes to GitHub Pages. Evidence stays a workflow artifact.
+- `v0.1.0` already published as ZIP + source tar + appcast + evidence. Not migrated. Next Official Release is a new version.
+- Host Pages is off today (`gh api .../pages` 404). Enable `gh-pages` `/ (root)` before the next `workflow_dispatch`.
+
 ## 2026-08-16 — Sparkle key "isn't base64"
 
 - Run 31942341947 `produce` died after staple:
