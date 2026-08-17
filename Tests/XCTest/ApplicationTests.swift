@@ -8,31 +8,16 @@ final class KeyameleonApplicationTests: XCTestCase {
             ?? Bundle(identifier: "dev.fedemas.keyameleon")
     }
 
-    private func makeSingleInstanceLock() -> KeyameleonSingleInstanceLock {
-        let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("KeyameleonApplicationTests-\(UUID().uuidString).lock")
-        guard let lock = KeyameleonSingleInstanceLock.acquire(at: url) else {
-            fatalError("Could not acquire test single-instance lock")
-        }
-        try? FileManager.default.removeItem(at: url)
-        return lock
-    }
-
     @MainActor
     func testStatusItemOpensTransient320PointPanelAndCloses() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: permission,
-            setupStore: ApplicationTestSetupDecisionStore(),
-            startsUpdaterOnLaunch: false,
-            singleInstanceLock: makeSingleInstanceLock()
-        )
+        let delegate = makeApplicationTestDelegate(permissionProvider: permission)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
         let anchor = MenuBarPanelTestAnchorWindow()
         defer {
-            delegate.closeMenuBarPanel()
+            stopApplicationTestSurface(delegate)
             anchor.close()
         }
 
@@ -63,18 +48,13 @@ final class KeyameleonApplicationTests: XCTestCase {
 
     @MainActor
     func testCheckForUpdatesClosesTheMenuBarPanel() throws {
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            setupStore: ApplicationTestSetupDecisionStore(),
-            startsUpdaterOnLaunch: false,
-            singleInstanceLock: makeSingleInstanceLock()
-        )
+        let delegate = makeApplicationTestDelegate()
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
         let anchor = MenuBarPanelTestAnchorWindow()
         defer {
-            delegate.closeMenuBarPanel()
+            stopApplicationTestSurface(delegate)
             anchor.close()
         }
 
@@ -89,18 +69,13 @@ final class KeyameleonApplicationTests: XCTestCase {
     @MainActor
     func testDismissingTheMenuBarPanelDoesNotMutateProductState() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: permission,
-            setupStore: ApplicationTestSetupDecisionStore(),
-            startsUpdaterOnLaunch: false,
-            singleInstanceLock: makeSingleInstanceLock()
-        )
+        let delegate = makeApplicationTestDelegate(permissionProvider: permission)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
         let anchor = MenuBarPanelTestAnchorWindow()
         defer {
-            delegate.closeMenuBarPanel()
+            stopApplicationTestSurface(delegate)
             anchor.close()
         }
 
@@ -129,10 +104,8 @@ final class KeyameleonApplicationTests: XCTestCase {
 
     @MainActor
     func testMenuBarIconPresentationMapsEveryStatusMark() {
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            singleInstanceLock: makeSingleInstanceLock()
-        )
+        let delegate = makeApplicationTestDelegate()
+        defer { stopApplicationTestSurface(delegate) }
         let expected: [(MenuBarIconMark, String, String)] = [
             (.ready, "keyboard", "Keyameleon"),
             (.permissionRequired, "keyboard.badge.ellipsis", "Keyameleon — Permission Required"),
@@ -153,15 +126,15 @@ final class KeyameleonApplicationTests: XCTestCase {
     @MainActor
     func testApplicationStartsUpdateCheckerOnLaunch() {
         let updates = ApplicationTestUpdateChecker()
-        let delegate = KeyameleonApplicationDelegate(
+        let delegate = makeApplicationTestDelegate(
             updateChecker: updates,
-            startsUpdaterOnLaunch: true,
-            singleInstanceLock: makeSingleInstanceLock()
+            startsUpdaterOnLaunch: true
         )
 
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
+        defer { stopApplicationTestSurface(delegate) }
 
         XCTAssertEqual(updates.startCallCount, 1)
     }
@@ -169,25 +142,41 @@ final class KeyameleonApplicationTests: XCTestCase {
     @MainActor
     func testApplicationCanSkipUpdateCheckerOnLaunch() {
         let updates = ApplicationTestUpdateChecker()
-        let delegate = KeyameleonApplicationDelegate(
+        let delegate = makeApplicationTestDelegate(
             updateChecker: updates,
-            startsUpdaterOnLaunch: false,
-            singleInstanceLock: makeSingleInstanceLock()
+            startsUpdaterOnLaunch: false
         )
 
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
+        defer { stopApplicationTestSurface(delegate) }
 
         XCTAssertEqual(updates.startCallCount, 0)
     }
 
     @MainActor
-    func testClosingLastWindowDoesNotTerminateApplication() {
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            singleInstanceLock: makeSingleInstanceLock()
+    func testHostedLaunchSkipsApplicationSurface() {
+        let discoverer = ApplicationTestPhysicalKeyboardDiscoverer()
+        let delegate = makeApplicationTestDelegate(
+            physicalKeyboardDiscoverer: discoverer,
+            startsApplicationSurfaceOnLaunch: false
         )
+
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        XCTAssertNil(delegate.menuBarStatusItem)
+        XCTAssertNil(delegate.menuBarPanelController)
+        XCTAssertEqual(discoverer.startCount, 0)
+    }
+
+    @MainActor
+    func testClosingLastWindowDoesNotTerminateApplication() {
+        let delegate = makeApplicationTestDelegate()
+        defer { stopApplicationTestSurface(delegate) }
 
         XCTAssertFalse(
             delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared)
@@ -196,10 +185,8 @@ final class KeyameleonApplicationTests: XCTestCase {
 
     @MainActor
     func testReopenDoesNotReactivateOrOpenTheRunningApplication() {
-        let delegate = KeyameleonApplicationDelegate(
-            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
-            singleInstanceLock: makeSingleInstanceLock()
-        )
+        let delegate = makeApplicationTestDelegate()
+        defer { stopApplicationTestSurface(delegate) }
 
         XCTAssertFalse(
             delegate.applicationShouldHandleReopen(NSApplication.shared, hasVisibleWindows: false)
@@ -236,114 +223,5 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertEqual(bundle?.object(forInfoDictionaryKey: "SUAutomaticallyUpdate") as? Bool, false)
         XCTAssertEqual(bundle?.object(forInfoDictionaryKey: "SUAllowsAutomaticUpdates") as? Bool, false)
         XCTAssertEqual(bundle?.object(forInfoDictionaryKey: "SUEnableSystemProfiling") as? Bool, false)
-    }
-}
-
-@MainActor
-private final class MenuBarPanelTestAnchorWindow {
-    private let window: NSWindow
-    let positioningView: NSView
-
-    init() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 40, height: 24),
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
-        window.isReleasedWhenClosed = false
-        window.alphaValue = 0
-        window.orderFrontRegardless()
-        self.window = window
-        self.positioningView = window.contentView!
-    }
-
-    func close() {
-        window.close()
-    }
-}
-
-@MainActor
-private final class ApplicationTestUpdateChecker: UpdateChecking {
-    private(set) var startCallCount = 0
-    var canCheckForUpdates = false
-
-    func start() {
-        startCallCount += 1
-        canCheckForUpdates = true
-    }
-
-    func checkForUpdates() {}
-}
-
-@MainActor
-private final class ApplicationTestListenPermissionProvider: ListenPermissionProviding {
-    var state: ListenPermissionState
-    private(set) var checkCount = 0
-
-    init(state: ListenPermissionState) {
-        self.state = state
-    }
-
-    func checkListenPermission() -> ListenPermissionState {
-        checkCount += 1
-        return state
-    }
-
-    func requestListenPermission() -> Bool {
-        state == .granted
-    }
-}
-
-@MainActor
-private final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
-    private(set) var hasStartedGuidedSetup = false
-    private(set) var hasCompletedGuidedSetup = true
-    private(set) var guidedSetupStep: GuidedSetupStep = .assignments
-    private(set) var isActivityTriggeredSwitchingPaused = false
-    private(set) var hasEvaluatedBuiltInIdentityMigration = false
-
-    func markGuidedSetupStarted() {
-        hasStartedGuidedSetup = true
-    }
-
-    func markGuidedSetupStep(_ step: GuidedSetupStep) {
-        hasStartedGuidedSetup = true
-        guidedSetupStep = step
-    }
-
-    func markGuidedSetupCompleted() {
-        hasStartedGuidedSetup = true
-        hasCompletedGuidedSetup = true
-        guidedSetupStep = .assignments
-    }
-
-    func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
-        isActivityTriggeredSwitchingPaused = paused
-    }
-
-    func markBuiltInIdentityMigrationEvaluated() {
-        hasEvaluatedBuiltInIdentityMigration = true
-    }
-}
-
-@MainActor
-private final class ApplicationTestUncleanExitStateStore: UncleanExitStateStoring {
-    private(set) var hasPendingUncleanExitNotice: Bool
-
-    init(hasNotice: Bool) {
-        hasPendingUncleanExitNotice = hasNotice
-    }
-
-    func beginLaunch() {}
-
-    func markCleanTermination() {}
-
-    func dismissUncleanExitNotice() {
-        hasPendingUncleanExitNotice = false
-    }
-
-    func resetForUITesting() {
-        hasPendingUncleanExitNotice = false
     }
 }

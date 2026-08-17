@@ -3,6 +3,15 @@ import Darwin
 import Observation
 @preconcurrency import SwiftData
 
+enum KeyameleonHostedUnitTestProcess {
+    static func isDetected(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> Bool {
+        environment["XCTestConfigurationFilePath"] != nil
+            || environment["XCTestBundlePath"] != nil
+    }
+}
+
 @MainActor
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     let setupModel: KeyameleonSetupModel
@@ -11,6 +20,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let lifecycleObserver: any KeyameleonLifecycleObserving
     private let singleInstanceLock: KeyameleonSingleInstanceLock
     private let startsUpdaterOnLaunch: Bool
+    private let startsApplicationSurfaceOnLaunch: Bool
     let uncleanExitStateStore: any UncleanExitStateStoring
     let generalSettingsModel: KeyameleonGeneralSettingsModel
     var statusItem: NSStatusItem?
@@ -54,9 +64,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
 
         let isUITesting = ProcessInfo.processInfo.arguments.contains("--reset-guided-setup")
-        let isXCTestHost = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        let isHostedUnitTest = KeyameleonHostedUnitTestProcess.isDetected()
         let operationalNotificationProvider: any OperationalNotificationProviding =
-            isUITesting || isXCTestHost
+            isUITesting || isHostedUnitTest
                 ? NoOpOperationalNotificationProvider()
                 : SystemOperationalNotificationProvider()
         let notificationEpisodeStore = UserDefaultsOperationalNotificationEpisodeStore()
@@ -90,7 +100,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
             // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
-            startsUpdaterOnLaunch: !isUITesting,
+            startsUpdaterOnLaunch: !isUITesting && !isHostedUnitTest,
+            startsApplicationSurfaceOnLaunch: !isHostedUnitTest,
             modelContainer: modelContainer,
             diagnosticModelContainer: diagnosticModelContainer,
             singleInstanceLock: singleInstanceLock
@@ -106,6 +117,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
         startsUpdaterOnLaunch: Bool,
+        startsApplicationSurfaceOnLaunch: Bool,
         modelContainer: ModelContainer?,
         diagnosticModelContainer: ModelContainer?,
         singleInstanceLock: KeyameleonSingleInstanceLock
@@ -116,6 +128,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         self.updateChecker = updateChecker
         self.lifecycleObserver = lifecycleObserver
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
+        self.startsApplicationSurfaceOnLaunch = startsApplicationSurfaceOnLaunch
         self.uncleanExitStateStore = uncleanExitStateStore
         self.activityTriggeredSwitching = composition.activityTriggeredSwitching
         setupModel = KeyameleonSetupModel(
@@ -150,7 +163,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
         systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
-            SystemPhysicalKeyboardDiscoverer(),
+            NoOpPhysicalKeyboardDiscoverer(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
@@ -158,9 +171,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             InMemoryInstallationIntegrityKeyProvider(),
         inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
         inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
-        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving = SystemPhysicalKeyboardEventObserver(),
-        inputSourceChangeObserver: any InputSourceChangeObserving = SystemInputSourceChangeObserver(),
-        lifecycleObserver: any KeyameleonLifecycleObserving = SystemKeyameleonLifecycleObserver(),
+        physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving =
+            NoOpPhysicalKeyboardEventObserver(),
+        inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
+        lifecycleObserver: any KeyameleonLifecycleObserving = NoOpKeyameleonLifecycleObserver(),
         diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
             store: InMemoryDiagnosticDataStore()
         ),
@@ -176,6 +190,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
+        startsApplicationSurfaceOnLaunch: Bool = true,
         modelContainer: ModelContainer? = nil,
         diagnosticModelContainer: ModelContainer? = nil,
         singleInstanceLock: KeyameleonSingleInstanceLock
@@ -206,6 +221,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
             startsUpdaterOnLaunch: startsUpdaterOnLaunch,
+            startsApplicationSurfaceOnLaunch: startsApplicationSurfaceOnLaunch,
             modelContainer: modelContainer,
             diagnosticModelContainer: diagnosticModelContainer,
             singleInstanceLock: singleInstanceLock
@@ -215,19 +231,22 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         uncleanExitStateStore.beginLaunch()
-        lifecycleObserver.start { [weak self] event in
-            self?.activityTriggeredSwitching.handleLifecycleEvent(event)
+        if startsApplicationSurfaceOnLaunch {
+            lifecycleObserver.start { [weak self] event in
+                self?.activityTriggeredSwitching.handleLifecycleEvent(event)
+            }
+            activityTriggeredSwitching.start()
+            statusItem = makeStatusItem()
+            menuBarPanelController = makeMenuBarPanelController()
+            refreshMenuBarPresentation()
         }
-        activityTriggeredSwitching.start()
-        statusItem = makeStatusItem()
-        menuBarPanelController = makeMenuBarPanelController()
-        refreshMenuBarPresentation()
         if startsUpdaterOnLaunch {
             updateChecker.start()
         }
         generalSettingsModel.refresh()
 
-        if !setupModel.isSetupComplete && !setupModel.hasStartedGuidedSetup {
+        if startsApplicationSurfaceOnLaunch,
+           !setupModel.isSetupComplete && !setupModel.hasStartedGuidedSetup {
             setupModel.beginGuidedSetup()
             openKeyameleon(nil)
         }
@@ -250,6 +269,12 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         uncleanExitStateStore.markCleanTermination()
         lifecycleObserver.stop()
         activityTriggeredSwitching.stop()
+        closeMenuBarPanel()
+        if let statusItem {
+            NSStatusBar.system.removeStatusItem(statusItem)
+            self.statusItem = nil
+        }
+        menuBarPanelController = nil
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

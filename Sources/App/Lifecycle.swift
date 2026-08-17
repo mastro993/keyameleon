@@ -41,6 +41,13 @@ protocol KeyameleonLifecycleObserving: AnyObject {
     func stop()
 }
 
+/// Test double / no-op default when lifecycle observation is not started.
+@MainActor
+final class NoOpKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
+    func start(onEvent: @escaping @MainActor (KeyameleonLifecycleEvent) -> Void) {}
+    func stop() {}
+}
+
 @MainActor
 final class SystemKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
     private let workspaceNotificationCenter: NotificationCenter
