@@ -24,7 +24,7 @@ def run(*args: str, cwd: Path, env: dict[str, str] | None = None) -> subprocess.
 
 
 class OfficialReleaseNotesTests(unittest.TestCase):
-    def test_openusage_structure_groups_changes_and_links_history(self) -> None:
+    def test_notes_structure_groups_changes_and_links_history(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             repository = Path(temporary_directory)
             run("git", "init", "-q", cwd=repository)
@@ -76,6 +76,67 @@ class OfficialReleaseNotesTests(unittest.TestCase):
             )
             self.assertIn("### Contributors\n\n- Release Tester", notes)
 
+    def test_contributors_use_github_avatars_when_api_returns_login(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            repository = Path(temporary_directory)
+            run("git", "init", "-q", cwd=repository)
+            run("git", "config", "user.name", "Release Tester", cwd=repository)
+            run("git", "config", "user.email", "release@example.com", cwd=repository)
+
+            tracked_file = repository / "change.txt"
+            tracked_file.write_text("initial\n", encoding="utf-8")
+            run("git", "add", "change.txt", cwd=repository)
+            run("git", "commit", "-q", "-m", "Initial release", cwd=repository)
+            run("git", "tag", "v0.1.0", cwd=repository)
+
+            tracked_file.write_text("change\n", encoding="utf-8")
+            run("git", "add", "change.txt", cwd=repository)
+            run("git", "commit", "-q", "-m", "feat: Add disk image (#12)", cwd=repository)
+
+            fake_bin = repository / "bin"
+            fake_bin.mkdir()
+            fake_gh = fake_bin / "gh"
+            fake_gh.write_text(
+                """#!/usr/bin/env bash
+set -euo pipefail
+path=""
+for arg in "$@"; do
+  case "$arg" in
+    repos/*) path="$arg" ;;
+  esac
+done
+if [[ "$path" == */pulls ]]; then
+  printf '%s\\n' $'12\\toctocat\\t1'
+elif [[ "$path" == repos/*/commits/* ]]; then
+  printf '%s\\n' $'octocat\\t1'
+fi
+""",
+                encoding="utf-8",
+            )
+            fake_gh.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment["PATH"] = f"{fake_bin}{os.pathsep}{environment['PATH']}"
+            environment["GH_TOKEN"] = "test-token"
+            environment["GITHUB_REPOSITORY"] = "example/Keyameleon"
+            result = run(
+                str(NOTES_SCRIPT),
+                "--tag",
+                "v0.2.0",
+                cwd=repository,
+                env=environment,
+            )
+
+            notes = result.stdout
+            self.assertIn(" by @octocat", notes)
+            self.assertIn(
+                "- [![@octocat](https://avatars.githubusercontent.com/u/1?s=64&v=4)]"
+                "(https://github.com/octocat)",
+                notes,
+            )
+            self.assertNotIn("- Release Tester", notes)
+            self.assertNotIn("- @octocat\n", notes)
+
 
 class ReleaseEvidenceTests(unittest.TestCase):
     def test_evidence_binds_the_dmg_and_pages_feed(self) -> None:
@@ -117,6 +178,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertNotIn("Keyameleon-source-", workflow)
         self.assertIn("peaceiris/actions-gh-pages@v4", workflow)
         self.assertIn("path: dist/release-evidence.json", workflow)
+        self.assertIn("pull-requests: read", workflow)
 
 
 if __name__ == "__main__":

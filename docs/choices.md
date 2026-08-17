@@ -1,5 +1,16 @@
 # Choices
 
+## 2026-08-17 — Release contributor avatars
+
+### Defaults
+
+- Keep the `### Contributors` heading (ADR 0006). Emit avatar images, not names
+  or `@login` bullets: `![@login](https://avatars.githubusercontent.com/u/{id}?s=64&v=4)`.
+- Resolve login+id from the associated PR user, then commit `.author`. Git name
+  only when GitHub has no user.
+- Grant Release workflow `pull-requests: read`. Explicit `permissions` dropped
+  that scope → `/commits/{sha}/pulls` failed silent → v0.1.1 used git names.
+
 ## 2026-08-17 — CI hang-after-pass (grill Q1–Q3)
 
 ### Defaults
@@ -44,7 +55,7 @@
 - Do not publish a ZIP, custom source archive, `appcast.xml`, `release-evidence.json`, `CHANGELOG.md`, or changelog artifact on the release page.
 - Publish the Sparkle appcast through GitHub Pages. Keep release evidence as a workflow artifact.
 - Do not change `v0.1.0` or preserve its old GitHub Releases feed. Its installed copies may require a manual update.
-- Copy the OpenUsage release-note structure: categorized changes, separator, Changelog with full comparison and change list, Contributors.
+- Release-note structure: categorized changes, separator, Changelog with full comparison and change list, Contributors.
 - See ADR 0006.
 
 ## 2026-08-16 — Sparkle EdDSA secret shape

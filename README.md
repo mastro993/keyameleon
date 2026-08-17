@@ -135,7 +135,8 @@ and publishes:
 
 The DMG contains `Keyameleon.app` and an Applications shortcut. Release notes
 use categorized changes, a Changelog with the full comparison and commit list,
-and Contributors. No custom source archive or `CHANGELOG.md` is published.
+and Contributors as GitHub avatar images. No custom source archive or
+`CHANGELOG.md` is published.
 
 Full procedure, host protections, and local production:
 [`docs/release/official-release.md`](docs/release/official-release.md).
