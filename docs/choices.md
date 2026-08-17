@@ -1,5 +1,39 @@
 # Choices
 
+## 2026-08-17 — CI hang-after-pass (grill Q1–Q3)
+
+### Defaults
+
+- Failure to fix: tests already passed, `xcodebuild` never exits (hang-after-pass). Not assertion flake. Not Required-gate optics. Not release `wait-for-ci`.
+- Do not rewrite the test suites. Fix host / runner teardown.
+- Done: job process exits when the last test finishes. Keep the 8-minute macOS job cap. No auto-retry. No silent 30-minute wait.
+
+## 2026-08-17 — CI hang-after-pass (grill Q4–Q6)
+
+### Defaults
+
+- Cut live I/O in hosted XCTest on both sides: host skips live start; `ApplicationTests` inject fakes and `stop()`.
+- After each `xcodebuild`, kill leftover Keyameleon from this run. Hygiene only — does not unblock a hung `xcodebuild`.
+- Keep UI-first: `KeyameleonUITests` then product bundles.
+
+## 2026-08-17 — CI hang-after-pass (grill Q7–Q10)
+
+### Defaults
+
+- Host skip via `startsApplicationSurfaceOnLaunch` (same shape as `startsUpdaterOnLaunch`). `override init` sets `false` when hosted unit tests. DI init defaults `true`. Skip switching, lifecycle observer, status item, guided-setup window.
+- `run.sh` may kill only `Keyameleon` whose executable is under `DERIVED_DATA_PATH`.
+- ADR for: hosted unit-test process must not start live CoreHID or the status item.
+- No extra per-`xcodebuild` timeout. 8-minute job cap stays the backstop.
+
+## 2026-08-17 — CI hang-after-pass (grill Q11–Q12)
+
+### Defaults
+
+- Hosted unit-test detect: `XCTestConfigurationFilePath` or `XCTestBundlePath`. UI tests omit both → stay live.
+- `startsUpdaterOnLaunch = false` when hosted unit tests. Keep the updater flag separate from `startsApplicationSurfaceOnLaunch`.
+- Test-only `KeyameleonApplicationDelegate` initializer defaults to `NoOpPhysicalKeyboardDiscoverer`, `NoOpPhysicalKeyboardEventObserver`, `NoOpInputSourceChangeObserver`, and `NoOpKeyameleonLifecycleObserver`.
+- Local `./Scripts/run.sh test` green in ~61s after the change (180 Swift Testing + 11 XCTest). `xcodebuild` exited after XCTest; no hang-after-pass.
+
 ## 2026-08-16 — DMG-only Official Release distribution (grill)
 
 ### Defaults
@@ -11,7 +45,7 @@
 - Publish the Sparkle appcast through GitHub Pages. Keep release evidence as a workflow artifact.
 - Do not change `v0.1.0` or preserve its old GitHub Releases feed. Its installed copies may require a manual update.
 - Copy the OpenUsage release-note structure: categorized changes, separator, Changelog with full comparison and change list, Contributors.
-- See ADR 0005.
+- See ADR 0006.
 
 ## 2026-08-16 — Sparkle EdDSA secret shape
 

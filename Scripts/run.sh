@@ -70,6 +70,19 @@ generate_project() {
     neutralize_legacy_user_build_locations
 }
 
+# Kill leftover Keyameleon processes whose executable is under derived data.
+# Does not kill an Official Release or `open` instance outside ./build.
+kill_leftover_derived_data_keyameleon() {
+    local pid command
+    /bin/ps -axww -o pid=,command= | while read -r pid command; do
+        case "${command}" in
+            "${DERIVED_DATA_PATH}/"*/Keyameleon.app/*)
+                kill "${pid}" 2>/dev/null || true
+                ;;
+        esac
+    done
+}
+
 run_tests() {
     bash -n \
         Scripts/official-release-notes.sh \
@@ -94,6 +107,7 @@ run_tests() {
         -parallel-testing-enabled NO \
         -only-testing:KeyameleonUITests \
         -derivedDataPath "${DERIVED_DATA_PATH}"
+    kill_leftover_derived_data_keyameleon
 
     xcodebuild test-without-building \
         -project Keyameleon.xcodeproj \
@@ -102,6 +116,7 @@ run_tests() {
         -parallel-testing-enabled NO \
         -skip-testing:KeyameleonUITests \
         -derivedDataPath "${DERIVED_DATA_PATH}"
+    kill_leftover_derived_data_keyameleon
 }
 
 build_app() {

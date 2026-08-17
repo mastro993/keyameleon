@@ -8,10 +8,16 @@ Run the complete local check with:
 
 This command runs the focused automated product tests on macOS 26 and the fast
 safety audit. It builds the test products once, runs the lifecycle UI test
-first, and then runs the remaining test bundles serially. Tests should protect
-one distinct user-visible outcome or one critical safety rule. Prefer domain
-and model seams. Use UI tests only when the behavior cannot be checked below
-the UI boundary.
+first, and then runs the remaining test bundles serially. After each
+`xcodebuild` test run it kills leftover Keyameleon processes whose executable
+is under `./build`. Tests should protect one distinct user-visible outcome or
+one critical safety rule. Prefer domain and model seams. Use UI tests only
+when the behavior cannot be checked below the UI boundary.
+
+Hosted unit-test processes (`KeyameleonSwiftTesting`, `KeyameleonXCTest`) must
+not start live CoreHID observation or the menu-bar status item. Detect them
+with `XCTestConfigurationFilePath` or `XCTestBundlePath`. UI tests launch the
+real app and stay live. See `docs/adr/0005-hosted-unit-tests-skip-live-surface.md`.
 
 CI uses one stable required gate with two paths:
 
