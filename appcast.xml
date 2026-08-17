@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Keyameleon</title>
+        <item>
+            <title>0.1.1</title>
+            <pubDate>Mon, 17 Aug 2026 13:30:25 +0000</pubDate>
+            <sparkle:version>0.1.1</sparkle:version>
+            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/mastro993/Keyameleon/releases/download/v0.1.1/Keyameleon-0.1.1.dmg" length="2303278" type="application/octet-stream" sparkle:edSignature="dRQPgOYa8xZ4OXg8YFi8Sljj0BQr+hUBmyqaS51IfxMmmDBYG9xkp1jEpc2vlCKgPJs/pcQfYqfDfgINldRWAA=="/>
+        </item>
+    </channel>
+</rss>
