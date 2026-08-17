@@ -84,6 +84,13 @@ kill_leftover_derived_data_keyameleon() {
 }
 
 run_tests() {
+    bash -n \
+        Scripts/official-release-notes.sh \
+        Scripts/verify-official-release-tag.sh \
+        Scripts/write-release-evidence.sh
+    zsh -n Scripts/official-release.sh
+    python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
+
     # Build once. Run the app-driving lifecycle test before hosted test bundles
     # so a delayed UI runner cannot hold completed product tests for 30 minutes.
     xcodebuild build-for-testing \

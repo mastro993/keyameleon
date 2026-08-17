@@ -1,5 +1,59 @@
 # Breadcrumbs
 
+## 2026-08-17 — Merge main #65 into DMG-only release
+
+- Kept both choice blocks: CI hang-after-pass and DMG-only Official Release.
+- `main` already shipped ADR 0005 (hosted unit tests). DMG-only ADR becomes 0006.
+
+## 2026-08-17 — Impl hang-after-pass
+
+- `startsApplicationSurfaceOnLaunch` + `KeyameleonHostedUnitTestProcess`.
+- Test-only DI defaults: NoOp discoverer / event / Input Source change / lifecycle.
+- `run.sh` kills leftover `./build/**/Keyameleon.app/**` after each test `xcodebuild`.
+- ADR 0005. `docs/testing.md` updated.
+
+## 2026-08-17 — Grill Q11–Q12 settled; frontier empty
+
+- Q11 B: `XCTestConfigurationFilePath` || `XCTestBundlePath`.
+- Q12 A: host Sparkle off for hosted unit tests.
+- Default (no extra Q): ApplicationTests fakes stay local in that file. No shared test-support target.
+
+## 2026-08-17 — Grill Q7–Q10 settled
+
+- Q7 A: `startsApplicationSurfaceOnLaunch` flag. Do not branch `didFinishLaunching` on env.
+- Q8 A: kill leftover only if path under `./build`.
+- Q9 A: ADR yes.
+- Q10 A: no extra `xcodebuild` timeout now.
+- Residual: Swift Testing is also `bundle.unit-test` hosted in app. Host Sparkle still `startsUpdaterOnLaunch: !isUITesting`.
+
+## 2026-08-17 — Grill Q4–Q6 settled
+
+- Q4 C: host skip live start + ApplicationTests fakes/`stop()`.
+- Q5 B: kill leftover Keyameleon after each `xcodebuild` (hygiene, not hang unblock).
+- Q6 A: keep UI-first split.
+- Fact: System discoverer/observer start only in `start()`, not `init`. `isXCTestHost` inside `applicationDidFinishLaunching` would also skip ApplicationTests that need the status item.
+
+## 2026-08-17 — Grill Q1–Q3 settled
+
+- Q1 A: hang-after-pass.
+- Q2 A: no suite rewrite; fix host/`xcodebuild` teardown.
+- Q3 A: exit when last test finishes; 8 min cap stays.
+
+## 2026-08-17 — Grill: CI hang vs suite rewrite
+
+- User claim: CI stuck for no reason → rewrite all test suites.
+- Fact: run 31839656616 — `KeyameleonApplicationTests` 10/10 pass, then `xcodebuild` idle until "timed out after 10 minutes." Orphan: `xcodebuild`, `SWBBuildService`, `DTServiceHub`. Last logs: NSStatusItem / Control Center scene teardown + `TCC deny IOHIDDeviceOpen`.
+- CI #136 (PR #64, 2026-08-17): job annotation `The job has exceeded the maximum execution time of 8m0s`. Same class, now capped.
+- `ApplicationTests` host `Keyameleon.app`; `applicationDidFinishLaunching` always `activityTriggeredSwitching.start()` with default `SystemPhysicalKeyboardDiscoverer` + `SystemPhysicalKeyboardEventObserver` — unbounded CoreHID `for try await`.
+- `run.sh` already splits UI tests first: "delayed UI runner cannot hold completed product tests for 30 minutes."
+- ADR 0001 already killed qualification bloat. Green code CI after #61 ≈ 3 min. Hang is host/runner exit, not suite design.
+
+## 2026-08-17 — DMG-only Official Release
+
+- ADR 0006. GitHub Release publishes only `Keyameleon-<version>.dmg`. Appcast goes to GitHub Pages. Evidence stays a workflow artifact.
+- `v0.1.0` already published as ZIP + source tar + appcast + evidence. Not migrated. Next Official Release is a new version.
+- Host Pages is off today (`gh api .../pages` 404). Enable `gh-pages` `/ (root)` before the next `workflow_dispatch`.
+
 ## 2026-08-16 — Sparkle key "isn't base64"
 
 - Run 31942341947 `produce` died after staple:
@@ -224,46 +278,3 @@
 - Model: merge connected catalog + saved disconnected; active ID; forget/replace; no Input Source request on disconnect.
 - UI: connection/active labels; Replace picker + confirm; Forget confirm.
 - Follow-on: #5 wires Activation Activity into event observer and real selection.
-
-## 2026-08-17 — Impl hang-after-pass
-
-- `startsApplicationSurfaceOnLaunch` + `KeyameleonHostedUnitTestProcess`.
-- Test-only DI defaults: NoOp discoverer / event / Input Source change / lifecycle.
-- `run.sh` kills leftover `./build/**/Keyameleon.app/**` after each test `xcodebuild`.
-- ADR 0005. `docs/testing.md` updated.
-
-## 2026-08-17 — Grill Q11–Q12 settled; frontier empty
-
-- Q11 B: `XCTestConfigurationFilePath` || `XCTestBundlePath`.
-- Q12 A: host Sparkle off for hosted unit tests.
-- Default (no extra Q): ApplicationTests fakes stay local in that file. No shared test-support target.
-
-## 2026-08-17 — Grill Q7–Q10 settled
-
-- Q7 A: `startsApplicationSurfaceOnLaunch` flag. Do not branch `didFinishLaunching` on env.
-- Q8 A: kill leftover only if path under `./build`.
-- Q9 A: ADR yes.
-- Q10 A: no extra `xcodebuild` timeout now.
-- Residual: Swift Testing is also `bundle.unit-test` hosted in app. Host Sparkle still `startsUpdaterOnLaunch: !isUITesting`.
-
-## 2026-08-17 — Grill Q4–Q6 settled
-
-- Q4 C: host skip live start + ApplicationTests fakes/`stop()`.
-- Q5 B: kill leftover Keyameleon after each `xcodebuild` (hygiene, not hang unblock).
-- Q6 A: keep UI-first split.
-- Fact: System discoverer/observer start only in `start()`, not `init`. `isXCTestHost` inside `applicationDidFinishLaunching` would also skip ApplicationTests that need the status item.
-
-## 2026-08-17 — Grill Q1–Q3 settled
-
-- Q1 A: hang-after-pass.
-- Q2 A: no suite rewrite; fix host/`xcodebuild` teardown.
-- Q3 A: exit when last test finishes; 8 min cap stays.
-
-## 2026-08-17 — Grill: CI hang vs suite rewrite
-
-- User claim: CI stuck for no reason → rewrite all test suites.
-- Fact: run 31839656616 — `KeyameleonApplicationTests` 10/10 pass, then `xcodebuild` idle until "timed out after 10 minutes." Orphan: `xcodebuild`, `SWBBuildService`, `DTServiceHub`. Last logs: NSStatusItem / Control Center scene teardown + `TCC deny IOHIDDeviceOpen`.
-- CI #136 (PR #64, 2026-08-17): job annotation `The job has exceeded the maximum execution time of 8m0s`. Same class, now capped.
-- `ApplicationTests` host `Keyameleon.app`; `applicationDidFinishLaunching` always `activityTriggeredSwitching.start()` with default `SystemPhysicalKeyboardDiscoverer` + `SystemPhysicalKeyboardEventObserver` — unbounded CoreHID `for try await`.
-- `run.sh` already splits UI tests first: "delayed UI runner cannot hold completed product tests for 30 minutes."
-- ADR 0001 already killed qualification bloat. Green code CI after #61 ≈ 3 min. Hang is host/runner exit, not suite design.

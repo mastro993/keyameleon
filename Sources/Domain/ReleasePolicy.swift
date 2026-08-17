@@ -8,17 +8,14 @@ enum KeyameleonReleasePolicy {
     /// Only the latest Official Release receives maintenance.
     static let supportedReleaseIsLatestOnly = true
 
-    /// Artifact basename published for the Stable Channel on GitHub Releases.
-    static let applicationArchiveNamePrefix = "Keyameleon"
+    /// Disk image basename published for the Stable Channel on GitHub Releases.
+    static let diskImageNamePrefix = "Keyameleon"
 
-    /// Sparkle feed filename published next to the archive.
+    /// Sparkle feed filename published through GitHub Pages.
     static let appcastFileName = "appcast.xml"
 
     /// Evidence filename that binds artifact hash to source tag.
     static let evidenceFileName = "release-evidence.json"
-
-    /// Source archive attachment name pattern used on GitHub Releases.
-    static let sourceArchiveNamePrefix = "Keyameleon-source"
 
     /// Returns the Semantic Versioning core string when `tag` is an Official Release tag.
     ///
@@ -38,14 +35,9 @@ enum KeyameleonReleasePolicy {
         semanticVersion(fromOfficialReleaseTag: tag) != nil
     }
 
-    /// Zip name for a given Semantic Versioning core string.
-    static func applicationArchiveFileName(version: String) -> String {
-        "\(applicationArchiveNamePrefix)-\(version).zip"
-    }
-
-    /// Source archive name for a given Semantic Versioning core string.
-    static func sourceArchiveFileName(version: String) -> String {
-        "\(sourceArchiveNamePrefix)-\(version).tar.gz"
+    /// Disk image name for a given Semantic Versioning core string.
+    static func diskImageFileName(version: String) -> String {
+        "\(diskImageNamePrefix)-\(version).dmg"
     }
 }
 
@@ -58,7 +50,6 @@ struct KeyameleonReleaseEvidence: Equatable, Codable, Sendable {
     var gitCommit: String
     var artifactFileName: String
     var artifactSHA256: String
-    var sourceArchiveFileName: String
     var appcastFileName: String
     var feedURLString: String
 
@@ -70,7 +61,6 @@ struct KeyameleonReleaseEvidence: Equatable, Codable, Sendable {
         gitCommit: String,
         artifactFileName: String,
         artifactSHA256: String,
-        sourceArchiveFileName: String,
         appcastFileName: String = KeyameleonReleasePolicy.appcastFileName,
         feedURLString: String = KeyameleonUpdatePolicy.feedURLString
     ) {
@@ -81,7 +71,6 @@ struct KeyameleonReleaseEvidence: Equatable, Codable, Sendable {
         self.gitCommit = gitCommit
         self.artifactFileName = artifactFileName
         self.artifactSHA256 = artifactSHA256
-        self.sourceArchiveFileName = sourceArchiveFileName
         self.appcastFileName = appcastFileName
         self.feedURLString = feedURLString
     }
@@ -104,17 +93,14 @@ struct KeyameleonReleaseEvidence: Equatable, Codable, Sendable {
             tag: tag,
             semanticVersion: semanticVersion,
             gitCommit: gitCommit,
-            artifactFileName: KeyameleonReleasePolicy.applicationArchiveFileName(
+            artifactFileName: KeyameleonReleasePolicy.diskImageFileName(
                 version: semanticVersion
             ),
-            artifactSHA256: artifactSHA256.lowercased(),
-            sourceArchiveFileName: KeyameleonReleasePolicy.sourceArchiveFileName(
-                version: semanticVersion
-            )
+            artifactSHA256: artifactSHA256.lowercased()
         )
     }
 
-    /// Pretty-printed JSON for the public evidence attachment.
+    /// Pretty-printed JSON for workflow evidence.
     func jsonData() throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
