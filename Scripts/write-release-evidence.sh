@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Writes release-evidence.json binding artifact SHA-256 to the Official Release source tag.
+# Writes release-evidence.json binding the Official Release DMG SHA-256 to its source tag.
 # Field names match KeyameleonReleaseEvidence Codable keys.
 set -euo pipefail
 
 usage() {
-    echo "usage: write-release-evidence.sh --tag <vX.Y.Z> --commit <sha> --artifact <zip> --output <path>" >&2
+    echo "usage: write-release-evidence.sh --tag <vX.Y.Z> --commit <sha> --artifact <dmg> --output <path>" >&2
     exit 64
 }
 
@@ -55,13 +55,16 @@ if [[ -z "$commit" ]]; then
 fi
 
 sha256="$(shasum -a 256 "$artifact" | awk '{print $1}')"
-archive_name="Keyameleon-${version}.zip"
-source_name="Keyameleon-source-${version}.tar.gz"
-feed_url="https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml"
+archive_name="Keyameleon-${version}.dmg"
+if [[ "$(basename "$artifact")" != "$archive_name" ]]; then
+    echo "artifact must be named ${archive_name}" >&2
+    exit 1
+fi
+feed_url="https://mastro993.github.io/Keyameleon/appcast.xml"
 
 mkdir -p "$(dirname "$output")"
 
-python3 - "$output" "$tag" "$version" "$commit" "$archive_name" "$sha256" "$source_name" "$feed_url" <<'PY'
+python3 - "$output" "$tag" "$version" "$commit" "$archive_name" "$sha256" "$feed_url" <<'PY'
 import json
 import sys
 
@@ -72,9 +75,8 @@ import sys
     commit,
     archive_name,
     sha256,
-    source_name,
     feed_url,
-) = sys.argv[1:9]
+) = sys.argv[1:8]
 
 evidence = {
     "product": "Keyameleon",
@@ -84,7 +86,6 @@ evidence = {
     "gitCommit": commit,
     "artifactFileName": archive_name,
     "artifactSHA256": sha256,
-    "sourceArchiveFileName": source_name,
     "appcastFileName": "appcast.xml",
     "feedURLString": feed_url,
 }

@@ -7,6 +7,13 @@ protocol PhysicalKeyboardDiscovering: AnyObject {
     func stop()
 }
 
+/// Test double / no-op default when discovery is not started.
+@MainActor
+final class NoOpPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
+    func start(onChange: @escaping @MainActor (PhysicalKeyboardDiscoveryChange) -> Void) {}
+    func stop() {}
+}
+
 @MainActor
 final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
     private var task: Task<Void, Never>?

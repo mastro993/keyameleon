@@ -8,6 +8,64 @@
 - BLE Physical Keyboards without a USB serial use the Bluetooth device address as the hardware identity. CoreHID unique IDs are software and churn on reconnect.
 - Built-in identity and serial-number identity stay unchanged.
 
+## 2026-08-17 — Release contributor avatars
+
+### Defaults
+
+- Keep the `### Contributors` heading (ADR 0006). Emit avatar images, not names
+  or `@login` bullets: `![@login](https://avatars.githubusercontent.com/u/{id}?s=64&v=4)`.
+- Resolve login+id from the associated PR user, then commit `.author`. Git name
+  only when GitHub has no user.
+- Grant Release workflow `pull-requests: read`. Explicit `permissions` dropped
+  that scope → `/commits/{sha}/pulls` failed silent → v0.1.1 used git names.
+
+## 2026-08-17 — CI hang-after-pass (grill Q1–Q3)
+
+### Defaults
+
+- Failure to fix: tests already passed, `xcodebuild` never exits (hang-after-pass). Not assertion flake. Not Required-gate optics. Not release `wait-for-ci`.
+- Do not rewrite the test suites. Fix host / runner teardown.
+- Done: job process exits when the last test finishes. Keep the 8-minute macOS job cap. No auto-retry. No silent 30-minute wait.
+
+## 2026-08-17 — CI hang-after-pass (grill Q4–Q6)
+
+### Defaults
+
+- Cut live I/O in hosted XCTest on both sides: host skips live start; `ApplicationTests` inject fakes and `stop()`.
+- After each `xcodebuild`, kill leftover Keyameleon from this run. Hygiene only — does not unblock a hung `xcodebuild`.
+- Keep UI-first: `KeyameleonUITests` then product bundles.
+
+## 2026-08-17 — CI hang-after-pass (grill Q7–Q10)
+
+### Defaults
+
+- Host skip via `startsApplicationSurfaceOnLaunch` (same shape as `startsUpdaterOnLaunch`). `override init` sets `false` when hosted unit tests. DI init defaults `true`. Skip switching, lifecycle observer, status item, guided-setup window.
+- `run.sh` may kill only `Keyameleon` whose executable is under `DERIVED_DATA_PATH`.
+- ADR for: hosted unit-test process must not start live CoreHID or the status item.
+- No extra per-`xcodebuild` timeout. 8-minute job cap stays the backstop.
+
+## 2026-08-17 — CI hang-after-pass (grill Q11–Q12)
+
+### Defaults
+
+- Hosted unit-test detect: `XCTestConfigurationFilePath` or `XCTestBundlePath`. UI tests omit both → stay live.
+- `startsUpdaterOnLaunch = false` when hosted unit tests. Keep the updater flag separate from `startsApplicationSurfaceOnLaunch`.
+- Test-only `KeyameleonApplicationDelegate` initializer defaults to `NoOpPhysicalKeyboardDiscoverer`, `NoOpPhysicalKeyboardEventObserver`, `NoOpInputSourceChangeObserver`, and `NoOpKeyameleonLifecycleObserver`.
+- Local `./Scripts/run.sh test` green in ~61s after the change (180 Swift Testing + 11 XCTest). `xcodebuild` exited after XCTest; no hang-after-pass.
+
+## 2026-08-16 — DMG-only Official Release distribution (grill)
+
+### Defaults
+
+- Supersede the ZIP-primary and GitHub-Releases-feed defaults from the 2026-08-14 Official Release workflow decision.
+- Publish only `Keyameleon-<version>.dmg` as a Keyameleon-managed GitHub Release asset. GitHub-generated source links remain.
+- Put `Keyameleon.app` and an Applications shortcut in the disk image.
+- Do not publish a ZIP, custom source archive, `appcast.xml`, `release-evidence.json`, `CHANGELOG.md`, or changelog artifact on the release page.
+- Publish the Sparkle appcast through GitHub Pages. Keep release evidence as a workflow artifact.
+- Do not change `v0.1.0` or preserve its old GitHub Releases feed. Its installed copies may require a manual update.
+- Release-note structure: categorized changes, separator, Changelog with full comparison and change list, Contributors.
+- See ADR 0006.
+
 ## 2026-08-16 — Sparkle EdDSA secret shape
 
 ### Defaults

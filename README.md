@@ -17,7 +17,7 @@ Status **Ready**. No Key Content. No Settings window.-->
 
 ## Installation
 
-**Official Release:** download the latest `Keyameleon-<version>.zip` from the
+**Official Release:** download the latest `Keyameleon-<version>.dmg` from the
 [releases page](https://github.com/mastro993/Keyameleon/releases/latest), open
 it, and drag Keyameleon into Applications.
 
@@ -114,10 +114,10 @@ Input Monitoring across launches.
 
 ## Releasing
 
-The latest Official Release is the only Supported Release. Artifacts are
+The latest Official Release is the only Supported Release. The DMG is
 source-traceable, Developer ID signed, hardened-runtime, notarized, and
-stapled. Sparkle `appcast.xml` ships on GitHub Releases. V1 has one Channel:
-Stable.
+stapled. Sparkle `appcast.xml` is published on GitHub Pages. V1 has one
+Channel: Stable.
 
 Run **Actions → Release → Run workflow** on a reviewed, green `main`.
 Set **version** to Semantic Versioning core only (`1.2.3`). The workflow
@@ -129,10 +129,14 @@ approval (when the host plan enforces reviewers), CI builds, signs,
 notarizes, staples, writes `appcast.xml` and `release-evidence.json`, tags,
 and publishes:
 
-- `Keyameleon-<version>.zip`
-- `Keyameleon-source-<version>.tar.gz`
-- `appcast.xml`
-- `release-evidence.json`
+- `Keyameleon-<version>.dmg` on the GitHub Release
+- `appcast.xml` on GitHub Pages
+- `release-evidence.json` as a workflow artifact only
+
+The DMG contains `Keyameleon.app` and an Applications shortcut. Release notes
+use categorized changes, a Changelog with the full comparison and commit list,
+and Contributors as GitHub avatar images. No custom source archive or
+`CHANGELOG.md` is published.
 
 Full procedure, host protections, and local production:
 [`docs/release/official-release.md`](docs/release/official-release.md).

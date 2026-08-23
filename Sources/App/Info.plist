@@ -35,7 +35,7 @@
 	<key>SUEnableSystemProfiling</key>
 	<false/>
 	<key>SUFeedURL</key>
-	<string>https://github.com/mastro993/Keyameleon/releases/latest/download/appcast.xml</string>
+	<string>https://mastro993.github.io/Keyameleon/appcast.xml</string>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 </dict>
