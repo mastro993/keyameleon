@@ -11,6 +11,7 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
     private enum HardwareAnchor: Hashable, Sendable {
         case builtIn
         case serialNumber(String)
+        case bluetoothAddress(String)
 
         var rawValue: String {
             switch self {
@@ -18,6 +19,8 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
                 "built-in"
             case let .serialNumber(value):
                 "serial:\(value)"
+            case let .bluetoothAddress(value):
+                "bluetooth:\(value)"
             }
         }
     }
@@ -33,21 +36,29 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
         serialNumber: nil
     )!
 
-    init?(rawValue: String, isBuiltIn: Bool, serialNumber: String?) {
+    init?(
+        rawValue: String,
+        isBuiltIn: Bool,
+        serialNumber: String?,
+        bluetoothAddress: String? = nil
+    ) {
         let normalized = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else {
             return nil
         }
 
-        value = normalized
         if isBuiltIn {
+            value = normalized
             hardwareAnchor = .builtIn
-        } else if let serialNumber = serialNumber?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-            !serialNumber.isEmpty
-        {
+        } else if let serialNumber = Self.normalizedHardwareToken(serialNumber) {
+            value = normalized
             hardwareAnchor = .serialNumber(serialNumber)
+        } else if let bluetoothAddress = Self.normalizedBluetoothAddress(bluetoothAddress) {
+            // CoreHID unique IDs churn on BLE reconnect. Group by the MAC.
+            value = "bluetooth:\(bluetoothAddress)"
+            hardwareAnchor = .bluetoothAddress(bluetoothAddress)
         } else {
+            value = normalized
             hardwareAnchor = nil
         }
     }
@@ -62,6 +73,49 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
 
     fileprivate var groupingKey: String {
         value
+    }
+
+    private static func normalizedHardwareToken(_ raw: String?) -> String? {
+        guard let normalized = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !normalized.isEmpty
+        else {
+            return nil
+        }
+        return normalized
+    }
+
+    static func normalizedBluetoothAddress(_ raw: String?) -> String? {
+        guard let raw else {
+            return nil
+        }
+
+        let hex = raw.lowercased().filter(\.isHexDigit)
+        guard hex.count == 12 else {
+            return nil
+        }
+        return hex
+    }
+}
+
+/// HID usage facts used to tell a typing keyboard from a pointer that also
+/// exposes a keyboard collection (Logitech MX Master extra buttons).
+struct PhysicalKeyboardHIDRecognition: Equatable, Sendable {
+    var hasKeyboardUsage: Bool
+    var hasMouseUsage: Bool
+    var hasKeyboardLED: Bool
+
+    var isPhysicalKeyboard: Bool {
+        guard hasKeyboardUsage else {
+            return false
+        }
+
+        // Pointer-first composites advertise keyboard usage for extra buttons.
+        // A typing keyboard that also has a pointing collection still has LEDs.
+        if hasMouseUsage && !hasKeyboardLED {
+            return false
+        }
+
+        return true
     }
 }
 

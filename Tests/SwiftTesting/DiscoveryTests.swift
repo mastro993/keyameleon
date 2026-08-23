@@ -67,6 +67,69 @@ func externalIdentityWithoutSerialFactIsUnstable() {
     #expect(facts.identityStability == .unstable)
 }
 
+@Test("Bluetooth address without serial is a stable Physical Keyboard Identity")
+func bluetoothAddressWithoutSerialIsStablePhysicalKeyboardIdentity() {
+    let facts = makeHardwareFacts(
+        serviceID: 73,
+        serialNumber: nil,
+        bluetoothAddress: "fe-f0-58-87-af-5f"
+    )
+
+    #expect(facts.identityStability == .stable)
+    #expect(facts.identity?.isStable == true)
+}
+
+@Test("Matching Bluetooth addresses group HID services as one Physical Keyboard")
+func matchingBluetoothAddressesGroupHIDServicesAsOnePhysicalKeyboard() {
+    var catalog = PhysicalKeyboardCatalog()
+
+    catalog.apply(
+        .connected(
+            makeHardwareFacts(
+                serviceID: 74,
+                identity: "software-a",
+                serialNumber: nil,
+                bluetoothAddress: "fe-f0-58-87-af-5f"
+            )
+        )
+    )
+    catalog.apply(
+        .connected(
+            makeHardwareFacts(
+                serviceID: 75,
+                identity: "software-b",
+                serialNumber: nil,
+                bluetoothAddress: "FE:F0:58:87:AF:5F"
+            )
+        )
+    )
+
+    #expect(catalog.physicalKeyboards.count == 1)
+    #expect(catalog.physicalKeyboards[0].isAssignable)
+}
+
+@Test("Pointer HID with keyboard usage and no LED is not a Physical Keyboard")
+func pointerHIDWithKeyboardUsageAndNoLEDIsNotPhysicalKeyboard() {
+    let recognition = PhysicalKeyboardHIDRecognition(
+        hasKeyboardUsage: true,
+        hasMouseUsage: true,
+        hasKeyboardLED: false
+    )
+
+    #expect(!recognition.isPhysicalKeyboard)
+}
+
+@Test("Keyboard HID with pointing collection and LED is a Physical Keyboard")
+func keyboardHIDWithPointingCollectionAndLEDIsPhysicalKeyboard() {
+    let recognition = PhysicalKeyboardHIDRecognition(
+        hasKeyboardUsage: true,
+        hasMouseUsage: true,
+        hasKeyboardLED: true
+    )
+
+    #expect(recognition.isPhysicalKeyboard)
+}
+
 @Test("Different serial facts make a shared Physical Keyboard Identity unsupported")
 func differentSerialFactsMakeSharedPhysicalKeyboardIdentityUnsupported() {
     var catalog = PhysicalKeyboardCatalog()
@@ -296,7 +359,8 @@ private func makeHardwareFacts(
     serviceID: UInt64,
     identity: String? = "macos.keyboard.shared",
     productID: UInt32 = 100,
-    serialNumber: String? = "keyboard-a"
+    serialNumber: String? = "keyboard-a",
+    bluetoothAddress: String? = nil
 ) -> PhysicalKeyboardHardwareFacts {
     PhysicalKeyboardHardwareFacts(
         serviceID: serviceID,
@@ -304,7 +368,8 @@ private func makeHardwareFacts(
             PhysicalKeyboardIdentity(
                 rawValue: $0,
                 isBuiltIn: false,
-                serialNumber: serialNumber
+                serialNumber: serialNumber,
+                bluetoothAddress: bluetoothAddress
             )
         },
         name: "Test Keyboard",

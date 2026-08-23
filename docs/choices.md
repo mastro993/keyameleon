@@ -1,5 +1,13 @@
 # Choices
 
+## 2026-08-23 — BLE keyboard identity and pointer HID
+
+### Defaults
+
+- A HID service is a Physical Keyboard only if it has keyboard usage and is not a pointer-first composite. Pointer-first composites (Logitech MX Master) advertise keyboard usage for extra buttons and have no keyboard LEDs. Typing keyboards that also expose a pointing collection (AULA-F75 knob) still have keyboard LEDs.
+- BLE Physical Keyboards without a USB serial use the Bluetooth device address as the hardware identity. CoreHID unique IDs are software and churn on reconnect.
+- Built-in identity and serial-number identity stay unchanged.
+
 ## 2026-08-17 — Release contributor avatars
 
 ### Defaults

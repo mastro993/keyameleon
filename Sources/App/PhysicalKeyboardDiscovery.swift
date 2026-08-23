@@ -66,19 +66,25 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
             return nil
         }
 
-        guard await client.primaryUsage == .genericDesktop(.keyboard) else {
+        guard await PhysicalKeyboardHIDInspection.recognition(for: client)
+            .isPhysicalKeyboard
+        else {
             return nil
         }
 
-        // CoreHID's unique ID is software-based. The hardware anchor is required
-        // before the identity can make a Physical Keyboard assignable.
+        // CoreHID's unique ID is software-based. Serial number or BLE address
+        // is required before the identity can make a Physical Keyboard assignable.
         let isBuiltIn = await client.isBuiltIn
         let serialNumber = await client.serialNumber
+        let bluetoothAddress = await PhysicalKeyboardHIDInspection.bluetoothAddress(
+            for: client
+        )
         let identity = await client.uniqueID.flatMap {
             PhysicalKeyboardIdentity(
                 rawValue: $0,
                 isBuiltIn: isBuiltIn,
-                serialNumber: serialNumber
+                serialNumber: serialNumber,
+                bluetoothAddress: bluetoothAddress
             )
         }
 
@@ -106,6 +112,64 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
         default:
             .other
         }
+    }
+}
+
+enum PhysicalKeyboardHIDInspection {
+    static func recognition(for client: HIDDeviceClient) async -> PhysicalKeyboardHIDRecognition {
+        let primaryUsage = await client.primaryUsage
+        let deviceUsages = await client.deviceUsages
+        let usages = [primaryUsage] + deviceUsages
+
+        return PhysicalKeyboardHIDRecognition(
+            hasKeyboardUsage: usages.contains { isKeyboardUsage($0) },
+            hasMouseUsage: usages.contains { isMouseUsage($0) },
+            hasKeyboardLED: await client.elements.contains { isKeyboardLED($0) }
+        )
+    }
+
+    static func bluetoothAddress(for client: HIDDeviceClient) async -> String? {
+        guard let property = await client["DeviceAddress"] else {
+            return nil
+        }
+
+        if let address = property.unsafeObject as? String {
+            return PhysicalKeyboardIdentity.normalizedBluetoothAddress(address)
+        }
+
+        if let data = property.unsafeObject as? Data, data.count == 6 {
+            return data.map { String(format: "%02x", $0) }.joined()
+        }
+
+        return nil
+    }
+
+    private static func isKeyboardUsage(_ usage: HIDUsage) -> Bool {
+        if case .genericDesktop(.keyboard) = usage {
+            return true
+        }
+        if case .genericDesktop(.keypad) = usage {
+            return true
+        }
+        return false
+    }
+
+    private static func isMouseUsage(_ usage: HIDUsage) -> Bool {
+        if case .genericDesktop(.mouse) = usage {
+            return true
+        }
+        return false
+    }
+
+    private static func isKeyboardLED(_ element: HIDElement) -> Bool {
+        guard element.type == .output else {
+            return false
+        }
+
+        if case .led = element.usage {
+            return true
+        }
+        return false
     }
 }
 
