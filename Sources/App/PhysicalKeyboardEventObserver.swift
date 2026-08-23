@@ -67,6 +67,12 @@ final class SystemPhysicalKeyboardEventObserver: PhysicalKeyboardEventObserving 
                 return
             }
 
+            guard await PhysicalKeyboardHIDInspection.recognition(for: client)
+                .isPhysicalKeyboard
+            else {
+                return
+            }
+
             // Never call seizeDevice. Listen-only public observation only.
             let elements = await client.elements.filter { element in
                 Self.isSupportedActivationElement(element)
