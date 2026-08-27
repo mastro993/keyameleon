@@ -5,13 +5,6 @@ struct KeyameleonRootView: View {
     private let model: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
     @ObservedObject private var diagnosticModel: KeyameleonGeneralSettingsModel
-    @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
-    @State private var replacePickerKeyboardID: PhysicalKeyboardRecordID?
-    @State private var pendingReplaceConnectedID: PhysicalKeyboardRecordID?
-    @State private var replaceTargetDisconnectedID: PhysicalKeyboardRecordID?
-    @State private var forgetCandidateID: PhysicalKeyboardRecordID?
-    @State private var nameDrafts: [String: String] = [:]
-    @State private var designationNameDraft = ""
 
     init(
         model: KeyameleonSetupModel,
@@ -39,7 +32,10 @@ struct KeyameleonRootView: View {
                 }
 
                 if model.showsAssignmentSetup {
-                    configuration
+                    KeyameleonKeyboardSettingsView(
+                        model: model,
+                        contentPadding: 0
+                    )
                 }
 
                 if model.shouldOfferOperationalNotificationSetup {
@@ -51,178 +47,6 @@ struct KeyameleonRootView: View {
             .accessibilityIdentifier("guided-setup")
         }
         .frame(minWidth: 460, minHeight: 280)
-        .sheet(item: assignmentPickerBinding) { keyboard in
-            KeyboardAssignmentPickerView(
-                physicalKeyboard: keyboard,
-                filteredInputSources: { query in
-                    model.filteredInputSources(matching: query)
-                },
-                onSelect: { inputSource in
-                    model.setKeyboardAssignment(
-                        keyboard.id,
-                        inputSourceIdentifier: inputSource.identifier
-                    )
-                    assignmentPickerKeyboardID = nil
-                },
-                onCancel: {
-                    assignmentPickerKeyboardID = nil
-                }
-            )
-        }
-        .sheet(item: replacePickerBinding) { keyboard in
-            ReplaceSavedPhysicalKeyboardPickerView(
-                physicalKeyboard: keyboard,
-                candidates: model.replaceCandidates(for: keyboard.id),
-                onSelect: { candidate in
-                    replacePickerKeyboardID = nil
-                    replaceTargetDisconnectedID = candidate.id
-                },
-                onCancel: {
-                    replacePickerKeyboardID = nil
-                    pendingReplaceConnectedID = nil
-                }
-            )
-        }
-        .confirmationDialog(
-            "Forget Physical Keyboard?",
-            isPresented: forgetConfirmationPresented,
-            titleVisibility: .visible
-        ) {
-            Button("Forget", role: .destructive) {
-                if let forgetCandidateID {
-                    model.forgetPhysicalKeyboard(forgetCandidateID)
-                }
-                forgetCandidateID = nil
-            }
-            Button("Cancel", role: .cancel) {
-                forgetCandidateID = nil
-            }
-        } message: {
-            if let forgetCandidateID {
-                Text(model.forgetConfirmationMessage(for: forgetCandidateID))
-            }
-        }
-        .confirmationDialog(
-            "Replace Saved Physical Keyboard?",
-            isPresented: replaceConfirmationPresented,
-            titleVisibility: .visible
-        ) {
-            Button("Replace", role: .destructive) {
-                if let pendingReplaceConnectedID,
-                   let replaceTargetDisconnectedID
-                {
-                    model.replaceSavedPhysicalKeyboard(
-                        replaceTargetDisconnectedID,
-                        with: pendingReplaceConnectedID
-                    )
-                }
-                self.replaceTargetDisconnectedID = nil
-                self.pendingReplaceConnectedID = nil
-            }
-            Button("Cancel", role: .cancel) {
-                replaceTargetDisconnectedID = nil
-                pendingReplaceConnectedID = nil
-            }
-        } message: {
-            if let pendingReplaceConnectedID,
-               let replaceTargetDisconnectedID
-            {
-                Text(
-                    model.replaceConfirmationMessage(
-                        replacing: replaceTargetDisconnectedID,
-                        with: pendingReplaceConnectedID
-                    )
-                )
-            }
-        }
-        .sheet(isPresented: designationNameConfirmationPresented) {
-            ManualPhysicalKeyboardDesignationNameSheet(
-                nameDraft: $designationNameDraft,
-                onConfirm: {
-                    model.confirmManualDesignationName(designationNameDraft)
-                    designationNameDraft = ""
-                },
-                onCancel: {
-                    model.cancelManualDesignation()
-                    designationNameDraft = ""
-                }
-            )
-            .onAppear {
-                if case let .awaitingNameConfirmation(_, productName) = model.manualDesignationPhase {
-                    designationNameDraft = productName
-                }
-            }
-        }
-    }
-
-    private var designationNameConfirmationPresented: Binding<Bool> {
-        Binding(
-            get: {
-                if case .awaitingNameConfirmation = model.manualDesignationPhase {
-                    return true
-                }
-                return false
-            },
-            set: { isPresented in
-                if !isPresented, case .awaitingNameConfirmation = model.manualDesignationPhase {
-                    model.cancelManualDesignation()
-                    designationNameDraft = ""
-                }
-            }
-        )
-    }
-
-    private var forgetConfirmationPresented: Binding<Bool> {
-        Binding(
-            get: { forgetCandidateID != nil },
-            set: { isPresented in
-                if !isPresented {
-                    forgetCandidateID = nil
-                }
-            }
-        )
-    }
-
-    private var replaceConfirmationPresented: Binding<Bool> {
-        Binding(
-            get: { replaceTargetDisconnectedID != nil },
-            set: { isPresented in
-                if !isPresented {
-                    replaceTargetDisconnectedID = nil
-                    pendingReplaceConnectedID = nil
-                }
-            }
-        )
-    }
-
-    private var assignmentPickerBinding: Binding<PhysicalKeyboard?> {
-        Binding(
-            get: {
-                guard let assignmentPickerKeyboardID else {
-                    return nil
-                }
-
-                return model.physicalKeyboards.first { $0.id == assignmentPickerKeyboardID }
-            },
-            set: { keyboard in
-                assignmentPickerKeyboardID = keyboard?.id
-            }
-        )
-    }
-
-    private var replacePickerBinding: Binding<PhysicalKeyboard?> {
-        Binding(
-            get: {
-                guard let replacePickerKeyboardID else {
-                    return nil
-                }
-
-                return model.physicalKeyboards.first { $0.id == replacePickerKeyboardID }
-            },
-            set: { keyboard in
-                replacePickerKeyboardID = keyboard?.id
-            }
-        )
     }
 
     private var permissionSetup: some View {
@@ -469,174 +293,6 @@ struct KeyameleonRootView: View {
         }
     }
 
-    private var configuration: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text("Physical Keyboards")
-                .font(.headline)
-
-            if let designationStatus = model.manualDesignationStatusText() {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(designationStatus)
-                        .foregroundStyle(.secondary)
-                    Button("Cancel Designation") {
-                        model.cancelManualDesignation()
-                    }
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-            }
-
-            if model.physicalKeyboards.isEmpty {
-                Text("No Physical Keyboards found.")
-                    .foregroundStyle(.secondary)
-            } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(model.physicalKeyboards) { physicalKeyboard in
-                        physicalKeyboardRow(physicalKeyboard)
-                    }
-                }
-            }
-
-            if !model.isSetupComplete {
-                Text("Applies after next Activation Activity")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.top, 4)
-        .accessibilityIdentifier("physical-keyboard-configuration")
-    }
-
-    private func physicalKeyboardRow(_ physicalKeyboard: PhysicalKeyboard) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                if physicalKeyboard.isAssignable {
-                    Text("Physical Keyboard Name")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(physicalKeyboard.name)
-                        .font(.body.weight(.medium))
-                }
-
-                Spacer()
-
-                if physicalKeyboard.isActive {
-                    Text("Active")
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(.tint.opacity(0.15), in: Capsule())
-                }
-            }
-
-            if physicalKeyboard.isAssignable {
-                TextField(
-                    physicalKeyboard.productName,
-                    text: nameBinding(for: physicalKeyboard)
-                )
-                .textFieldStyle(.roundedBorder)
-                .accessibilityLabel(
-                    "Physical Keyboard Name for \(physicalKeyboard.name)"
-                )
-                .onSubmit {
-                    commitName(for: physicalKeyboard)
-                }
-                .onChange(of: nameDrafts[physicalKeyboard.id.rawValue] ?? "") { _, newValue in
-                    // Immediate save on edit; empty draft restores the product name.
-                    model.setPhysicalKeyboardName(
-                        physicalKeyboard.id,
-                        customName: newValue
-                    )
-                }
-            }
-
-            Text(connectionDescription(for: physicalKeyboard))
-                .foregroundStyle(.secondary)
-
-            Text(assignmentStatusText(for: physicalKeyboard))
-                .foregroundStyle(
-                    physicalKeyboard.isAssignable ? Color.secondary : Color.orange
-                )
-
-            if physicalKeyboard.isAssignable {
-                HStack {
-                    Button(
-                        physicalKeyboard.keyboardAssignment == nil
-                            ? "Assign…"
-                            : "Change Assignment"
-                    ) {
-                        assignmentPickerKeyboardID = physicalKeyboard.id
-                    }
-
-                    if physicalKeyboard.keyboardAssignment != nil {
-                        Button("Remove Assignment") {
-                            model.setKeyboardAssignment(
-                                physicalKeyboard.id,
-                                inputSourceIdentifier: nil
-                            )
-                        }
-                    }
-                }
-
-                HStack {
-                    if physicalKeyboard.connectionState == .connected,
-                       !model.replaceCandidates(for: physicalKeyboard.id).isEmpty
-                    {
-                        Button("Replace Saved Physical Keyboard…") {
-                            pendingReplaceConnectedID = physicalKeyboard.id
-                            replacePickerKeyboardID = physicalKeyboard.id
-                        }
-                    }
-
-                    if model.canForgetPhysicalKeyboard(physicalKeyboard.id) {
-                        Button("Forget Physical Keyboard…", role: .destructive) {
-                            forgetCandidateID = physicalKeyboard.id
-                        }
-                    }
-                }
-            } else if model.canStartManualDesignation(for: physicalKeyboard.id) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(
-                        "Keyameleon can save this external identity group as a Physical Keyboard only after it leaves, returns, and you confirm its name."
-                    )
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Button("Manual Physical Keyboard Designation…") {
-                        model.startManualDesignation(for: physicalKeyboard.id)
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(
-            model.activePhysicalKeyboardID == physicalKeyboard.id
-                ? Color.accentColor.opacity(0.15)
-                : Color.clear,
-            in: RoundedRectangle(cornerRadius: 8)
-        )
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-        .overlay(alignment: .topTrailing) {
-            if model.activePhysicalKeyboardID == physicalKeyboard.id {
-                Text("Active")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.tint.opacity(0.2), in: Capsule())
-                    .padding(8)
-            }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(physicalKeyboard.name)
-        .accessibilityValue(
-            model.activePhysicalKeyboardID == physicalKeyboard.id
-                ? "Active · \(connectionDescription(for: physicalKeyboard))"
-                : connectionDescription(for: physicalKeyboard)
-        )
-    }
-
     private func switchingStatusExplanation(for status: SwitchingStatus) -> String {
         switch status {
         case .ready:
@@ -652,52 +308,6 @@ struct KeyameleonRootView: View {
                 "Resumes automatically when macOS allows Activity-Triggered Switching."
             }
         }
-    }
-
-    private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {
-        let hardware =
-            physicalKeyboard.isBuiltIn
-            ? "Built-in"
-            : transportName(physicalKeyboard.transport)
-        let connection = connectionStateName(physicalKeyboard.connectionState)
-        if physicalKeyboard.connectionState == .disconnected {
-            return connection
-        }
-
-        return "\(connection) · \(hardware)"
-    }
-
-    private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {
-        switch physicalKeyboard.assignmentState {
-        case .unassigned:
-            "Unassigned"
-        case .assigned:
-            if let name = model.assignedInputSourceName(for: physicalKeyboard) {
-                "Keyboard Assignment: \(name)"
-            } else {
-                "Unavailable Keyboard Assignment"
-            }
-        case let .unsupported(reason):
-            "Unsupported — \(unsupportedReasonName(reason))"
-        }
-    }
-
-    private func nameBinding(for physicalKeyboard: PhysicalKeyboard) -> Binding<String> {
-        Binding(
-            get: {
-                if let draft = nameDrafts[physicalKeyboard.id.rawValue] {
-                    return draft
-                }
-
-                return physicalKeyboard.customName ?? physicalKeyboard.productName
-            },
-            set: { nameDrafts[physicalKeyboard.id.rawValue] = $0 }
-        )
-    }
-
-    private func commitName(for physicalKeyboard: PhysicalKeyboard) {
-        let draft = nameDrafts[physicalKeyboard.id.rawValue] ?? physicalKeyboard.name
-        model.setPhysicalKeyboardName(physicalKeyboard.id, customName: draft)
     }
 
     private func switchingStatusName(_ status: SwitchingStatus) -> String {
@@ -759,41 +369,6 @@ struct KeyameleonRootView: View {
         }
     }
 
-    private func transportName(_ transport: PhysicalKeyboardTransport) -> String {
-        switch transport {
-        case .usb:
-            "USB"
-        case .bluetooth:
-            "Bluetooth"
-        case .bluetoothLowEnergy:
-            "Bluetooth Low Energy"
-        case .other:
-            "Other"
-        }
-    }
-
-    private func connectionStateName(_ state: PhysicalKeyboardConnectionState) -> String {
-        switch state {
-        case .connected:
-            "Connected"
-        case .disconnected:
-            "Disconnected"
-        }
-    }
-
-    private func unsupportedReasonName(_ reason: PhysicalKeyboardUnsupportedReason) -> String {
-        switch reason {
-        case .missingIdentity:
-            "Physical Keyboard Identity unavailable"
-        case .unstableIdentity:
-            "Physical Keyboard Identity unstable"
-        case .sharedIdentity:
-            "Physical Keyboard Identity shared"
-        case .ambiguousIdentity:
-            "Physical Keyboard Identity ambiguous"
-        }
-    }
-
 }
 
 private func physicalKeyboardStatusDescription(_ physicalKeyboard: PhysicalKeyboard) -> String {
@@ -817,7 +392,7 @@ private func physicalKeyboardStatusDescription(_ physicalKeyboard: PhysicalKeybo
 }
 
 @MainActor
-private struct KeyboardAssignmentPickerView: View {
+struct KeyboardAssignmentPickerView: View {
     let physicalKeyboard: PhysicalKeyboard
     let filteredInputSources: (String) -> [EligibleInputSource]
     let onSelect: (EligibleInputSource) -> Void
@@ -877,7 +452,7 @@ private struct KeyboardAssignmentPickerView: View {
 }
 
 @MainActor
-private struct ReplaceSavedPhysicalKeyboardPickerView: View {
+struct ReplaceSavedPhysicalKeyboardPickerView: View {
     let physicalKeyboard: PhysicalKeyboard
     let candidates: [PhysicalKeyboard]
     let onSelect: (PhysicalKeyboard) -> Void
@@ -925,7 +500,7 @@ private struct ReplaceSavedPhysicalKeyboardPickerView: View {
 }
 
 @MainActor
-private struct ManualPhysicalKeyboardDesignationNameSheet: View {
+struct ManualPhysicalKeyboardDesignationNameSheet: View {
     @Binding var nameDraft: String
     let onConfirm: () -> Void
     let onCancel: () -> Void

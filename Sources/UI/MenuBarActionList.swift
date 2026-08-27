@@ -39,7 +39,7 @@ private struct MenuBarActionRow: View {
             HStack(spacing: 13) {
                 Image(systemName: action.iconName)
                     .font(.system(size: 14, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
+                    .symbolRenderingMode(.monochrome)
                     .foregroundStyle(.secondary)
                     .frame(width: 22)
                     .accessibilityHidden(true)
@@ -83,21 +83,21 @@ private extension MenuBarPanelContent.Action {
     var iconName: String {
         switch id {
         case .pause:
-            "pause.circle"
+            "pause.fill"
         case .resume:
-            "play.circle"
+            "play.fill"
         case .requestPermission:
-            "hand.raised"
+            "hand.raised.fill"
         case .about:
-            "info.circle"
+            "info.circle.fill"
         case .openSystemSettings:
-            "gearshape"
+            "gearshape.fill"
         case .checkAgain:
-            "arrow.clockwise"
+            "arrow.clockwise.circle.fill"
         case .settings:
-            "gearshape"
+            "gearshape.fill"
         case .quit:
-            "rectangle.portrait.and.arrow.right"
+            "rectangle.portrait.and.arrow.right.fill"
         }
     }
 }

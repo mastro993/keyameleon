@@ -3,20 +3,26 @@ import SwiftUI
 
 @MainActor
 final class KeyameleonSettingsWindowController: NSWindowController {
-    init(model: KeyameleonGeneralSettingsModel) {
+    init(
+        model: KeyameleonGeneralSettingsModel,
+        setupModel: KeyameleonSetupModel
+    ) {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 430),
+            contentRect: NSRect(x: 0, y: 0, width: 580, height: 600),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
-        window.title = "Keyameleon Settings"
+        window.title = "Keyameleon - Settings"
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.settings-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 520, height: 430)
+        window.minSize = NSSize(width: 580, height: 520)
         window.contentView = NSHostingView(
-            rootView: KeyameleonGeneralSettingsView(model: model)
+            rootView: KeyameleonSettingsView(
+                model: model,
+                setupModel: setupModel
+            )
         )
 
         super.init(window: window)

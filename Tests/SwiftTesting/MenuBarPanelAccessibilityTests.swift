@@ -93,9 +93,6 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
         .assignment(id: "desk"),
         .assignment(id: "travel"),
         .action(id: .pause),
-        .action(id: .requestPermission),
-        .action(id: .openSystemSettings),
-        .action(id: .checkAgain),
         .action(id: .settings),
         .action(id: .quit)
     ])
@@ -110,9 +107,6 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
         "Desk",
         "Travel",
         "Pause",
-        "Request Permission",
-        "Open System Settings",
-        "Check Again",
         "Settings",
         "Quit Keyameleon"
     ])
@@ -130,7 +124,11 @@ func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
     #expect(permission.accessibility.panel.value == "Permission Required")
     #expect(ready.accessibility.actions.first?.label == "Pause")
     #expect(paused.accessibility.actions.first?.label == "Resume")
-    #expect(permission.accessibility.actions.map(\.label).contains("Request Permission"))
+    #expect(permission.accessibility.actions.map(\.label) == [
+        "Pause",
+        "Settings",
+        "Quit Keyameleon"
+    ])
 }
 
 @Test("Live assignment changes appear in VoiceOver and keyboard order")

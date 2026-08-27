@@ -152,7 +152,8 @@ extension KeyameleonApplicationDelegate {
 
         if settingsWindowController == nil {
             settingsWindowController = KeyameleonSettingsWindowController(
-                model: generalSettingsModel
+                model: generalSettingsModel,
+                setupModel: setupModel
             )
         }
 

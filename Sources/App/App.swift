@@ -7,7 +7,10 @@ struct KeyameleonApp: App {
 
     var body: some Scene {
         Settings {
-            KeyameleonGeneralSettingsView(model: applicationDelegate.generalSettingsModel)
+            KeyameleonSettingsView(
+                model: applicationDelegate.generalSettingsModel,
+                setupModel: applicationDelegate.setupModel
+            )
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
