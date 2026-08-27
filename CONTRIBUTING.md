@@ -18,7 +18,6 @@ not the contribution path. Each PR must:
 
 - Prefer Swift Testing under `Tests/SwiftTesting` for domain and model seams
 - Use XCTest under `Tests/XCTest` for AppKit shell contracts when needed
-- UI tests under `Tests/UITests` for lifecycle checks that need a running app
 - Run `./Scripts/run.sh test` before requesting review
 - Keep tests focused on distinct product outcomes and safety rules. Do not add
   tests for private counters, implementation wiring, or fixed performance quotas.

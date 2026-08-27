@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-08-27 — Removed automated UI tests
+
+- Deleted `KeyameleonUITests` target and `Tests/UITests`.
+- Removed UI-test launch/reset hooks from production code.
+- `run.sh` now runs only Swift Testing and hosted XCTest bundles.
+
 ## 2026-08-17 — Release notes contributor avatars
 
 - v0.1.1 Contributors used git names (`Federico Mastrini`). PR lookup needed

@@ -90,9 +90,8 @@ run_tests() {
         Scripts/write-release-evidence.sh
     zsh -n Scripts/official-release.sh
     python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
+    kill_leftover_derived_data_keyameleon
 
-    # Build once. Run the app-driving lifecycle test before hosted test bundles
-    # so a delayed UI runner cannot hold completed product tests for 30 minutes.
     xcodebuild build-for-testing \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
@@ -105,16 +104,6 @@ run_tests() {
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -only-testing:KeyameleonUITests \
-        -derivedDataPath "${DERIVED_DATA_PATH}"
-    kill_leftover_derived_data_keyameleon
-
-    xcodebuild test-without-building \
-        -project Keyameleon.xcodeproj \
-        -scheme Keyameleon \
-        -destination 'platform=macOS,arch=arm64' \
-        -parallel-testing-enabled NO \
-        -skip-testing:KeyameleonUITests \
         -derivedDataPath "${DERIVED_DATA_PATH}"
     kill_leftover_derived_data_keyameleon
 }

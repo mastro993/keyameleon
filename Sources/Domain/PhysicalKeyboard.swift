@@ -384,12 +384,11 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
 
 enum PhysicalKeyboardListOrdering {
     static func sorted(
-        _ physicalKeyboards: [PhysicalKeyboard],
-        activeID: PhysicalKeyboardRecordID?
+        _ physicalKeyboards: [PhysicalKeyboard]
     ) -> [PhysicalKeyboard] {
         physicalKeyboards.sorted { left, right in
-            let leftRank = sortRank(for: left, activeID: activeID)
-            let rightRank = sortRank(for: right, activeID: activeID)
+            let leftRank = sortRank(for: left)
+            let rightRank = sortRank(for: right)
             if leftRank != rightRank {
                 return leftRank < rightRank
             }
@@ -404,18 +403,13 @@ enum PhysicalKeyboardListOrdering {
     }
 
     private static func sortRank(
-        for physicalKeyboard: PhysicalKeyboard,
-        activeID: PhysicalKeyboardRecordID?
+        for physicalKeyboard: PhysicalKeyboard
     ) -> Int {
-        if let activeID, physicalKeyboard.id == activeID {
-            return 0
-        }
-
         switch physicalKeyboard.connectionState {
         case .connected:
-            return 1
+            return 0
         case .disconnected:
-            return 2
+            return 1
         }
     }
 }

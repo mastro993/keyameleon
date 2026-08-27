@@ -7,7 +7,6 @@ protocol UncleanExitStateStoring: AnyObject {
     func beginLaunch()
     func markCleanTermination()
     func dismissUncleanExitNotice()
-    func resetForUITesting()
 }
 
 @MainActor
@@ -39,11 +38,6 @@ final class UserDefaultsUncleanExitStateStore: UncleanExitStateStoring {
     }
 
     func dismissUncleanExitNotice() {
-        defaults.removeObject(forKey: Key.pendingNotice)
-    }
-
-    func resetForUITesting() {
-        defaults.removeObject(forKey: Key.activeLaunch)
         defaults.removeObject(forKey: Key.pendingNotice)
     }
 }

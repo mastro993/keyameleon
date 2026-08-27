@@ -35,6 +35,7 @@ private struct MenuBarPanelChromePreview: View {
     var increasedContrast = false
     var count = 0
     var names: [String] = []
+    @FocusState private var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
 
     var body: some View {
         let chrome = MenuBarPanelChrome.resolve(
@@ -43,6 +44,15 @@ private struct MenuBarPanelChromePreview: View {
         )
         let keyboards = previewKeyboards()
         VStack(alignment: .leading, spacing: 0) {
+            MenuBarPanelHeader(
+                openAction: previewOpenAction,
+                focusedTarget: $focusedTarget,
+                perform: { _ in }
+            )
+
+            Divider()
+                .opacity(0.22)
+
             MenuBarAssignmentSection(
                 list: MenuBarAssignmentList(
                     physicalKeyboards: keyboards,
@@ -52,32 +62,18 @@ private struct MenuBarPanelChromePreview: View {
                         }
                     )
                 ),
-                emphasis: chrome.assignmentEmphasis
+                emphasis: chrome.assignmentEmphasis,
+                focusedTarget: $focusedTarget
             )
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 4)
-
-            HStack {
-                Text("Keyameleon 0.1.0")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Image(systemName: "gearshape")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                Image(systemName: "ellipsis")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 6)
+            .padding(.horizontal, 12)
+            .padding(.top, 10)
             .padding(.bottom, 10)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(.separator)
-                    .frame(height: 1)
-            }
+
+            MenuBarActionList(
+                actions: previewActions,
+                focusedTarget: $focusedTarget,
+                perform: { _ in }
+            )
         }
         .frame(width: MenuBarPanelLayout.panelWidth)
         .background(
@@ -85,6 +81,38 @@ private struct MenuBarPanelChromePreview: View {
                 ? Color(nsColor: .windowBackgroundColor)
                 : Color.clear
         )
+    }
+
+    private var previewOpenAction: MenuBarPanelContent.Action {
+        MenuBarPanelContent.Action(
+            id: .about,
+            title: "About Keyameleon",
+            isEnabled: true,
+            closesPanel: true
+        )
+    }
+
+    private var previewActions: [MenuBarPanelContent.Action] {
+        [
+            MenuBarPanelContent.Action(
+                id: .pause,
+                title: "Pause",
+                isEnabled: true,
+                closesPanel: false
+            ),
+            MenuBarPanelContent.Action(
+                id: .settings,
+                title: "Settings",
+                isEnabled: true,
+                closesPanel: true
+            ),
+            MenuBarPanelContent.Action(
+                id: .quit,
+                title: "Quit Keyameleon",
+                isEnabled: true,
+                closesPanel: true
+            )
+        ]
     }
 
     private func previewKeyboards() -> [PhysicalKeyboard] {

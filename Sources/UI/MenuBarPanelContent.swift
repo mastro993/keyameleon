@@ -4,17 +4,16 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
     case requestPermission
-    case openKeyameleon
+    case about
     case openSystemSettings
     case checkAgain
     case settings
-    case checkForUpdates
     case quit
 }
 
 /// Typed Menu first regions and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
-    static let panelWidth: CGFloat = 320
+    static let panelWidth: CGFloat = 280
 
     struct Action: Equatable, Identifiable, Sendable {
         let id: MenuBarPanelActionID
@@ -26,8 +25,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
     struct Footer: Equatable, Sendable {
         let versionText: String
         let versionAccessibilityValue: String
-        let openKeyameleon: Action
-        let overflowActions: [Action]
+        let about: Action
+        let actions: [Action]
     }
 
     let switchingStatus: SwitchingStatus
@@ -39,7 +38,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
     }
 
     var actionTitles: [String] {
-        [footer.openKeyameleon.title] + footer.overflowActions.map(\.title)
+        [footer.about.title] + footer.actions.map(\.title)
     }
 
     var panelWidth: CGFloat {
@@ -50,7 +49,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSourceNames: [PhysicalKeyboardRecordID: String],
-        canCheckForUpdates: Bool,
         marketingVersion: String?
     ) {
         self.switchingStatus = outcome.switchingStatus
@@ -62,16 +60,13 @@ struct MenuBarPanelContent: Equatable, Sendable {
         self.footer = Footer(
             versionText: versionParts.visible,
             versionAccessibilityValue: versionParts.accessibilityValue,
-            openKeyameleon: Action(
-                id: .openKeyameleon,
-                title: "Open Keyameleon",
+            about: Action(
+                id: .about,
+                title: "About Keyameleon",
                 isEnabled: true,
                 closesPanel: true
             ),
-            overflowActions: Self.makeOverflowActions(
-                outcome: outcome,
-                canCheckForUpdates: canCheckForUpdates
-            )
+            actions: Self.makeActions(outcome: outcome)
         )
     }
 
@@ -90,22 +85,13 @@ struct MenuBarPanelContent: Equatable, Sendable {
         return ("Keyameleon \(trimmed)", trimmed)
     }
 
-    private static func makeOverflowActions(
-        outcome: ActivityTriggeredSwitchingOutcome,
-        canCheckForUpdates: Bool
+    private static func makeActions(
+        outcome: ActivityTriggeredSwitchingOutcome
     ) -> [Action] {
         var actions = [pauseOrResume(outcome: outcome)]
         actions.append(contentsOf: recoveryActions(outcome: outcome))
         actions.append(
-            Action(
-                id: .checkForUpdates,
-                title: "Check for Updates…",
-                isEnabled: canCheckForUpdates,
-                closesPanel: true
-            )
-        )
-        actions.append(
-            Action(id: .settings, title: "Settings…", isEnabled: true, closesPanel: true)
+            Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true)
         )
         actions.append(
             Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true)

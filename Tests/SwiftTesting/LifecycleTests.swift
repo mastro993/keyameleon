@@ -523,9 +523,9 @@ func forgetConnectedReappearsUnassignedAndDisconnectedDisappears() {
     #expect(recordStore.record(forIdentityKey: secondID.rawValue) == nil)
 }
 
-@Test("Physical Keyboard list sorts active, connected, then disconnected by name")
+@Test("Physical Keyboard list ignores active state when sorting")
 @MainActor
-func physicalKeyboardListSortsActiveConnectedThenDisconnectedByName() {
+func physicalKeyboardListSortIgnoresActiveState() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(recordStore: recordStore, discoverer: discoverer)
@@ -569,8 +569,8 @@ func physicalKeyboardListSortsActiveConnectedThenDisconnectedByName() {
     discoverer.emit(.disconnected(serviceID: 183))
     model.activityTriggeredSwitching.markActiveForTesting(zetaID)
 
-    #expect(model.physicalKeyboards.map(\.name) == ["Zeta", "Alpha", "Delta"])
-    #expect(model.physicalKeyboards.map(\.isActive) == [true, false, false])
+    #expect(model.physicalKeyboards.map(\.name) == ["Alpha", "Zeta", "Delta"])
+    #expect(model.physicalKeyboards.map(\.isActive) == [false, true, false])
     #expect(
         model.physicalKeyboards.map(\.connectionState)
             == [.connected, .connected, .disconnected]

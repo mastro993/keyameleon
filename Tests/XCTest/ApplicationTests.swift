@@ -9,7 +9,7 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testStatusItemOpensTransient320PointPanelAndCloses() throws {
+    func testStatusItemOpensTransient280PointPanelAndCloses() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = makeApplicationTestDelegate(permissionProvider: permission)
         delegate.applicationDidFinishLaunching(
@@ -29,7 +29,7 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertTrue(delegate.menuBarStatusItem?.button?.target === delegate)
         let panel = try XCTUnwrap(delegate.menuBarPanelController)
         XCTAssertEqual(panel.behavior, .transient)
-        XCTAssertEqual(panel.panelWidth, 320)
+        XCTAssertEqual(panel.panelWidth, 280)
         XCTAssertFalse(delegate.isMenuBarPanelShown)
 
         let checksAfterLaunch = permission.checkCount
@@ -37,7 +37,7 @@ final class KeyameleonApplicationTests: XCTestCase {
 
         XCTAssertTrue(delegate.isMenuBarPanelShown)
         XCTAssertGreaterThan(permission.checkCount, checksAfterLaunch)
-        XCTAssertEqual(panel.panelWidth, 320)
+        XCTAssertEqual(panel.panelWidth, 280)
 
         delegate.closeMenuBarPanel()
         XCTAssertFalse(delegate.isMenuBarPanelShown)
@@ -64,6 +64,28 @@ final class KeyameleonApplicationTests: XCTestCase {
 
         delegate.checkForUpdates(nil)
         XCTAssertFalse(delegate.isMenuBarPanelShown)
+    }
+
+    @MainActor
+    func testAboutActionShowsAnIndependentNonResizableWindow() throws {
+        let delegate = makeApplicationTestDelegate(startsApplicationSurfaceOnLaunch: false)
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        delegate.openSettings(nil)
+        delegate.openAbout(nil)
+
+        let settingsWindow = try XCTUnwrap(delegate.settingsWindowController?.window)
+        let aboutWindow = try XCTUnwrap(delegate.aboutWindowController?.window)
+
+        XCTAssertTrue(settingsWindow.isVisible)
+        XCTAssertTrue(aboutWindow.isVisible)
+        XCTAssertFalse(settingsWindow === aboutWindow)
+        XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
+        XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
+        XCTAssertEqual(aboutWindow.contentLayoutRect.size, NSSize(width: 380, height: 320))
     }
 
     @MainActor

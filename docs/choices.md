@@ -1,5 +1,13 @@
 # Choices
 
+## 2026-08-27 — Remove automated UI tests
+
+### Defaults
+
+- Keep no `bundle.ui-testing` target. Verify behavior through Swift Testing and hosted XCTest seams.
+- Remove UI-test-only launch arguments and persistence reset hooks from production code.
+- `./Scripts/run.sh test` builds once, then runs the two hosted test bundles serially.
+
 ## 2026-08-23 — BLE keyboard identity and pointer HID
 
 ### Defaults

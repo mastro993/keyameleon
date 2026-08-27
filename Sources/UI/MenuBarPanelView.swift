@@ -1,22 +1,20 @@
 import SwiftUI
 
 struct MenuBarPanelActions {
-    var openKeyameleon: () -> Void
+    var openAbout: () -> Void
     var openSettings: () -> Void
-    var checkForUpdates: () -> Void
     var quit: () -> Void
     var closePanel: () -> Void
 }
 
-/// Live Menu first surface hosted in the native Liquid Glass popover.
+/// Live menu-bar surface hosted in the native Liquid Glass popover.
 ///
-/// The popover supplies the panel glass. The panel body is the keyboard list
-/// and footer only. Other actions live in the overflow menu.
+/// The popover supplies the panel glass. Content uses a compact header,
+/// assignment cards, and full-width action rows.
 @MainActor
 struct KeyameleonMenuBarPanelView: View {
     private let setupModel: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
-    @ObservedObject private var generalSettingsModel: KeyameleonGeneralSettingsModel
     private let actions: MenuBarPanelActions
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
@@ -25,12 +23,10 @@ struct KeyameleonMenuBarPanelView: View {
     init(
         setupModel: KeyameleonSetupModel,
         switching: ActivityTriggeredSwitching,
-        generalSettingsModel: KeyameleonGeneralSettingsModel,
         actions: MenuBarPanelActions
     ) {
         self.setupModel = setupModel
         self.switching = switching
-        _generalSettingsModel = ObservedObject(wrappedValue: generalSettingsModel)
         self.actions = actions
     }
 
@@ -43,16 +39,29 @@ struct KeyameleonMenuBarPanelView: View {
         let accessibility = content.accessibility
 
         VStack(alignment: .leading, spacing: 0) {
+            MenuBarPanelHeader(
+                openAction: content.footer.about,
+                focusedTarget: $focusedTarget,
+                perform: perform
+            )
+
+            Divider()
+                .opacity(0.22)
+
             MenuBarAssignmentSection(
                 list: content.assignmentList,
                 emphasis: chrome.assignmentEmphasis,
                 focusedTarget: $focusedTarget
             )
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 4)
+            .padding(.horizontal, 12)
+            .padding(.top, 10)
+            .padding(.bottom, 10)
 
-            footer(content.footer)
+            MenuBarActionList(
+                actions: content.footer.actions,
+                focusedTarget: $focusedTarget,
+                perform: perform
+            )
         }
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
         .background(panelBackground(chrome.surface))
@@ -93,7 +102,6 @@ struct KeyameleonMenuBarPanelView: View {
             outcome: switching.outcome,
             physicalKeyboards: setupModel.physicalKeyboards,
             assignedInputSourceNames: assignedInputSourceNames,
-            canCheckForUpdates: generalSettingsModel.canCheckForUpdates,
             marketingVersion: Bundle.main.object(
                 forInfoDictionaryKey: "CFBundleShortVersionString"
             ) as? String
@@ -109,45 +117,6 @@ struct KeyameleonMenuBarPanelView: View {
         )
     }
 
-    private func footer(_ footer: MenuBarPanelContent.Footer) -> some View {
-        HStack {
-            Text(footer.versionText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .accessibilityLabel("Version")
-                .accessibilityValue(footer.versionAccessibilityValue)
-            Spacer()
-            HStack(spacing: 6) {
-                MenuBarSettingsButton {
-                    perform(footer.openKeyameleon)
-                }
-                .fixedSize()
-                .focusable()
-                .focused($focusedTarget, equals: .openKeyameleon)
-
-                MenuBarOverflowButton(
-                    actions: footer.overflowActions,
-                    perform: perform,
-                    closePanel: actions.closePanel
-                )
-                .fixedSize()
-                .focusable()
-                .focused($focusedTarget, equals: .overflow)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 6)
-        .padding(.bottom, 10)
-        .frame(maxWidth: .infinity)
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(.separator)
-                .frame(height: 1)
-                .allowsHitTesting(false)
-        }
-        .accessibilityElement(children: .contain)
-    }
-
     private func perform(_ action: MenuBarPanelContent.Action) {
         if action.closesPanel {
             actions.closePanel()
@@ -160,18 +129,52 @@ struct KeyameleonMenuBarPanelView: View {
             switching.resume()
         case .requestPermission:
             setupModel.requestPermission()
-        case .openKeyameleon:
-            actions.openKeyameleon()
+        case .about:
+            actions.openAbout()
         case .openSystemSettings:
             setupModel.openSystemSettings()
         case .checkAgain:
             switching.checkAgain()
         case .settings:
             actions.openSettings()
-        case .checkForUpdates:
-            actions.checkForUpdates()
         case .quit:
             actions.quit()
         }
+    }
+}
+
+struct MenuBarPanelHeader: View {
+    let openAction: MenuBarPanelContent.Action
+    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding
+    let perform: (MenuBarPanelContent.Action) -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text("Keyameleon")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                perform(openAction)
+            } label: {
+                Image(systemName: "info.circle.fill")
+                    .font(.body)
+                    .symbolRenderingMode(.hierarchical)
+                    .frame(width: 22, height: 22)
+                    .contentShape(.circle)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+            .focusable()
+            .focused(focusedTarget, equals: .about)
+            .help(openAction.title)
+            .accessibilityLabel(openAction.title)
+            .accessibilityIdentifier("menu-bar-about")
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 9)
+        .accessibilityElement(children: .contain)
     }
 }

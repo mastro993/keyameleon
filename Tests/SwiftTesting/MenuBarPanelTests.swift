@@ -2,30 +2,30 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("Ready overflow has Pause and no recovery actions")
+@Test("Ready tray has Pause and no recovery actions")
 @MainActor
 func menuBarPanelReadyShowsPauseWithoutRecovery() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
-    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(content.footer.about.title == "About Keyameleon")
+    #expect(content.footer.about.id == .about)
     #expect(overflow(content, .pause)?.title == "Pause")
     #expect(overflowIDs(content).contains(.requestPermission) == false)
     #expect(overflowIDs(content).contains(.checkAgain) == false)
     #expect(content.actionTitles.contains("Continue Setup…") == false)
 }
 
-@Test("Paused overflow shows Resume")
+@Test("Paused tray shows Resume")
 @MainActor
 func menuBarPanelPausedShowsResume() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(content.footer.about.id == .about)
     #expect(overflow(content, .resume)?.title == "Resume")
     #expect(overflowIDs(content).contains(.pause) == false)
 }
 
-@Test("Permission Required puts recovery actions in overflow")
+@Test("Permission Required shows recovery actions in the tray")
 @MainActor
 func menuBarPanelPermissionRequiredShowsRecoveryInOverflow() {
     let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
@@ -39,7 +39,7 @@ func menuBarPanelPermissionRequiredShowsRecoveryInOverflow() {
     #expect(overflow(content, .pause)?.id == .pause)
 }
 
-@Test("Temporarily Unavailable overflow has Pause and no recovery actions")
+@Test("Temporarily Unavailable tray has Pause and no recovery actions")
 @MainActor
 func menuBarPanelTemporarilyUnavailableHasNoRecoveryActions() {
     let content = makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture())
@@ -50,7 +50,7 @@ func menuBarPanelTemporarilyUnavailableHasNoRecoveryActions() {
     #expect(overflowIDs(content).contains(.checkAgain) == false)
 }
 
-@Test("Recovery actions appear in overflow only when the outcome offers them")
+@Test("Recovery actions appear only when the outcome offers them")
 @MainActor
 func menuBarPanelRecoveryActionsFollowOutcomeAvailability() {
     let withoutRecovery = makeMenuBarPanelContent(
@@ -66,11 +66,11 @@ func menuBarPanelRecoveryActionsFollowOutcomeAvailability() {
     #expect(overflowIDs(withCheckAgain).contains(.requestPermission) == false)
 }
 
-@Test("Pause and Resume keep the panel open; Open Keyameleon dismisses it")
+@Test("Pause and Resume keep the panel open; About dismisses it")
 @MainActor
 func menuBarPanelOverflowDismissal() {
     let ready = makeMenuBarPanelContent(outcome: .readyFixture())
-    #expect(ready.footer.openKeyameleon.closesPanel)
+    #expect(ready.footer.about.closesPanel)
     #expect(overflow(ready, .pause)?.closesPanel == false)
 
     let paused = makeMenuBarPanelContent(outcome: .pausedFixture())
@@ -111,53 +111,34 @@ func menuBarPanelFooterVersionFallback() {
     )
 }
 
-@Test("Dismissing More without a selection closes the menu-bar panel")
-func menuBarOverflowOutsideClickClosesPanel() {
-    #expect(
-        MenuBarOverflowMenuDismissal.shouldClosePanelAfterMenuDismiss(didSelectItem: false)
-    )
-    #expect(
-        MenuBarOverflowMenuDismissal.shouldClosePanelAfterMenuDismiss(didSelectItem: true)
-            == false
-    )
-}
-
-@Test("Footer cog opens the main window and is omitted from overflow")
+@Test("Header info button opens About and is omitted from action rows")
 @MainActor
-func menuBarPanelFooterCogOpensMainWindow() {
+func menuBarPanelHeaderInfoOpensAbout() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
-    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
-    #expect(content.footer.openKeyameleon.isEnabled)
-    #expect(content.footer.openKeyameleon.closesPanel)
-    #expect(overflowIDs(content).contains(.openKeyameleon) == false)
-    #expect(content.actionTitles.contains("Open Keyameleon"))
+    #expect(content.footer.about.id == .about)
+    #expect(content.footer.about.title == "About Keyameleon")
+    #expect(content.footer.about.isEnabled)
+    #expect(content.footer.about.closesPanel)
+    #expect(overflowIDs(content).contains(.about) == false)
+    #expect(content.actionTitles.contains("About Keyameleon"))
 }
 
-@Test("Footer overflow contains Pause, updates, Settings, and Quit")
+@Test("Tray actions contain Pause, Settings, and Quit")
 @MainActor
 func menuBarPanelFooterOverflowDefaultActions() {
-    let content = makeMenuBarPanelContent(
-        outcome: .readyFixture(),
-        canCheckForUpdates: false
-    )
+    let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(
-        overflowIDs(content)
-            == [.pause, .checkForUpdates, .settings, .quit]
-    )
-    #expect(content.footer.overflowActions.map(\.title) == [
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(content.footer.actions.map(\.title) == [
         "Pause",
-        "Check for Updates…",
-        "Settings…",
+        "Settings",
         "Quit Keyameleon",
     ])
-    #expect(overflow(content, .checkForUpdates)?.isEnabled == false)
     #expect(overflow(content, .settings)?.closesPanel == true)
 }
 
-@Test("Footer overflow never includes diagnostics")
+@Test("Tray actions never include diagnostics")
 @MainActor
 func menuBarPanelFooterOverflowOmitsDiagnostics() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
@@ -165,16 +146,16 @@ func menuBarPanelFooterOverflowOmitsDiagnostics() {
     #expect(content.actionTitles.contains("Review Diagnostics…") == false)
     #expect(content.actionTitles.contains("Dismiss Diagnostics Notice") == false)
     #expect(
-        overflowIDs(content) == [.pause, .checkForUpdates, .settings, .quit]
+        overflowIDs(content) == [.pause, .settings, .quit]
     )
 }
 
-@Test("Incomplete setup continues through Open Keyameleon with no Continue Setup action")
+@Test("About action does not add setup actions")
 @MainActor
-func menuBarPanelIncompleteSetupUsesOpenKeyameleon() {
+func menuBarPanelAboutOmitsSetupActions() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.about.title == "About Keyameleon")
     #expect(content.actionTitles.contains("Continue Setup…") == false)
     #expect(content.actionTitles.contains("Continue Setup") == false)
 }
@@ -238,8 +219,8 @@ func menuBarAssignmentListShowsOnlyAssignedPhysicalKeyboards() throws {
     #expect(row.assignedInputSourceName == "Italian")
 }
 
-@Test("Menu-bar assignment list orders Active, connected, then disconnected by name")
-func menuBarAssignmentListOrdersActiveConnectedThenDisconnected() {
+@Test("Menu-bar assignment order stays stable when the active keyboard changes")
+func menuBarAssignmentListOrderIgnoresActiveKeyboard() {
     let zebra = makeAssignedPanelKeyboard(
         name: "Zebra",
         identifier: "zebra",
@@ -278,8 +259,8 @@ func menuBarAssignmentListOrdersActiveConnectedThenDisconnected() {
     )
 
     #expect(list.rows.map(\.physicalKeyboardName) == [
-        "Later Active",
         "Apple",
+        "Later Active",
         "Zebra",
         "Desk",
         "Zeta"
@@ -433,9 +414,9 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
     #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
-    #expect(content.footer.openKeyameleon.title == "Open Keyameleon")
+    #expect(content.footer.about.title == "About Keyameleon")
     #expect(overflow(content, .pause)?.title == "Pause")
-    #expect(overflowIDs(content) == [.pause, .checkForUpdates, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
 }
 
 @Test("Menu-bar panel assignment rows stay read-only")
@@ -453,21 +434,19 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
 
     #expect(row.id == "travel")
     #expect(content.assignmentList.rows.count == 1)
-    #expect(content.footer.openKeyameleon.id == .openKeyameleon)
+    #expect(content.footer.about.id == .about)
 }
 
 private func makeMenuBarPanelContent(
     outcome: ActivityTriggeredSwitchingOutcome,
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
-    canCheckForUpdates: Bool = true,
     marketingVersion: String? = "0.1.0"
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
         assignedInputSourceNames: assignedInputSourceNames,
-        canCheckForUpdates: canCheckForUpdates,
         marketingVersion: marketingVersion
     )
 }
@@ -525,11 +504,11 @@ private func overflow(
     _ content: MenuBarPanelContent,
     _ id: MenuBarPanelActionID
 ) -> MenuBarPanelContent.Action? {
-    content.footer.overflowActions.first { $0.id == id }
+    content.footer.actions.first { $0.id == id }
 }
 
 private func overflowIDs(_ content: MenuBarPanelContent) -> [MenuBarPanelActionID] {
-    content.footer.overflowActions.map(\.id)
+    content.footer.actions.map(\.id)
 }
 
 private func panelNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: String] {

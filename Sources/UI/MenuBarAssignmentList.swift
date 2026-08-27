@@ -71,8 +71,7 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         heading = Self.heading
 
         let assigned = physicalKeyboards.filter { $0.keyboardAssignment != nil }
-        let activeID = assigned.first(where: \.isActive)?.id
-        let ordered = PhysicalKeyboardListOrdering.sorted(assigned, activeID: activeID)
+        let ordered = PhysicalKeyboardListOrdering.sorted(assigned)
         rows = ordered.map { physicalKeyboard in
             let savedName = assignedInputSourceNames[physicalKeyboard.id]
             let isUnavailable = savedName == nil

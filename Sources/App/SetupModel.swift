@@ -91,14 +91,6 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
     func markBuiltInIdentityMigrationEvaluated() {
         defaults.set(true, forKey: Key.hasEvaluatedBuiltInIdentityMigration)
     }
-
-    func resetForUITesting() {
-        defaults.removeObject(forKey: Key.hasStartedGuidedSetup)
-        defaults.removeObject(forKey: Key.hasCompletedGuidedSetup)
-        defaults.removeObject(forKey: Key.guidedSetupStep)
-        defaults.removeObject(forKey: Key.isActivityTriggeredSwitchingPaused)
-        defaults.removeObject(forKey: Key.hasEvaluatedBuiltInIdentityMigration)
-    }
 }
 
 /// Presentation model for setup and Physical Keyboard management.
@@ -660,8 +652,7 @@ final class KeyameleonSetupModel {
         }
 
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
-            connected + disconnected,
-            activeID: activeID
+            connected + disconnected
         )
     }
 
