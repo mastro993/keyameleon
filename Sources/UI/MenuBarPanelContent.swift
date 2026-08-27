@@ -4,7 +4,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
     case requestPermission
-    case openKeyameleon
+    case about
     case openSystemSettings
     case checkAgain
     case settings
@@ -25,7 +25,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
     struct Footer: Equatable, Sendable {
         let versionText: String
         let versionAccessibilityValue: String
-        let openKeyameleon: Action
+        let about: Action
         let actions: [Action]
     }
 
@@ -38,7 +38,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
     }
 
     var actionTitles: [String] {
-        [footer.openKeyameleon.title] + footer.actions.map(\.title)
+        [footer.about.title] + footer.actions.map(\.title)
     }
 
     var panelWidth: CGFloat {
@@ -60,9 +60,9 @@ struct MenuBarPanelContent: Equatable, Sendable {
         self.footer = Footer(
             versionText: versionParts.visible,
             versionAccessibilityValue: versionParts.accessibilityValue,
-            openKeyameleon: Action(
-                id: .openKeyameleon,
-                title: "Open Keyameleon",
+            about: Action(
+                id: .about,
+                title: "About Keyameleon",
                 isEnabled: true,
                 closesPanel: true
             ),

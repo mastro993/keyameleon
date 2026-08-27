@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @MainActor
@@ -9,6 +10,12 @@ struct KeyameleonGeneralSettingsView: View {
     }
 
     var body: some View {
+        generalSettings
+            .frame(minWidth: 520, minHeight: 430)
+            .onAppear(perform: model.refresh)
+    }
+
+    private var generalSettings: some View {
         Form {
             Section {
                 Toggle(
@@ -61,28 +68,6 @@ struct KeyameleonGeneralSettingsView: View {
             }
 
             Section {
-                Button("Check for Updates…") {
-                    model.checkForUpdates()
-                }
-                .disabled(!model.canCheckForUpdates)
-                .accessibilityLabel("Check for Updates…")
-
-                Text(
-                    "Keyameleon checks for updates at most once every 24 hours on launch. You approve every installation."
-                )
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-
-                Text(
-                    "A critical update shows a clear warning. Keyameleon still waits for your approval and never forces an update."
-                )
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            } header: {
-                Text("Updates")
-            }
-
-            Section {
                 Text(model.isDiagnosticSessionActive
                     ? "Active (ends automatically after 10 minutes)"
                     : "Inactive")
@@ -130,10 +115,6 @@ struct KeyameleonGeneralSettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .frame(minWidth: 420, minHeight: 360)
-        .onAppear {
-            model.refresh()
-        }
     }
 
     private var launchAtLoginBinding: Binding<Bool> {
@@ -156,5 +137,75 @@ struct KeyameleonGeneralSettingsView: View {
         case .authorized:
             "Authorized"
         }
+    }
+}
+
+@MainActor
+struct KeyameleonAboutView: View {
+    @ObservedObject private var model: KeyameleonGeneralSettingsModel
+
+    init(model: KeyameleonGeneralSettingsModel) {
+        _model = ObservedObject(wrappedValue: model)
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 28)
+
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+                .accessibilityLabel("Keyameleon app icon")
+
+            Text(appName)
+                .font(.title2.weight(.semibold))
+                .padding(.top, 18)
+                .accessibilityAddTraits(.isHeader)
+
+            Text("Version \(version)")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .padding(.top, 4)
+
+            Text("GPL-3.0-only licensed open source.")
+                .font(.caption)
+                .foregroundStyle(.secondary.opacity(0.6))
+                .padding(.top, 5)
+
+            Divider()
+                .padding(.vertical, 24)
+                .frame(maxWidth: 332)
+
+            Button(action: model.checkForUpdates) {
+                Label("Check for Updates…", systemImage: "arrow.clockwise.circle")
+            }
+            .controlSize(.regular)
+            .disabled(!model.canCheckForUpdates)
+            .accessibilityHint("Checks whether a newer Keyameleon version is available")
+
+            Spacer(minLength: 28)
+        }
+        .padding(.horizontal, 24)
+        .frame(width: 380, height: 320)
+    }
+
+    private var appName: String {
+        nonemptyBundleString(for: "CFBundleDisplayName")
+            ?? nonemptyBundleString(for: "CFBundleName")
+            ?? "Keyameleon"
+    }
+
+    private var version: String {
+        nonemptyBundleString(for: "CFBundleShortVersionString") ?? "—"
+    }
+
+    private func nonemptyBundleString(for key: String) -> String? {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String else {
+            return nil
+        }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

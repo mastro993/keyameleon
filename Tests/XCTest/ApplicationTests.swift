@@ -67,6 +67,28 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testAboutActionShowsAnIndependentNonResizableWindow() throws {
+        let delegate = makeApplicationTestDelegate(startsApplicationSurfaceOnLaunch: false)
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        delegate.openSettings(nil)
+        delegate.openAbout(nil)
+
+        let settingsWindow = try XCTUnwrap(delegate.settingsWindowController?.window)
+        let aboutWindow = try XCTUnwrap(delegate.aboutWindowController?.window)
+
+        XCTAssertTrue(settingsWindow.isVisible)
+        XCTAssertTrue(aboutWindow.isVisible)
+        XCTAssertFalse(settingsWindow === aboutWindow)
+        XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
+        XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
+        XCTAssertEqual(aboutWindow.contentLayoutRect.size, NSSize(width: 380, height: 320))
+    }
+
+    @MainActor
     func testDismissingTheMenuBarPanelDoesNotMutateProductState() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = makeApplicationTestDelegate(permissionProvider: permission)

@@ -88,8 +88,8 @@ private extension MenuBarPanelContent.Action {
             "play.circle"
         case .requestPermission:
             "hand.raised"
-        case .openKeyameleon:
-            "keyboard"
+        case .about:
+            "info.circle"
         case .openSystemSettings:
             "gearshape"
         case .checkAgain:

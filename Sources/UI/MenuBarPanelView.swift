@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MenuBarPanelActions {
-    var openKeyameleon: () -> Void
+    var openAbout: () -> Void
     var openSettings: () -> Void
     var quit: () -> Void
     var closePanel: () -> Void
@@ -40,7 +40,7 @@ struct KeyameleonMenuBarPanelView: View {
 
         VStack(alignment: .leading, spacing: 0) {
             MenuBarPanelHeader(
-                openAction: content.footer.openKeyameleon,
+                openAction: content.footer.about,
                 focusedTarget: $focusedTarget,
                 perform: perform
             )
@@ -129,8 +129,8 @@ struct KeyameleonMenuBarPanelView: View {
             switching.resume()
         case .requestPermission:
             setupModel.requestPermission()
-        case .openKeyameleon:
-            actions.openKeyameleon()
+        case .about:
+            actions.openAbout()
         case .openSystemSettings:
             setupModel.openSystemSettings()
         case .checkAgain:
@@ -167,10 +167,10 @@ struct MenuBarPanelHeader: View {
             .buttonStyle(.plain)
             .foregroundStyle(Color(nsColor: .secondaryLabelColor))
             .focusable()
-            .focused(focusedTarget, equals: .openKeyameleon)
+            .focused(focusedTarget, equals: .about)
             .help(openAction.title)
             .accessibilityLabel(openAction.title)
-            .accessibilityIdentifier("menu-bar-open-keyameleon")
+            .accessibilityIdentifier("menu-bar-about")
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)

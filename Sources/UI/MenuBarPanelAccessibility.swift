@@ -10,26 +10,26 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
     enum FocusTarget: Hashable, Sendable {
         /// Silent initial first responder. No ring until Tab.
         case container
-        case openKeyameleon
+        case about
         case assignment(id: String)
         case action(id: MenuBarPanelActionID)
     }
 
     let panel: Speech
     let items: [Speech]
-    let openKeyameleon: Speech
+    let about: Speech
     let actions: [Speech]
     let keyboardFocusOrder: [FocusTarget]
     let assignmentFocusTitles: [String]
 
     var voiceOverOrderLabels: [String] {
-        [panel.label, openKeyameleon.label]
+        [panel.label, about.label]
             + items.map(\.label)
             + actions.map(\.label)
     }
 
     var keyboardOperationTitles: [String] {
-        [openKeyameleon.label]
+        [about.label]
             + assignmentFocusTitles
             + actions.map(\.label)
     }
@@ -49,11 +49,11 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
                 Speech(label: row.accessibilityLabel, value: row.accessibilityValue)
             }
         }
-        openKeyameleon = Speech(label: content.footer.openKeyameleon.title, value: nil)
+        about = Speech(label: content.footer.about.title, value: nil)
         actions = content.footer.actions.map { action in
             Speech(label: action.title, value: nil)
         }
-        keyboardFocusOrder = [.openKeyameleon]
+        keyboardFocusOrder = [.about]
             + content.assignmentList.rows.map { .assignment(id: $0.id) }
             + content.footer.actions
                 .filter(\.isEnabled)

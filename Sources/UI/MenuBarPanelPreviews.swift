@@ -85,8 +85,8 @@ private struct MenuBarPanelChromePreview: View {
 
     private var previewOpenAction: MenuBarPanelContent.Action {
         MenuBarPanelContent.Action(
-            id: .openKeyameleon,
-            title: "Open Keyameleon",
+            id: .about,
+            title: "About Keyameleon",
             isEnabled: true,
             closesPanel: true
         )

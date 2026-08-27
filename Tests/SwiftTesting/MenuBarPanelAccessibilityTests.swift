@@ -16,7 +16,7 @@ func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
 
     #expect(accessibility.panel.label == "Keyameleon")
     #expect(accessibility.panel.value == "Ready")
-    #expect(accessibility.openKeyameleon.label == "Open Keyameleon")
+    #expect(accessibility.about.label == "About Keyameleon")
     #expect(accessibility.actions.map(\.label) == [
         "Pause",
         "Settings",
@@ -24,7 +24,7 @@ func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
     ])
     #expect(accessibility.voiceOverOrderLabels == [
         "Keyameleon",
-        "Open Keyameleon",
+        "About Keyameleon",
         "Travel",
         "Pause",
         "Settings",
@@ -89,7 +89,7 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     let empty = makeAccessiblePanelContent(outcome: .readyFixture())
 
     #expect(assigned.accessibility.keyboardFocusOrder == [
-        .openKeyameleon,
+        .about,
         .assignment(id: "travel"),
         .assignment(id: "desk"),
         .action(id: .pause),
@@ -100,13 +100,13 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
         .action(id: .quit)
     ])
     #expect(empty.accessibility.keyboardFocusOrder == [
-        .openKeyameleon,
+        .about,
         .action(id: .pause),
         .action(id: .settings),
         .action(id: .quit)
     ])
     #expect(assigned.accessibility.keyboardOperationTitles == [
-        "Open Keyameleon",
+        "About Keyameleon",
         "Travel",
         "Desk",
         "Pause",
@@ -149,7 +149,7 @@ func menuBarPanelAccessibilityLiveUpdatesWithAssignments() {
     #expect(assigned.accessibility.items.map(\.label) == ["Travel"])
     #expect(assigned.accessibility.items.map(\.value) == ["Italian, Active"])
     #expect(assigned.accessibility.keyboardFocusOrder.prefix(2) == [
-        .openKeyameleon,
+        .about,
         .assignment(id: "travel")
     ])
 }

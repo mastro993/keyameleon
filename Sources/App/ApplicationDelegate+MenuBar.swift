@@ -48,8 +48,8 @@ extension KeyameleonApplicationDelegate {
                 setupModel: setupModel,
                 switching: activityTriggeredSwitching,
                 actions: MenuBarPanelActions(
-                    openKeyameleon: { [weak self] in
-                        self?.openKeyameleon(nil)
+                    openAbout: { [weak self] in
+                        self?.openAbout(nil)
                     },
                     openSettings: { [weak self] in
                         self?.openSettings(nil)
@@ -149,7 +149,31 @@ extension KeyameleonApplicationDelegate {
     func openSettings(_ sender: Any?) {
         closeMenuBarPanel()
         generalSettingsModel.refresh()
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+
+        if settingsWindowController == nil {
+            settingsWindowController = KeyameleonSettingsWindowController(
+                model: generalSettingsModel
+            )
+        }
+
+        settingsWindowController?.showWindow(sender)
+        settingsWindowController?.window?.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc
+    func openAbout(_ sender: Any?) {
+        closeMenuBarPanel()
+        generalSettingsModel.refresh()
+
+        if aboutWindowController == nil {
+            aboutWindowController = KeyameleonAboutWindowController(
+                model: generalSettingsModel
+            )
+        }
+
+        aboutWindowController?.showWindow(sender)
+        aboutWindowController?.window?.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
     }
 
