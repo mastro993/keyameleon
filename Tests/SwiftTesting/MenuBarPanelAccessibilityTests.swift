@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("Panel VoiceOver announces Switching Status, heading, actions, and version once")
+@Test("Panel VoiceOver announces Switching Status, assignments, and actions once")
 @MainActor
 func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
     let content = makeAccessiblePanelContent(
@@ -10,28 +10,25 @@ func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
         physicalKeyboards: [
             makeAssignedAccessibleKeyboard(name: "Travel", identifier: "travel", isActive: true)
         ],
-        assignedInputSourceNames: panelAccessibilityNames("travel", "Italian"),
-        marketingVersion: "0.1.0"
+        assignedInputSourceNames: panelAccessibilityNames("travel", "Italian")
     )
     let accessibility = content.accessibility
 
     #expect(accessibility.panel.label == "Keyameleon")
     #expect(accessibility.panel.value == "Ready")
-    #expect(accessibility.heading.label == "Keyboards")
-    #expect(accessibility.heading.value == nil)
-    #expect(accessibility.headingIsHeader)
-    #expect(accessibility.version.label == "Version")
-    #expect(accessibility.version.value == "0.1.0")
-    #expect(accessibility.version.value?.contains("Keyameleon") == false)
     #expect(accessibility.openKeyameleon.label == "Open Keyameleon")
-    #expect(accessibility.overflow.label == "More")
+    #expect(accessibility.actions.map(\.label) == [
+        "Pause",
+        "Settings",
+        "Quit Keyameleon"
+    ])
     #expect(accessibility.voiceOverOrderLabels == [
         "Keyameleon",
-        "Keyboards",
-        "Travel",
-        "Version",
         "Open Keyameleon",
-        "More"
+        "Travel",
+        "Pause",
+        "Settings",
+        "Quit Keyameleon"
     ])
 }
 
@@ -78,7 +75,7 @@ func menuBarAssignmentEmptyStateVoiceOverIsCombined() {
     #expect(empty?.value == "Open Keyameleon Settings to assign keyboards.")
 }
 
-@Test("Keyboard focus visits assignments then Open Keyameleon then More")
+@Test("Keyboard focus follows header, assignments, then tray actions")
 @MainActor
 func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     let assigned = makeAccessiblePanelContent(
@@ -92,31 +89,36 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     let empty = makeAccessiblePanelContent(outcome: .readyFixture())
 
     #expect(assigned.accessibility.keyboardFocusOrder == [
+        .openKeyameleon,
         .assignment(id: "travel"),
         .assignment(id: "desk"),
-        .openKeyameleon,
-        .overflow
+        .action(id: .pause),
+        .action(id: .requestPermission),
+        .action(id: .openSystemSettings),
+        .action(id: .checkAgain),
+        .action(id: .settings),
+        .action(id: .quit)
     ])
     #expect(empty.accessibility.keyboardFocusOrder == [
         .openKeyameleon,
-        .overflow
+        .action(id: .pause),
+        .action(id: .settings),
+        .action(id: .quit)
     ])
     #expect(assigned.accessibility.keyboardOperationTitles == [
+        "Open Keyameleon",
         "Travel",
         "Desk",
-        "Open Keyameleon",
-        "More",
         "Pause",
         "Request Permission",
         "Open System Settings",
         "Check Again",
-        "Check for Updates…",
-        "Settings…",
+        "Settings",
         "Quit Keyameleon"
     ])
 }
 
-@Test("Paused and Ready live updates change Switching Status speech and overflow actions")
+@Test("Paused and Ready live updates change Switching Status speech and tray actions")
 @MainActor
 func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
     let ready = makeAccessiblePanelContent(outcome: .readyFixture())
@@ -126,9 +128,9 @@ func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
     #expect(ready.accessibility.panel.value == "Ready")
     #expect(paused.accessibility.panel.value == "Paused")
     #expect(permission.accessibility.panel.value == "Permission Required")
-    #expect(ready.accessibility.overflowActionTitles.first == "Pause")
-    #expect(paused.accessibility.overflowActionTitles.first == "Resume")
-    #expect(permission.accessibility.overflowActionTitles.contains("Request Permission"))
+    #expect(ready.accessibility.actions.first?.label == "Pause")
+    #expect(paused.accessibility.actions.first?.label == "Resume")
+    #expect(permission.accessibility.actions.map(\.label).contains("Request Permission"))
 }
 
 @Test("Live assignment changes appear in VoiceOver and keyboard order")
@@ -146,34 +148,37 @@ func menuBarPanelAccessibilityLiveUpdatesWithAssignments() {
     #expect(empty.accessibility.items.first?.label == "No assigned keyboards")
     #expect(assigned.accessibility.items.map(\.label) == ["Travel"])
     #expect(assigned.accessibility.items.map(\.value) == ["Italian, Active"])
-    #expect(assigned.accessibility.keyboardFocusOrder.first == .assignment(id: "travel"))
+    #expect(assigned.accessibility.keyboardFocusOrder.prefix(2) == [
+        .openKeyameleon,
+        .assignment(id: "travel")
+    ])
 }
 
 @Test("Reduce Transparency uses opaque chrome; default keeps Liquid Glass")
 func menuBarPanelChromeFollowsReduceTransparency() {
     #expect(
         MenuBarPanelChrome.resolve(reduceTransparency: false, increasedContrast: false)
-            == MenuBarPanelChrome(surface: .liquidGlass, assignmentEmphasis: .rainbow)
+            == MenuBarPanelChrome(surface: .liquidGlass, assignmentEmphasis: .standard)
     )
     #expect(
         MenuBarPanelChrome.resolve(reduceTransparency: true, increasedContrast: false)
-            == MenuBarPanelChrome(surface: .opaque, assignmentEmphasis: .rainbow)
+            == MenuBarPanelChrome(surface: .opaque, assignmentEmphasis: .standard)
     )
 }
 
-@Test("Increased contrast replaces the Active rainbow with an accent stroke")
+@Test("Increased contrast adds a stronger assignment-card stroke")
 func menuBarPanelChromeFollowsIncreasedContrast() {
     #expect(
         MenuBarPanelChrome.resolve(reduceTransparency: false, increasedContrast: true)
-            .assignmentEmphasis == .highContrastAccent
+            .assignmentEmphasis == .highContrast
     )
     #expect(
         MenuBarPanelChrome.resolve(reduceTransparency: true, increasedContrast: true)
-            == MenuBarPanelChrome(surface: .opaque, assignmentEmphasis: .highContrastAccent)
+            == MenuBarPanelChrome(surface: .opaque, assignmentEmphasis: .highContrast)
     )
 }
 
-@Test("Long Physical Keyboard Names stay complete in speech at the 320 pt panel width")
+@Test("Long Physical Keyboard Names stay complete in speech at the 280 pt panel width")
 func menuBarPanelLongNamesStayCompleteInSpeech() {
     let name = "Keychron K2 HE ISO Nordic Traveler Custom Mechanical"
     let list = MenuBarAssignmentList(
@@ -192,14 +197,12 @@ private func makeAccessiblePanelContent(
     outcome: ActivityTriggeredSwitchingOutcome,
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
-    canCheckForUpdates: Bool = true,
     marketingVersion: String? = "0.1.0"
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
         assignedInputSourceNames: assignedInputSourceNames,
-        canCheckForUpdates: canCheckForUpdates,
         marketingVersion: marketingVersion
     )
 }

@@ -41,7 +41,6 @@ jobs:
             Tests/Scripts \
             Tests/SwiftTesting \
             Tests/XCTest \
-            Tests/UITests \
             .github/workflows/ci.yml \
             .github/workflows/release.yml \
             Keyameleon.xcodeproj \

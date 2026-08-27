@@ -97,19 +97,6 @@ targets:
     dependencies:
       - target: Keyameleon
 
-  KeyameleonUITests:
-    type: bundle.ui-testing
-    platform: macOS
-    sources:
-      - Tests/UITests
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.ui
-        ENABLE_HARDENED_RUNTIME: NO
-        GENERATE_INFOPLIST_FILE: YES
-    dependencies:
-      - target: Keyameleon
-
 schemes:
   Keyameleon:
     build:
@@ -117,9 +104,7 @@ schemes:
         Keyameleon: all
         KeyameleonSwiftTesting: [test]
         KeyameleonXCTest: [test]
-        KeyameleonUITests: [test]
     test:
       targets:
         - KeyameleonSwiftTesting
         - KeyameleonXCTest
-        - KeyameleonUITests

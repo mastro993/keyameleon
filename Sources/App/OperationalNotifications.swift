@@ -290,12 +290,6 @@ final class UserDefaultsOperationalNotificationEpisodeStore: OperationalNotifica
         remove(episode.storageKey, fromKey: Key.sentEpisodes)
     }
 
-    func resetForUITesting() {
-        defaults.removeObject(forKey: Key.hasEverObservedGrantedListenPermission)
-        defaults.removeObject(forKey: Key.activeEpisodes)
-        defaults.removeObject(forKey: Key.sentEpisodes)
-    }
-
     private func values(forKey key: String) -> Set<String> {
         Set(defaults.stringArray(forKey: key) ?? [])
     }
@@ -338,10 +332,6 @@ final class UserDefaultsNotificationSetupDecisionStore: NotificationSetupDecisio
 
     func markOperationalNotificationSetupOffered() {
         defaults.set(true, forKey: key)
-    }
-
-    func resetForUITesting() {
-        defaults.removeObject(forKey: key)
     }
 }
 

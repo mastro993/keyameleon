@@ -47,16 +47,12 @@ extension KeyameleonApplicationDelegate {
             rootView: KeyameleonMenuBarPanelView(
                 setupModel: setupModel,
                 switching: activityTriggeredSwitching,
-                generalSettingsModel: generalSettingsModel,
                 actions: MenuBarPanelActions(
                     openKeyameleon: { [weak self] in
                         self?.openKeyameleon(nil)
                     },
                     openSettings: { [weak self] in
                         self?.openSettings(nil)
-                    },
-                    checkForUpdates: { [weak self] in
-                        self?.checkForUpdates(nil)
                     },
                     quit: { [weak self] in
                         self?.quitKeyameleon(nil)

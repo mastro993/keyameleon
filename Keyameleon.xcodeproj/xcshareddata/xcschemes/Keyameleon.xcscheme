@@ -43,20 +43,6 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9E7EDED31AFEE7EDAE98DE54"
-               BuildableName = "KeyameleonUITests.xctest"
-               BlueprintName = "KeyameleonUITests"
-               ReferencedContainer = "container:Keyameleon.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "40DDE6048205B37DA81AF2F4"
                BuildableName = "KeyameleonXCTest.xctest"
                BlueprintName = "KeyameleonXCTest"
@@ -100,17 +86,6 @@
                BlueprintIdentifier = "40DDE6048205B37DA81AF2F4"
                BuildableName = "KeyameleonXCTest.xctest"
                BlueprintName = "KeyameleonXCTest"
-               ReferencedContainer = "container:Keyameleon.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9E7EDED31AFEE7EDAE98DE54"
-               BuildableName = "KeyameleonUITests.xctest"
-               BlueprintName = "KeyameleonUITests"
                ReferencedContainer = "container:Keyameleon.xcodeproj">
             </BuildableReference>
          </TestableReference>

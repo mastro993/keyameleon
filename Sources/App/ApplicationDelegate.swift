@@ -37,10 +37,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         let setupStore = UserDefaultsSetupDecisionStore()
         let uncleanExitStateStore = UserDefaultsUncleanExitStateStore()
-        if ProcessInfo.processInfo.arguments.contains("--reset-guided-setup") {
-            setupStore.resetForUITesting()
-            uncleanExitStateStore.resetForUITesting()
-        }
 
         let modelContainer: ModelContainer
         do {
@@ -63,18 +59,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             )
         )
 
-        let isUITesting = ProcessInfo.processInfo.arguments.contains("--reset-guided-setup")
         let isHostedUnitTest = KeyameleonHostedUnitTestProcess.isDetected()
         let operationalNotificationProvider: any OperationalNotificationProviding =
-            isUITesting || isHostedUnitTest
+            isHostedUnitTest
                 ? NoOpOperationalNotificationProvider()
                 : SystemOperationalNotificationProvider()
         let notificationEpisodeStore = UserDefaultsOperationalNotificationEpisodeStore()
         let notificationSetupStore = UserDefaultsNotificationSetupDecisionStore()
-        if isUITesting {
-            notificationEpisodeStore.resetForUITesting()
-            notificationSetupStore.resetForUITesting()
-        }
         let physicalKeyboardRecordStore = SwiftDataPhysicalKeyboardRecordStore(
             modelContext: modelContext
         )
@@ -99,8 +90,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             lifecycleObserver: SystemKeyameleonLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
-            // UI tests must not open Sparkle sheets that steal focus from lifecycle checks.
-            startsUpdaterOnLaunch: !isUITesting && !isHostedUnitTest,
+            startsUpdaterOnLaunch: !isHostedUnitTest,
             startsApplicationSurfaceOnLaunch: !isHostedUnitTest,
             modelContainer: modelContainer,
             diagnosticModelContainer: diagnosticModelContainer,

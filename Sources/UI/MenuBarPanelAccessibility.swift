@@ -10,38 +10,32 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
     enum FocusTarget: Hashable, Sendable {
         /// Silent initial first responder. No ring until Tab.
         case container
-        case assignment(id: String)
         case openKeyameleon
-        case overflow
+        case assignment(id: String)
+        case action(id: MenuBarPanelActionID)
     }
 
     let panel: Speech
-    let heading: Speech
-    let headingIsHeader: Bool
     let items: [Speech]
-    let version: Speech
     let openKeyameleon: Speech
-    let overflow: Speech
-    let overflowActionTitles: [String]
+    let actions: [Speech]
     let keyboardFocusOrder: [FocusTarget]
     let assignmentFocusTitles: [String]
 
     var voiceOverOrderLabels: [String] {
-        [panel.label, heading.label]
+        [panel.label, openKeyameleon.label]
             + items.map(\.label)
-            + [version.label, openKeyameleon.label, overflow.label]
+            + actions.map(\.label)
     }
 
     var keyboardOperationTitles: [String] {
-        assignmentFocusTitles
-            + [openKeyameleon.label, overflow.label]
-            + overflowActionTitles
+        [openKeyameleon.label]
+            + assignmentFocusTitles
+            + actions.map(\.label)
     }
 
     init(content: MenuBarPanelContent) {
         panel = Speech(label: "Keyameleon", value: content.switchingStatus.rawValue)
-        heading = Speech(label: content.assignmentList.heading, value: nil)
-        headingIsHeader = true
         assignmentFocusTitles = content.assignmentList.rows.map(\.physicalKeyboardName)
         if content.assignmentList.rows.isEmpty {
             items = [
@@ -50,19 +44,20 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
                     value: content.assignmentList.emptyDescription
                 )
             ]
-            keyboardFocusOrder = [.openKeyameleon, .overflow]
         } else {
             items = content.assignmentList.rows.map { row in
                 Speech(label: row.accessibilityLabel, value: row.accessibilityValue)
             }
-            keyboardFocusOrder =
-                content.assignmentList.rows.map { .assignment(id: $0.id) }
-                + [.openKeyameleon, .overflow]
         }
-        version = Speech(label: "Version", value: content.footer.versionAccessibilityValue)
         openKeyameleon = Speech(label: content.footer.openKeyameleon.title, value: nil)
-        overflow = Speech(label: "More", value: nil)
-        overflowActionTitles = content.footer.overflowActions.map(\.title)
+        actions = content.footer.actions.map { action in
+            Speech(label: action.title, value: nil)
+        }
+        keyboardFocusOrder = [.openKeyameleon]
+            + content.assignmentList.rows.map { .assignment(id: $0.id) }
+            + content.footer.actions
+                .filter(\.isEnabled)
+                .map { .action(id: $0.id) }
     }
 }
 

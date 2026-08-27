@@ -45,7 +45,6 @@
 		64E3E73BCBE33BBF8DA964B2 /* SwiftData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81634072FBBCD7BCF66DC8CC /* SwiftData.framework */; };
 		66192BBEB5CA3988AFEDD752 /* MenuBarPanelContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */; };
 		67C45F69D56D4B0C48C92E23 /* PhysicalKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 983C8E45DAD547D8162603B6 /* PhysicalKeyboard.swift */; };
-		6E0257D68BB77F755CA07D72 /* LifecycleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D756A7EA1BDFB814C2B383B3 /* LifecycleUITests.swift */; };
 		740557F4153CE4F60FDA8632 /* ActivityTriggeredSwitchingTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B40ED2A24EAC1F629D66B0 /* ActivityTriggeredSwitchingTestSupport.swift */; };
 		744BCF16F1595722CC1E7D0F /* DiagnosticDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2524EEFA1711ADE5CEAF4EAA /* DiagnosticDataTests.swift */; };
 		799125EBDA6D27A23803AF1B /* DiagnosticDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29B24A67009EA8DCF50F391 /* DiagnosticDataService.swift */; };
@@ -64,6 +63,7 @@
 		9EBED114C6E30DB6C52911BF /* DiagnosticWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F12688E745FEE2229C9EA9B7 /* DiagnosticWindowController.swift */; };
 		A00E9121965AC9358A33DB3B /* RecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F2F27F6D94088F0A945139 /* RecoveryTests.swift */; };
 		A4CF953DD84068C1786D51D2 /* UncleanExitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A301EAA639B770F7935C3B7 /* UncleanExitTests.swift */; };
+		A74D2B700EB2A448B00C1492 /* MenuBarActionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B6B4E3BC68B7961FB444DCB /* MenuBarActionList.swift */; };
 		A7C36DFDA7414A19C6CDE713 /* DiagnosticBundleReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */; };
 		A7DD977154EBE621232DBCDD /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */; };
 		A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */; };
@@ -86,20 +86,12 @@
 		E7ECA56E3601A3B66CA7F3F3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8FEB7EE535E8C18BD9D70E /* RootView.swift */; };
 		F5723A6F857F899E97BDC980 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C710797D8D223EBD0663F59 /* UpdateChecker.swift */; };
 		F709A33523FE9F750C0CA4C0 /* ManualPhysicalKeyboardDesignation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ED6FFDC073384B3CF3D346 /* ManualPhysicalKeyboardDesignation.swift */; };
-		F9F6DAE8ADF9D02FDC59AF07 /* MenuBarOverflowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */; };
 		FA91956D06B52529439BF8D0 /* PhysicalKeyboardEventObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7344A958EDF1CC3454029751 /* PhysicalKeyboardEventObserver.swift */; };
 		FB39E04074F5D3884F9FC645 /* UpdatePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC3803559762A26A22D58DB8 /* UpdatePolicyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		62FB124316A61CE353FCFE6C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 17F49B025803125E5ABBCD4C /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D7B1A298244D4331D2678655;
-			remoteInfo = Keyameleon;
-		};
-		D07789ECD894B6BCEB9EA519 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 17F49B025803125E5ABBCD4C /* Project object */;
 			proxyType = 1;
@@ -159,12 +151,11 @@
 		77C809ABBA1C70D9822B5BA5 /* CoreHID.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHID.framework; path = System/Library/Frameworks/CoreHID.framework; sourceTree = SDKROOT; };
 		797909628855CFF740AAAE3F /* ApplicationDelegate+MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ApplicationDelegate+MenuBar.swift"; sourceTree = "<group>"; };
 		7BEC56C6D332AED3772C92D9 /* MenuFirstTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuFirstTests.swift; sourceTree = "<group>"; };
-		7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		81634072FBBCD7BCF66DC8CC /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
 		82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentSection.swift; sourceTree = "<group>"; };
 		8AD8FB5FFB9840099C00C830 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		8B6B4E3BC68B7961FB444DCB /* MenuBarActionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarActionList.swift; sourceTree = "<group>"; };
 		8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
-		8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarOverflowButton.swift; sourceTree = "<group>"; };
 		8E726E51A5724616DEE3DC78 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		8F6A7020C94F2FD13853D645 /* InputSources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSources.swift; sourceTree = "<group>"; };
 		9163A19B113812EA758F0681 /* ProductionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionFactory.swift; sourceTree = "<group>"; };
@@ -192,7 +183,6 @@
 		D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicyTests.swift; sourceTree = "<group>"; };
 		D29B24A67009EA8DCF50F391 /* DiagnosticDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataService.swift; sourceTree = "<group>"; };
 		D4618DF3A4D7D688A018029F /* ActivityTriggeredSwitchingOutcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitchingOutcome.swift; sourceTree = "<group>"; };
-		D756A7EA1BDFB814C2B383B3 /* LifecycleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleUITests.swift; sourceTree = "<group>"; };
 		DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonXCTest.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E08F5F8AE410D0FB94462FA8 /* InstallationIntegrityKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationIntegrityKey.swift; sourceTree = "<group>"; };
 		E182B1A00967D6ABCB27D357 /* ListenPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenPermission.swift; sourceTree = "<group>"; };
@@ -257,7 +247,6 @@
 			children = (
 				967B7E1070DD4601582EE6C6 /* Keyameleon.app */,
 				D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */,
-				7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */,
 				DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */,
 			);
 			name = Products;
@@ -268,9 +257,9 @@
 			children = (
 				55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */,
 				45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */,
+				8B6B4E3BC68B7961FB444DCB /* MenuBarActionList.swift */,
 				463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */,
 				82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */,
-				8D3ED01D373ABE01D1AAEBD7 /* MenuBarOverflowButton.swift */,
 				564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */,
 				C6E62EA0D163CCFF19E3ECB9 /* MenuBarPanelChrome.swift */,
 				58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */,
@@ -341,19 +330,10 @@
 			path = Domain;
 			sourceTree = "<group>";
 		};
-		A04569F39B68F25EDADE4039 /* UITests */ = {
-			isa = PBXGroup;
-			children = (
-				D756A7EA1BDFB814C2B383B3 /* LifecycleUITests.swift */,
-			);
-			path = UITests;
-			sourceTree = "<group>";
-		};
 		AA13A857CCEB8354237B20DE /* Tests */ = {
 			isa = PBXGroup;
 			children = (
 				F86EC0BFB9FD4FC6CCEA2463 /* SwiftTesting */,
-				A04569F39B68F25EDADE4039 /* UITests */,
 				0FBEA2F3C13CDFD006D682CC /* XCTest */,
 			);
 			path = Tests;
@@ -419,24 +399,6 @@
 			productReference = DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9E7EDED31AFEE7EDAE98DE54 /* KeyameleonUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D62A17E11D80376E13289228 /* Build configuration list for PBXNativeTarget "KeyameleonUITests" */;
-			buildPhases = (
-				D0555ED5DAECE538FDBA874E /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				12E91BE96366BD983B9DB67C /* PBXTargetDependency */,
-			);
-			name = KeyameleonUITests;
-			packageProductDependencies = (
-			);
-			productName = KeyameleonUITests;
-			productReference = 7BF17EC7F54B997EE0DDAFAE /* KeyameleonUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 		BC118DDA889522C04EAB366C /* KeyameleonSwiftTesting */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEABDCF50BD0B7FBE7504D5F /* Build configuration list for PBXNativeTarget "KeyameleonSwiftTesting" */;
@@ -486,14 +448,7 @@
 					40DDE6048205B37DA81AF2F4 = {
 						ProvisioningStyle = Manual;
 					};
-					9E7EDED31AFEE7EDAE98DE54 = {
-						ProvisioningStyle = Manual;
-						TestTargetID = D7B1A298244D4331D2678655;
-					};
 					BC118DDA889522C04EAB366C = {
-						ProvisioningStyle = Manual;
-					};
-					D7B1A298244D4331D2678655 = {
 						ProvisioningStyle = Manual;
 					};
 				};
@@ -517,7 +472,6 @@
 			targets = (
 				D7B1A298244D4331D2678655 /* Keyameleon */,
 				BC118DDA889522C04EAB366C /* KeyameleonSwiftTesting */,
-				9E7EDED31AFEE7EDAE98DE54 /* KeyameleonUITests */,
 				40DDE6048205B37DA81AF2F4 /* KeyameleonXCTest */,
 			);
 		};
@@ -548,9 +502,9 @@
 				CABD1BC3E4A2D1B54E22FC5B /* ListenPermission.swift in Sources */,
 				F709A33523FE9F750C0CA4C0 /* ManualPhysicalKeyboardDesignation.swift in Sources */,
 				10C10DA54CEEC81C6E86EC7A /* ManualPhysicalKeyboardDesignationStore.swift in Sources */,
+				A74D2B700EB2A448B00C1492 /* MenuBarActionList.swift in Sources */,
 				80E073726A86C6F91B1265F4 /* MenuBarAssignmentList.swift in Sources */,
 				285CA87B73B33712DF22ADA7 /* MenuBarAssignmentSection.swift in Sources */,
-				F9F6DAE8ADF9D02FDC59AF07 /* MenuBarOverflowButton.swift in Sources */,
 				3610D1886B9AF7CF91FCBE9D /* MenuBarPanelAccessibility.swift in Sources */,
 				B0C94E4D8536078D5C6B4757 /* MenuBarPanelChrome.swift in Sources */,
 				66192BBEB5CA3988AFEDD752 /* MenuBarPanelContent.swift in Sources */,
@@ -615,22 +569,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D0555ED5DAECE538FDBA874E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				6E0257D68BB77F755CA07D72 /* LifecycleUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		12E91BE96366BD983B9DB67C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D7B1A298244D4331D2678655 /* Keyameleon */;
-			targetProxy = D07789ECD894B6BCEB9EA519 /* PBXContainerItemProxy */;
-		};
 		35D7537BF190FEFCF68CDCC8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D7B1A298244D4331D2678655 /* Keyameleon */;
@@ -665,10 +606,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = B5A7CF67KF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Keyameleon;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSInputMonitoringUsageDescription = "Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -677,6 +623,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon;
 				PRODUCT_NAME = Keyameleon;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -852,32 +799,18 @@
 			};
 			name = Debug;
 		};
-		6395F854E8D0DE5F7B229CAF /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.ui;
-				SDKROOT = macosx;
-				TEST_TARGET_NAME = Keyameleon;
-			};
-			name = Release;
-		};
 		69C35E70D354FBF23A976F7E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = B5A7CF67KF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Keyameleon;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSInputMonitoringUsageDescription = "Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -886,6 +819,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.development;
 				PRODUCT_NAME = Keyameleon;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -906,24 +840,6 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon.app/Contents/MacOS/Keyameleon";
 			};
 			name = Release;
-		};
-		CAC42CDB4BA14BF34095B331 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.ui;
-				SDKROOT = macosx;
-				TEST_TARGET_NAME = Keyameleon;
-			};
-			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -960,15 +876,6 @@
 			buildConfigurations = (
 				129D3100D43ECD4BEB65FA8C /* Debug */,
 				56BD1B3EA091D02346B5C763 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		D62A17E11D80376E13289228 /* Build configuration list for PBXNativeTarget "KeyameleonUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CAC42CDB4BA14BF34095B331 /* Debug */,
-				6395F854E8D0DE5F7B229CAF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

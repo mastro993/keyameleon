@@ -6,8 +6,8 @@ enum MenuBarPanelSurface: Equatable, Sendable {
 }
 
 enum MenuBarAssignmentEmphasis: Equatable, Sendable {
-    case rainbow
-    case highContrastAccent
+    case standard
+    case highContrast
 }
 
 /// Panel chrome for Liquid Glass, Reduce Transparency, and increased contrast.
@@ -21,7 +21,7 @@ struct MenuBarPanelChrome: Equatable, Sendable {
     ) -> MenuBarPanelChrome {
         MenuBarPanelChrome(
             surface: reduceTransparency ? .opaque : .liquidGlass,
-            assignmentEmphasis: increasedContrast ? .highContrastAccent : .rainbow
+            assignmentEmphasis: increasedContrast ? .highContrast : .standard
         )
     }
 }
