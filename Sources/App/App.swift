@@ -19,5 +19,12 @@ struct KeyameleonApp: App {
                 }
             }
         }
+        .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About Keyameleon") {
+                    applicationDelegate.openAbout(nil)
+                }
+            }
+        }
     }
 }
