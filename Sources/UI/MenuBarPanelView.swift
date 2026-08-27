@@ -149,7 +149,7 @@ struct MenuBarPanelHeader: View {
     let perform: (MenuBarPanelContent.Action) -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 4) {
             Text("Keyameleon")
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.primary)
@@ -160,12 +160,12 @@ struct MenuBarPanelHeader: View {
             } label: {
                 Image(systemName: "info.circle.fill")
                     .font(.body)
-                    .symbolRenderingMode(.hierarchical)
+                    .symbolRenderingMode(.monochrome)
                     .frame(width: 22, height: 22)
                     .contentShape(.circle)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+            .foregroundStyle(.secondary)
             .focusable()
             .focused(focusedTarget, equals: .about)
             .help(openAction.title)

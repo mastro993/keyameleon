@@ -25,17 +25,15 @@ func menuBarPanelPausedShowsResume() {
     #expect(overflowIDs(content).contains(.pause) == false)
 }
 
-@Test("Permission Required shows recovery actions in the tray")
+@Test("Permission Required shows only core menu actions")
 @MainActor
-func menuBarPanelPermissionRequiredShowsRecoveryInOverflow() {
+func menuBarPanelPermissionRequiredOmitsRecoveryActions() {
     let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
 
-    #expect(overflowIDs(content).contains(.requestPermission))
-    #expect(overflowIDs(content).contains(.openSystemSettings))
-    #expect(overflowIDs(content).contains(.checkAgain))
-    #expect(overflow(content, .requestPermission)?.title == "Request Permission")
-    #expect(overflow(content, .openSystemSettings)?.title == "Open System Settings")
-    #expect(overflow(content, .checkAgain)?.title == "Check Again")
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(content.actionTitles.contains("Request Permission") == false)
+    #expect(content.actionTitles.contains("Open System Settings") == false)
+    #expect(content.actionTitles.contains("Check Again") == false)
     #expect(overflow(content, .pause)?.id == .pause)
 }
 
@@ -50,20 +48,20 @@ func menuBarPanelTemporarilyUnavailableHasNoRecoveryActions() {
     #expect(overflowIDs(content).contains(.checkAgain) == false)
 }
 
-@Test("Recovery actions appear only when the outcome offers them")
+@Test("Recovery actions never appear in the menu")
 @MainActor
-func menuBarPanelRecoveryActionsFollowOutcomeAvailability() {
-    let withoutRecovery = makeMenuBarPanelContent(
-        outcome: .permissionRequiredFixture(availableActions: [.pause])
-    )
-    #expect(overflowIDs(withoutRecovery).contains(.requestPermission) == false)
-    #expect(overflowIDs(withoutRecovery).contains(.checkAgain) == false)
-
-    let withCheckAgain = makeMenuBarPanelContent(
-        outcome: .permissionRequiredFixture(availableActions: [.pause, .checkAgain])
-    )
-    #expect(overflowIDs(withCheckAgain).contains(.checkAgain))
-    #expect(overflowIDs(withCheckAgain).contains(.requestPermission) == false)
+func menuBarPanelRecoveryActionsNeverAppear() {
+    for outcome in [
+        ActivityTriggeredSwitchingOutcome.readyFixture(),
+        .permissionRequiredFixture(),
+        .temporarilyUnavailableFixture(),
+    ] {
+        let content = makeMenuBarPanelContent(outcome: outcome)
+        #expect(overflowIDs(content) == [.pause, .settings, .quit])
+        #expect(content.actionTitles.contains("Request Permission") == false)
+        #expect(content.actionTitles.contains("Open System Settings") == false)
+        #expect(content.actionTitles.contains("Check Again") == false)
+    }
 }
 
 @Test("Pause and Resume keep the panel open; About dismisses it")
@@ -77,9 +75,7 @@ func menuBarPanelOverflowDismissal() {
     #expect(overflow(paused, .resume)?.closesPanel == false)
 
     let permission = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
-    #expect(overflow(permission, .requestPermission)?.closesPanel == true)
-    #expect(overflow(permission, .openSystemSettings)?.closesPanel == true)
-    #expect(overflow(permission, .checkAgain)?.closesPanel == false)
+    #expect(overflow(permission, .pause)?.closesPanel == false)
 }
 
 @Test("Footer shows Keyameleon from the marketing version and omits the build number")

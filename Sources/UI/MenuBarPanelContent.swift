@@ -88,15 +88,11 @@ struct MenuBarPanelContent: Equatable, Sendable {
     private static func makeActions(
         outcome: ActivityTriggeredSwitchingOutcome
     ) -> [Action] {
-        var actions = [pauseOrResume(outcome: outcome)]
-        actions.append(contentsOf: recoveryActions(outcome: outcome))
-        actions.append(
-            Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true)
-        )
-        actions.append(
-            Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true)
-        )
-        return actions
+        [
+            pauseOrResume(outcome: outcome),
+            Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true),
+            Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true),
+        ]
     }
 
     private static func pauseOrResume(
@@ -117,49 +113,5 @@ struct MenuBarPanelContent: Equatable, Sendable {
             isEnabled: true,
             closesPanel: false
         )
-    }
-
-    private static func recoveryActions(
-        outcome: ActivityTriggeredSwitchingOutcome
-    ) -> [Action] {
-        switch outcome.switchingStatus {
-        case .ready, .paused:
-            return []
-        case .permissionRequired, .temporarilyUnavailable:
-            break
-        }
-
-        var actions: [Action] = []
-        if outcome.hasAction(.requestPermission) {
-            actions.append(
-                Action(
-                    id: .requestPermission,
-                    title: "Request Permission",
-                    isEnabled: true,
-                    closesPanel: true
-                )
-            )
-        }
-        if outcome.hasAction(.openSystemSettings) {
-            actions.append(
-                Action(
-                    id: .openSystemSettings,
-                    title: "Open System Settings",
-                    isEnabled: true,
-                    closesPanel: true
-                )
-            )
-        }
-        if outcome.hasAction(.checkAgain) {
-            actions.append(
-                Action(
-                    id: .checkAgain,
-                    title: "Check Again",
-                    isEnabled: true,
-                    closesPanel: false
-                )
-            )
-        }
-        return actions
     }
 }
