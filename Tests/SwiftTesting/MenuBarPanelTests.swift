@@ -219,8 +219,8 @@ func menuBarAssignmentListShowsOnlyAssignedPhysicalKeyboards() throws {
     #expect(row.assignedInputSourceName == "Italian")
 }
 
-@Test("Menu-bar assignment list orders Active, connected, then disconnected by name")
-func menuBarAssignmentListOrdersActiveConnectedThenDisconnected() {
+@Test("Menu-bar assignment order stays stable when the active keyboard changes")
+func menuBarAssignmentListOrderIgnoresActiveKeyboard() {
     let zebra = makeAssignedPanelKeyboard(
         name: "Zebra",
         identifier: "zebra",
@@ -259,8 +259,8 @@ func menuBarAssignmentListOrdersActiveConnectedThenDisconnected() {
     )
 
     #expect(list.rows.map(\.physicalKeyboardName) == [
-        "Later Active",
         "Apple",
+        "Later Active",
         "Zebra",
         "Desk",
         "Zeta"

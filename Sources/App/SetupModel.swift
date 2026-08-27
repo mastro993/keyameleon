@@ -652,8 +652,7 @@ final class KeyameleonSetupModel {
         }
 
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
-            connected + disconnected,
-            activeID: activeID
+            connected + disconnected
         )
     }
 

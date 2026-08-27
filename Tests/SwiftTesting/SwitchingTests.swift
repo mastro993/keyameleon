@@ -224,9 +224,9 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
 }
 
-@Test("Active Physical Keyboard sorts first in Guided setup list")
+@Test("Active Physical Keyboard does not change Guided setup order")
 @MainActor
-func activePhysicalKeyboardSortsFirstInGuidedSetupList() {
+func activePhysicalKeyboardDoesNotChangeGuidedSetupOrder() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = KeyameleonSetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
@@ -260,12 +260,14 @@ func activePhysicalKeyboardSortsFirstInGuidedSetupList() {
     let betaID = model.physicalKeyboards.first { $0.id != alphaID }!.id
     model.setPhysicalKeyboardName(betaID, customName: "Beta")
 
+    let orderBeforeActivity = model.physicalKeyboards.map(\.id)
+
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(
         PhysicalKeyboardEvent(serviceID: 109, kind: .press)
     )
 
-    #expect(model.physicalKeyboards[0].id == betaID)
-    #expect(model.physicalKeyboards[0].name == "Beta")
+    #expect(model.physicalKeyboards.map(\.id) == orderBeforeActivity)
+    #expect(model.activePhysicalKeyboardID == betaID)
 }
 
 @Test("Permission Required stops Physical Keyboard Event observation")

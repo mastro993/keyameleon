@@ -90,8 +90,8 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
 
     #expect(assigned.accessibility.keyboardFocusOrder == [
         .about,
-        .assignment(id: "travel"),
         .assignment(id: "desk"),
+        .assignment(id: "travel"),
         .action(id: .pause),
         .action(id: .requestPermission),
         .action(id: .openSystemSettings),
@@ -107,8 +107,8 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     ])
     #expect(assigned.accessibility.keyboardOperationTitles == [
         "About Keyameleon",
-        "Travel",
         "Desk",
+        "Travel",
         "Pause",
         "Request Permission",
         "Open System Settings",
