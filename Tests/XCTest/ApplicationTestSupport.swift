@@ -115,11 +115,21 @@ final class ApplicationTestListenPermissionProvider: ListenPermissionProviding {
 
 @MainActor
 final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
-    private(set) var hasStartedGuidedSetup = false
-    private(set) var hasCompletedGuidedSetup = true
-    private(set) var guidedSetupStep: GuidedSetupStep = .assignments
+    private(set) var hasStartedGuidedSetup: Bool
+    private(set) var hasCompletedGuidedSetup: Bool
+    private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var isActivityTriggeredSwitchingPaused = false
     private(set) var hasEvaluatedBuiltInIdentityMigration = false
+
+    init(
+        hasStartedGuidedSetup: Bool = false,
+        hasCompletedGuidedSetup: Bool = true,
+        guidedSetupStep: GuidedSetupStep = .assignments
+    ) {
+        self.hasStartedGuidedSetup = hasStartedGuidedSetup
+        self.hasCompletedGuidedSetup = hasCompletedGuidedSetup
+        self.guidedSetupStep = guidedSetupStep
+    }
 
     func markGuidedSetupStarted() {
         hasStartedGuidedSetup = true

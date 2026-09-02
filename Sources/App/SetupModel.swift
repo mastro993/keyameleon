@@ -109,6 +109,9 @@ final class KeyameleonSetupModel {
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
     private(set) var shouldOfferOperationalNotificationSetup: Bool
+    private(set) var isWaitingForListenPermission = false
+
+    var onGuidedSetupCompleted: (() -> Void)?
 
     let activityTriggeredSwitching: ActivityTriggeredSwitching
 
@@ -126,6 +129,7 @@ final class KeyameleonSetupModel {
     private var discoveryObserverID: UUID?
     private var inputSourceObserverID: UUID?
     private var notificationObserverID: UUID?
+    private var permissionPollTask: Task<Void, Never>?
 
     init(
         activityTriggeredSwitching: ActivityTriggeredSwitching,
@@ -258,10 +262,6 @@ final class KeyameleonSetupModel {
         return physicalKeyboards.first { $0.id == activePhysicalKeyboardID }
     }
 
-    var showsAssignmentSetup: Bool {
-        isSetupComplete || guidedSetupStep == .assignments
-    }
-
     var isActivityTriggeredSwitchingPaused: Bool {
         setupStore.isActivityTriggeredSwitchingPaused
     }
@@ -294,23 +294,36 @@ final class KeyameleonSetupModel {
     }
 
     func beginGuidedSetup() {
-        guard !hasStartedGuidedSetup else {
-            return
+        if !hasStartedGuidedSetup {
+            setupStore.markGuidedSetupStarted()
+            hasStartedGuidedSetup = true
+            guidedSetupStep = setupStore.guidedSetupStep
         }
-
-        setupStore.markGuidedSetupStarted()
-        hasStartedGuidedSetup = true
-        guidedSetupStep = setupStore.guidedSetupStep
+        startPermissionWaitIfNeeded()
+        advanceIfPermissionGranted()
     }
 
     func requestPermission() {
+        isWaitingForListenPermission = true
         activityTriggeredSwitching.requestPermission()
-        if activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired {
-            openSystemSettings()
+        startPermissionWaitIfNeeded()
+        advanceIfPermissionGranted()
+    }
+
+    func advanceIfPermissionGranted() {
+        guard !isSetupComplete, guidedSetupStep == .permission else {
+            return
         }
+        guard activityTriggeredSwitching.outcome.switchingStatus != .permissionRequired else {
+            return
+        }
+
+        continueToAssignments()
     }
 
     func continueToAssignments() {
+        stopPermissionWait()
+        isWaitingForListenPermission = false
         setupStore.markGuidedSetupStep(.assignments)
         hasStartedGuidedSetup = true
         guidedSetupStep = .assignments
@@ -322,6 +335,8 @@ final class KeyameleonSetupModel {
     }
 
     func completeSetup() {
+        stopPermissionWait()
+        isWaitingForListenPermission = false
         if !hasStartedGuidedSetup {
             setupStore.markGuidedSetupStarted()
             hasStartedGuidedSetup = true
@@ -333,6 +348,7 @@ final class KeyameleonSetupModel {
         if !isSetupComplete {
             setupStore.markGuidedSetupCompleted()
             isSetupComplete = true
+            onGuidedSetupCompleted?()
         }
     }
 
@@ -678,5 +694,38 @@ final class KeyameleonSetupModel {
         diagnosticDataController.deleteDiagnosticData(
             forIdentityKey: migratedRecord.identityKey
         )
+    }
+
+    private func startPermissionWaitIfNeeded() {
+        guard !isSetupComplete, guidedSetupStep == .permission else {
+            stopPermissionWait()
+            return
+        }
+        guard permissionPollTask == nil else {
+            return
+        }
+
+        // ponytail: IOHIDCheckAccess has no change notification. 1s poll while
+        // the permission step is visible; subscribe if Apple adds a callback.
+        permissionPollTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
+                guard let self, !Task.isCancelled else {
+                    return
+                }
+
+                self.activityTriggeredSwitching.checkAgain()
+                self.advanceIfPermissionGranted()
+            }
+        }
+    }
+
+    private func stopPermissionWait() {
+        permissionPollTask?.cancel()
+        permissionPollTask = nil
     }
 }

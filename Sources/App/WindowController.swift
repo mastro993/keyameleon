@@ -88,11 +88,10 @@ final class KeyameleonAboutWindowController: NSWindowController {
 final class KeyameleonWindowController: NSWindowController {
     init(
         model: KeyameleonSetupModel,
-        switching: ActivityTriggeredSwitching,
-        diagnosticModel: KeyameleonGeneralSettingsModel
+        switching: ActivityTriggeredSwitching
     ) {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 360),
+            contentRect: NSRect(x: 0, y: 0, width: 560, height: 640),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
@@ -101,12 +100,11 @@ final class KeyameleonWindowController: NSWindowController {
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.main-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 460, height: 280)
+        window.minSize = NSSize(width: 520, height: 520)
         window.contentView = NSHostingView(
             rootView: KeyameleonRootView(
                 model: model,
-                switching: switching,
-                diagnosticModel: diagnosticModel
+                switching: switching
             )
         )
 

@@ -79,6 +79,7 @@
 		CC4D4CD3FDBEABF26DFD8779 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2F89B01FA50D2E2724A74C3 /* AppKit.framework */; };
 		CDEB08A343F64C57326A72EE /* ManualDesignationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */; };
 		CFAE25F9126FE28912B366E5 /* PhysicalKeyboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */; };
+		D3A0D6675068452A4032413E /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C755A567740A538EB0709B /* OnboardingView.swift */; };
 		D72130957C3F2F50CF482E72 /* HostedUnitTestProcessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4256FDB67D3FDDB9A81A429B /* HostedUnitTestProcessTests.swift */; };
 		D7D64A72C6CB23575841963A /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */; };
 		DC3FF408A6D6AE793789D0CC /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E726E51A5724616DEE3DC78 /* LaunchAtLogin.swift */; };
@@ -131,6 +132,7 @@
 		4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardStore.swift; sourceTree = "<group>"; };
 		40C2DA9F0561DCC5F989B318 /* MenuBarPanelAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelAccessibilityTests.swift; sourceTree = "<group>"; };
 		4256FDB67D3FDDB9A81A429B /* HostedUnitTestProcessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostedUnitTestProcessTests.swift; sourceTree = "<group>"; };
+		42C755A567740A538EB0709B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentList.swift; sourceTree = "<group>"; };
 		469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationActivityTests.swift; sourceTree = "<group>"; };
@@ -265,6 +267,7 @@
 				58B9EB49CAF1AC5040536373 /* MenuBarPanelContent.swift */,
 				257933278E9C49F4D70D56CB /* MenuBarPanelPreviews.swift */,
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
+				42C755A567740A538EB0709B /* OnboardingView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
 			);
 			path = UI;
@@ -514,6 +517,7 @@
 				24BFA677E1025CFB959DF841 /* MenuBarPanelController.swift in Sources */,
 				8ED122D2ED4DCCD7B84993B8 /* MenuBarPanelPreviews.swift in Sources */,
 				A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */,
+				D3A0D6675068452A4032413E /* OnboardingView.swift in Sources */,
 				BD35E25C6361F8281935F1E1 /* OperationalNotifications.swift in Sources */,
 				67C45F69D56D4B0C48C92E23 /* PhysicalKeyboard.swift in Sources */,
 				C2E80761E04D1CB57A29B615 /* PhysicalKeyboardDiscovery.swift in Sources */,

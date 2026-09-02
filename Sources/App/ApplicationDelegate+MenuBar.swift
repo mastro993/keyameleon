@@ -97,22 +97,24 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func openKeyameleon(_ sender: Any?) {
-        if !setupModel.hasStartedGuidedSetup {
-            setupModel.beginGuidedSetup()
-        }
+        setupModel.beginGuidedSetup()
         closeMenuBarPanel()
         NSApp.activate(ignoringOtherApps: true)
 
         if windowController == nil {
             windowController = KeyameleonWindowController(
                 model: setupModel,
-                switching: activityTriggeredSwitching,
-                diagnosticModel: generalSettingsModel
+                switching: activityTriggeredSwitching
             )
         }
 
         windowController?.showWindow(sender)
         windowController?.window?.orderFrontRegardless()
+    }
+
+    func presentSettingsAfterGuidedSetup() {
+        openSettings(nil)
+        windowController?.close()
     }
 
     @objc
@@ -139,9 +141,6 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func continueSetup(_ sender: Any?) {
-        if !setupModel.hasStartedGuidedSetup {
-            setupModel.beginGuidedSetup()
-        }
         openKeyameleon(sender)
     }
 
