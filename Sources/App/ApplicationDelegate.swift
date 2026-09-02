@@ -144,6 +144,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
 
         super.init()
+        setupModel.onGuidedSetupCompleted = { [weak self] in
+            self?.presentSettingsAfterGuidedSetup()
+        }
         observePresentationChanges()
     }
 
@@ -237,8 +240,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
         generalSettingsModel.refresh()
 
-        if startsApplicationSurfaceOnLaunch,
-           !setupModel.isSetupComplete && !setupModel.hasStartedGuidedSetup {
+        if startsApplicationSurfaceOnLaunch, !setupModel.isSetupComplete {
             setupModel.beginGuidedSetup()
             openKeyameleon(nil)
         }
@@ -246,6 +248,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         activityTriggeredSwitching.checkAgain()
+        setupModel.advanceIfPermissionGranted()
         generalSettingsModel.refresh()
         refreshMenuBarPresentation()
     }

@@ -206,6 +206,57 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testCompletingGuidedSetupPresentsSettingsAndKeepsTheApplicationRunning() throws {
+        let setupStore = ApplicationTestSetupDecisionStore(
+            hasCompletedGuidedSetup: false,
+            guidedSetupStep: .permission
+        )
+        let delegate = makeApplicationTestDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            setupStore: setupStore
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        XCTAssertEqual(delegate.setupModel.guidedSetupStep, .assignments)
+        XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
+        XCTAssertNil(delegate.settingsWindowController)
+
+        delegate.setupModel.completeSetup()
+
+        let settingsWindow = try XCTUnwrap(delegate.settingsWindowController?.window)
+        XCTAssertTrue(settingsWindow.isVisible)
+        XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
+        XCTAssertFalse(
+            delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared)
+        )
+    }
+
+    @MainActor
+    func testRelaunchAfterPermissionGrantOpensKeyboardCheck() throws {
+        let setupStore = ApplicationTestSetupDecisionStore(
+            hasStartedGuidedSetup: true,
+            hasCompletedGuidedSetup: false,
+            guidedSetupStep: .permission
+        )
+        let delegate = makeApplicationTestDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            setupStore: setupStore
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        XCTAssertEqual(delegate.setupModel.guidedSetupStep, .assignments)
+        XCTAssertFalse(delegate.setupModel.isSetupComplete)
+        XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
+        XCTAssertNil(delegate.settingsWindowController)
+    }
+
+    @MainActor
     func testReopenDoesNotReactivateOrOpenTheRunningApplication() {
         let delegate = makeApplicationTestDelegate()
         defer { stopApplicationTestSurface(delegate) }

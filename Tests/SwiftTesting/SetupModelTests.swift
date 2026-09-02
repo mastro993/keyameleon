@@ -39,14 +39,15 @@ func requestPermissionKeepsDeniedStatusAndDoesNotCompleteSetup() {
     model.requestPermission()
 
     #expect(permissionProvider.requestCount == 1)
-    #expect(settingsOpener.openCount == 1)
+    #expect(settingsOpener.openCount == 0)
     #expect(model.isSetupComplete == false)
     #expect(setupStore.hasCompletedGuidedSetup == false)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(model.guidedSetupStep == .permission)
+    #expect(model.isWaitingForListenPermission)
 }
 
-@Test("Request Permission does not open System Settings when listen permission is granted")
+@Test("Request Permission never opens System Settings")
 @MainActor
 func requestPermissionDoesNotOpenSystemSettingsWhenListenPermissionIsGranted() {
     let permissionProvider = SetupModelTestListenPermissionProvider(
@@ -66,6 +67,8 @@ func requestPermissionDoesNotOpenSystemSettingsWhenListenPermissionIsGranted() {
     #expect(permissionProvider.requestCount == 1)
     #expect(settingsOpener.openCount == 0)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
+    #expect(model.guidedSetupStep == .assignments)
+    #expect(model.isSetupComplete == false)
 }
 
 @Test("Info.plist declares Input Monitoring usage description")
@@ -142,6 +145,84 @@ func finishWithoutAssignmentsCompletesSetupAndSkipsFurtherSteps() {
     #expect(setupStore.hasCompletedGuidedSetup)
     #expect(model.isSetupComplete)
     #expect(model.guidedSetupStep == .assignments)
+}
+
+@Test("Begin Guided setup advances past permission when listen permission is already granted")
+@MainActor
+func beginGuidedSetupAdvancesWhenListenPermissionIsGranted() {
+    let setupStore = SetupModelTestSetupDecisionStore()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: setupStore,
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+
+    model.beginGuidedSetup()
+
+    #expect(setupStore.hasStartedGuidedSetup)
+    #expect(model.guidedSetupStep == .assignments)
+    #expect(model.isSetupComplete == false)
+    #expect(model.isWaitingForListenPermission == false)
+}
+
+@Test("Relaunch after listen permission grant resumes at assignments")
+@MainActor
+func relaunchAfterListenPermissionGrantResumesAtAssignments() {
+    let setupStore = SetupModelTestSetupDecisionStore()
+    setupStore.markGuidedSetupStep(.permission)
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: setupStore,
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+
+    model.beginGuidedSetup()
+
+    #expect(model.guidedSetupStep == .assignments)
+    #expect(model.isSetupComplete == false)
+}
+
+@Test("Check Again advances Guided setup when listen permission is granted")
+@MainActor
+func checkAgainAdvancesGuidedSetupWhenListenPermissionIsGranted() {
+    let permissionProvider = SetupModelTestListenPermissionProvider(state: .denied)
+    let setupStore = SetupModelTestSetupDecisionStore()
+    let model = KeyameleonSetupModel(
+        permissionProvider: permissionProvider,
+        setupStore: setupStore,
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+
+    model.beginGuidedSetup()
+    #expect(model.guidedSetupStep == .permission)
+
+    permissionProvider.state = .granted
+    startAndCheck(model)
+    model.advanceIfPermissionGranted()
+
+    #expect(model.guidedSetupStep == .assignments)
+    #expect(model.isSetupComplete == false)
+}
+
+@Test("Completing setup notifies once")
+@MainActor
+func completingSetupNotifiesOnce() {
+    var completionCount = 0
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+    model.onGuidedSetupCompleted = {
+        completionCount += 1
+    }
+
+    model.continueToAssignments()
+    model.completeSetup()
+    model.completeSetup()
+
+    #expect(model.isSetupComplete)
+    #expect(completionCount == 1)
 }
 
 @Test("Interrupted setup restores completed decisions and resumes incomplete step")
