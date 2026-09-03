@@ -147,34 +147,30 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func openSettings(_ sender: Any?) {
-        closeMenuBarPanel()
-        generalSettingsModel.refresh()
-
-        if settingsWindowController == nil {
-            settingsWindowController = KeyameleonSettingsWindowController(
-                model: generalSettingsModel,
-                setupModel: setupModel
-            )
-        }
-
-        settingsWindowController?.showWindow(sender)
-        settingsWindowController?.window?.orderFrontRegardless()
-        NSApp.activate(ignoringOtherApps: true)
+        presentSettings(section: nil)
     }
 
     @objc
     func openAbout(_ sender: Any?) {
+        presentSettings(section: .about)
+    }
+
+    private func presentSettings(section: KeyameleonSettingsSection?) {
         closeMenuBarPanel()
         generalSettingsModel.refresh()
-
-        if aboutWindowController == nil {
-            aboutWindowController = KeyameleonAboutWindowController(
-                model: generalSettingsModel
+        if let section {
+            settingsSelection.section = section
+        }
+        if settingsWindowController == nil {
+            settingsWindowController = KeyameleonSettingsWindowController(
+                model: generalSettingsModel,
+                setupModel: setupModel,
+                selection: settingsSelection
             )
         }
 
-        aboutWindowController?.showWindow(sender)
-        aboutWindowController?.window?.orderFrontRegardless()
+        settingsWindowController?.showWindow(nil)
+        settingsWindowController?.window?.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -201,8 +197,6 @@ extension KeyameleonApplicationDelegate {
             switchingStatus: outcome.switchingStatus,
             hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
         )
-        // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
-        // Distinct SF Symbol shape + tooltip carry status without relying on color alone.
         let image =
             NSImage(
                 systemSymbolName: systemSymbolName(for: mark),

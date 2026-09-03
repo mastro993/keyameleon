@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		033640EB0D8158C8F5B795DA /* SettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331ED64F866A49874FE74AA /* SettingsSection.swift */; };
 		03C20AF1309BDDFD13859B7B /* ConvergenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E98D0AC0DC16B488CC68F34 /* ConvergenceTests.swift */; };
 		04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */; };
 		059476CFED67F850100CBA43 /* UpdatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA6153A9F4D4EF18DDDE19D /* UpdatePolicy.swift */; };
@@ -33,11 +34,13 @@
 		3610D1886B9AF7CF91FCBE9D /* MenuBarPanelAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */; };
 		3CCBEAB699835B72E4EF0C59 /* DiagnosticData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11414C3BBD0946C0653CE62E /* DiagnosticData.swift */; };
 		3E02FF3A6A4FDD305B87E364 /* ActivityTriggeredSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */; };
+		456B44C1BE680B59294967A9 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5792BA6E68C69752F8A246 /* AppIdentity.swift */; };
 		4619577154F398B850D4BE8E /* DiagnosticDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BECCA44F5BC3EBD06111BE /* DiagnosticDataStore.swift */; };
 		4641828CA43C4D22AF22077A /* ReleasePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEDB8B347F199B06902DF758 /* ReleasePolicy.swift */; };
 		48015E432FD28317B7DD5C50 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D397C615AE93268A186585C /* ServiceManagement.framework */; };
 		49316C09EF30EEB66F3802AF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6BDE001E72B645ABFC8A82 /* Security.framework */; };
 		4E388802FAADB42EBB0D86C2 /* PhysicalKeyboardEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25859C507998EB873999F385 /* PhysicalKeyboardEvent.swift */; };
+		582858322B31C3EED4EA76A6 /* SettingsSectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED9E4C1B877BF525F86F3CD /* SettingsSectionTests.swift */; };
 		58DDA085B57FB4BE4336A31A /* SetupModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 121A7F398BDBAFE53E28C58E /* SetupModelTests.swift */; };
 		595EED790099599C0103B092 /* SwitchingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5730AC35BECDCBDCA89C6DA3 /* SwitchingStatus.swift */; };
 		5CCE8E9FCCC4037D738F8EB9 /* MenuBarPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E1EEE59CDB66576D042F49 /* MenuBarPanelTests.swift */; };
@@ -47,6 +50,7 @@
 		67C45F69D56D4B0C48C92E23 /* PhysicalKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 983C8E45DAD547D8162603B6 /* PhysicalKeyboard.swift */; };
 		740557F4153CE4F60FDA8632 /* ActivityTriggeredSwitchingTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B40ED2A24EAC1F629D66B0 /* ActivityTriggeredSwitchingTestSupport.swift */; };
 		744BCF16F1595722CC1E7D0F /* DiagnosticDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2524EEFA1711ADE5CEAF4EAA /* DiagnosticDataTests.swift */; };
+		787AB346832DC0AE9EB417FD /* AboutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB9DB230221B0BC65908AC10 /* AboutSettingsView.swift */; };
 		799125EBDA6D27A23803AF1B /* DiagnosticDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29B24A67009EA8DCF50F391 /* DiagnosticDataService.swift */; };
 		7B145D316009D170DF60B2EC /* ActivityTriggeredSwitchingOutcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4618DF3A4D7D688A018029F /* ActivityTriggeredSwitchingOutcome.swift */; };
 		7FDB18B30F2508DBF4354A47 /* SwitchingWarning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556A0239D8D2035B0CF38C0C /* SwitchingWarning.swift */; };
@@ -58,6 +62,7 @@
 		8ED122D2ED4DCCD7B84993B8 /* MenuBarPanelPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257933278E9C49F4D70D56CB /* MenuBarPanelPreviews.swift */; };
 		906721B0DAE0F8DF5F7B2847 /* ApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFD6C2C12E6744103679EBE /* ApplicationDelegate.swift */; };
 		91E6DD5CBEB5B2DAE4AC91F1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAF64CA3A3802AD87234A325 /* SwiftUI.framework */; };
+		929A71120CEEB1E514166D19 /* KeyboardSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D57CD8F1C3DA2EC29F1B50E /* KeyboardSettingsView.swift */; };
 		94965581A0590A5E82DB2793 /* DiscoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173FB63477CD7B6BCA3482A3 /* DiscoveryTests.swift */; };
 		9E6354C10E724605840570E8 /* InputSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F6A7020C94F2FD13853D645 /* InputSources.swift */; };
 		9EBED114C6E30DB6C52911BF /* DiagnosticWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F12688E745FEE2229C9EA9B7 /* DiagnosticWindowController.swift */; };
@@ -79,6 +84,7 @@
 		CC4D4CD3FDBEABF26DFD8779 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2F89B01FA50D2E2724A74C3 /* AppKit.framework */; };
 		CDEB08A343F64C57326A72EE /* ManualDesignationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */; };
 		CFAE25F9126FE28912B366E5 /* PhysicalKeyboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */; };
+		D13DC129A03B6419F0465447 /* SettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508F2298801A6E47BC014B13 /* SettingsCard.swift */; };
 		D72130957C3F2F50CF482E72 /* HostedUnitTestProcessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4256FDB67D3FDDB9A81A429B /* HostedUnitTestProcessTests.swift */; };
 		D7D64A72C6CB23575841963A /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */; };
 		DC3FF408A6D6AE793789D0CC /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E726E51A5724616DEE3DC78 /* LaunchAtLogin.swift */; };
@@ -117,6 +123,7 @@
 		15E37E4A630DC2EC1DFDE3DE /* AssignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignmentTests.swift; sourceTree = "<group>"; };
 		1674D0EEAEDED584E05DF1C1 /* MenuBarPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelController.swift; sourceTree = "<group>"; };
 		173FB63477CD7B6BCA3482A3 /* DiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryTests.swift; sourceTree = "<group>"; };
+		1D57CD8F1C3DA2EC29F1B50E /* KeyboardSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSettingsView.swift; sourceTree = "<group>"; };
 		21B40ED2A24EAC1F629D66B0 /* ActivityTriggeredSwitchingTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitchingTestSupport.swift; sourceTree = "<group>"; };
 		21E1EEE59CDB66576D042F49 /* MenuBarPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelTests.swift; sourceTree = "<group>"; };
 		24ED6FFDC073384B3CF3D346 /* ManualPhysicalKeyboardDesignation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignation.swift; sourceTree = "<group>"; };
@@ -136,6 +143,7 @@
 		469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationActivityTests.swift; sourceTree = "<group>"; };
 		4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
 		4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitching.swift; sourceTree = "<group>"; };
+		508F2298801A6E47BC014B13 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCard.swift; sourceTree = "<group>"; };
 		5225FE09338A066FF3E0C002 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		556A0239D8D2035B0CF38C0C /* SwitchingWarning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchingWarning.swift; sourceTree = "<group>"; };
 		55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticBundleReviewView.swift; sourceTree = "<group>"; };
@@ -154,9 +162,11 @@
 		81634072FBBCD7BCF66DC8CC /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
 		82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentSection.swift; sourceTree = "<group>"; };
 		8AD8FB5FFB9840099C00C830 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		8B5792BA6E68C69752F8A246 /* AppIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentity.swift; sourceTree = "<group>"; };
 		8B6B4E3BC68B7961FB444DCB /* MenuBarActionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarActionList.swift; sourceTree = "<group>"; };
 		8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
 		8E726E51A5724616DEE3DC78 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
+		8ED9E4C1B877BF525F86F3CD /* SettingsSectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSectionTests.swift; sourceTree = "<group>"; };
 		8F6A7020C94F2FD13853D645 /* InputSources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSources.swift; sourceTree = "<group>"; };
 		9163A19B113812EA758F0681 /* ProductionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionFactory.swift; sourceTree = "<group>"; };
 		967B7E1070DD4601582EE6C6 /* Keyameleon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keyameleon.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -190,7 +200,9 @@
 		F12688E745FEE2229C9EA9B7 /* DiagnosticWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticWindowController.swift; sourceTree = "<group>"; };
 		F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationalNotificationTests.swift; sourceTree = "<group>"; };
 		F2F89B01FA50D2E2724A74C3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		F331ED64F866A49874FE74AA /* SettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSection.swift; sourceTree = "<group>"; };
 		FAF64CA3A3802AD87234A325 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		FB9DB230221B0BC65908AC10 /* AboutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsView.swift; sourceTree = "<group>"; };
 		FC3803559762A26A22D58DB8 /* UpdatePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePolicyTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -255,8 +267,11 @@
 		54FC5C45679D80C154ECCC61 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				FB9DB230221B0BC65908AC10 /* AboutSettingsView.swift */,
+				8B5792BA6E68C69752F8A246 /* AppIdentity.swift */,
 				55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */,
 				45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */,
+				1D57CD8F1C3DA2EC29F1B50E /* KeyboardSettingsView.swift */,
 				8B6B4E3BC68B7961FB444DCB /* MenuBarActionList.swift */,
 				463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */,
 				82D483C3C9B69F59EDF0406E /* MenuBarAssignmentSection.swift */,
@@ -266,6 +281,8 @@
 				257933278E9C49F4D70D56CB /* MenuBarPanelPreviews.swift */,
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
+				508F2298801A6E47BC014B13 /* SettingsCard.swift */,
+				F331ED64F866A49874FE74AA /* SettingsSection.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -369,6 +386,7 @@
 				8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */,
 				B6F2F27F6D94088F0A945139 /* RecoveryTests.swift */,
 				D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */,
+				8ED9E4C1B877BF525F86F3CD /* SettingsSectionTests.swift */,
 				121A7F398BDBAFE53E28C58E /* SetupModelTests.swift */,
 				99B0570BABEDCEEE8774DB02 /* SingleInstanceTests.swift */,
 				9B34AD2AC37423AEC5A62769 /* SwitchingTests.swift */,
@@ -485,9 +503,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				787AB346832DC0AE9EB417FD /* AboutSettingsView.swift in Sources */,
 				3E02FF3A6A4FDD305B87E364 /* ActivityTriggeredSwitching.swift in Sources */,
 				7B145D316009D170DF60B2EC /* ActivityTriggeredSwitchingOutcome.swift in Sources */,
 				63436FC2E915F0B83273023C /* App.swift in Sources */,
+				456B44C1BE680B59294967A9 /* AppIdentity.swift in Sources */,
 				1608887A3F27BEA7DCA3EFD8 /* ApplicationDelegate+MenuBar.swift in Sources */,
 				906721B0DAE0F8DF5F7B2847 /* ApplicationDelegate.swift in Sources */,
 				A7C36DFDA7414A19C6CDE713 /* DiagnosticBundleReviewView.swift in Sources */,
@@ -500,6 +520,7 @@
 				289DA25583F6E6AC2E0DF99B /* InputSource.swift in Sources */,
 				9E6354C10E724605840570E8 /* InputSources.swift in Sources */,
 				ACBFAD8BC2BA205BD7E14575 /* InstallationIntegrityKey.swift in Sources */,
+				929A71120CEEB1E514166D19 /* KeyboardSettingsView.swift in Sources */,
 				DC3FF408A6D6AE793789D0CC /* LaunchAtLogin.swift in Sources */,
 				831F87F612659C8281EC3FE9 /* Lifecycle.swift in Sources */,
 				CABD1BC3E4A2D1B54E22FC5B /* ListenPermission.swift in Sources */,
@@ -523,6 +544,8 @@
 				2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */,
 				4641828CA43C4D22AF22077A /* ReleasePolicy.swift in Sources */,
 				E7ECA56E3601A3B66CA7F3F3 /* RootView.swift in Sources */,
+				D13DC129A03B6419F0465447 /* SettingsCard.swift in Sources */,
+				033640EB0D8158C8F5B795DA /* SettingsSection.swift in Sources */,
 				187E867991A04368B8582C70 /* SetupModel.swift in Sources */,
 				04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */,
 				595EED790099599C0103B092 /* SwitchingStatus.swift in Sources */,
@@ -564,6 +587,7 @@
 				06EBFF4FA1E89F0CBB858180 /* ProtectedLifecycleTests.swift in Sources */,
 				A00E9121965AC9358A33DB3B /* RecoveryTests.swift in Sources */,
 				0C7B8751B513E6FD6EBEAE84 /* ReleasePolicyTests.swift in Sources */,
+				582858322B31C3EED4EA76A6 /* SettingsSectionTests.swift in Sources */,
 				58DDA085B57FB4BE4336A31A /* SetupModelTests.swift in Sources */,
 				169AFF82F03C83BB838E2075 /* SingleInstanceTests.swift in Sources */,
 				B0AE2EC67744B63A24235EF2 /* SwitchingTests.swift in Sources */,

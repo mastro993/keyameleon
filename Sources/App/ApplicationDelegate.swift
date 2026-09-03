@@ -23,11 +23,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let startsApplicationSurfaceOnLaunch: Bool
     let uncleanExitStateStore: any UncleanExitStateStoring
     let generalSettingsModel: KeyameleonGeneralSettingsModel
+    let settingsSelection = KeyameleonSettingsSelection()
     var statusItem: NSStatusItem?
     var menuBarPanelController: KeyameleonMenuBarPanelController?
     var windowController: KeyameleonWindowController?
     var settingsWindowController: KeyameleonSettingsWindowController?
-    var aboutWindowController: KeyameleonAboutWindowController?
     var diagnosticReviewWindowController: KeyameleonDiagnosticWindowController?
     private let modelContainer: ModelContainer?
     private let diagnosticModelContainer: ModelContainer?
@@ -147,8 +147,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         observePresentationChanges()
     }
 
-    /// Dependency-injection seam for AppKit tests. A lock is required so this
-    /// initializer cannot construct a delegate without single-instance ownership.
     convenience init(
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
@@ -269,8 +267,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menuBarPanelController = nil
         settingsWindowController?.close()
         settingsWindowController = nil
-        aboutWindowController?.close()
-        aboutWindowController = nil
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
