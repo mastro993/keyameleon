@@ -1,6 +1,10 @@
-# Keyameleon
+<div align="center">
 
+<img width="200" height="200" alt="Keyameleon-icon-iOS-Default-512@1x" src="https://github.com/user-attachments/assets/de03484a-e51f-4c7f-a1c3-ae697277dc1d" />
+
+# Keyameleon
 Every keyboard speaks its own language.
+</div>
 
 ---
 
@@ -8,7 +12,6 @@ Every keyboard speaks its own language.
 with the Physical Keyboard that produces input. Use it when you have more than  
 one Physical Keyboard, and those keyboards have different physical layouts.
 
-![Keyameleon menu bar panel with assigned Physical Keyboards and Switching Status Ready](assets/screenshot.png)
 
 <!--Add `assets/screenshot.png`: the menu-bar icon and the open panel. Heading
 **Keyboards**. At least two assigned pills, each showing a Physical Keyboard
