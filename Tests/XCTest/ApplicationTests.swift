@@ -125,7 +125,7 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testMenuBarIconPresentationMapsEveryStatusMark() {
+    func testMenuBarIconFallbackMapsEveryStatusMark() {
         let delegate = makeApplicationTestDelegate()
         defer { stopApplicationTestSurface(delegate) }
         let expected: [(MenuBarIconMark, String, String)] = [
@@ -143,6 +143,21 @@ final class KeyameleonApplicationTests: XCTestCase {
                 accessibilityDescription
             )
         }
+    }
+
+    @MainActor
+    func testMenuBarIconUsesBundledPDFAtTemplateSize() throws {
+        let delegate = makeApplicationTestDelegate()
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        let image = try XCTUnwrap(delegate.menuBarStatusItem?.button?.image)
+        XCTAssertEqual(image.size, NSSize(width: 18, height: 18))
+        XCTAssertTrue(image.isTemplate)
+        XCTAssertEqual(image.accessibilityDescription, "Keyameleon")
+        XCTAssertNotNil(keyameleonBundle?.url(forResource: "menu_icon", withExtension: "pdf"))
     }
 
     @MainActor

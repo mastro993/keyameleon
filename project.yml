@@ -5,6 +5,10 @@ options:
     macOS: "26.0"
   developmentLanguage: en
   createIntermediateGroups: true
+  fileTypes:
+    icon:
+      file: true
+      buildPhase: resources
 
 packages:
   Sparkle:
@@ -32,8 +36,15 @@ targets:
     platform: macOS
     sources:
       - Sources
+      - path: Keyameleon-icon.icon
+        type: file
+        buildPhase: resources
+      - path: Resources/menu_icon.pdf
+        type: file
+        buildPhase: resources
     settings:
       base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: Keyameleon-icon
         PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon
         PRODUCT_NAME: Keyameleon
         GENERATE_INFOPLIST_FILE: YES
