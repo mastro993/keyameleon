@@ -201,16 +201,24 @@ extension KeyameleonApplicationDelegate {
             hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
         )
         // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
-        // Distinct SF Symbol shape + tooltip carry status without relying on color alone.
-        let image =
-            NSImage(
-                systemSymbolName: systemSymbolName(for: mark),
-                accessibilityDescription: "Keyameleon"
-            )
-            ?? NSImage(
-                systemSymbolName: systemSymbolName(for: .ready),
-                accessibilityDescription: "Keyameleon"
-            )
+        // One mark for every state; tooltip and accessibility text carry status.
+        let image: NSImage?
+        if let url = Bundle.main.url(forResource: "menu_icon", withExtension: "pdf"),
+           let customImage = NSImage(contentsOf: url) {
+            customImage.size = NSSize(width: 18, height: 18)
+            customImage.accessibilityDescription = "Keyameleon"
+            image = customImage
+        } else {
+            image =
+                NSImage(
+                    systemSymbolName: systemSymbolName(for: mark),
+                    accessibilityDescription: "Keyameleon"
+                )
+                ?? NSImage(
+                    systemSymbolName: systemSymbolName(for: .ready),
+                    accessibilityDescription: "Keyameleon"
+                )
+        }
         image?.isTemplate = true
         button.image = image
         button.toolTip = menuBarIconAccessibilityDescription(for: mark)
