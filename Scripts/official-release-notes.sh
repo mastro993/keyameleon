@@ -126,7 +126,7 @@ lookup_pull_request() {
     if github_available; then
         result="$(gh api "repos/${repo_slug}/commits/${sha}/pulls" \
             -H 'Accept: application/vnd.github+json' \
-            --jq 'if length > 0 then (.[] | "\(.number)\t\(.user.login // \"\")\t\(.user.id // \"\")") else empty end' \
+            --jq 'if length > 0 then (.[] | "\(.number)\t\(.user.login // "")\t\(.user.id // "")") else empty end' \
             2>/dev/null | head -n 1 || true)"
     fi
     printf '%s\n' "$result"
@@ -138,7 +138,7 @@ lookup_commit_author() {
     local result=""
     if github_available; then
         result="$(gh api "repos/${repo_slug}/commits/${sha}" \
-            --jq 'if .author != null and .author.login != null then "\(.author.login)\t\(.author.id // \"\")" else empty end' \
+            --jq 'if .author != null and .author.login != null then "\(.author.login)\t\(.author.id // "")" else empty end' \
             2>/dev/null || true)"
     fi
     printf '%s\n' "$result"

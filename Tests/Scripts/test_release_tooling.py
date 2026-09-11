@@ -100,16 +100,20 @@ class OfficialReleaseNotesTests(unittest.TestCase):
                 """#!/usr/bin/env bash
 set -euo pipefail
 path=""
-for arg in "$@"; do
-  case "$arg" in
-    repos/*) path="$arg" ;;
+filter=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    repos/*) path="$1" ;;
+    --jq) filter="$2" ;;
   esac
+  shift
 done
 if [[ "$path" == */pulls ]]; then
-  printf '%s\\n' $'12\\toctocat\\t1'
-elif [[ "$path" == repos/*/commits/* ]]; then
-  printf '%s\\n' $'octocat\\t1'
+  payload='[{"number":12,"user":{"login":"octocat","id":1}}]'
+else
+  payload='{"author":{"login":"octocat","id":1}}'
 fi
+printf '%s' "$payload" | jq -r "$filter"
 """,
                 encoding="utf-8",
             )
