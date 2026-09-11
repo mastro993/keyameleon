@@ -51,4 +51,22 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
     )
     #expect(identity.name == "Shown")
     #expect(identity.version == "1.2.3")
+    #expect(identity.versionLabel == "v1.2.3")
+}
+
+@Test("About info exposes source and standard Keyameleon folders")
+func aboutInfoExposesSourceAndStandardKeyameleonFolders() {
+    let info = KeyameleonAboutInfo(
+        identity: KeyameleonAppIdentity(
+            infoDictionary: [
+                "CFBundleDisplayName": "Keyameleon",
+                "CFBundleShortVersionString": "1.2.3",
+            ]
+        )
+    )
+
+    #expect(info.repositoryURL.absoluteString == "https://github.com/mastro993/Keyameleon")
+    #expect(info.identity.versionLabel == "v1.2.3")
+    #expect(info.appDataFolderURL.path.hasSuffix("/Library/Application Support/Keyameleon"))
+    #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
 }

@@ -67,7 +67,7 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testAboutActionSelectsAboutSectionInSettingsWindow() throws {
+    func testAboutActionShowsIndependentWindowAndPreservesSettingsSelection() throws {
         let delegate = makeApplicationTestDelegate(startsApplicationSurfaceOnLaunch: false)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
@@ -81,23 +81,29 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertEqual(settingsWindow.identifier?.rawValue, "keyameleon.settings-window")
         XCTAssertEqual(delegate.settingsSelection.section, .general)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
+        XCTAssertNil(settingsWindow.toolbar)
 
         delegate.openAbout(nil)
-        let aboutSettingsWindow = try XCTUnwrap(delegate.settingsWindowController?.window)
-        XCTAssertTrue(aboutSettingsWindow === settingsWindow)
-        XCTAssertTrue(aboutSettingsWindow.isVisible)
-        XCTAssertEqual(aboutSettingsWindow.identifier?.rawValue, "keyameleon.settings-window")
-        XCTAssertTrue(aboutSettingsWindow.styleMask.contains(.resizable))
-        XCTAssertEqual(delegate.settingsSelection.section, .about)
-        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
-        XCTAssertFalse(
-            NSApp.windows.contains { $0.identifier?.rawValue == "keyameleon.about-window" }
-        )
+        let aboutController = try XCTUnwrap(delegate.aboutWindowController)
+        let aboutWindow = try XCTUnwrap(aboutController.window)
+        XCTAssertTrue(settingsWindow.isVisible)
+        XCTAssertTrue(aboutWindow.isVisible)
+        XCTAssertFalse(aboutWindow === settingsWindow)
+        XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
+        XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
+        XCTAssertEqual(aboutWindow.contentLayoutRect.size, NSSize(width: 760, height: 620))
+        XCTAssertEqual(delegate.settingsSelection.section, .general)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
 
         delegate.openSettings(nil)
-        XCTAssertEqual(delegate.settingsSelection.section, .about)
-        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
+        XCTAssertEqual(delegate.settingsSelection.section, .general)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
         XCTAssertTrue(delegate.settingsWindowController?.window === settingsWindow)
+
+        aboutWindow.close()
+        delegate.openAbout(nil)
+        XCTAssertTrue(delegate.aboutWindowController === aboutController)
+        XCTAssertTrue(delegate.aboutWindowController?.window === aboutWindow)
     }
 
     @MainActor
@@ -137,7 +143,7 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testMenuBarIconPresentationMapsEveryStatusMark() {
+    func testMenuBarIconFallbackMapsEveryStatusMark() {
         let delegate = makeApplicationTestDelegate()
         defer { stopApplicationTestSurface(delegate) }
         let expected: [(MenuBarIconMark, String, String)] = [
@@ -155,6 +161,21 @@ final class KeyameleonApplicationTests: XCTestCase {
                 accessibilityDescription
             )
         }
+    }
+
+    @MainActor
+    func testMenuBarIconUsesBundledPDFAtTemplateSize() throws {
+        let delegate = makeApplicationTestDelegate()
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        let image = try XCTUnwrap(delegate.menuBarStatusItem?.button?.image)
+        XCTAssertEqual(image.size, NSSize(width: 18, height: 18))
+        XCTAssertTrue(image.isTemplate)
+        XCTAssertEqual(image.accessibilityDescription, "Keyameleon")
+        XCTAssertNotNil(keyameleonBundle?.url(forResource: "menu_icon", withExtension: "pdf"))
     }
 
     @MainActor

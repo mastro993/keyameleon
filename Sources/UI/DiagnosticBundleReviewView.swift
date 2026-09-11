@@ -8,8 +8,12 @@ struct KeyameleonDiagnosticBundleReviewView: View {
     @State private var fileDocument = DiagnosticBundleFileDocument(data: Data())
     @State private var saveError: String?
 
-    init(model: KeyameleonGeneralSettingsModel) {
+    init(
+        model: KeyameleonGeneralSettingsModel,
+        initialSaveError: String? = nil
+    ) {
         _model = ObservedObject(wrappedValue: model)
+        _saveError = State(initialValue: initialSaveError)
     }
 
     var body: some View {
@@ -176,3 +180,26 @@ struct DiagnosticBundleShareItem: Transferable {
         }
     }
 }
+
+#if DEBUG
+#Preview("Diagnostic bundle empty") {
+    KeyameleonDiagnosticBundleReviewView(
+        model: KeyameleonPreviewFixtures.general()
+    )
+}
+
+#Preview("Diagnostic bundle populated") {
+    KeyameleonDiagnosticBundleReviewView(
+        model: KeyameleonPreviewFixtures.generalWithDiagnosticData()
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Diagnostic bundle save error") {
+    KeyameleonDiagnosticBundleReviewView(
+        model: KeyameleonPreviewFixtures.generalWithDiagnosticData(),
+        initialSaveError: "Could not save Diagnostic Bundle."
+    )
+    .environment(\.dynamicTypeSize, .xxxLarge)
+}
+#endif

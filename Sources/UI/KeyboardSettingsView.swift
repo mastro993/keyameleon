@@ -400,3 +400,27 @@ struct KeyameleonKeyboardSettingsView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Keyboard settings empty") {
+    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsEmpty)
+    KeyameleonKeyboardSettingsView(model: fixture.model)
+}
+
+#Preview("Keyboard settings populated") {
+    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    KeyameleonKeyboardSettingsView(model: fixture.model)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Keyboard settings mixed states") {
+    let fixture = KeyameleonPreviewFixtures.setup(.mixedAssignments)
+    KeyameleonKeyboardSettingsView(model: fixture.model)
+        .environment(\.dynamicTypeSize, .xxxLarge)
+}
+
+#Preview("Keyboard settings designation") {
+    let fixture = KeyameleonPreviewFixtures.setup(.designationInProgress)
+    KeyameleonKeyboardSettingsView(model: fixture.model)
+}
+#endif

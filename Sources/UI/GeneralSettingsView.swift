@@ -5,49 +5,44 @@ import SwiftUI
 struct KeyameleonSettingsView: View {
     @ObservedObject private var model: KeyameleonGeneralSettingsModel
     private let setupModel: KeyameleonSetupModel
+    private let aboutInfo: KeyameleonAboutInfo
     @Bindable private var selection: KeyameleonSettingsSelection
 
     init(
         model: KeyameleonGeneralSettingsModel,
         setupModel: KeyameleonSetupModel,
-        selection: KeyameleonSettingsSelection
+        selection: KeyameleonSettingsSelection,
+        aboutInfo: KeyameleonAboutInfo = .current
     ) {
         _model = ObservedObject(wrappedValue: model)
         self.setupModel = setupModel
+        self.aboutInfo = aboutInfo
         self.selection = selection
     }
 
     var body: some View {
-        TabView(selection: $selection.section) {
-            Tab(
-                KeyameleonSettingsSection.general.title,
-                systemImage: KeyameleonSettingsSection.general.systemImage,
-                value: KeyameleonSettingsSection.general
-            ) {
-                settingsPane(.general) {
+        NavigationSplitView {
+            List(selection: $selection.section) {
+                ForEach(KeyameleonSettingsSection.allCases) { section in
+                    Label(section.title, systemImage: section.systemImage)
+                        .tag(section)
+                }
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            settingsPane(selection.section) {
+                switch selection.section {
+                case .general:
                     KeyameleonGeneralSettingsPane(model: model)
-                }
-            }
-            Tab(
-                KeyameleonSettingsSection.keyboards.title,
-                systemImage: KeyameleonSettingsSection.keyboards.systemImage,
-                value: KeyameleonSettingsSection.keyboards
-            ) {
-                settingsPane(.keyboards) {
+                case .keyboards:
                     KeyameleonKeyboardSettingsView(model: setupModel)
-                }
-            }
-            Tab(
-                KeyameleonSettingsSection.about.title,
-                systemImage: KeyameleonSettingsSection.about.systemImage,
-                value: KeyameleonSettingsSection.about
-            ) {
-                settingsPane(.about) {
-                    KeyameleonAboutView(model: model)
+                case .about:
+                    KeyameleonAboutView(model: model, info: aboutInfo)
                 }
             }
         }
-        .tabViewStyle(.sidebarAdaptable)
         .frame(minWidth: 720, minHeight: 540)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear(perform: model.refresh)
@@ -221,3 +216,97 @@ private struct KeyameleonGeneralSettingsPane: View {
         }
     }
 }
+
+#if DEBUG
+@MainActor
+private struct KeyameleonSettingsPreviewHost: View {
+    let model: KeyameleonGeneralSettingsModel
+    let setupModel: KeyameleonSetupModel
+    let aboutInfo: KeyameleonAboutInfo
+    @State private var selection: KeyameleonSettingsSelection
+
+    init(
+        section: KeyameleonSettingsSection,
+        model: KeyameleonGeneralSettingsModel,
+        setupModel: KeyameleonSetupModel,
+        aboutInfo: KeyameleonAboutInfo
+    ) {
+        self.model = model
+        self.setupModel = setupModel
+        self.aboutInfo = aboutInfo
+        let selection = KeyameleonSettingsSelection()
+        selection.section = section
+        _selection = State(initialValue: selection)
+    }
+
+    var body: some View {
+        KeyameleonSettingsView(
+            model: model,
+            setupModel: setupModel,
+            selection: selection,
+            aboutInfo: aboutInfo
+        )
+    }
+}
+
+#Preview("Settings general") {
+    KeyameleonSettingsPreviewHost(
+        section: .general,
+        model: KeyameleonPreviewFixtures.general(notificationState: .notDetermined),
+        setupModel: KeyameleonPreviewFixtures.setup(.assignmentsEmpty).model,
+        aboutInfo: KeyameleonPreviewFixtures.aboutInfo
+    )
+}
+
+#Preview("Settings keyboards") {
+    KeyameleonSettingsPreviewHost(
+        section: .keyboards,
+        model: KeyameleonPreviewFixtures.general(),
+        setupModel: KeyameleonPreviewFixtures.setup(.mixedAssignments).model,
+        aboutInfo: KeyameleonPreviewFixtures.aboutInfo
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Settings about") {
+    KeyameleonSettingsPreviewHost(
+        section: .about,
+        model: KeyameleonPreviewFixtures.general(canCheckForUpdates: false),
+        setupModel: KeyameleonPreviewFixtures.setup(.assignmentsEmpty).model,
+        aboutInfo: KeyameleonPreviewFixtures.aboutInfo
+    )
+    .environment(\.dynamicTypeSize, .xxxLarge)
+}
+
+#Preview("General pane empty") {
+    KeyameleonGeneralSettingsPane(
+        model: KeyameleonPreviewFixtures.general(notificationState: .notDetermined)
+    )
+}
+
+#Preview("General pane launch error") {
+    KeyameleonGeneralSettingsPane(
+        model: KeyameleonPreviewFixtures.general(
+            launchAtLoginFailure: true,
+            notificationState: .denied
+        )
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("General pane active Diagnostic Session") {
+    KeyameleonGeneralSettingsPane(
+        model: KeyameleonPreviewFixtures.general(
+            diagnosticRecords: [
+                DiagnosticRecord(
+                    recordedAt: KeyameleonPreviewFixtures.fixedDate,
+                    code: .discoveryFailed,
+                    switchingStatus: .temporarilyUnavailable
+                )
+            ],
+            diagnosticSessionActive: true
+        )
+    )
+    .environment(\.dynamicTypeSize, .xxxLarge)
+}
+#endif

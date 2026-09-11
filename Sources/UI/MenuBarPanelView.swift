@@ -178,3 +178,24 @@ struct MenuBarPanelHeader: View {
         .accessibilityElement(children: .contain)
     }
 }
+
+#if DEBUG
+#Preview("Menu-bar panel") {
+    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    KeyameleonMenuBarPanelView(
+        setupModel: fixture.model,
+        switching: fixture.switching,
+        actions: KeyameleonPreviewFixtures.panelActions()
+    )
+}
+
+#Preview("Menu-bar header") {
+    @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
+    MenuBarPanelHeader(
+        openAction: KeyameleonPreviewFixtures.aboutAction(),
+        focusedTarget: $focusedTarget,
+        perform: { _ in }
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+}
+#endif

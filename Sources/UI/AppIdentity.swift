@@ -22,6 +22,13 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
         )
     }
 
+    var versionLabel: String {
+        guard version != "—" else {
+            return version
+        }
+        return version.hasPrefix("v") ? version : "v\(version)"
+    }
+
     private init(displayName: String?, bundleName: String?, shortVersion: String?) {
         name = Self.nonemptyString(displayName)
             ?? Self.nonemptyString(bundleName)
@@ -35,5 +42,53 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
         }
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+struct KeyameleonAboutInfo: Equatable, Sendable {
+    let identity: KeyameleonAppIdentity
+    let repositoryURL: URL
+    let appDataFolderURL: URL
+    let logsFolderURL: URL
+
+    static let current = KeyameleonAboutInfo(identity: .current)
+
+    init(identity: KeyameleonAppIdentity) {
+        self.init(
+            identity: identity,
+            repositoryURL: URL(string: "https://github.com/mastro993/Keyameleon")!,
+            appDataFolderURL: Self.defaultAppDataFolderURL,
+            logsFolderURL: Self.defaultLogsFolderURL
+        )
+    }
+
+    init(
+        identity: KeyameleonAppIdentity,
+        repositoryURL: URL,
+        appDataFolderURL: URL,
+        logsFolderURL: URL
+    ) {
+        self.identity = identity
+        self.repositoryURL = repositoryURL
+        self.appDataFolderURL = appDataFolderURL
+        self.logsFolderURL = logsFolderURL
+    }
+
+    private static var defaultAppDataFolderURL: URL {
+        let fileManager = FileManager.default
+        let applicationSupportDirectory = fileManager
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        return applicationSupportDirectory
+            .appendingPathComponent("Keyameleon", isDirectory: true)
+    }
+
+    private static var defaultLogsFolderURL: URL {
+        let libraryDirectory = FileManager.default
+            .urls(for: .libraryDirectory, in: .userDomainMask)
+            .first ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        return libraryDirectory
+            .appendingPathComponent("Logs", isDirectory: true)
+            .appendingPathComponent("Keyameleon", isDirectory: true)
     }
 }

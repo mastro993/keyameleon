@@ -151,7 +151,18 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func openAbout(_ sender: Any?) {
-        presentSettings(section: .about)
+        closeMenuBarPanel()
+        generalSettingsModel.refresh()
+
+        if aboutWindowController == nil {
+            aboutWindowController = KeyameleonAboutWindowController(
+                model: generalSettingsModel
+            )
+        }
+
+        aboutWindowController?.showWindow(sender)
+        aboutWindowController?.window?.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func presentSettings(section: KeyameleonSettingsSection?) {
@@ -196,15 +207,25 @@ extension KeyameleonApplicationDelegate {
             switchingStatus: outcome.switchingStatus,
             hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
         )
-        let image =
-            NSImage(
-                systemSymbolName: systemSymbolName(for: mark),
-                accessibilityDescription: "Keyameleon"
-            )
-            ?? NSImage(
-                systemSymbolName: systemSymbolName(for: .ready),
-                accessibilityDescription: "Keyameleon"
-            )
+        // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
+        // One mark for every state; tooltip and accessibility text carry status.
+        let image: NSImage?
+        if let url = Bundle.main.url(forResource: "menu_icon", withExtension: "pdf"),
+           let customImage = NSImage(contentsOf: url) {
+            customImage.size = NSSize(width: 18, height: 18)
+            customImage.accessibilityDescription = "Keyameleon"
+            image = customImage
+        } else {
+            image =
+                NSImage(
+                    systemSymbolName: systemSymbolName(for: mark),
+                    accessibilityDescription: "Keyameleon"
+                )
+                ?? NSImage(
+                    systemSymbolName: systemSymbolName(for: .ready),
+                    accessibilityDescription: "Keyameleon"
+                )
+        }
         image?.isTemplate = true
         button.image = image
         button.toolTip = menuBarIconAccessibilityDescription(for: mark)

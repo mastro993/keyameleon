@@ -61,7 +61,7 @@ enum ListenPermissionState: Equatable, Sendable {
     }
 }
 
-/// Menu bar icon mark. Distinct shapes; must not rely on color alone.
+/// Menu bar status mark. Shared icon; tooltip and accessibility text carry state.
 enum MenuBarIconMark: Equatable, Sendable {
     case ready
     case permissionRequired

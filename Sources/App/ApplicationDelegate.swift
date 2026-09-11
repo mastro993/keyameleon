@@ -28,6 +28,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     var menuBarPanelController: KeyameleonMenuBarPanelController?
     var windowController: KeyameleonWindowController?
     var settingsWindowController: KeyameleonSettingsWindowController?
+    var aboutWindowController: KeyameleonAboutWindowController?
     var diagnosticReviewWindowController: KeyameleonDiagnosticWindowController?
     private let modelContainer: ModelContainer?
     private let diagnosticModelContainer: ModelContainer?
@@ -270,6 +271,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         menuBarPanelController = nil
         settingsWindowController?.close()
         settingsWindowController = nil
+        aboutWindowController?.close()
+        aboutWindowController = nil
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

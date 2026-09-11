@@ -339,3 +339,85 @@ struct OnboardingPhysicalKeyboardCard: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Onboarding permission required") {
+    let fixture = KeyameleonPreviewFixtures.setup(.permissionRequired)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+}
+
+#Preview("Onboarding assignments empty") {
+    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsEmpty)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+}
+
+#Preview("Onboarding assignments populated") {
+    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+        .preferredColorScheme(.dark)
+        .environment(\.dynamicTypeSize, .xxxLarge)
+}
+
+#Preview("Onboarding mixed assignment states") {
+    let fixture = KeyameleonPreviewFixtures.setup(.mixedAssignments)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+}
+
+#Preview("Input Monitoring required") {
+    ListenPermissionOnboardingCard(status: .required, action: {})
+        .frame(width: 520)
+}
+
+#Preview("Input Monitoring waiting") {
+    ListenPermissionOnboardingCard(status: .waiting, action: {})
+        .frame(width: 520)
+}
+
+#Preview("Input Monitoring granted") {
+    ListenPermissionOnboardingCard(status: .granted, action: {})
+        .frame(width: 520)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Physical Keyboard assigned") {
+    OnboardingPhysicalKeyboardCard(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(),
+        assignedInputSourceName: "Italian",
+        onAssign: {}
+    )
+    .frame(width: 520)
+}
+
+#Preview("Physical Keyboard unassigned") {
+    OnboardingPhysicalKeyboardCard(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(assignment: nil),
+        assignedInputSourceName: nil,
+        onAssign: {}
+    )
+    .frame(width: 520)
+}
+
+#Preview("Physical Keyboard disconnected") {
+    OnboardingPhysicalKeyboardCard(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(
+            name: "Office Keyboard",
+            connection: .disconnected
+        ),
+        assignedInputSourceName: "U.S.",
+        onAssign: {}
+    )
+    .frame(width: 520)
+}
+
+#Preview("Physical Keyboard unsupported") {
+    OnboardingPhysicalKeyboardCard(
+        physicalKeyboard: KeyameleonPreviewFixtures.unsupportedPhysicalKeyboard(
+            reason: .ambiguousIdentity
+        ),
+        assignedInputSourceName: nil,
+        onAssign: {}
+    )
+    .frame(width: 520)
+    .environment(\.dynamicTypeSize, .xxxLarge)
+}
+#endif

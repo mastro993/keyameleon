@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0134CF55DFD26E152897F776 /* KeyameleonPreviewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDEA03F2B97B6544436C98B /* KeyameleonPreviewFixtures.swift */; };
 		033640EB0D8158C8F5B795DA /* SettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F331ED64F866A49874FE74AA /* SettingsSection.swift */; };
 		03C20AF1309BDDFD13859B7B /* ConvergenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E98D0AC0DC16B488CC68F34 /* ConvergenceTests.swift */; };
 		04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */; };
@@ -43,6 +44,7 @@
 		582858322B31C3EED4EA76A6 /* SettingsSectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED9E4C1B877BF525F86F3CD /* SettingsSectionTests.swift */; };
 		58DDA085B57FB4BE4336A31A /* SetupModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 121A7F398BDBAFE53E28C58E /* SetupModelTests.swift */; };
 		595EED790099599C0103B092 /* SwitchingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5730AC35BECDCBDCA89C6DA3 /* SwitchingStatus.swift */; };
+		5C23FF1807F448C6382CF3C0 /* Keyameleon-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = E6149CA42BF141280DF159F2 /* Keyameleon-icon.icon */; };
 		5CCE8E9FCCC4037D738F8EB9 /* MenuBarPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E1EEE59CDB66576D042F49 /* MenuBarPanelTests.swift */; };
 		63436FC2E915F0B83273023C /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD8FB5FFB9840099C00C830 /* App.swift */; };
 		64E3E73BCBE33BBF8DA964B2 /* SwiftData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81634072FBBCD7BCF66DC8CC /* SwiftData.framework */; };
@@ -72,6 +74,7 @@
 		A7C36DFDA7414A19C6CDE713 /* DiagnosticBundleReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */; };
 		A7DD977154EBE621232DBCDD /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */; };
 		A83F15406E915106F3797E34 /* MenuBarPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */; };
+		A903A1EBFAF729A3578E75E7 /* menu_icon.pdf in Resources */ = {isa = PBXBuildFile; fileRef = DB91EEF94774F8CF12AB64D4 /* menu_icon.pdf */; };
 		ACA1D2A2F87C1D348122EE23 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */; };
 		ACBFAD8BC2BA205BD7E14575 /* InstallationIntegrityKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = E08F5F8AE410D0FB94462FA8 /* InstallationIntegrityKey.swift */; };
 		B0AE2EC67744B63A24235EF2 /* SwitchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B34AD2AC37423AEC5A62769 /* SwitchingTests.swift */; };
@@ -133,6 +136,7 @@
 		25859C507998EB873999F385 /* PhysicalKeyboardEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardEvent.swift; sourceTree = "<group>"; };
 		27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		292B87F6B6EB98598837DB1B /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
+		2BDEA03F2B97B6544436C98B /* KeyameleonPreviewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonPreviewFixtures.swift; sourceTree = "<group>"; };
 		3A8FEB7EE535E8C18BD9D70E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		3C710797D8D223EBD0663F59 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		3FD75A61707183BD0E107165 /* GeneralSettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsModelTests.swift; sourceTree = "<group>"; };
@@ -195,10 +199,12 @@
 		D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicyTests.swift; sourceTree = "<group>"; };
 		D29B24A67009EA8DCF50F391 /* DiagnosticDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataService.swift; sourceTree = "<group>"; };
 		D4618DF3A4D7D688A018029F /* ActivityTriggeredSwitchingOutcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitchingOutcome.swift; sourceTree = "<group>"; };
+		DB91EEF94774F8CF12AB64D4 /* menu_icon.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = menu_icon.pdf; sourceTree = "<group>"; };
 		DD858A3F7B73F1B2C9FA633F /* KeyameleonXCTest.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonXCTest.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E08F5F8AE410D0FB94462FA8 /* InstallationIntegrityKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationIntegrityKey.swift; sourceTree = "<group>"; };
 		E182B1A00967D6ABCB27D357 /* ListenPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenPermission.swift; sourceTree = "<group>"; };
 		E448EF2582F9A857DE37EC7B /* PhysicalKeyboardDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardDiscovery.swift; sourceTree = "<group>"; };
+		E6149CA42BF141280DF159F2 /* Keyameleon-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = "Keyameleon-icon.icon"; sourceTree = "<group>"; };
 		F12688E745FEE2229C9EA9B7 /* DiagnosticWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticWindowController.swift; sourceTree = "<group>"; };
 		F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationalNotificationTests.swift; sourceTree = "<group>"; };
 		F2F89B01FA50D2E2724A74C3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -286,6 +292,7 @@
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
 				508F2298801A6E47BC014B13 /* SettingsCard.swift */,
 				F331ED64F866A49874FE74AA /* SettingsSection.swift */,
+				EBB4048880B0A67E0D819FC2 /* PreviewSupport */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -293,6 +300,8 @@
 		6D27DD524F53C9F5FAFBBC8A = {
 			isa = PBXGroup;
 			children = (
+				E6149CA42BF141280DF159F2 /* Keyameleon-icon.icon */,
+				D958257354866ECFC61FD814 /* Resources */,
 				BF3878F1C20B19C018283AA5 /* Sources */,
 				AA13A857CCEB8354237B20DE /* Tests */,
 				417F71DE12F09AD13001B515 /* Frameworks */,
@@ -369,6 +378,22 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		D958257354866ECFC61FD814 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				DB91EEF94774F8CF12AB64D4 /* menu_icon.pdf */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		EBB4048880B0A67E0D819FC2 /* PreviewSupport */ = {
+			isa = PBXGroup;
+			children = (
+				2BDEA03F2B97B6544436C98B /* KeyameleonPreviewFixtures.swift */,
+			);
+			path = PreviewSupport;
+			sourceTree = "<group>";
+		};
 		F86EC0BFB9FD4FC6CCEA2463 /* SwiftTesting */ = {
 			isa = PBXGroup;
 			children = (
@@ -443,6 +468,7 @@
 			buildConfigurationList = 81AF15269B0CE5F92C7A4ACF /* Build configuration list for PBXNativeTarget "Keyameleon" */;
 			buildPhases = (
 				0EAE7CB37FFE17480F40FBA4 /* Sources */,
+				9890252795B86EF14194365E /* Resources */,
 				3DFAEBEB2F554425B022A83B /* Frameworks */,
 			);
 			buildRules = (
@@ -501,6 +527,18 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		9890252795B86EF14194365E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C23FF1807F448C6382CF3C0 /* Keyameleon-icon.icon in Resources */,
+				A903A1EBFAF729A3578E75E7 /* menu_icon.pdf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		0EAE7CB37FFE17480F40FBA4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -523,6 +561,7 @@
 				289DA25583F6E6AC2E0DF99B /* InputSource.swift in Sources */,
 				9E6354C10E724605840570E8 /* InputSources.swift in Sources */,
 				ACBFAD8BC2BA205BD7E14575 /* InstallationIntegrityKey.swift in Sources */,
+				0134CF55DFD26E152897F776 /* KeyameleonPreviewFixtures.swift in Sources */,
 				929A71120CEEB1E514166D19 /* KeyboardSettingsView.swift in Sources */,
 				DC3FF408A6D6AE793789D0CC /* LaunchAtLogin.swift in Sources */,
 				831F87F612659C8281EC3FE9 /* Lifecycle.swift in Sources */,
@@ -636,7 +675,7 @@
 		1326138679CFD48417856D1B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Keyameleon-icon";
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sources/App/Info.plist;
@@ -827,7 +866,7 @@
 		69C35E70D354FBF23A976F7E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Keyameleon-icon";
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sources/App/Info.plist;
