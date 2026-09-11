@@ -87,7 +87,6 @@
 		CC4D4CD3FDBEABF26DFD8779 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2F89B01FA50D2E2724A74C3 /* AppKit.framework */; };
 		CDEB08A343F64C57326A72EE /* ManualDesignationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */; };
 		CFAE25F9126FE28912B366E5 /* PhysicalKeyboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4078DC295FA8891D3B21FFC9 /* PhysicalKeyboardStore.swift */; };
-		D13DC129A03B6419F0465447 /* SettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508F2298801A6E47BC014B13 /* SettingsCard.swift */; };
 		D3A0D6675068452A4032413E /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C755A567740A538EB0709B /* OnboardingView.swift */; };
 		D72130957C3F2F50CF482E72 /* HostedUnitTestProcessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4256FDB67D3FDDB9A81A429B /* HostedUnitTestProcessTests.swift */; };
 		D7D64A72C6CB23575841963A /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */; };
@@ -149,7 +148,6 @@
 		469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationActivityTests.swift; sourceTree = "<group>"; };
 		4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
 		4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitching.swift; sourceTree = "<group>"; };
-		508F2298801A6E47BC014B13 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCard.swift; sourceTree = "<group>"; };
 		5225FE09338A066FF3E0C002 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		556A0239D8D2035B0CF38C0C /* SwitchingWarning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchingWarning.swift; sourceTree = "<group>"; };
 		55C03FB672E3233D35CFA653 /* DiagnosticBundleReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticBundleReviewView.swift; sourceTree = "<group>"; };
@@ -290,7 +288,6 @@
 				BFC6008AE96DD98A4EB674B3 /* MenuBarPanelView.swift */,
 				42C755A567740A538EB0709B /* OnboardingView.swift */,
 				3A8FEB7EE535E8C18BD9D70E /* RootView.swift */,
-				508F2298801A6E47BC014B13 /* SettingsCard.swift */,
 				F331ED64F866A49874FE74AA /* SettingsSection.swift */,
 				EBB4048880B0A67E0D819FC2 /* PreviewSupport */,
 			);
@@ -587,7 +584,6 @@
 				2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */,
 				4641828CA43C4D22AF22077A /* ReleasePolicy.swift in Sources */,
 				E7ECA56E3601A3B66CA7F3F3 /* RootView.swift in Sources */,
-				D13DC129A03B6419F0465447 /* SettingsCard.swift in Sources */,
 				033640EB0D8158C8F5B795DA /* SettingsSection.swift in Sources */,
 				187E867991A04368B8582C70 /* SetupModel.swift in Sources */,
 				04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */,

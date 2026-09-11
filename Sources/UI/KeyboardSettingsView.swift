@@ -21,41 +21,42 @@ struct KeyameleonKeyboardSettingsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Physical Keyboards")
-                    .font(.title3.weight(.semibold))
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let designationStatus = model.manualDesignationStatusText() {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(designationStatus)
+                                .foregroundStyle(.secondary)
+                            Button("Cancel Designation") {
+                                model.cancelManualDesignation()
+                            }
+                        }
+                    }
 
-                Text("Name each keyboard and choose its assigned Input Source.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-
-                if let designationStatus = model.manualDesignationStatusText() {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(designationStatus)
+                    if model.physicalKeyboards.isEmpty {
+                        Text("No Physical Keyboards found.")
                             .foregroundStyle(.secondary)
-                        Button("Cancel Designation") {
-                            model.cancelManualDesignation()
+                    } else {
+                        VStack(spacing: 12) {
+                            ForEach(model.physicalKeyboards) { physicalKeyboard in
+                                physicalKeyboardCard(physicalKeyboard)
+                            }
                         }
                     }
-                    .settingsCardStyle()
                 }
-
-                if model.physicalKeyboards.isEmpty {
-                    Text("No Physical Keyboards found.")
+                .padding(contentPadding)
+                .accessibilityIdentifier("physical-keyboard-configuration")
+            } header: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Physical Keyboards")
+                    Text("Name each keyboard and choose its assigned Input Source.")
+                        .font(.callout)
                         .foregroundStyle(.secondary)
-                        .settingsCardStyle()
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(model.physicalKeyboards) { physicalKeyboard in
-                            physicalKeyboardCard(physicalKeyboard)
-                        }
-                    }
                 }
             }
-            .padding(contentPadding)
-            .accessibilityIdentifier("physical-keyboard-configuration")
         }
+        .formStyle(.grouped)
         .sheet(item: assignmentPickerBinding) { keyboard in
             KeyboardAssignmentPickerView(
                 physicalKeyboard: keyboard,

@@ -19,25 +19,45 @@ struct KeyameleonDiagnosticBundleReviewView: View {
     var body: some View {
         let summary = model.diagnosticBundle.summary
 
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Review Diagnostic Bundle")
-                .font(.headline)
-
-            Text(
-                "Review included Diagnostic Data and exclusions before you save or share. Each action is explicit."
-            )
-                .font(.callout)
-                .foregroundStyle(.secondary)
-
+        Section("Diagnostic Bundle") {
             if summary.recordCount == 0 {
                 Text("No Diagnostic Data retained.")
                     .foregroundStyle(.secondary)
             }
 
-            diagnosticBundleSummary(summary)
+            LabeledContent("Included categories") {
+                Text(
+                    summary.includedCategories.isEmpty
+                        ? "None"
+                        : summary.includedCategories.map(diagnosticCategoryName).joined(separator: ", ")
+                )
+            }
+
+            LabeledContent("Excluded sensitive data") {
+                Text(summary.excludedSensitiveData.joined(separator: ", "))
+            }
+
+            LabeledContent("Date range") {
+                Text(dateRangeDescription(summary.dateRange))
+            }
+
+            LabeledContent("Record count") {
+                Text(summary.recordCount.formatted())
+            }
+
+            LabeledContent("Size") {
+                Text(
+                    ByteCountFormatter.string(
+                        fromByteCount: Int64(summary.byteCount),
+                        countStyle: .file
+                    )
+                )
+            }
 
             HStack {
-                Button("Save Diagnostic Bundle…") {
+                Spacer()
+
+                Button("Save Diagnostic Bundle") {
                     prepareFileExport()
                 }
                 .disabled(summary.recordCount == 0)
@@ -59,9 +79,7 @@ struct KeyameleonDiagnosticBundleReviewView: View {
                     .font(.callout)
             }
         }
-        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
         .accessibilityIdentifier("diagnostic-bundle-review")
         .fileExporter(
             isPresented: $isShowingFileExporter,
@@ -75,47 +93,6 @@ struct KeyameleonDiagnosticBundleReviewView: View {
         }
         .onAppear {
             model.refreshDiagnosticBundle()
-        }
-    }
-
-    private func diagnosticBundleSummary(_ summary: DiagnosticBundleSummary) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            summaryLine(
-                label: "Included categories",
-                value: summary.includedCategories.isEmpty
-                    ? "None"
-                    : summary.includedCategories.map(diagnosticCategoryName).joined(separator: ", ")
-            )
-            summaryLine(
-                label: "Excluded sensitive data",
-                value: summary.excludedSensitiveData.joined(separator: ", ")
-            )
-            summaryLine(
-                label: "Date range",
-                value: dateRangeDescription(summary.dateRange)
-            )
-            summaryLine(
-                label: "Record count",
-                value: summary.recordCount.formatted()
-            )
-            summaryLine(
-                label: "Size",
-                value: ByteCountFormatter.string(
-                    fromByteCount: Int64(summary.byteCount),
-                    countStyle: .file
-                )
-            )
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func summaryLine(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.callout)
         }
     }
 
@@ -183,23 +160,32 @@ struct DiagnosticBundleShareItem: Transferable {
 
 #if DEBUG
 #Preview("Diagnostic bundle empty") {
-    KeyameleonDiagnosticBundleReviewView(
-        model: KeyameleonPreviewFixtures.general()
-    )
+    Form {
+        KeyameleonDiagnosticBundleReviewView(
+            model: KeyameleonPreviewFixtures.general()
+        )
+    }
+    .formStyle(.grouped)
 }
 
 #Preview("Diagnostic bundle populated") {
-    KeyameleonDiagnosticBundleReviewView(
-        model: KeyameleonPreviewFixtures.generalWithDiagnosticData()
-    )
+    Form {
+        KeyameleonDiagnosticBundleReviewView(
+            model: KeyameleonPreviewFixtures.generalWithDiagnosticData()
+        )
+    }
+    .formStyle(.grouped)
     .preferredColorScheme(.dark)
 }
 
 #Preview("Diagnostic bundle save error") {
-    KeyameleonDiagnosticBundleReviewView(
-        model: KeyameleonPreviewFixtures.generalWithDiagnosticData(),
-        initialSaveError: "Could not save Diagnostic Bundle."
-    )
+    Form {
+        KeyameleonDiagnosticBundleReviewView(
+            model: KeyameleonPreviewFixtures.generalWithDiagnosticData(),
+            initialSaveError: "Could not save Diagnostic Bundle."
+        )
+    }
+    .formStyle(.grouped)
     .environment(\.dynamicTypeSize, .xxxLarge)
 }
 #endif

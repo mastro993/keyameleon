@@ -75,123 +75,70 @@ private struct KeyameleonGeneralSettingsPane: View {
     @ObservedObject var model: KeyameleonGeneralSettingsModel
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                SettingsCard(title: "Startup") {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Toggle("Launch Keyameleon at login", isOn: launchAtLoginBinding)
-                            .toggleStyle(.switch)
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 14) {
+                    Toggle("Launch Keyameleon at login", isOn: launchAtLoginBinding)
+                        .toggleStyle(.switch)
+                        .frame(maxWidth: .infinity)
 
-                        if model.launchAtLoginError != nil {
-                            Divider()
-                            Text(
-                                "Could not change Launch at Login. Open System Settings → General → Login Items if macOS requires approval."
-                            )
-                            .font(.callout)
-                            .foregroundStyle(.red)
-                        }
-                    }
-                } footer: {
-                    Text("Starts Keyameleon when you log in.")
-                }
-
-                SettingsCard(title: "Operational Notifications") {
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack {
-                            Text("Authorization")
-                            Spacer()
-                            Text(notificationAuthorizationName(model.notificationAuthorizationState))
-                                .foregroundStyle(.secondary)
-                        }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Notification Authorization")
-                        .accessibilityValue(
-                            notificationAuthorizationName(model.notificationAuthorizationState)
+                    if model.launchAtLoginError != nil {
+                        Divider()
+                        Text(
+                            "Could not change Launch at Login. Open System Settings → General → Login Items if macOS requires approval."
                         )
-
-                        Divider()
-
-                        HStack {
-                            if model.notificationAuthorizationState == .notDetermined {
-                                Button("Enable Notifications") {
-                                    model.requestOperationalNotificationAuthorization()
-                                }
-                            }
-
-                            Spacer()
-
-                            Button("Open System Settings…") {
-                                model.openNotificationSettings()
-                            }
-                        }
+                        .font(.callout)
+                        .foregroundStyle(.red)
                     }
-                } footer: {
-                    Text(
-                        "Optional alerts for revoked Input Monitoring permission or unavailable Keyboard Assignments. Keyameleon never requests sound or badge access."
-                    )
                 }
-
-                SettingsCard(title: "Diagnostic Session") {
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack {
-                            Text("Status")
-                            Spacer()
-                            Text(model.isDiagnosticSessionActive
-                                ? "Active · ends after 10 minutes"
-                                : "Inactive")
-                                .foregroundStyle(.secondary)
-                        }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Diagnostic Session")
-                        .accessibilityValue(
-                            model.isDiagnosticSessionActive
-                                ? "Active, ends automatically after 10 minutes"
-                                : "Inactive"
-                        )
-
-                        Divider()
-
-                        HStack {
-                            Button(model.isDiagnosticSessionActive
-                                ? "Stop Diagnostic Session"
-                                : "Start Diagnostic Session") {
-                                if model.isDiagnosticSessionActive {
-                                    model.stopDiagnosticSession()
-                                } else {
-                                    model.startDiagnosticSession()
-                                }
-                            }
-
-                            Spacer()
-
-                            Text(
-                                "\(model.diagnosticRecordCount) records · about \(model.diagnosticEstimatedByteCount) bytes"
-                            )
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                        }
-
-                        Divider()
-
-                        Button("Clear All Diagnostic Data", role: .destructive) {
-                            model.clearAllDiagnosticData()
-                        }
-                        .disabled(model.diagnosticRecordCount == 0)
-                    }
-                } footer: {
-                    Text(
-                        "Retention stops at 7 days or 5 MB. Diagnostic Data never includes Key Content, serial numbers, custom names, assignments, paths, user names, or application names."
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Diagnostic Bundle")
-                        .font(.title3.weight(.semibold))
-                    KeyameleonDiagnosticBundleReviewView(model: model)
-                }
+            } header: {
+                Text("Startup")
+            } footer: {
+                Text("Starts Keyameleon when you log in.")
             }
-            .padding(28)
+
+            Section {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Text("Authorization")
+                        Spacer()
+                        Text(notificationAuthorizationName(model.notificationAuthorizationState))
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Notification Authorization")
+                    .accessibilityValue(
+                        notificationAuthorizationName(model.notificationAuthorizationState)
+                    )
+
+                    Divider()
+
+                    HStack {
+
+                        Spacer()
+
+                        if model.notificationAuthorizationState == .notDetermined {
+                            Button("Enable Notifications") {
+                                model.requestOperationalNotificationAuthorization()
+                            }
+                        }
+
+
+                        Button("Open System Settings") {
+                            model.openNotificationSettings()
+                        }
+                    }
+                }
+            } header: {
+                Text("Operational Notifications")
+            } footer: {
+                Text(
+                    "Optional alerts for revoked Input Monitoring permission or unavailable Keyboard Assignments. Keyameleon never requests sound or badge access."
+                )
+            }
+
         }
+        .formStyle(.grouped)
     }
 
     private var launchAtLoginBinding: Binding<Bool> {
@@ -294,19 +241,4 @@ private struct KeyameleonSettingsPreviewHost: View {
     .preferredColorScheme(.dark)
 }
 
-#Preview("General pane active Diagnostic Session") {
-    KeyameleonGeneralSettingsPane(
-        model: KeyameleonPreviewFixtures.general(
-            diagnosticRecords: [
-                DiagnosticRecord(
-                    recordedAt: KeyameleonPreviewFixtures.fixedDate,
-                    code: .discoveryFailed,
-                    switchingStatus: .temporarilyUnavailable
-                )
-            ],
-            diagnosticSessionActive: true
-        )
-    )
-    .environment(\.dynamicTypeSize, .xxxLarge)
-}
 #endif
