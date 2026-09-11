@@ -146,19 +146,7 @@ extension KeyameleonApplicationDelegate {
 
     @objc
     func openSettings(_ sender: Any?) {
-        closeMenuBarPanel()
-        generalSettingsModel.refresh()
-
-        if settingsWindowController == nil {
-            settingsWindowController = KeyameleonSettingsWindowController(
-                model: generalSettingsModel,
-                setupModel: setupModel
-            )
-        }
-
-        settingsWindowController?.showWindow(sender)
-        settingsWindowController?.window?.orderFrontRegardless()
-        NSApp.activate(ignoringOtherApps: true)
+        presentSettings(section: nil)
     }
 
     @objc
@@ -174,6 +162,25 @@ extension KeyameleonApplicationDelegate {
 
         aboutWindowController?.showWindow(sender)
         aboutWindowController?.window?.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func presentSettings(section: KeyameleonSettingsSection?) {
+        closeMenuBarPanel()
+        generalSettingsModel.refresh()
+        if let section {
+            settingsSelection.section = section
+        }
+        if settingsWindowController == nil {
+            settingsWindowController = KeyameleonSettingsWindowController(
+                model: generalSettingsModel,
+                setupModel: setupModel,
+                selection: settingsSelection
+            )
+        }
+
+        settingsWindowController?.showWindow(nil)
+        settingsWindowController?.window?.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
     }
 

@@ -206,3 +206,90 @@ struct ManualPhysicalKeyboardDesignationNameSheet: View {
         .frame(minWidth: 360)
     }
 }
+
+#if DEBUG
+#Preview("Guided setup complete") {
+    let fixture = KeyameleonPreviewFixtures.setup(.completed)
+    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+}
+
+#Preview("Permission required") {
+    let fixture = KeyameleonPreviewFixtures.setup(.permissionRequired)
+    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+}
+
+#Preview("Assignments populated") {
+    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+        .preferredColorScheme(.dark)
+        .environment(\.dynamicTypeSize, .xxxLarge)
+}
+
+#Preview("Input Source picker") {
+    KeyboardAssignmentPickerView(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(),
+        filteredInputSources: { query in
+            KeyameleonPreviewFixtures.inputSources().filter {
+                query.isEmpty || $0.name.localizedCaseInsensitiveContains(query)
+            }
+        },
+        onSelect: { _ in },
+        onCancel: {}
+    )
+}
+
+#Preview("Input Source picker empty") {
+    KeyboardAssignmentPickerView(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(name: "HHKB Professional"),
+        filteredInputSources: { _ in [] },
+        onSelect: { _ in },
+        onCancel: {}
+    )
+}
+
+#Preview("Replace saved Physical Keyboard") {
+    ReplaceSavedPhysicalKeyboardPickerView(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(
+            name: "Keychron K2",
+            assignment: nil
+        ),
+        candidates: [
+            KeyameleonPreviewFixtures.physicalKeyboard(
+                name: "HHKB Professional",
+                id: "identity:preview.disconnected|anchor:serial:preview-disconnected",
+                connection: .disconnected
+            )
+        ],
+        onSelect: { _ in },
+        onCancel: {}
+    )
+}
+
+#Preview("Replace saved Physical Keyboard empty") {
+    ReplaceSavedPhysicalKeyboardPickerView(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(),
+        candidates: [],
+        onSelect: { _ in },
+        onCancel: {}
+    )
+}
+
+#Preview("Manual designation valid name") {
+    @Previewable @State var nameDraft = "Studio Keyboard"
+    ManualPhysicalKeyboardDesignationNameSheet(
+        nameDraft: $nameDraft,
+        onConfirm: {},
+        onCancel: {}
+    )
+}
+
+#Preview("Manual designation empty name") {
+    @Previewable @State var nameDraft = ""
+    ManualPhysicalKeyboardDesignationNameSheet(
+        nameDraft: $nameDraft,
+        onConfirm: {},
+        onCancel: {}
+    )
+    .preferredColorScheme(.dark)
+}
+#endif

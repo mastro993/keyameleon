@@ -277,4 +277,48 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
     .frame(width: 360)
     .padding()
 }
+
+#Preview("Assignment section empty") {
+    MenuBarAssignmentSection(
+        list: MenuBarAssignmentList(
+            physicalKeyboards: [],
+            assignedInputSourceNames: [:]
+        )
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+    .padding()
+}
+
+#Preview("Assignment section unavailable") {
+    MenuBarAssignmentSection(
+        list: MenuBarAssignmentList(
+            physicalKeyboards: [
+                KeyameleonPreviewFixtures.physicalKeyboard(
+                    name: "Travel Keyboard",
+                    assignment: "com.apple.keylayout.Missing"
+                )
+            ],
+            assignedInputSourceNames: [:]
+        ),
+        emphasis: .highContrast
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+    .padding()
+}
+
+#Preview("Assignment pill disconnected") {
+    MenuBarAssignmentPill(
+        row: MenuBarAssignmentList.Row(
+            id: "preview-disconnected",
+            physicalKeyboardName: "Office Keyboard",
+            assignedInputSourceName: "German",
+            connectionMark: .disconnected,
+            isDimmed: true,
+            warningNote: nil,
+            showsWarningSymbol: false
+        )
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+    .preferredColorScheme(.dark)
+}
 #endif

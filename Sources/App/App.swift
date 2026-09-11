@@ -9,15 +9,9 @@ struct KeyameleonApp: App {
         Settings {
             KeyameleonSettingsView(
                 model: applicationDelegate.generalSettingsModel,
-                setupModel: applicationDelegate.setupModel
+                setupModel: applicationDelegate.setupModel,
+                selection: applicationDelegate.settingsSelection
             )
-        }
-        .commands {
-            CommandGroup(replacing: .appInfo) {
-                Button("About Keyameleon") {
-                    applicationDelegate.openAbout(nil)
-                }
-            }
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

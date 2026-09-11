@@ -16,7 +16,10 @@ final class KeyameleonDiagnosticWindowController: NSWindowController {
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 520, height: 380)
         window.contentView = NSHostingView(
-            rootView: KeyameleonDiagnosticBundleReviewView(model: model)
+            rootView: Form {
+                KeyameleonDiagnosticBundleReviewView(model: model)
+            }
+            .formStyle(.grouped)
         )
 
         super.init(window: window)

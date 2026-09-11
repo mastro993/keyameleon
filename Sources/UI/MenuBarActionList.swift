@@ -101,3 +101,26 @@ private extension MenuBarPanelContent.Action {
         }
     }
 }
+
+#if DEBUG
+#Preview("Menu-bar actions") {
+    @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
+    MenuBarActionList(
+        actions: KeyameleonPreviewFixtures.panelActionList(),
+        focusedTarget: $focusedTarget,
+        perform: { _ in }
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+}
+
+#Preview("Menu-bar actions paused") {
+    @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
+    MenuBarActionList(
+        actions: KeyameleonPreviewFixtures.panelActionList(paused: true),
+        focusedTarget: $focusedTarget,
+        perform: { _ in }
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+    .preferredColorScheme(.dark)
+}
+#endif

@@ -67,25 +67,43 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testAboutActionShowsAnIndependentNonResizableWindow() throws {
+    func testAboutActionShowsIndependentWindowAndPreservesSettingsSelection() throws {
         let delegate = makeApplicationTestDelegate(startsApplicationSurfaceOnLaunch: false)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
         defer { stopApplicationTestSurface(delegate) }
 
+        XCTAssertEqual(delegate.settingsSelection.section, .general)
+
         delegate.openSettings(nil)
-        delegate.openAbout(nil)
-
         let settingsWindow = try XCTUnwrap(delegate.settingsWindowController?.window)
-        let aboutWindow = try XCTUnwrap(delegate.aboutWindowController?.window)
+        XCTAssertEqual(settingsWindow.identifier?.rawValue, "keyameleon.settings-window")
+        XCTAssertEqual(delegate.settingsSelection.section, .general)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
+        XCTAssertNil(settingsWindow.toolbar)
 
+        delegate.openAbout(nil)
+        let aboutController = try XCTUnwrap(delegate.aboutWindowController)
+        let aboutWindow = try XCTUnwrap(aboutController.window)
         XCTAssertTrue(settingsWindow.isVisible)
         XCTAssertTrue(aboutWindow.isVisible)
-        XCTAssertFalse(settingsWindow === aboutWindow)
+        XCTAssertFalse(aboutWindow === settingsWindow)
         XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
         XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
-        XCTAssertEqual(aboutWindow.contentLayoutRect.size, NSSize(width: 380, height: 320))
+        XCTAssertEqual(aboutWindow.contentLayoutRect.size, NSSize(width: 760, height: 620))
+        XCTAssertEqual(delegate.settingsSelection.section, .general)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
+
+        delegate.openSettings(nil)
+        XCTAssertEqual(delegate.settingsSelection.section, .general)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
+        XCTAssertTrue(delegate.settingsWindowController?.window === settingsWindow)
+
+        aboutWindow.close()
+        delegate.openAbout(nil)
+        XCTAssertTrue(delegate.aboutWindowController === aboutController)
+        XCTAssertTrue(delegate.aboutWindowController?.window === aboutWindow)
     }
 
     @MainActor
