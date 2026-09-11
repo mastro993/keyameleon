@@ -1,9 +1,8 @@
+<img width="1920" height="540" alt="banner" src="https://github.com/user-attachments/assets/090bad21-77f1-4c04-ae1f-5e18a51928c3" />
+
 <div align="center">
-
-<img width="200" height="200" alt="Keyameleon-icon-iOS-Default-512@1x" src="https://github.com/user-attachments/assets/de03484a-e51f-4c7f-a1c3-ae697277dc1d" />
-
-# Keyameleon
-Every keyboard speaks its own language.
+   <h1>Keyameleon</h1>
+   <p>Every keyboard speaks its own language.</p>
 </div>
 
 ---
