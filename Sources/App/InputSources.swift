@@ -163,9 +163,7 @@ struct InputSourceMismatch: Equatable, Sendable {
 @MainActor
 final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelecting {
     func eligibleInputSources() -> [EligibleInputSource] {
-        inputSourceFacts().map { facts in
-            EligibleInputSourceCatalog.eligible(from: facts)
-        } ?? []
+        EligibleInputSourceCatalog.eligible(from: inputSourceFacts())
     }
 
     func currentInputSourceIdentifier() -> String? {
@@ -212,54 +210,41 @@ final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelectin
         return false
     }
 
-    private func inputSourceFacts() -> [InputSourceFacts]? {
-        guard let unmanagedList = TISCreateInputSourceList(nil, false) else {
-            return nil
+    /// Owns every Input Source it returns, so callers may keep them past the underlying CFArray.
+    private func inputSources(
+        matching properties: CFDictionary?,
+        includeAllInstalled: Bool
+    ) -> [TISInputSource] {
+        guard let unmanagedList = TISCreateInputSourceList(properties, includeAllInstalled) else {
+            return []
         }
 
-        let list = unmanagedList.takeRetainedValue()
-        var facts: [InputSourceFacts] = []
+        return (unmanagedList.takeRetainedValue() as NSArray) as? [TISInputSource] ?? []
+    }
 
-        for index in 0..<CFArrayGetCount(list) {
-            let source = unsafeBitCast(
-                CFArrayGetValueAtIndex(list, index),
-                to: TISInputSource.self
-            )
-
+    private func inputSourceFacts() -> [InputSourceFacts] {
+        inputSources(matching: nil, includeAllInstalled: false).compactMap { source in
             guard
                 let identifier = stringProperty(source, kTISPropertyInputSourceID),
                 let name = stringProperty(source, kTISPropertyLocalizedName)
             else {
-                continue
+                return nil
             }
 
-            facts.append(
-                InputSourceFacts(
-                    identifier: identifier,
-                    name: name,
-                    category: category(for: stringProperty(source, kTISPropertyInputSourceCategory)),
-                    type: type(for: stringProperty(source, kTISPropertyInputSourceType)),
-                    isEnabled: boolProperty(source, kTISPropertyInputSourceIsEnabled),
-                    isSelectCapable: boolProperty(source, kTISPropertyInputSourceIsSelectCapable)
-                )
+            return InputSourceFacts(
+                identifier: identifier,
+                name: name,
+                category: category(for: stringProperty(source, kTISPropertyInputSourceCategory)),
+                type: type(for: stringProperty(source, kTISPropertyInputSourceType)),
+                isEnabled: boolProperty(source, kTISPropertyInputSourceIsEnabled),
+                isSelectCapable: boolProperty(source, kTISPropertyInputSourceIsSelectCapable)
             )
         }
-
-        return facts
     }
 
     private func inputSource(withIdentifier identifier: String) -> TISInputSource? {
         let properties = [kTISPropertyInputSourceID as String: identifier] as CFDictionary
-        guard let unmanagedList = TISCreateInputSourceList(properties, true) else {
-            return nil
-        }
-
-        let list = unmanagedList.takeRetainedValue()
-        guard CFArrayGetCount(list) > 0 else {
-            return nil
-        }
-
-        return unsafeBitCast(CFArrayGetValueAtIndex(list, 0), to: TISInputSource.self)
+        return inputSources(matching: properties, includeAllInstalled: true).first
     }
 
     private func stringProperty(_ source: TISInputSource, _ key: CFString) -> String? {
