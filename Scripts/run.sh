@@ -25,6 +25,11 @@ audit_sources() {
         print -u2 "prohibited Key Content path found"
         return 1
     fi
+
+    if grep -REn 'CFArrayGetValueAtIndex' Sources Tests; then
+        print -u2 "raw CFArray element access found; bridge the array so its elements stay owned"
+        return 1
+    fi
 }
 
 audit_all() {

@@ -1,5 +1,18 @@
 # Breadcrumbs
 
+## 2026-09-20 — Input Source selection crash in optimized builds
+
+- Reported: a built-in keyboard key press with its Keyboard Assignment switched to
+  Italian and killed the app.
+- Cause: `inputSource(withIdentifier:)` returned a `TISInputSource` bitcast from a
+  `CFArray` element. `TISInputSource` is ARC-managed, so the retain for the return
+  value could run after the array's release and touch freed memory
+  (`EXC_BAD_ACCESS` in `objc_retain`, `InputSources.swift:192`).
+- Release-only: `-Onone` releases the array after that retain, so Debug builds and
+  the test suite never reproduced it.
+- Fix: bridge `TISCreateInputSourceList` once into an owned `[TISInputSource]`.
+- `run.sh audit` now rejects `CFArrayGetValueAtIndex` in Sources and Tests.
+
 ## 2026-08-27 — Removed automated UI tests
 
 - Deleted `KeyameleonUITests` target and `Tests/UITests`.
