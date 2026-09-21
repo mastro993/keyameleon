@@ -5,7 +5,8 @@
 # build the comparison URL while still finding the previous Official Release.
 # Commit subjects are grouped into visible change sections. The Changelog keeps
 # short commit links and adds pull-request links and @login authors when GitHub
-# provides them. Contributors are GitHub avatar images, not bare names.
+# provides them. The @login mentions are what the release page's own
+# Contributors card renders from, so the notes carry no Contributors section.
 set -euo pipefail
 
 usage() {
@@ -112,53 +113,38 @@ declare -a bug_fixes=()
 declare -a refactors=()
 declare -a chores=()
 declare -a changelog=()
-declare -a contributors=()
-declare -a contributor_keys=()
 
 github_available() {
     [[ -n "$repo_slug" && -n "${GH_TOKEN:-}" ]] && command -v gh >/dev/null 2>&1
 }
 
-# number<TAB>login<TAB>id
+# number<TAB>login
 lookup_pull_request() {
     local sha="$1"
     local result=""
     if github_available; then
-        result="$(gh api "repos/${repo_slug}/commits/${sha}/pulls" \
+        if ! result="$(gh api "repos/${repo_slug}/commits/${sha}/pulls" \
             -H 'Accept: application/vnd.github+json' \
-            --jq 'if length > 0 then (.[] | "\(.number)\t\(.user.login // "")\t\(.user.id // "")") else empty end' \
-            2>/dev/null | head -n 1 || true)"
+            --jq 'if length > 0 then (.[0] | "\(.number)\t\(.user.login // "")") else empty end' \
+            2>/dev/null)"; then
+            result=""
+        fi
     fi
     printf '%s\n' "$result"
 }
 
-# login<TAB>id — commit author GitHub user, when the email is linked
+# login — commit author GitHub user, when the email is linked
 lookup_commit_author() {
     local sha="$1"
     local result=""
     if github_available; then
-        result="$(gh api "repos/${repo_slug}/commits/${sha}" \
-            --jq 'if .author != null and .author.login != null then "\(.author.login)\t\(.author.id // "")" else empty end' \
-            2>/dev/null || true)"
+        if ! result="$(gh api "repos/${repo_slug}/commits/${sha}" \
+            --jq 'if .author != null and .author.login != null then .author.login else empty end' \
+            2>/dev/null)"; then
+            result=""
+        fi
     fi
     printf '%s\n' "$result"
-}
-
-# Avatar image linking to the GitHub profile.
-contributor_line() {
-    local login="$1"
-    local user_id="$2"
-    local name="$3"
-    local avatar_login="${login%\[bot\]}"
-    if [[ -n "$login" && -n "$user_id" ]]; then
-        printf -- '- [![@%s](https://avatars.githubusercontent.com/u/%s?s=64&v=4)](https://github.com/%s)' \
-            "$avatar_login" "$user_id" "$avatar_login"
-    elif [[ -n "$login" ]]; then
-        printf -- '- [![@%s](https://github.com/%s.png?size=64)](https://github.com/%s)' \
-            "$avatar_login" "$avatar_login" "$avatar_login"
-    elif [[ -n "$name" ]]; then
-        printf -- '- %s' "$name"
-    fi
 }
 
 while IFS=$'\t' read -r sha author subject; do
@@ -167,25 +153,17 @@ while IFS=$'\t' read -r sha author subject; do
     short_sha="${sha:0:7}"
     pull_number=""
     github_login=""
-    github_id=""
     if [[ "$subject" =~ \(#([0-9]+)\)$ ]]; then
         pull_number="${BASH_REMATCH[1]}"
     fi
     pull_data="$(lookup_pull_request "$sha")"
     if [[ -n "$pull_data" ]]; then
         api_pull_number=""
-        api_pull_login=""
-        api_pull_id=""
-        IFS=$'\t' read -r api_pull_number api_pull_login api_pull_id <<<"$pull_data"
+        IFS=$'\t' read -r api_pull_number github_login <<<"$pull_data"
         [[ -n "$pull_number" ]] || pull_number="$api_pull_number"
-        github_login="$api_pull_login"
-        github_id="$api_pull_id"
     fi
     if [[ -z "$github_login" ]]; then
-        author_data="$(lookup_commit_author "$sha")"
-        if [[ -n "$author_data" ]]; then
-            IFS=$'\t' read -r github_login github_id <<<"$author_data"
-        fi
+        github_login="$(lookup_commit_author "$sha")"
     fi
 
     display_subject="$(printf '%s' "$subject" | sed -E 's/ \(#[0-9]+\)$//')"
@@ -214,19 +192,6 @@ while IFS=$'\t' read -r sha author subject; do
         commit_link+=" by ${author}"
     fi
     changelog+=("$commit_link")
-
-    contributor="${github_login:-$author}"
-    contributor_seen=0
-    for existing_contributor in "${contributor_keys[@]-}"; do
-        if [[ "$existing_contributor" == "$contributor" ]]; then
-            contributor_seen=1
-            break
-        fi
-    done
-    if [[ -n "$contributor" && "$contributor_seen" -eq 0 ]]; then
-        contributor_keys+=("$contributor")
-        contributors+=("$(contributor_line "$github_login" "$github_id" "$author")")
-    fi
 done <"$commit_file"
 
 emit_category() {
@@ -266,11 +231,4 @@ if [[ "${#changelog[@]}" -eq 0 ]]; then
     fi
 else
     printf '%s\n' "${changelog[@]}"
-fi
-
-printf '\n### Contributors\n\n'
-if [[ "${#contributors[@]}" -eq 0 ]]; then
-    printf '%s\n' '- None listed.'
-else
-    printf '%s\n' "${contributors[@]}"
 fi

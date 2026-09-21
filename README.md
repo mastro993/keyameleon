@@ -136,9 +136,9 @@ and publishes:
 - `release-evidence.json` as a workflow artifact only
 
 The DMG contains `Keyameleon.app` and an Applications shortcut. Release notes
-use categorized changes, a Changelog with the full comparison and commit list,
-and Contributors as GitHub avatar images. No custom source archive or
-`CHANGELOG.md` is published.
+use categorized changes and a Changelog with the full comparison and commit
+list. GitHub renders its Contributors card from the `@login` mentions in the
+notes. No custom source archive or `CHANGELOG.md` is published.
 
 Full procedure, host protections, and local production:
 [`docs/release/official-release.md`](docs/release/official-release.md).

@@ -1,5 +1,18 @@
 # Choices
 
+## 2026-09-21 — Release notes drop the custom Contributors section
+
+### Defaults
+
+- Remove the `### Contributors` avatar list from
+  `Scripts/official-release-notes.sh`. The release page renders its own
+  Contributors card from the body's user mentions, and the script's list
+  duplicated it with square avatars (`avatars.githubusercontent.com/u/{id}`).
+- Keep `@login` attribution on the change and Changelog lines. Those mentions
+  are the card's input, and they carry the same logins the list did.
+- Amend ADR 0006 and the `docs/release/official-release.md` verification
+  checklist.
+
 ## 2026-08-27 — Remove automated UI tests
 
 ### Defaults

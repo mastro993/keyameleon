@@ -1,5 +1,18 @@
 # Breadcrumbs
 
+## 2026-09-21 — Release page showed two Contributors sections
+
+- Reported: each release page listed contributors twice, one list with square
+  avatars.
+- Cause: `Scripts/official-release-notes.sh` emitted its own `### Contributors`
+  avatar list. GitHub already renders a Contributors card outside the release
+  body from the body's user mentions (`mentions_count` on the release API).
+  Correlation held across every release in this repository: v0.2.1 and v0.2.2
+  mention `@mastro993` and show the card, v0.2.0 and v0.1.1 have no mentions and
+  no card, and ripgrep and cli/cli pages match the same rule.
+- Fix: drop the section, its `contributor_line` helper, and the login/user-id
+  lookups it needed. `@login` attribution on change and Changelog lines stays.
+
 ## 2026-09-20 — Input Source selection crash in optimized builds
 
 - Reported: a built-in keyboard key press with its Keyboard Assignment switched to
