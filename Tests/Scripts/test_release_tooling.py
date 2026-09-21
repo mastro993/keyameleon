@@ -74,9 +74,10 @@ class OfficialReleaseNotesTests(unittest.TestCase):
                 " by Release Tester",
                 notes,
             )
-            self.assertIn("### Contributors\n\n- Release Tester", notes)
+            self.assertNotIn("### Contributors", notes)
+            self.assertTrue(notes.rstrip().endswith("by Release Tester"))
 
-    def test_contributors_use_github_avatars_when_api_returns_login(self) -> None:
+    def test_notes_attribute_github_logins_without_avatar_images(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             repository = Path(temporary_directory)
             run("git", "init", "-q", cwd=repository)
@@ -133,13 +134,9 @@ printf '%s' "$payload" | jq -r "$filter"
 
             notes = result.stdout
             self.assertIn(" by @octocat", notes)
-            self.assertIn(
-                "- [![@octocat](https://avatars.githubusercontent.com/u/1?s=64&v=4)]"
-                "(https://github.com/octocat)",
-                notes,
-            )
+            self.assertNotIn("### Contributors", notes)
+            self.assertNotIn("avatars.githubusercontent.com", notes)
             self.assertNotIn("- Release Tester", notes)
-            self.assertNotIn("- @octocat\n", notes)
 
 
 class ReleaseEvidenceTests(unittest.TestCase):
