@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Sparkle
 
@@ -12,7 +13,8 @@ protocol UpdateChecking: AnyObject {
 
 /// Sparkle 2 adapter. Configuration lives in Info.plist; this only starts and exposes checks.
 @MainActor
-final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate {
+final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
+    @preconcurrency SPUStandardUserDriverDelegate {
     private var controller: SPUStandardUpdaterController!
     private var didStart = false
 
@@ -22,7 +24,7 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate {
         controller = SPUStandardUpdaterController(
             startingUpdater: false,
             updaterDelegate: self,
-            userDriverDelegate: nil
+            userDriverDelegate: self
         )
     }
 
@@ -70,6 +72,34 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate {
         _ = updater
         _ = sendingSystemProfile
         return []
+    }
+
+    // MARK: - SPUStandardUserDriverDelegate
+
+    var supportsGentleScheduledUpdateReminders: Bool {
+        true
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(
+        _ handleShowingUpdate: Bool,
+        forUpdate update: SUAppcastItem,
+        state: SPUUserUpdateState
+    ) {
+        guard !state.userInitiated else {
+            return
+        }
+        // Sparkle shows its own alert for scheduled updates; the Dock entry only makes it findable.
+        NSApp.setActivationPolicy(.regular)
+        NSApp.dockTile.badgeLabel = "1"
+    }
+
+    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
+        NSApp.dockTile.badgeLabel = ""
+    }
+
+    func standardUserDriverWillFinishUpdateSession() {
+        NSApp.dockTile.badgeLabel = ""
+        NSApp.setActivationPolicy(.accessory)
     }
 
     private func defaultUserAgentString() -> String {
