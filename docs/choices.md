@@ -476,3 +476,15 @@ Defaults:
 - Runtime application identity comes from the application bundle. Published product and artifact identity remains deterministic in `KeyameleonReleasePolicy`.
 - UI tests keep independent expected literals. Production accessibility identifiers and launch arguments remain unchanged.
 - Earlier choices that named `KeyameleonAppMetadata` are superseded for ownership only; their external values and behavior remain unchanged.
+
+## 2026-09-21 — Sparkle gentle reminders
+
+### Defaults
+- `SparkleUpdateChecker` conforms to `SPUStandardUserDriverDelegate` and returns `supportsGentleScheduledUpdateReminders`. Sparkle logs its background-app warning only when that property is missing or false.
+- Sparkle keeps showing its own update alert. `standardUserDriverShouldHandleShowingScheduledUpdate` stays unimplemented.
+- A scheduled update makes the app findable. Activation policy becomes `.regular` with Dock badge `1`. User attention clears the badge. The end of the update session clears the badge and restores `.accessory`. Steady state stays menu-bar-only.
+- A user-initiated check changes nothing. The user already asked for the update.
+- No update notification and no new authorization request. Notification authorization stays owned by Guided setup and General Settings, which ask with `[.alert]` after an explicit user action.
+- Update state stays out of `OperationalNotification` and `MenuBarIconMark`.
+- `updater(_:willScheduleUpdateCheckAfterDelay:)` stays unimplemented. Sparkle's sample uses that hook to request notification permission, which would bypass the setup offer gate.
+

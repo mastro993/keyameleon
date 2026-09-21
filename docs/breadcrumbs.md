@@ -1,5 +1,23 @@
 # Breadcrumbs
 
+## 2026-09-21 — Sparkle logged a background-app gentle reminder warning
+
+- Reported: Xcode logged "Warning: Background app automatically schedules for
+  update checks but does not implement gentle reminders."
+- Cause: `SPUStandardUpdaterController` was created with `userDriverDelegate:
+  nil`, so Sparkle's standard user driver had no delegate declaring
+  `supportsGentleScheduledUpdateReminders`, and Keyameleon is a background app
+  (`LSUIElement`, activation policy `.accessory`).
+- Reproduced with an lldb breakpoint on
+  `-[SPUStandardUserDriver logGentleScheduledUpdateReminderWarningIfNeeded]`,
+  which stops on launch. At the stop
+  `[(id)self->_delegate respondsToSelector:@selector(supportsGentleScheduledUpdateReminders)]`
+  evaluated to NO.
+- Fix: `SparkleUpdateChecker` is the standard user driver delegate. A scheduled
+  update switches the app to `.regular` with Dock badge `1`, user attention
+  clears the badge, and the end of the session restores `.accessory`. Sparkle
+  still shows its own alert.
+
 ## 2026-09-21 — Release page showed two Contributors sections
 
 - Reported: each release page listed contributors twice, one list with square
