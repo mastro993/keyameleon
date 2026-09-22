@@ -38,17 +38,13 @@ _Avoid_: Keyboard state, key state
 Information that identifies or can reconstruct input from one or more Physical Keyboard Events. It includes key transitions, modifiers, shortcuts, interpreted text, Physical Keyboard State, and their raw representations.
 _Avoid_: Keystroke data, typed content
 
-**Diagnostic Data**:
-Information about Keyameleon operation that does not contain Key Content. It can include operational errors, operational state changes, observation order, relative timing, Input Source selection results, and temporary random tokens.
-_Avoid_: Logs, telemetry
+**Log File**:
+The local text file that Keyameleon appends operational lines to under `~/Library/Logs/Keyameleon`. It never contains Key Content.
+_Avoid_: telemetry, analytics
 
-**Diagnostic Session**:
-A user-started and time-limited period when Keyameleon records detailed Diagnostic Data for bug investigation.
-_Avoid_: Debug mode, logging mode
-
-**Diagnostic Bundle**:
-A user-created export of Diagnostic Data for bug investigation. The user can save it or send it through the macOS share interface.
-_Avoid_: Log archive, debug dump
+**Log Level**:
+The severity label on one log line, one of verbose, debug, warning, or error.
+_Avoid_: severity, verbosity
 
 **Unclean Exit**:
 A launch condition where the previous Keyameleon process did not complete normal termination. Keyameleon keeps one local notice for the user to review or dismiss.

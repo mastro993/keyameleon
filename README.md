@@ -18,9 +18,9 @@ Keyameleon is a macOS menu bar app that keeps the Input Source aligned with the 
 - **Pause and resume**: stops observation and Input Source requests until you resume
 - **Launch at Login**: optional
 - **User-approved updates**: Keyameleon checks for updates once a day at most and installs one only when you approve it
-- **Diagnostics**: start a Diagnostic Session, review Diagnostic Data, and export a Diagnostic Bundle when you report a bug; Key Content never appears there
+- **Local logging**: writes `verbose`, `debug`, `warning`, and `error` lines to log files under `~/Library/Logs/Keyameleon`, and the About page opens that folder
 
-Keyameleon is monitor-only: it observes Physical Keyboard Events through CoreHID, which cannot change or inject input, and it selects layouts through the macOS text input system. Key Content stays inside classification, so it never reaches saved data, logs, diagnostics, or the network. There is no analytics and no automatic upload.
+Keyameleon is monitor-only: it observes Physical Keyboard Events through CoreHID, which cannot change or inject input, and it selects layouts through the macOS text input system. Key Content stays inside classification, so it never reaches saved data, log files, or the network. There is no analytics and no automatic upload.
 
 ## Requirements
 

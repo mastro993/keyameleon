@@ -1,5 +1,28 @@
 # Breadcrumbs
 
+## 2026-09-22 — Local logging replaces Diagnostic Data
+
+- Removed the Diagnostic Data feature: `DiagnosticData.swift`,
+  `DiagnosticDataService.swift`, `DiagnosticDataStore.swift`,
+  `DiagnosticBundleReviewView.swift`, `KeyameleonDiagnosticWindowController.swift`,
+  the About Diagnostics section, the Diagnostic Bundle review, and the dead
+  `reviewDiagnostics`/`dismissDiagnosticsNotice` selectors.
+- Added `Sources/Features/Shared/KeyameleonLog.swift`: level and category enums, a
+  `KeyameleonLogWriter` value, the process-wide `KeyameleonLog`, and the rotating
+  file writer.
+- Log call sites: launch, single-instance exit, unclean exit, termination, record
+  store failure, Launch at Login failure, update check, Active Physical Keyboard
+  change, connect, disconnect, coalesced selection, selection result, Switching
+  Status change, Listen permission, Keyboard Assignment saved or removed, replace,
+  forget, built-in migration.
+- About: the unclean-exit notice now offers Open Logs and Dismiss. The Logs Folder
+  row with its Open button was already there and is unchanged.
+- Tests: `KeyameleonLogTests.swift` covers the line shape, size rotation, and
+  silence until a writer is installed. Diagnostic-only tests are deleted, and the
+  migration and designation tests no longer assert on diagnostic tokens.
+- `Scripts/run.sh` retargets the Key Content audit at the logging pipeline, and the
+  audit now fails loudly when an audited path is missing.
+
 ## 2026-09-22 — Menu-bar footer row kept its focus ring after a pointer click
 
 - Reported: after clicking a button in the menu-bar panel, a row stayed focused.

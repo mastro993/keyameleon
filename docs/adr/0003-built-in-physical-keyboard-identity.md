@@ -26,9 +26,9 @@ the Physical Keyboard Name and Keyboard Assignment from one selected old
 record. The user can also create a new Keyboard Assignment or forget old
 records.
 
-During automatic migration, Keyameleon deletes Diagnostic Data linked to the
-old built-in identity. It does not relink that data to the fixed identity. New
-Diagnostic Data uses the fixed identity.
+The migration keeps nothing per identity beyond the Physical Keyboard Name and
+Keyboard Assignment it moves. Log files are not linked to a Physical Keyboard
+identity.
 
 For its default Physical Keyboard Name, Keyameleon uses the one nonempty macOS
 product name when all built-in services report the same name. If the services

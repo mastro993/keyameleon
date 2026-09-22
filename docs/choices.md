@@ -1,5 +1,37 @@
 # Choices
 
+## 2026-09-22 — Local log files replace Diagnostic Data
+
+### Defaults
+
+- Delete Diagnostic Data end to end: the closed domain, SwiftData store, service,
+  Diagnostic Session UI, bundle review window, and the `DiagnosticDataControlling`
+  parameter on `KeyameleonSetupModel`, `ActivityTriggeredSwitching`,
+  `KeyameleonGeneralSettingsModel`, and the composition root.
+- One process-wide `KeyameleonLog` with four levels (`verbose`, `debug`,
+  `warning`, `error`) and three categories (`app`, `switching`, `setup`). A call
+  site emits one line and carries no logger, so nothing threads a destination
+  through the models that used to take a diagnostic controller.
+- The process is silent until `KeyameleonLog.start` installs a writer at launch.
+  Hosted unit tests and SwiftUI previews never install one, so they cannot write
+  to the user's Logs folder.
+- `KeyameleonLogWriter.file` appends to `~/Library/Logs/Keyameleon/keyameleon.log`
+  through one `O_APPEND` descriptor, rotates at 1 MiB into `keyameleon.<n>.log`,
+  and keeps 5 rotated files. Every file operation is best effort: a missing folder,
+  a full disk, or a lock must not interrupt switching.
+- A line carries the timestamp, the level, the category, and the message. No
+  Physical Keyboard Identity, no paths, no system error text, no Key Content.
+  Keyboard-scoped lines name the Physical Keyboard.
+- No line per Physical Keyboard Event. Activation Activity is logged only when it
+  changes the Active Physical Keyboard, matching the deleted default recording
+  mode that refused one record per event.
+- Keep the Unclean Exit notice. Its review action opens the Logs folder instead of
+  the deleted bundle, and it still clears on Dismiss.
+- `Scripts/run.sh` audits the log writer and every log call site for Key Content,
+  and fails when an audited path is missing instead of letting `grep` no-op.
+- `ClockProviding`, `SystemClock`, and `ManualClock` were diagnostics-only and went
+  with the feature. Log lines take the system time.
+
 ## 2026-09-21 — Release notes drop the custom Contributors section
 
 ### Defaults
