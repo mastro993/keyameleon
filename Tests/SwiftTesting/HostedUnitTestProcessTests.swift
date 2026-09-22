@@ -23,3 +23,22 @@ func hostedUnitTestProcessReadsXCTestBundlePath() {
 func hostedUnitTestProcessIgnoresLaunchWithoutXCTestHostEnv() {
     #expect(!KeyameleonHostedUnitTestProcess.isDetected(environment: [:]))
 }
+
+@Test("Preview process reads the Xcode preview environment flag")
+func previewProcessReadsXcodeEnvironmentFlag() {
+    #expect(
+        KeyameleonPreviewProcess.isDetected(
+            environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]
+        )
+    )
+}
+
+@Test("Preview process requires the enabled flag value")
+func previewProcessRequiresEnabledFlagValue() {
+    #expect(
+        !KeyameleonPreviewProcess.isDetected(
+            environment: ["XCODE_RUNNING_FOR_PREVIEWS": "0"]
+        )
+    )
+    #expect(!KeyameleonPreviewProcess.isDetected(environment: [:]))
+}
