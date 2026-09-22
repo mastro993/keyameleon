@@ -422,6 +422,69 @@ func tamperedDesignationEvidenceLeavesUnsupported() {
     #expect(model.physicalKeyboards.first { $0.id == keyboardID }?.isAssignable == false)
 }
 
+@Test("Replacing a Physical Keyboard drops the old Manual Physical Keyboard Designation")
+@MainActor
+func replacementDropsManualDesignationForOldIdentity() throws {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let designationStore = InMemoryManualPhysicalKeyboardDesignationStore()
+    let diagnostic = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
+    let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
+    let model = makeDesignationModel(
+        recordStore: recordStore,
+        designationStore: designationStore,
+        integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
+        discoverer: discoverer,
+        diagnostic: diagnostic
+    )
+
+    startAndCheck(model)
+    connectAmbiguousGroup(discoverer, serviceIDs: 251, 252, identity: "macos.keyboard.replaced")
+    let oldID = model.physicalKeyboards[0].id
+    model.startManualDesignation(for: oldID)
+    discoverer.emit(.disconnected(serviceID: 251))
+    discoverer.emit(.disconnected(serviceID: 252))
+    connectAmbiguousGroup(discoverer, serviceIDs: 253, 254, identity: "macos.keyboard.replaced")
+    model.confirmManualDesignationName("Kept Name")
+    model.setKeyboardAssignment(oldID, inputSourceIdentifier: "com.example.us")
+    diagnostic.record(code: .physicalKeyboardDisconnected, identityKey: oldID.rawValue)
+    let oldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: oldID.rawValue)
+    discoverer.emit(.disconnected(serviceID: 253))
+    discoverer.emit(.disconnected(serviceID: 254))
+
+    discoverer.emit(
+        .connected(
+            makeDesignationHardwareFacts(
+                serviceID: 255,
+                identity: "macos.keyboard.replacement",
+                productID: 300,
+                serialNumber: "serial-replacement"
+            )
+        )
+    )
+    let newID = try #require(
+        model.physicalKeyboards.first { $0.connectionState == .connected }?.id
+    )
+    #expect(newID != oldID)
+
+    model.replaceSavedPhysicalKeyboard(oldID, with: newID)
+
+    let replaced = try #require(model.physicalKeyboards.first { $0.id == newID })
+    #expect(replaced.name == "Kept Name")
+    #expect(replaced.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
+    #expect(recordStore.record(forIdentityKey: oldID.rawValue) == nil)
+    #expect(designationStore.designation(forIdentityKey: oldID.rawValue) == nil)
+    #expect(
+        diagnostic.allRecords().contains { $0.physicalKeyboardToken == oldDiagnosticToken }
+            == false
+    )
+
+    connectAmbiguousGroup(discoverer, serviceIDs: 256, 257, identity: "macos.keyboard.replaced")
+    let returned = try #require(model.physicalKeyboards.first { $0.id == oldID })
+    #expect(returned.customName == nil)
+    #expect(returned.assignmentState == .unsupported(.ambiguousIdentity))
+    #expect(returned.isAssignable == false)
+}
+
 // MARK: - Helpers
 
 @MainActor
@@ -429,7 +492,10 @@ private func makeDesignationModel(
     recordStore: any PhysicalKeyboardRecordStoring,
     designationStore: any ManualPhysicalKeyboardDesignationStoring,
     integrityKeyProvider: any InstallationIntegrityKeyProviding,
-    discoverer: DesignationTestPhysicalKeyboardDiscoverer
+    discoverer: DesignationTestPhysicalKeyboardDiscoverer,
+    diagnostic: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
+        store: InMemoryDiagnosticDataStore()
+    )
 ) -> KeyameleonSetupModel {
     KeyameleonSetupModel(
         permissionProvider: DesignationTestListenPermissionProvider(state: .granted),
@@ -438,7 +504,8 @@ private func makeDesignationModel(
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore,
         designationStore: designationStore,
-        integrityKeyProvider: integrityKeyProvider
+        integrityKeyProvider: integrityKeyProvider,
+        diagnosticDataController: diagnostic
     )
 }
 
