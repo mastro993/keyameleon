@@ -77,6 +77,12 @@
 - Rotation reads the size from the open descriptor rather than a cached count,
   because a blocked launch appends through its own writer. The cached count is
   gone instead of refreshed on a timer.
+- Third round. The writer compares its descriptor's inode against the active
+  path, so deleting or replacing the file from the Logs folder reopens it instead
+  of appending to an unlinked file. The retired store path uses
+  `URL.applicationSupportDirectory` instead of indexing the array that
+  `FileManager.urls` returns. The test that installs a process-wide writer runs on
+  the main actor, which serializes it against every other test that installs one.
 
 ## 2026-09-21 — Release notes drop the custom Contributors section
 

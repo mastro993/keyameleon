@@ -45,7 +45,18 @@ final class KeyameleonLogFile: Sendable {
         // Every file operation is best effort. A missing folder, a full disk, or
         // a locked file must never interrupt switching.
         state.withLock { state in
-            guard let descriptor = openIfNeeded(&state) else {
+            guard openIfNeeded(&state) != nil else {
+                return
+            }
+            if let openedDescriptor = state.descriptor,
+               !descriptorMatchesActiveFile(openedDescriptor)
+            {
+                close(&state)
+                guard openIfNeeded(&state) != nil else {
+                    return
+                }
+            }
+            guard let descriptor = state.descriptor else {
                 return
             }
             // The descriptor's own size, because a blocked launch appends through
@@ -58,8 +69,8 @@ final class KeyameleonLogFile: Sendable {
                 }
             }
             guard
-                let rotatedDescriptor = state.descriptor,
-                Self.write(line, to: rotatedDescriptor) != nil
+                let currentDescriptor = state.descriptor,
+                Self.write(line, to: currentDescriptor) != nil
             else {
                 close(&state)
                 return
@@ -175,6 +186,20 @@ final class KeyameleonLogFile: Sendable {
             return 0
         }
         return Int(information.st_size)
+    }
+
+    /// The About page opens the Logs folder, so the user can delete or replace the
+    /// active file while the app runs. A descriptor that outlives its path would
+    /// keep appending to an unlinked file.
+    private func descriptorMatchesActiveFile(_ descriptor: Int32) -> Bool {
+        var descriptorInformation = stat()
+        var fileInformation = stat()
+        guard fstat(descriptor, &descriptorInformation) == 0,
+              stat(activeFileURL.path, &fileInformation) == 0
+        else {
+            return false
+        }
+        return descriptorInformation.st_ino == fileInformation.st_ino
     }
 
     private static func write(_ line: String, to descriptor: Int32) -> Int? {

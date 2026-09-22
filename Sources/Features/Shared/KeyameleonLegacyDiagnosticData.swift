@@ -12,8 +12,7 @@ enum KeyameleonLegacyDiagnosticData {
     ]
 
     static var defaultDirectoryURL: URL {
-        FileManager.default
-            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        URL.applicationSupportDirectory
             .appending(path: "Keyameleon", directoryHint: .isDirectory)
     }
 

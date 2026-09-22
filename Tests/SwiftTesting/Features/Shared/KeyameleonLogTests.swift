@@ -118,6 +118,42 @@ func rotationCountsBytesAnotherWriterAppended() throws {
     #expect(rotated.contains { $0.hasPrefix("BBBB") })
 }
 
+@Test("The writer recreates the active file after the user deletes it")
+func writerRecreatesActiveFileAfterDeletion() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let writer = KeyameleonLogWriter.file(directory: directory)
+    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+
+    writer.append(.debug, category: .app, message: "First")
+    try FileManager.default.removeItem(at: activeFile)
+    writer.append(.debug, category: .app, message: "Second")
+
+    let lines = try logLines(in: directory)
+    #expect(lines.count == 1)
+    #expect(lines[0].hasSuffix("[debug] [app] Second"))
+}
+
+@Test("The writer follows the path when the active file is replaced")
+func writerFollowsPathWhenActiveFileIsReplaced() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let writer = KeyameleonLogWriter.file(directory: directory)
+    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+
+    writer.append(.debug, category: .app, message: "First")
+    try FileManager.default.moveItem(at: activeFile, to: directory.appending(path: "moved.log"))
+    writer.append(.debug, category: .app, message: "Second")
+
+    let lines = try logLines(in: directory)
+    #expect(lines.count == 1)
+    #expect(lines[0].hasSuffix("[debug] [app] Second"))
+    #expect(
+        try logLines(in: directory, fileName: "moved.log").first?
+            .hasSuffix("[debug] [app] First") == true
+    )
+}
+
 @Test("An append-only writer never rotates a full active file")
 func appendOnlyWriterNeverRotatesAFullActiveFile() throws {
     let directory = temporaryLogDirectory()
@@ -136,7 +172,10 @@ func appendOnlyWriterNeverRotatesAFullActiveFile() throws {
     #expect(contents.hasSuffix("[warning] [app] Another instance is running\n"))
 }
 
+// The log destination is process-wide, so this test stays on the main actor and
+// cannot interleave with another test that installs a writer.
 @Test("The process writes nothing until a writer is installed")
+@MainActor
 func processWritesNothingUntilAWriterIsInstalled() {
     let lines = Mutex<[String]>([])
 
