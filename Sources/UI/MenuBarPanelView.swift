@@ -81,6 +81,11 @@ struct KeyameleonMenuBarPanelView: View {
             focusedTarget = press.modifiers.contains(.shift) ? order.last : order.first
             return focusedTarget == nil ? .ignored : .handled
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+            // The popover reuses one content view across shows, so a row a pointer
+            // click focused would still hold focus and stay ringed on reopen.
+            focusedTarget = .container
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(accessibility.panel.label)
         .accessibilityValue(accessibility.panel.value ?? "")

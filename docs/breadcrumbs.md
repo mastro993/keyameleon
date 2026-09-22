@@ -1,5 +1,25 @@
 # Breadcrumbs
 
+## 2026-09-22 — Menu-bar footer row kept its focus ring after a pointer click
+
+- Reported: after clicking a button in the menu-bar panel, a row stayed focused.
+  The highlight should appear only when keyboard navigation needs it.
+- Cause: the popover reuses one content view across shows, so `@FocusState`
+  survives a close. A pointer click leaves SwiftUI focus on the clicked row, and
+  when that click flips the Pause/Resume row identity SwiftUI moves focus to the
+  next row. The reopened panel then draws the focus ring on that row.
+- Reproduced by driving the running app with real mouse events and measuring the
+  live panel pixels. Clicking a row and reopening the panel put 7,980
+  accent-blue ring pixels on the Settings row while the app's focused element was
+  `AXButton menu-bar-action-settings`.
+- Fix: the panel returns focus to the silent container on every key-window
+  transition, so each show starts on the container. Keyboard navigation still
+  rings. The same harness measures 8,057 ring pixels once a row takes focus from
+  the keyboard.
+- Dead end, measured: gating `focusEffectDisabled` on the input device also
+  suppressed the keyboard ring. SwiftUI creates a row's focus effect as the row
+  takes focus, so an environment change driven by panel state lands after that.
+
 ## 2026-09-21 — Sparkle logged a background-app gentle reminder warning
 
 - Reported: Xcode logged "Warning: Background app automatically schedules for
