@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import XCTest
 @testable import Keyameleon
 
@@ -91,7 +92,8 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertFalse(aboutWindow === settingsWindow)
         XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
         XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
-        XCTAssertEqual(aboutWindow.contentLayoutRect.size, NSSize(width: 760, height: 620))
+        XCTAssertEqual(aboutWindow.frame.size, NSSize(width: 360, height: 360))
+        XCTAssertTrue(aboutWindow.contentView is NSHostingView<KeyameleonCompactAboutView>)
         XCTAssertEqual(delegate.settingsSelection.section, .general)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
 
