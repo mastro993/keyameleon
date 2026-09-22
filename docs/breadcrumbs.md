@@ -10,13 +10,17 @@
 - Added `Sources/Features/Shared/KeyameleonLog.swift`: level and category enums, a
   `KeyameleonLogWriter` value, the process-wide `KeyameleonLog`, and the rotating
   file writer.
-- Log call sites: launch, single-instance exit, unclean exit, termination, record
-  store failure, Launch at Login failure, update check, Active Physical Keyboard
-  change, connect, disconnect, coalesced selection, selection result, Switching
-  Status change, Listen permission, Keyboard Assignment saved or removed, replace,
-  forget, built-in migration.
-- About: the unclean-exit notice now offers Open Logs and Dismiss. The Logs Folder
-  row with its Open button was already there and is unchanged.
+- Log call sites: launch, termination, record store failure, Launch at Login
+  failure, update check, Active Physical Keyboard change, connect, disconnect,
+  coalesced selection, selection result, Switching Status change, Listen
+  permission, Keyboard Assignment saved or removed, replace, forget, and the
+  built-in migration.
+- About: the Unclean Exit notice and the Diagnostics section are gone. The Logs
+  Folder row with its Open button was already there and is unchanged.
+- Removed `UncleanExitState`, `UncleanExitPresentation`, and the Unclean Exit test
+  file, plus the store on the application delegate and the notice flag on the
+  settings model. No launch tracks normal termination, and no launch opens About
+  by itself.
 - Tests: `KeyameleonLogTests.swift` covers the line shape, size rotation, and
   silence until a writer is installed. Diagnostic-only tests are deleted, and the
   migration and designation tests no longer assert on diagnostic tokens.

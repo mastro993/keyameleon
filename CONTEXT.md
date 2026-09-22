@@ -46,10 +46,6 @@ _Avoid_: telemetry, analytics
 The severity label on one log line, one of verbose, debug, warning, or error.
 _Avoid_: severity, verbosity
 
-**Unclean Exit**:
-A launch condition where the previous Keyameleon process did not complete normal termination. Keyameleon keeps one local notice for the user to review or dismiss.
-_Avoid_: Crash report, automatic crash notice
-
 **Active Physical Keyboard**:
 The Physical Keyboard that produced the last Activation Activity that Keyameleon observed. Keyameleon does not carry this condition across an app restart; after restart, there is no Active Physical Keyboard until new Activation Activity.
 _Avoid_: Current keyboard, last keyboard

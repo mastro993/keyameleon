@@ -29,7 +29,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let singleInstanceLock: KeyameleonSingleInstanceLock?
     private let startsUpdaterOnLaunch: Bool
     private let startsApplicationSurfaceOnLaunch: Bool
-    let uncleanExitStateStore: any UncleanExitStateStoring
     let generalSettingsModel: KeyameleonGeneralSettingsModel
     let settingsSelection = KeyameleonSettingsSelection()
     var statusItem: NSStatusItem?
@@ -66,7 +65,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
 
         let setupStore = UserDefaultsSetupDecisionStore()
-        let uncleanExitStateStore = UserDefaultsUncleanExitStateStore()
 
         let modelContainer: ModelContainer
         do {
@@ -103,7 +101,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             composition: composition,
             systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
             notificationSettingsOpener: NSWorkspaceNotificationSettingsOpener(),
-            uncleanExitStateStore: uncleanExitStateStore,
             lifecycleObserver: SystemKeyameleonLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
@@ -118,7 +115,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         composition: KeyameleonActivityTriggeredSwitchingComposition,
         systemSettingsOpener: any SystemSettingsOpening,
         notificationSettingsOpener: any NotificationSettingsOpening,
-        uncleanExitStateStore: any UncleanExitStateStoring,
         lifecycleObserver: any KeyameleonLifecycleObserving,
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
@@ -133,7 +129,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         self.lifecycleObserver = lifecycleObserver
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         self.startsApplicationSurfaceOnLaunch = startsApplicationSurfaceOnLaunch
-        self.uncleanExitStateStore = uncleanExitStateStore
         self.activityTriggeredSwitching = composition.activityTriggeredSwitching
         setupModel = KeyameleonSetupModel(
             activityTriggeredSwitching: composition.activityTriggeredSwitching,
@@ -150,8 +145,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
             operationalNotifications: composition.operationalNotifications,
-            notificationSettingsOpener: notificationSettingsOpener,
-            uncleanExitStateStore: uncleanExitStateStore
+            notificationSettingsOpener: notificationSettingsOpener
         )
 
         super.init()
@@ -187,7 +181,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             InMemoryNotificationSetupDecisionStore(),
         notificationSettingsOpener: any NotificationSettingsOpening =
             NoOpNotificationSettingsOpener(),
-        uncleanExitStateStore: any UncleanExitStateStoring = UserDefaultsUncleanExitStateStore(),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
@@ -215,7 +208,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             composition: composition,
             systemSettingsOpener: systemSettingsOpener,
             notificationSettingsOpener: notificationSettingsOpener,
-            uncleanExitStateStore: uncleanExitStateStore,
             lifecycleObserver: lifecycleObserver,
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
@@ -228,10 +220,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        uncleanExitStateStore.beginLaunch()
-        if uncleanExitStateStore.hasPendingUncleanExitNotice {
-            KeyameleonLog.warning(.app, "The previous launch did not finish normally")
-        }
         if startsApplicationSurfaceOnLaunch {
             lifecycleObserver.start { [weak self] event in
                 self?.activityTriggeredSwitching.handleLifecycleEvent(event)
@@ -250,13 +238,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             setupModel.beginGuidedSetup()
             openKeyameleon(nil)
         }
-        if UncleanExitPresentation.shouldOpenAbout(
-            hasPendingNotice: uncleanExitStateStore.hasPendingUncleanExitNotice,
-            startsApplicationSurface: startsApplicationSurfaceOnLaunch,
-            setupComplete: setupModel.isSetupComplete
-        ) {
-            openAbout(nil)
-        }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
@@ -274,7 +255,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        uncleanExitStateStore.markCleanTermination()
         KeyameleonLog.debug(.app, "Terminating")
         lifecycleObserver.stop()
         activityTriggeredSwitching.stop()

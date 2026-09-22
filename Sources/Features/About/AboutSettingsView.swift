@@ -99,28 +99,6 @@ struct KeyameleonAboutView: View {
                 .help("Checks whether a newer Keyameleon version is available.")
             }
 
-            if model.hasPendingUncleanExitNotice {
-                Section {
-                    Text(
-                        "The last run of Keyameleon did not finish normally. "
-                            + "The Logs folder below can help you report the problem."
-                    )
-                    .foregroundStyle(.secondary)
-
-                    HStack {
-                        Button("Open Logs") {
-                            openFolder(info.logsFolderURL)
-                        }
-
-                        Button("Dismiss") {
-                            model.dismissUncleanExitNotice()
-                        }
-                    }
-                } header: {
-                    Text("Previous launch did not finish normally")
-                }
-            }
-
             Section("Acknowledgements") {
                 LabeledContent("Sparkle") {
                     Text("User-approved software updates are powered by Sparkle.")

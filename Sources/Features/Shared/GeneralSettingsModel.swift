@@ -7,13 +7,11 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var launchAtLoginError: LaunchAtLoginChangeError?
     @Published private(set) var canCheckForUpdates: Bool
     @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
-    @Published private(set) var hasPendingUncleanExitNotice: Bool
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
     private let operationalNotifications: OperationalNotifications
     private let notificationSettingsOpener: any NotificationSettingsOpening
-    private let uncleanExitStateStore: any UncleanExitStateStoring
     private var notificationObserverID: UUID?
 
     init(
@@ -23,12 +21,10 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationSettingsOpener: any NotificationSettingsOpening =
-            NoOpNotificationSettingsOpener(),
-        uncleanExitStateStore: any UncleanExitStateStoring = NoOpUncleanExitStateStore()
+            NoOpNotificationSettingsOpener()
     ) {
         self.launchAtLoginController = launchAtLoginController
         self.updateChecker = updateChecker
-        self.uncleanExitStateStore = uncleanExitStateStore
         let notifications = operationalNotifications ?? OperationalNotifications(
             provider: operationalNotificationProvider
         )
@@ -38,7 +34,6 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.launchAtLoginError = nil
         self.canCheckForUpdates = updateChecker.canCheckForUpdates
         self.notificationAuthorizationState = notifications.authorizationState
-        self.hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
         notificationObserverID = notifications.observe { [weak self] in
             self?.notificationAuthorizationState = notifications.authorizationState
         }
@@ -47,13 +42,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     func refresh() {
         isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         canCheckForUpdates = updateChecker.canCheckForUpdates
-        hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
         refreshNotificationAuthorization()
-    }
-
-    func dismissUncleanExitNotice() {
-        uncleanExitStateStore.dismissUncleanExitNotice()
-        hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
     }
 
     func setLaunchAtLoginEnabled(_ enabled: Bool) {

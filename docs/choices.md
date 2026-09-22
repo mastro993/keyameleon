@@ -25,12 +25,28 @@
 - No line per Physical Keyboard Event. Activation Activity is logged only when it
   changes the Active Physical Keyboard, matching the deleted default recording
   mode that refused one record per event.
-- Keep the Unclean Exit notice. Its review action opens the Logs folder instead of
-  the deleted bundle, and it still clears on Dismiss.
+- Keep the Logs Folder row in the About page. Its Open button was already there
+  and is unchanged.
 - `Scripts/run.sh` audits the log writer and every log call site for Key Content,
   and fails when an audited path is missing instead of letting `grep` no-op.
 - `ClockProviding`, `SystemClock`, and `ManualClock` were diagnostics-only and went
   with the feature. Log lines take the system time.
+
+## 2026-09-22 — The Unclean Exit notice is removed
+
+### Defaults
+
+- Delete `UncleanExitState`, `UncleanExitPresentation`, and the Unclean Exit test
+  file. Nothing tracks whether the previous process terminated normally, so the
+  About page keeps no launch-condition notice and no launch opens About by itself.
+- Remove the store from `KeyameleonApplicationDelegate` and
+  `KeyameleonGeneralSettingsModel`, including the `hasPendingUncleanExitNotice`
+  flag and its dismiss action.
+- Two `UserDefaults` keys, `keyameleon.lifecycle.activeLaunch` and
+  `keyameleon.lifecycle.pendingUncleanExitNotice`, are left behind on existing
+  installs. They are inert and not worth a cleanup pass.
+- A crash leaves no marker. The previous run never wrote its `Terminating` line,
+  so the log file shows it, and the next launch appends to the same file.
 
 ## 2026-09-21 — Release notes drop the custom Contributors section
 
