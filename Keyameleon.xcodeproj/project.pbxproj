@@ -36,6 +36,7 @@
 		4144E7EF83996656F8F4A67E /* InputSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85AC3C63FAF9FF0CD68A07E0 /* InputSources.swift */; };
 		4367448567D5B04726C2B59F /* KeyameleonLogCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11732A28540429CEF805D4A /* KeyameleonLogCategory.swift */; };
 		455423AFB2AE72DF834D98C7 /* AboutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D620AC36EA27D8F2AAB39D /* AboutSettingsView.swift */; };
+		474CC699B9525C9452F85C16 /* KeyameleonAboutFolderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B57E5F92AFBEE526C7F0BA /* KeyameleonAboutFolderRow.swift */; };
 		48015E432FD28317B7DD5C50 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D397C615AE93268A186585C /* ServiceManagement.framework */; };
 		49316C09EF30EEB66F3802AF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6BDE001E72B645ABFC8A82 /* Security.framework */; };
 		4C8F507E67307B9FDC0CADEB /* KeyameleonLegacyDiagnosticDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3833998EC7362D40E0D8F0F /* KeyameleonLegacyDiagnosticDataTests.swift */; };
@@ -140,6 +141,7 @@
 		18D81ECA454E56A9D56B8466 /* SetupModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupModelTests.swift; sourceTree = "<group>"; };
 		1A6DB2E3039606970CA2C0BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1D1883A29573897172890DDD /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		23B57E5F92AFBEE526C7F0BA /* KeyameleonAboutFolderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonAboutFolderRow.swift; sourceTree = "<group>"; };
 		267E3479F253570BABDF5DB4 /* KeyameleonLegacyDiagnosticData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonLegacyDiagnosticData.swift; sourceTree = "<group>"; };
 		2780C6032D0F86AADE9642E3 /* MenuBarPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelTests.swift; sourceTree = "<group>"; };
 		27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
@@ -516,6 +518,7 @@
 				60D620AC36EA27D8F2AAB39D /* AboutSettingsView.swift */,
 				8072A8E869541B47D522773D /* AppIdentity.swift */,
 				8159960A49C32C26041C5256 /* ApplicationDelegate+About.swift */,
+				23B57E5F92AFBEE526C7F0BA /* KeyameleonAboutFolderRow.swift */,
 				8D3F7A2495C79249AC4A82F6 /* KeyameleonAboutWindowController.swift */,
 				B121C255CD8D68E9673F4BA4 /* ReleasePolicy.swift */,
 				1D1883A29573897172890DDD /* UpdateChecker.swift */,
@@ -704,6 +707,7 @@
 				CBD20998292D3894F918B676 /* InputSourceSelectionPolicy.swift in Sources */,
 				4144E7EF83996656F8F4A67E /* InputSources.swift in Sources */,
 				889BA327EC6E1BBD455DF698 /* InstallationIntegrityKey.swift in Sources */,
+				474CC699B9525C9452F85C16 /* KeyameleonAboutFolderRow.swift in Sources */,
 				17794D3A35A3C6B497E0413F /* KeyameleonAboutWindowController.swift in Sources */,
 				CA97C484F6B87C5E0D09B90D /* KeyameleonLegacyDiagnosticData.swift in Sources */,
 				527BD2B0EDC53489589D89E0 /* KeyameleonLog.swift in Sources */,
