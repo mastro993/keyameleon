@@ -4,9 +4,14 @@ import SwiftUI
 @MainActor
 final class KeyameleonAboutWindowController: NSWindowController {
     init(model: KeyameleonGeneralSettingsModel) {
+        let styleMask: NSWindow.StyleMask = [.titled, .closable]
+        let contentRect = NSWindow.contentRect(
+            forFrameRect: NSRect(x: 0, y: 0, width: 360, height: 360),
+            styleMask: styleMask
+        )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 760, height: 620),
-            styleMask: [.titled, .closable],
+            contentRect: contentRect,
+            styleMask: styleMask,
             backing: .buffered,
             defer: false
         )
@@ -15,7 +20,7 @@ final class KeyameleonAboutWindowController: NSWindowController {
         window.isRestorable = false
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
-            rootView: KeyameleonAboutView(model: model)
+            rootView: KeyameleonCompactAboutView(model: model)
         )
 
         super.init(window: window)
