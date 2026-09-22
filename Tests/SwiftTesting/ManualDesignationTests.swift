@@ -219,6 +219,38 @@ func manualDesignationRequiresLeaveReturnAndExplicitNameConfirmation() {
     )
 }
 
+@Test("Manual designation leave needs a real disconnect, not an empty catalog")
+@MainActor
+func manualDesignationLeaveNeedsARealDisconnectNotAnEmptyCatalog() {
+    let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
+    let model = makeDesignationModel(
+        recordStore: InMemoryPhysicalKeyboardRecordStore(),
+        designationStore: InMemoryManualPhysicalKeyboardDesignationStore(),
+        integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
+        discoverer: discoverer
+    )
+
+    startAndCheck(model)
+    connectAmbiguousGroup(discoverer, serviceIDs: 251, 252, identity: "macos.keyboard.leave")
+    let keyboardID = model.physicalKeyboards[0].id
+    model.startManualDesignation(for: keyboardID)
+    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
+
+    // Sleep, lock, secure input, and pause stop discovery. An empty catalog is
+    // not leave: the Physical Keyboard never went away.
+    model.activityTriggeredSwitching.stop()
+    #expect(model.physicalKeyboards.isEmpty)
+    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
+
+    startAndCheck(model)
+    connectAmbiguousGroup(discoverer, serviceIDs: 253, 254, identity: "macos.keyboard.leave")
+    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
+
+    discoverer.emit(.disconnected(serviceID: 253))
+    discoverer.emit(.disconnected(serviceID: 254))
+    #expect(model.manualDesignationPhase == .awaitingReturn(keyboardID))
+}
+
 @Test("Shared return evidence is not accepted and creates no designation or assignment")
 @MainActor
 func sharedReturnEvidenceIsNotAcceptedAndCreatesNoDesignationOrAssignment() {
