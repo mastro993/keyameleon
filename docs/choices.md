@@ -140,6 +140,7 @@
 - Version speech: label `Version`, value marketing number or `—`. Visible text stays `Keyameleon 0.1.0`.
 - Keyboard Tab: assignment rows (read-only), then Open Keyameleon, then More. Pause/recovery/Settings/Quit via More menu.
 - Open focuses a silent container (no ring). Tab moves to the first assignment or Open Keyameleon and shows the ring. Footer AppKit buttons become first responder only after Tab.
+  - 2026-09-22: the panel also returns focus to the container on every key-window transition, so a row a pointer click focused cannot keep its ring across shows.
 - Empty list: Tab starts at Open Keyameleon. Empty card is VoiceOver-only.
 - Reduce Transparency → opaque `windowBackgroundColor` fill. No extra glass cards.
 - Increased contrast → Active uses 2 pt accent stroke, not rainbow.
@@ -499,3 +500,12 @@ Defaults:
 - Main ruleset grants deploy keys `always` bypass because personal repositories cannot add GitHub's first-party Actions app as a bypass actor. One repository-scoped write key lives only in the `official-release` environment; the bump job otherwise has read-only token permissions.
 - Release tag, evidence, signed DMG, and GitHub Release all point to the bump commit. Release notes stop at its parent so the mechanical bump is omitted.
 - This supersedes the 2026-08-14 exact-version input, no-version-commit, and same-SHA-release defaults.
+
+
+## 2026-09-22 — Menu-bar panel starts each show on the silent container
+
+### Defaults
+
+- `KeyameleonMenuBarPanelView` returns focus to the silent container whenever one of the app's windows becomes key, which is the moment the popover is shown.
+- The popover reuses one content view across shows, so `onAppear` and `onDisappear` do not run per show. The key transition is the only per-show signal the view gets.
+- Keyboard focus order, the silent container, and `focusEffectDisabled(focusedTarget == .container)` stay as shipped in #51.
