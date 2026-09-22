@@ -1,29 +1,6 @@
 import Testing
 @testable import Keyameleon
 
-@Test("Physical Keyboard discovery records identity-based connection lifecycle")
-@MainActor
-func physicalKeyboardDiscoveryRecordsIdentityBasedConnectionLifecycle() {
-    let diagnostic = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
-    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
-        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
-        setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
-        physicalKeyboardDiscoverer: discoverer,
-        diagnosticDataController: diagnostic
-    )
-
-    startAndCheck(model)
-    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 100)))
-    discoverer.emit(.disconnected(serviceID: 100))
-
-    #expect(
-        diagnostic.allRecords().map(\.code)
-            == [.physicalKeyboardConnected, .physicalKeyboardDisconnected]
-    )
-}
-
 @Test("Activation Activity sets Active Physical Keyboard")
 @MainActor
 func activationActivitySetsActivePhysicalKeyboard() {

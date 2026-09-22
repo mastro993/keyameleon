@@ -63,7 +63,6 @@ final class ActivityTriggeredSwitching {
     private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let resolver: PhysicalKeyboardPresentationResolver
-    private let diagnosticDataController: any DiagnosticDataControlling
     private let operationalNotifications: OperationalNotifications
 
     private var isStarted = false
@@ -146,9 +145,6 @@ final class ActivityTriggeredSwitching {
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-            store: InMemoryDiagnosticDataStore()
-        ),
         operationalNotifications: OperationalNotifications = OperationalNotifications()
     ) {
         self.permissionProvider = permissionProvider
@@ -162,7 +158,6 @@ final class ActivityTriggeredSwitching {
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider
         )
-        self.diagnosticDataController = diagnosticDataController
         self.operationalNotifications = operationalNotifications
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
 
@@ -415,17 +410,11 @@ final class ActivityTriggeredSwitching {
         physicalKeyboardDiscovery.markActive(physicalKeyboard.id)
 
         if activeChanged {
-            diagnosticDataController.record(
-                code: .activePhysicalKeyboardChanged,
-                identityKey: physicalKeyboard.id.rawValue,
-                switchingStatus: nil
+            KeyameleonLog.debug(
+                .switching,
+                "Active Physical Keyboard is now \(physicalKeyboard.name)"
             )
         }
-        diagnosticDataController.record(
-            code: .activationActivityAttributed,
-            identityKey: physicalKeyboard.id.rawValue,
-            switchingStatus: nil
-        )
 
         switch physicalKeyboard.assignmentState {
         case let .assigned(assignment):
@@ -454,11 +443,6 @@ final class ActivityTriggeredSwitching {
                       currentIdentifier == wantedIdentifier
             {
                 clearWarning(cause: .selectionFailure)
-                diagnosticDataController.record(
-                    code: .inputSourceSelectionCoalesced,
-                    identityKey: physicalKeyboard.id.rawValue,
-                    switchingStatus: nil
-                )
             } else {
                 wantedKeyboardAssignmentGeneration &+= 1
                 let generation = wantedKeyboardAssignmentGeneration
@@ -496,6 +480,10 @@ final class ActivityTriggeredSwitching {
         if previousObserved != observedCurrentInputSourceIdentifier
             || previousVerified != verifiedKeyboardAssignmentIdentifier
         {
+            KeyameleonLog.verbose(
+                .switching,
+                "Observed Input Source is now \(observedCurrentInputSourceIdentifier ?? "none")"
+            )
             rebuildOutcome()
         }
     }
@@ -542,19 +530,39 @@ final class ActivityTriggeredSwitching {
         _ change: PhysicalKeyboardDiscoveryRecordChange
     ) {
         switch change {
-        case let .connected(physicalKeyboardID):
-            diagnosticDataController.record(
-                code: .physicalKeyboardConnected,
-                identityKey: physicalKeyboardID.rawValue,
-                switchingStatus: nil
-            )
-        case let .disconnected(physicalKeyboardID):
-            diagnosticDataController.record(
-                code: .physicalKeyboardDisconnected,
-                identityKey: physicalKeyboardID.rawValue,
-                switchingStatus: nil
-            )
+        case let .connected(physicalKeyboardID, name):
+            let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
+            KeyameleonLog.debug(.switching, "Physical Keyboard connected (\(displayName))")
+        case let .disconnected(physicalKeyboardID, name):
+            let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
+            KeyameleonLog.debug(.switching, "Physical Keyboard disconnected (\(displayName))")
         }
+    }
+
+    /// The name the panel shows, so a log line names the same Physical Keyboard
+    /// the user sees. Catalog entries carry no custom name, and a disconnected
+    /// Physical Keyboard is gone from the catalog, so the saved record comes
+    /// first and the discovery payload is the last resort.
+    private func physicalKeyboardName(
+        _ physicalKeyboardID: PhysicalKeyboardRecordID?,
+        fallback: String? = nil
+    ) -> String {
+        guard let physicalKeyboardID else {
+            return fallback ?? "name unknown"
+        }
+        if let savedName = physicalKeyboardRecordStore
+            .record(forIdentityKey: physicalKeyboardID.rawValue)?
+            .name
+        {
+            return savedName
+        }
+        if let catalogName = physicalKeyboardDiscovery.physicalKeyboards
+            .first(where: { $0.id == physicalKeyboardID })?
+            .name
+        {
+            return catalogName
+        }
+        return fallback ?? "name unknown"
     }
 
     private func handleInputSourceModuleChange() {
@@ -622,17 +630,9 @@ final class ActivityTriggeredSwitching {
             return
         }
 
-        diagnosticDataController.record(
-            code: .switchingStatusChanged,
-            identityKey: nil,
-            switchingStatus: current
-        )
+        KeyameleonLog.debug(.switching, "Switching Status is now \(current.rawValue)")
         if current == .permissionRequired {
-            diagnosticDataController.record(
-                code: .permissionDenied,
-                identityKey: nil,
-                switchingStatus: current
-            )
+            KeyameleonLog.warning(.switching, "Listen permission is required")
         }
     }
 
@@ -649,10 +649,10 @@ final class ActivityTriggeredSwitching {
             verifiedKeyboardAssignmentIdentifier = inputSourceIdentifier
             observedCurrentInputSourceIdentifier = inputSourceIdentifier
             clearWarning(cause: .selectionFailure)
-            diagnosticDataController.record(
-                code: .inputSourceSelectionSucceeded,
-                identityKey: wantedKeyboardAssignment?.physicalKeyboardID.rawValue,
-                switchingStatus: nil
+            KeyameleonLog.debug(
+                .switching,
+                "Selected Input Source \(inputSourceIdentifier) for "
+                    + "\(physicalKeyboardName(wantedKeyboardAssignment?.physicalKeyboardID))"
             )
             return true
         }
@@ -662,10 +662,10 @@ final class ActivityTriggeredSwitching {
         }
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
         openWarning(.selectionFailure(inputSourceIdentifier: inputSourceIdentifier))
-        diagnosticDataController.record(
-            code: .inputSourceSelectionFailed,
-            identityKey: wantedKeyboardAssignment?.physicalKeyboardID.rawValue,
-            switchingStatus: nil
+        KeyameleonLog.warning(
+            .switching,
+            "Could not select Input Source \(inputSourceIdentifier) for "
+                + "\(physicalKeyboardName(wantedKeyboardAssignment?.physicalKeyboardID))"
         )
         return false
     }

@@ -32,59 +32,19 @@ struct KeyameleonAboutView: View {
                 }
                 .help("Opens Keyameleon's source repository on GitHub.")
 
-                LabeledContent("App Data Folder") {
-                    HStack(spacing: 8) {
-                        Text(info.appDataFolderURL.path)
-                            .font(.system(.callout, design: .monospaced))
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                            .help(info.appDataFolderURL.path)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(
-                                Color(nsColor: .textBackgroundColor),
-                                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            )
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                            }
+                KeyameleonAboutFolderRow(
+                    label: "App Data Folder",
+                    url: info.appDataFolderURL,
+                    help: "Contains Keyameleon's local application data.",
+                    openFolder: openFolder
+                )
 
-                        Button("Open") {
-                            openFolder(info.appDataFolderURL)
-                        }
-                    }
-                }
-                .help("Contains Keyameleon's local application data.")
-
-                LabeledContent("Logs Folder") {
-                    HStack(spacing: 8) {
-                        Text(info.logsFolderURL.path)
-                            .font(.system(.callout, design: .monospaced))
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                            .help(info.logsFolderURL.path)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(
-                                Color(nsColor: .textBackgroundColor),
-                                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            )
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                            }
-
-                        Button("Open") {
-                            openFolder(info.logsFolderURL)
-                        }
-                    }
-                }
-                .help("Contains Keyameleon's local log files.")
+                KeyameleonAboutFolderRow(
+                    label: "Logs Folder",
+                    url: info.logsFolderURL,
+                    help: "Contains Keyameleon's local log files.",
+                    openFolder: openFolder
+                )
 
                 LabeledContent("License") {
                     Text("GPL-3.0-only")
@@ -98,81 +58,6 @@ struct KeyameleonAboutView: View {
                 }
                 .help("Checks whether a newer Keyameleon version is available.")
             }
-
-            if model.hasPendingUncleanExitNotice {
-                Section {
-                    Text(
-                        "The last run of Keyameleon did not finish normally. "
-                            + "Review the Diagnostic Data below, or dismiss this notice."
-                    )
-                    .foregroundStyle(.secondary)
-
-                    HStack {
-                        Button("Review Diagnostics") {
-                            model.dismissUncleanExitNotice()
-                            model.refresh()
-                        }
-
-                        Button("Dismiss") {
-                            model.dismissUncleanExitNotice()
-                        }
-                    }
-                } header: {
-                    Text("Previous launch did not finish normally")
-                }
-            }
-
-            Section {
-                LabeledContent("Status") {
-                    Text(model.isDiagnosticSessionActive
-                        ? "Active · ends after 10 minutes"
-                        : "Inactive")
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Diagnostic Session")
-                .accessibilityValue(
-                    model.isDiagnosticSessionActive
-                        ? "Active, ends automatically after 10 minutes"
-                        : "Inactive"
-                )
-
-                Button(model.isDiagnosticSessionActive
-                    ? "Stop Diagnostic Session"
-                    : "Start Diagnostic Session") {
-                    if model.isDiagnosticSessionActive {
-                        model.stopDiagnosticSession()
-                    } else {
-                        model.startDiagnosticSession()
-                    }
-                }
-
-                LabeledContent("Stored Data") {
-                    Text(
-                        "\(model.diagnosticRecordCount) records · about \(model.diagnosticEstimatedByteCount) bytes"
-                    )
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Diagnostic Data")
-                .accessibilityValue(
-                    "\(model.diagnosticRecordCount) records, about \(model.diagnosticEstimatedByteCount) bytes"
-                )
-
-                Button("Clear All Diagnostic Data", role: .destructive) {
-                    model.clearAllDiagnosticData()
-                }
-                .disabled(model.diagnosticRecordCount == 0)
-            } header: {
-                Text("Diagnostics")
-            } footer: {
-                Text(
-                    "Retention stops at 7 days or 5 MB. Diagnostic Data never includes Key Content, serial numbers, custom names, assignments, paths, user names, or application names."
-                )
-            }
-
-            KeyameleonDiagnosticBundleReviewView(model: model)
 
             Section("Acknowledgements") {
                 LabeledContent("Sparkle") {
@@ -209,9 +94,9 @@ struct KeyameleonAboutView: View {
     .preferredColorScheme(.dark)
 }
 
-#Preview("About with diagnostics") {
+#Preview("About with large text") {
     KeyameleonAboutView(
-        model: KeyameleonPreviewFixtures.generalWithDiagnosticData(),
+        model: KeyameleonPreviewFixtures.general(),
         info: KeyameleonPreviewFixtures.aboutInfo
     )
     .environment(\.dynamicTypeSize, .xxxLarge)

@@ -1,5 +1,87 @@
 # Choices
 
+## 2026-09-22 — Local log files replace Diagnostic Data
+
+### Defaults
+
+- Delete Diagnostic Data end to end: the closed domain, SwiftData store, service,
+  Diagnostic Session UI, bundle review window, and the `DiagnosticDataControlling`
+  parameter on `KeyameleonSetupModel`, `ActivityTriggeredSwitching`,
+  `KeyameleonGeneralSettingsModel`, and the composition root.
+- One process-wide `KeyameleonLog` with four levels (`verbose`, `debug`,
+  `warning`, `error`) and three categories (`app`, `switching`, `setup`). A call
+  site emits one line and carries no logger, so nothing threads a destination
+  through the models that used to take a diagnostic controller.
+- The process is silent until `KeyameleonLog.start` installs a writer at launch.
+  Hosted unit tests and SwiftUI previews never install one, so they cannot write
+  to the user's Logs folder.
+- `KeyameleonLogWriter.file` appends to `~/Library/Logs/Keyameleon/keyameleon.log`
+  through one `O_APPEND` descriptor, rotates at 1 MiB into `keyameleon.<n>.log`,
+  and keeps 5 rotated files. Every file operation is best effort: a missing folder,
+  a full disk, or a lock must not interrupt switching.
+- A line carries the timestamp, the level, the category, and the message. No
+  Physical Keyboard Identity, no paths, no system error text, no Key Content.
+  Keyboard-scoped lines name the Physical Keyboard.
+- No line per Physical Keyboard Event. Activation Activity is logged only when it
+  changes the Active Physical Keyboard, matching the deleted default recording
+  mode that refused one record per event.
+- Keep the Logs Folder row in the About page. Its Open button was already there
+  and is unchanged.
+- `Scripts/run.sh` audits the log writer and every log call site for Key Content,
+  and fails when an audited path is missing instead of letting `grep` no-op.
+- `ClockProviding`, `SystemClock`, and `ManualClock` were diagnostics-only and went
+  with the feature. Log lines take the system time.
+
+## 2026-09-22 — The Unclean Exit notice is removed
+
+### Defaults
+
+- Delete `UncleanExitState`, `UncleanExitPresentation`, and the Unclean Exit test
+  file. Nothing tracks whether the previous process terminated normally, so the
+  About page keeps no launch-condition notice and no launch opens About by itself.
+- Remove the store from `KeyameleonApplicationDelegate` and
+  `KeyameleonGeneralSettingsModel`, including the `hasPendingUncleanExitNotice`
+  flag and its dismiss action.
+- Two `UserDefaults` keys, `keyameleon.lifecycle.activeLaunch` and
+  `keyameleon.lifecycle.pendingUncleanExitNotice`, are left behind on existing
+  installs. They are inert and not worth a cleanup pass.
+- A crash leaves no marker. The previous run never wrote its `Terminating` line,
+  so the log file shows it, and the next launch appends to the same file.
+
+## 2026-09-22 — Logging review round
+
+### Defaults
+
+- One file per type, following the project structure rule in `AGENTS.md`. The
+  logging pipeline is now `KeyameleonLog`, `KeyameleonLogFile`,
+  `KeyameleonLogWriter`, `KeyameleonLogLevel`, and `KeyameleonLogCategory`.
+- `PhysicalKeyboardDiscoveryRecordChange` carries the Physical Keyboard Name.
+  Discovery removes a keyboard from the catalog before it publishes a disconnect,
+  so a subscriber that looked the name up read `name unknown` for every real
+  disconnect.
+- `KeyameleonLogWriter.appendOnlyFile` serves the single-instance exit path. A
+  blocked second launch appends its one line and never rotates, so it cannot
+  rename a file the running app holds open, and the line the user needs is still
+  written.
+- No log line per activation. The coalesced-selection line fired on every
+  keypress of an assigned Physical Keyboard, which is normal typing, so `verbose`
+  moved to external Input Source changes, which are rare.
+- No cleanup ships for the retired `DiagnosticData.store` in Application Support.
+  There are no production users, so no install can hold one.
+- Connection logs name the Physical Keyboard the way the panel does. The saved
+  record supplies the custom name, the catalog is the next source, and the
+  discovery payload is the last resort.
+- The writer collapses line breaks inside a message, so a Physical Keyboard Name
+  from hardware or from the user cannot split one record into two.
+- Rotation reads the size from the open descriptor rather than a cached count,
+  because a blocked launch appends through its own writer. The cached count is
+  gone instead of refreshed on a timer.
+- Third round. The writer compares its descriptor's inode against the active
+  path, so deleting or replacing the file from the Logs folder reopens it instead
+  of appending to an unlinked file. The test that installs a process-wide writer
+  runs on the main actor, which serializes it against every other test that
+  installs one.
+
 ## 2026-09-21 — Release notes drop the custom Contributors section
 
 ### Defaults

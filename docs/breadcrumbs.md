@@ -1,5 +1,48 @@
 # Breadcrumbs
 
+## 2026-09-22 — Local logging replaces Diagnostic Data
+
+- Removed the Diagnostic Data feature: `DiagnosticData.swift`,
+  `DiagnosticDataService.swift`, `DiagnosticDataStore.swift`,
+  `DiagnosticBundleReviewView.swift`, `KeyameleonDiagnosticWindowController.swift`,
+  the About Diagnostics section, the Diagnostic Bundle review, and the dead
+  `reviewDiagnostics`/`dismissDiagnosticsNotice` selectors.
+- Added `Sources/Features/Shared/KeyameleonLog.swift`: level and category enums, a
+  `KeyameleonLogWriter` value, the process-wide `KeyameleonLog`, and the rotating
+  file writer.
+- Log call sites: launch, termination, record store failure, Launch at Login
+  failure, update check, Active Physical Keyboard change, connect, disconnect,
+  coalesced selection, selection result, Switching Status change, Listen
+  permission, Keyboard Assignment saved or removed, replace, forget, and the
+  built-in migration.
+- About: the Unclean Exit notice and the Diagnostics section are gone. The Logs
+  Folder row with its Open button was already there and is unchanged.
+- Removed `UncleanExitState`, `UncleanExitPresentation`, and the Unclean Exit test
+  file, plus the store on the application delegate and the notice flag on the
+  settings model. No launch tracks normal termination, and no launch opens About
+  by itself.
+- Tests: `KeyameleonLogTests.swift` covers the line shape, size rotation, the
+  append-only writer, and silence until a writer is installed. Diagnostic-only
+  tests are deleted, and the migration and designation tests no longer assert on
+  diagnostic tokens.
+- Review round. Split the logging types into one file each. Added the Physical
+  Keyboard Name to `PhysicalKeyboardDiscoveryRecordChange`, because discovery
+  removes a keyboard from the catalog before it publishes a disconnect.
+  `appendOnlyFile` logs the blocked second launch without rotating a file the
+  running app holds open. Dropped the coalesced-selection line that fired on every
+  keypress and moved `verbose` to external Input Source changes.
+- Second review round. Connection logs resolve the saved Physical Keyboard Name
+  before falling back to the catalog or the discovery payload, so two keyboards
+  with the same product name stay distinguishable. The writer collapses line
+  breaks inside a message and reads the active file size from its descriptor, so
+  a blocked launch's appends count toward rotation.
+- Third review round. A record larger than the file budget is truncated with an
+  ellipsis before the rotation check. Rotation happens before the write, so an
+  oversized Physical Keyboard Name would otherwise land in a fresh file and
+  overrun the size limit on its own.
+- `Scripts/run.sh` retargets the Key Content audit at the logging pipeline, and the
+  audit now fails loudly when an audited path is missing.
+
 ## 2026-09-22 — Menu-bar footer row kept its focus ring after a pointer click
 
 - Reported: after clicking a button in the menu-bar panel, a row stayed focused.

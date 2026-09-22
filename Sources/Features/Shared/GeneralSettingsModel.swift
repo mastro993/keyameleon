@@ -6,38 +6,25 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var isLaunchAtLoginEnabled: Bool
     @Published private(set) var launchAtLoginError: LaunchAtLoginChangeError?
     @Published private(set) var canCheckForUpdates: Bool
-    @Published private(set) var isDiagnosticSessionActive: Bool
-    @Published private(set) var diagnosticRecordCount: Int
-    @Published private(set) var diagnosticEstimatedByteCount: Int
     @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
-    @Published private(set) var diagnosticBundle: DiagnosticBundle
-    @Published private(set) var hasPendingUncleanExitNotice: Bool
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
-    private let diagnosticDataController: any DiagnosticDataControlling
     private let operationalNotifications: OperationalNotifications
     private let notificationSettingsOpener: any NotificationSettingsOpening
-    private let uncleanExitStateStore: any UncleanExitStateStoring
     private var notificationObserverID: UUID?
 
     init(
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
-        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-            store: InMemoryDiagnosticDataStore()
-        ),
         operationalNotifications: OperationalNotifications? = nil,
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationSettingsOpener: any NotificationSettingsOpening =
-            NoOpNotificationSettingsOpener(),
-        uncleanExitStateStore: any UncleanExitStateStoring = NoOpUncleanExitStateStore()
+            NoOpNotificationSettingsOpener()
     ) {
         self.launchAtLoginController = launchAtLoginController
         self.updateChecker = updateChecker
-        self.diagnosticDataController = diagnosticDataController
-        self.uncleanExitStateStore = uncleanExitStateStore
         let notifications = operationalNotifications ?? OperationalNotifications(
             provider: operationalNotificationProvider
         )
@@ -46,15 +33,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         self.launchAtLoginError = nil
         self.canCheckForUpdates = updateChecker.canCheckForUpdates
-        self.isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
-        self.diagnosticRecordCount = diagnosticDataController.recordCount
-        self.diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
         self.notificationAuthorizationState = notifications.authorizationState
-        self.diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
-        self.hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
-        diagnosticDataController.onChange = { [weak self] in
-            self?.publishDiagnosticState()
-        }
         notificationObserverID = notifications.observe { [weak self] in
             self?.notificationAuthorizationState = notifications.authorizationState
         }
@@ -63,14 +42,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     func refresh() {
         isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         canCheckForUpdates = updateChecker.canCheckForUpdates
-        hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
-        publishDiagnosticState()
         refreshNotificationAuthorization()
-    }
-
-    func dismissUncleanExitNotice() {
-        uncleanExitStateStore.dismissUncleanExitNotice()
-        hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
     }
 
     func setLaunchAtLoginEnabled(_ enabled: Bool) {
@@ -79,12 +51,14 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
             isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
             launchAtLoginError = nil
         case .failure:
+            KeyameleonLog.error(.app, "Launch at Login could not be changed")
             isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
             launchAtLoginError = .registrationFailed
         }
     }
 
     func checkForUpdates() {
+        KeyameleonLog.debug(.app, "Checking for updates")
         updateChecker.checkForUpdates()
         canCheckForUpdates = updateChecker.canCheckForUpdates
     }
@@ -95,32 +69,6 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
 
     func openNotificationSettings() {
         notificationSettingsOpener.openNotificationSettings()
-    }
-
-    func startDiagnosticSession() {
-        diagnosticDataController.startDiagnosticSession()
-        publishDiagnosticState()
-    }
-
-    func stopDiagnosticSession() {
-        diagnosticDataController.stopDiagnosticSession()
-        publishDiagnosticState()
-    }
-
-    func clearAllDiagnosticData() {
-        diagnosticDataController.clearAllDiagnosticData()
-        publishDiagnosticState()
-    }
-
-    func refreshDiagnosticBundle() {
-        publishDiagnosticState()
-    }
-
-    private func publishDiagnosticState() {
-        isDiagnosticSessionActive = diagnosticDataController.isDiagnosticSessionActive
-        diagnosticRecordCount = diagnosticDataController.recordCount
-        diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
-        diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
     }
 
     private func refreshNotificationAuthorization() {

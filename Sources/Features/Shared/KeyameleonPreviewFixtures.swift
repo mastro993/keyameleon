@@ -40,29 +40,14 @@ enum KeyameleonPreviewFixtures {
         launchAtLoginEnabled: Bool = false,
         launchAtLoginFailure: Bool = false,
         canCheckForUpdates: Bool = true,
-        notificationState: OperationalNotificationAuthorizationState = .authorized,
-        diagnosticRecords: [DiagnosticRecord] = [],
-        diagnosticSessionActive: Bool = false
+        notificationState: OperationalNotificationAuthorizationState = .authorized
     ) -> KeyameleonGeneralSettingsModel {
-        let diagnosticStore = InMemoryDiagnosticDataStore()
-        for record in diagnosticRecords {
-            diagnosticStore.insert(record)
-        }
-        let diagnostic = KeyameleonDiagnosticDataService(
-            store: diagnosticStore,
-            clock: ManualClock(now: fixedDate)
-        )
-        if diagnosticSessionActive {
-            diagnostic.startDiagnosticSession()
-        }
-
         let model = KeyameleonGeneralSettingsModel(
             launchAtLoginController: PreviewLaunchAtLoginController(
                 isEnabled: launchAtLoginEnabled,
                 shouldFail: launchAtLoginFailure
             ),
             updateChecker: PreviewUpdateChecker(canCheck: canCheckForUpdates),
-            diagnosticDataController: diagnostic,
             operationalNotificationProvider: PreviewOperationalNotificationProvider(
                 authorizationState: notificationState
             ),
@@ -73,27 +58,6 @@ enum KeyameleonPreviewFixtures {
             model.setLaunchAtLoginEnabled(!launchAtLoginEnabled)
         }
         return model
-    }
-
-    static func generalWithDiagnosticData() -> KeyameleonGeneralSettingsModel {
-        general(
-            diagnosticRecords: [
-                DiagnosticRecord(
-                    id: UUID(uuidString: "B6CDB3D6-0F31-4C1D-9C6F-0D8F0D5C0A01")!,
-                    recordedAt: fixedDate.addingTimeInterval(-120),
-                    code: .discoveryFailed,
-                    switchingStatus: .temporarilyUnavailable,
-                    insertionOrder: 1
-                ),
-                DiagnosticRecord(
-                    id: UUID(uuidString: "B6CDB3D6-0F31-4C1D-9C6F-0D8F0D5C0A02")!,
-                    recordedAt: fixedDate.addingTimeInterval(-60),
-                    code: .switchingStatusChanged,
-                    switchingStatus: .ready,
-                    insertionOrder: 2
-                )
-            ]
-        )
     }
 
     static func setup(
@@ -130,10 +94,6 @@ enum KeyameleonPreviewFixtures {
             designationStore: InMemoryManualPhysicalKeyboardDesignationStore(),
             integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(
                 key: SymmetricKey(data: Data(repeating: 42, count: 32))
-            ),
-            diagnosticDataController: KeyameleonDiagnosticDataService(
-                store: InMemoryDiagnosticDataStore(),
-                clock: ManualClock(now: fixedDate)
             ),
             operationalNotificationProvider: PreviewOperationalNotificationProvider(
                 authorizationState: .authorized

@@ -33,7 +33,7 @@ emergency override.
 Keep these rules as hard failures:
 
 - Keyameleon remains monitor-only and never injects or changes Physical Keyboard Events.
-- Key Content does not enter saved data, Diagnostic Data, logs, network output, or crash state.
+- Key Content does not enter saved data, log files, network output, or crash state.
 - Activity-Triggered Switching selects the exact Keyboard Assignment and verifies the result.
 
 Do not add repeated suites, fixed event counts, participant quotas, qualification

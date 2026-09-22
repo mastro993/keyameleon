@@ -14,15 +14,35 @@ audit_sources() {
         return 1
     fi
 
-    local diagnostic_paths=(
-        Sources/Features/ActivityTriggeredSwitching/DiagnosticData.swift
-        Sources/Features/ActivityTriggeredSwitching/DiagnosticDataService.swift
-        Sources/Features/ActivityTriggeredSwitching/DiagnosticDataStore.swift
-        Sources/Features/About/DiagnosticBundleReviewView.swift
+    local log_pipeline_paths=(
+        Sources/Features/Shared/KeyameleonLog.swift
+        Sources/Features/Shared/KeyameleonLogFile.swift
+        Sources/Features/Shared/KeyameleonLogWriter.swift
+        Sources/Features/Shared/KeyameleonLogLevel.swift
+        Sources/Features/Shared/KeyameleonLogCategory.swift
     )
-    local prohibited_data_path='PhysicalKeyboardEvent|PhysicalKeyboardEventKind|KeyContent|rawReport|interpretedText|modifierState'
-    if grep -REn "$prohibited_data_path" "${diagnostic_paths[@]}"; then
+    local log_call_paths=(
+        Sources/App/ApplicationDelegate.swift
+        Sources/Features/ActivityTriggeredSwitching/ActivityTriggeredSwitching.swift
+        Sources/Features/Shared/SetupModel.swift
+        Sources/Features/Shared/GeneralSettingsModel.swift
+    )
+    local key_content_path='KeyContent|rawReport|interpretedText|modifierState'
+    local audited_path
+    for audited_path in "${log_pipeline_paths[@]}" "${log_call_paths[@]}"; do
+        if [[ ! -f "$audited_path" ]]; then
+            print -u2 "audited path is missing: $audited_path"
+            return 1
+        fi
+    done
+
+    if grep -REn "PhysicalKeyboardEvent|${key_content_path}" "${log_pipeline_paths[@]}"; then
         print -u2 "prohibited Key Content path found"
+        return 1
+    fi
+
+    if grep -REn "$key_content_path" "${log_call_paths[@]}"; then
+        print -u2 "prohibited Key Content path found at a log call site"
         return 1
     fi
 
