@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import Synchronization
 import Testing
 @testable import Keyameleon
 
@@ -434,6 +435,11 @@ func replacementDropsManualDesignationForOldIdentity() throws {
         integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
         discoverer: discoverer
     )
+    let loggedMessages = Mutex<[String]>([])
+    KeyameleonLog.start(KeyameleonLogWriter { _, _, message in
+        loggedMessages.withLock { $0.append(message) }
+    })
+    defer { KeyameleonLog.stop() }
 
     startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 251, 252, identity: "macos.keyboard.replaced")
@@ -466,6 +472,10 @@ func replacementDropsManualDesignationForOldIdentity() throws {
 
     let replaced = try #require(model.physicalKeyboards.first { $0.id == newID })
     #expect(replaced.name == "Kept Name")
+    #expect(
+        loggedMessages.withLock { $0 }
+            .contains("Moved the saved Physical Keyboard record to Kept Name")
+    )
     #expect(replaced.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
     #expect(recordStore.record(forIdentityKey: oldID.rawValue) == nil)
     #expect(designationStore.designation(forIdentityKey: oldID.rawValue) == nil)
