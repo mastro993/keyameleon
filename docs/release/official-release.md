@@ -91,11 +91,11 @@ installation of a newer DMG before they use that feed.
 
 ### 3. Sparkle EdDSA keys (once)
 
-Use Sparkle **2.9.5** tools (same pin as `Package.resolved`):
+Use Sparkle **2.10.0** tools (same pin as `Package.resolved`):
 
 ```sh
 curl -fsSL -o Sparkle.tar.xz \
-  https://github.com/sparkle-project/Sparkle/releases/download/2.9.5/Sparkle-2.9.5.tar.xz
+  https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz
 tar -xJf Sparkle.tar.xz
 ./bin/generate_keys
 ./bin/generate_keys -x sparkle_eddsa_private.key
