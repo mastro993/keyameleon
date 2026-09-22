@@ -36,6 +36,7 @@
 		3610D1886B9AF7CF91FCBE9D /* MenuBarPanelAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */; };
 		3CCBEAB699835B72E4EF0C59 /* DiagnosticData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11414C3BBD0946C0653CE62E /* DiagnosticData.swift */; };
 		3E02FF3A6A4FDD305B87E364 /* ActivityTriggeredSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */; };
+		3FE37E7398D85AE08C7FA4D4 /* InstallationIntegrityKeychainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B55FBD69FB69FB36872C1522 /* InstallationIntegrityKeychainTests.swift */; };
 		41047EDE17B7BD97E5774284 /* HIDStreamRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A97473CC69A4F81C8DF878 /* HIDStreamRecovery.swift */; };
 		456B44C1BE680B59294967A9 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5792BA6E68C69752F8A246 /* AppIdentity.swift */; };
 		4619577154F398B850D4BE8E /* DiagnosticDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BECCA44F5BC3EBD06111BE /* DiagnosticDataStore.swift */; };
@@ -194,6 +195,7 @@
 		AEDB8B347F199B06902DF758 /* ReleasePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicy.swift; sourceTree = "<group>"; };
 		B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleInstanceLock.swift; sourceTree = "<group>"; };
 		B53925154A212D0013E930A2 /* ManualPhysicalKeyboardDesignationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignationStore.swift; sourceTree = "<group>"; };
+		B55FBD69FB69FB36872C1522 /* InstallationIntegrityKeychainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationIntegrityKeychainTests.swift; sourceTree = "<group>"; };
 		B6F2F27F6D94088F0A945139 /* RecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryTests.swift; sourceTree = "<group>"; };
 		BAFD6C2C12E6744103679EBE /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
 		BBA6153A9F4D4EF18DDDE19D /* UpdatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePolicy.swift; sourceTree = "<group>"; };
@@ -417,6 +419,7 @@
 				E8CC5AD75DEEF1985F02D267 /* HIDStreamRecoveryTests.swift */,
 				4256FDB67D3FDDB9A81A429B /* HostedUnitTestProcessTests.swift */,
 				3BC0DF04CABD8D6A6B22186C /* InputSourceSelectionPolicyTests.swift */,
+				B55FBD69FB69FB36872C1522 /* InstallationIntegrityKeychainTests.swift */,
 				0E800175BE23F1A513268887 /* LifecycleTests.swift */,
 				5C8CDA6E574C185BEAD48989 /* ManualDesignationTests.swift */,
 				40C2DA9F0561DCC5F989B318 /* MenuBarPanelAccessibilityTests.swift */,
@@ -637,6 +640,7 @@
 				4C440CBE0920A02E7E0DDD6D /* HIDStreamRecoveryTests.swift in Sources */,
 				D72130957C3F2F50CF482E72 /* HostedUnitTestProcessTests.swift in Sources */,
 				C1216BFB241E4380C47D2219 /* InputSourceSelectionPolicyTests.swift in Sources */,
+				3FE37E7398D85AE08C7FA4D4 /* InstallationIntegrityKeychainTests.swift in Sources */,
 				BA4F423F402D00CA146EFFAD /* LifecycleTests.swift in Sources */,
 				CDEB08A343F64C57326A72EE /* ManualDesignationTests.swift in Sources */,
 				2FFFD00E71BC5958CE9E67D6 /* MenuBarPanelAccessibilityTests.swift in Sources */,
