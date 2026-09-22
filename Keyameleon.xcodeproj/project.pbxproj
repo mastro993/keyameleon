@@ -35,11 +35,13 @@
 		3610D1886B9AF7CF91FCBE9D /* MenuBarPanelAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564F8A575B024F67A5C5075D /* MenuBarPanelAccessibility.swift */; };
 		3CCBEAB699835B72E4EF0C59 /* DiagnosticData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11414C3BBD0946C0653CE62E /* DiagnosticData.swift */; };
 		3E02FF3A6A4FDD305B87E364 /* ActivityTriggeredSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */; };
+		41047EDE17B7BD97E5774284 /* HIDStreamRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A97473CC69A4F81C8DF878 /* HIDStreamRecovery.swift */; };
 		456B44C1BE680B59294967A9 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5792BA6E68C69752F8A246 /* AppIdentity.swift */; };
 		4619577154F398B850D4BE8E /* DiagnosticDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BECCA44F5BC3EBD06111BE /* DiagnosticDataStore.swift */; };
 		4641828CA43C4D22AF22077A /* ReleasePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEDB8B347F199B06902DF758 /* ReleasePolicy.swift */; };
 		48015E432FD28317B7DD5C50 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D397C615AE93268A186585C /* ServiceManagement.framework */; };
 		49316C09EF30EEB66F3802AF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6BDE001E72B645ABFC8A82 /* Security.framework */; };
+		4C440CBE0920A02E7E0DDD6D /* HIDStreamRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8CC5AD75DEEF1985F02D267 /* HIDStreamRecoveryTests.swift */; };
 		4E388802FAADB42EBB0D86C2 /* PhysicalKeyboardEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25859C507998EB873999F385 /* PhysicalKeyboardEvent.swift */; };
 		582858322B31C3EED4EA76A6 /* SettingsSectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED9E4C1B877BF525F86F3CD /* SettingsSectionTests.swift */; };
 		58DDA085B57FB4BE4336A31A /* SetupModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 121A7F398BDBAFE53E28C58E /* SetupModelTests.swift */; };
@@ -119,6 +121,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		01A97473CC69A4F81C8DF878 /* HIDStreamRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDStreamRecovery.swift; sourceTree = "<group>"; };
 		02BECCA44F5BC3EBD06111BE /* DiagnosticDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDataStore.swift; sourceTree = "<group>"; };
 		077A1A619B7B568508D1505F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0A301EAA639B770F7935C3B7 /* UncleanExitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UncleanExitTests.swift; sourceTree = "<group>"; };
@@ -207,6 +210,7 @@
 		E182B1A00967D6ABCB27D357 /* ListenPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenPermission.swift; sourceTree = "<group>"; };
 		E448EF2582F9A857DE37EC7B /* PhysicalKeyboardDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardDiscovery.swift; sourceTree = "<group>"; };
 		E6149CA42BF141280DF159F2 /* Keyameleon-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = "Keyameleon-icon.icon"; sourceTree = "<group>"; };
+		E8CC5AD75DEEF1985F02D267 /* HIDStreamRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDStreamRecoveryTests.swift; sourceTree = "<group>"; };
 		F12688E745FEE2229C9EA9B7 /* DiagnosticWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticWindowController.swift; sourceTree = "<group>"; };
 		F2CC319B73F7842AC7EFD0DC /* OperationalNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationalNotificationTests.swift; sourceTree = "<group>"; };
 		F2F89B01FA50D2E2724A74C3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -348,6 +352,7 @@
 			children = (
 				D4618DF3A4D7D688A018029F /* ActivityTriggeredSwitchingOutcome.swift */,
 				11414C3BBD0946C0653CE62E /* DiagnosticData.swift */,
+				01A97473CC69A4F81C8DF878 /* HIDStreamRecovery.swift */,
 				A0DD2621A84D0D5ACCEFA2F4 /* InputSource.swift */,
 				CD0934EA21BBFED77D4F186D /* InputSourceSelectionPolicy.swift */,
 				24ED6FFDC073384B3CF3D346 /* ManualPhysicalKeyboardDesignation.swift */,
@@ -406,6 +411,7 @@
 				2524EEFA1711ADE5CEAF4EAA /* DiagnosticDataTests.swift */,
 				173FB63477CD7B6BCA3482A3 /* DiscoveryTests.swift */,
 				3FD75A61707183BD0E107165 /* GeneralSettingsModelTests.swift */,
+				E8CC5AD75DEEF1985F02D267 /* HIDStreamRecoveryTests.swift */,
 				4256FDB67D3FDDB9A81A429B /* HostedUnitTestProcessTests.swift */,
 				3BC0DF04CABD8D6A6B22186C /* InputSourceSelectionPolicyTests.swift */,
 				0E800175BE23F1A513268887 /* LifecycleTests.swift */,
@@ -561,6 +567,7 @@
 				9EBED114C6E30DB6C52911BF /* DiagnosticWindowController.swift in Sources */,
 				82EA08D271944A6E1DE10B38 /* GeneralSettingsModel.swift in Sources */,
 				D7D64A72C6CB23575841963A /* GeneralSettingsView.swift in Sources */,
+				41047EDE17B7BD97E5774284 /* HIDStreamRecovery.swift in Sources */,
 				289DA25583F6E6AC2E0DF99B /* InputSource.swift in Sources */,
 				6C50051F9B3E3476CDFD1BE1 /* InputSourceSelectionPolicy.swift in Sources */,
 				9E6354C10E724605840570E8 /* InputSources.swift in Sources */,
@@ -623,6 +630,7 @@
 				744BCF16F1595722CC1E7D0F /* DiagnosticDataTests.swift in Sources */,
 				94965581A0590A5E82DB2793 /* DiscoveryTests.swift in Sources */,
 				2FBE8C1CF0C837F0FD7A7B22 /* GeneralSettingsModelTests.swift in Sources */,
+				4C440CBE0920A02E7E0DDD6D /* HIDStreamRecoveryTests.swift in Sources */,
 				D72130957C3F2F50CF482E72 /* HostedUnitTestProcessTests.swift in Sources */,
 				C1216BFB241E4380C47D2219 /* InputSourceSelectionPolicyTests.swift in Sources */,
 				BA4F423F402D00CA146EFFAD /* LifecycleTests.swift in Sources */,

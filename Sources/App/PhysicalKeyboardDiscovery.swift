@@ -22,34 +22,46 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
         stop()
 
         task = Task { @MainActor in
-            let manager = HIDDeviceManager()
             let criteria = HIDDeviceManager.DeviceMatchingCriteria(
                 primaryUsage: .genericDesktop(.keyboard)
             )
 
-            do {
-                for try await notification in await manager.monitorNotifications(
-                    matchingCriteria: [criteria]
-                ) {
-                    guard !Task.isCancelled else {
-                        return
-                    }
+            // Discovery is fail-closed: an ended or failed stream resubscribes
+            // until `stop()` cancels this task.
+            while !Task.isCancelled {
+                // A fresh manager each attempt; the previous one's stream has ended.
+                let manager = HIDDeviceManager()
 
-                    switch notification {
-                    case let .deviceMatched(reference):
-                        guard let facts = await Self.hardwareFacts(for: reference) else {
-                            continue
+                do {
+                    for try await notification in await manager.monitorNotifications(
+                        matchingCriteria: [criteria]
+                    ) {
+                        guard !Task.isCancelled else {
+                            return
                         }
 
-                        onChange(.connected(facts))
-                    case let .deviceRemoved(reference):
-                        onChange(.disconnected(serviceID: reference.deviceID))
-                    @unknown default:
-                        continue
+                        switch notification {
+                        case let .deviceMatched(reference):
+                            guard let facts = await Self.hardwareFacts(for: reference) else {
+                                continue
+                            }
+
+                            onChange(.connected(facts))
+                        case let .deviceRemoved(reference):
+                            onChange(.disconnected(serviceID: reference.deviceID))
+                        @unknown default:
+                            continue
+                        }
                     }
+                } catch {
+                    // Fall through to the restart decision.
                 }
-            } catch {
-                // Discovery is fail-closed. A later permission or lifecycle refresh restarts it.
+
+                guard HIDStreamRecovery.shouldRestart(taskWasCancelled: Task.isCancelled) else {
+                    return
+                }
+
+                try? await Task.sleep(for: HIDStreamRecovery.restartDelay)
             }
         }
     }
