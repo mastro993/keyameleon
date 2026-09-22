@@ -15,6 +15,7 @@
 		06EBFF4FA1E89F0CBB858180 /* ProtectedLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BEA8388D3DD1A74A410FD13 /* ProtectedLifecycleTests.swift */; };
 		08D3A64C845E5958312E508E /* UncleanExitState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A760C722DF4EA56CBAAB76C6 /* UncleanExitState.swift */; };
 		090EBFE10ACB9E267ED15570 /* CryptoKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 292B87F6B6EB98598837DB1B /* CryptoKit.framework */; };
+		0B58229697FEA5C0D59AD029 /* UncleanExitPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EA82C1016E5E1A6D5E8494 /* UncleanExitPresentation.swift */; };
 		0C7B8751B513E6FD6EBEAE84 /* ReleasePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F32D17E09CBE4F2CC016DE /* ReleasePolicyTests.swift */; };
 		10C10DA54CEEC81C6E86EC7A /* ManualPhysicalKeyboardDesignationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B53925154A212D0013E930A2 /* ManualPhysicalKeyboardDesignationStore.swift */; };
 		15EADB73F954D79F813518EC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5225FE09338A066FF3E0C002 /* Carbon.framework */; };
@@ -152,6 +153,7 @@
 		45612E59BDD15A842AEA2B7C /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		463CA020CC643BCD312BEBC0 /* MenuBarAssignmentList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentList.swift; sourceTree = "<group>"; };
 		469433B6ABEC878F773B1F50 /* ActivationActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationActivityTests.swift; sourceTree = "<group>"; };
+		46EA82C1016E5E1A6D5E8494 /* UncleanExitPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UncleanExitPresentation.swift; sourceTree = "<group>"; };
 		4C0BB2BCEEE9B54D7D59987A /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
 		4F7F0A4909F2B028E3BACB15 /* ActivityTriggeredSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitching.swift; sourceTree = "<group>"; };
 		5225FE09338A066FF3E0C002 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
@@ -361,6 +363,7 @@
 				AEDB8B347F199B06902DF758 /* ReleasePolicy.swift */,
 				5730AC35BECDCBDCA89C6DA3 /* SwitchingStatus.swift */,
 				556A0239D8D2035B0CF38C0C /* SwitchingWarning.swift */,
+				46EA82C1016E5E1A6D5E8494 /* UncleanExitPresentation.swift */,
 				BBA6153A9F4D4EF18DDDE19D /* UpdatePolicy.swift */,
 			);
 			path = Domain;
@@ -603,6 +606,7 @@
 				04162930FF10F1B98A52E8F8 /* SingleInstanceLock.swift in Sources */,
 				595EED790099599C0103B092 /* SwitchingStatus.swift in Sources */,
 				7FDB18B30F2508DBF4354A47 /* SwitchingWarning.swift in Sources */,
+				0B58229697FEA5C0D59AD029 /* UncleanExitPresentation.swift in Sources */,
 				08D3A64C845E5958312E508E /* UncleanExitState.swift in Sources */,
 				F5723A6F857F899E97BDC980 /* UpdateChecker.swift in Sources */,
 				059476CFED67F850100CBA43 /* UpdatePolicy.swift in Sources */,

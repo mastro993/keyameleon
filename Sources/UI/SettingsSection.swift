@@ -18,11 +18,11 @@ enum KeyameleonSettingsSection: String, CaseIterable, Identifiable, Hashable, Se
     var subtitle: String {
         switch self {
         case .general:
-            "Startup, Operational Notifications, and Diagnostic Data."
+            "Startup and Operational Notifications."
         case .keyboards:
             "Physical Keyboards and their Keyboard Assignments."
         case .about:
-            "Version, license, and software updates."
+            "Version, license, updates, and Diagnostic Data."
         }
     }
 

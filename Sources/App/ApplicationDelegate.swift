@@ -141,7 +141,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             updateChecker: updateChecker,
             diagnosticDataController: composition.diagnosticDataController,
             operationalNotifications: composition.operationalNotifications,
-            notificationSettingsOpener: notificationSettingsOpener
+            notificationSettingsOpener: notificationSettingsOpener,
+            uncleanExitStateStore: uncleanExitStateStore
         )
 
         super.init()
@@ -242,6 +243,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         if startsApplicationSurfaceOnLaunch, !setupModel.isSetupComplete {
             setupModel.beginGuidedSetup()
             openKeyameleon(nil)
+        }
+        if UncleanExitPresentation.shouldOpenAbout(
+            hasPendingNotice: uncleanExitStateStore.hasPendingUncleanExitNotice,
+            startsApplicationSurface: startsApplicationSurfaceOnLaunch,
+            setupComplete: setupModel.isSetupComplete
+        ) {
+            openAbout(nil)
         }
     }
 
