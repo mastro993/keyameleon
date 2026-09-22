@@ -21,7 +21,7 @@ jobs:
       macos_required: ${{ steps.changes.outputs.macos_required }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -59,7 +59,7 @@ jobs:
     timeout-minutes: 8
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -71,7 +71,7 @@ jobs:
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
 
       - name: Cache Swift package sources
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/SourcePackages
           key: swift-packages-${{ runner.os }}-${{ runner.arch }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('Keyameleon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
