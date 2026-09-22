@@ -278,9 +278,9 @@ func forgetCandidatesExposeSavedNameAndConnectionState() {
     #expect(disconnectedKeyboard?.connectionState == .disconnected)
 }
 
-@Test("Built-in Physical Keyboard migrates one old saved record and linked Diagnostic Data")
+@Test("Built-in Physical Keyboard migrates one old saved record")
 @MainActor
-func builtInPhysicalKeyboardMigratesOneOldSavedRecordAndLinkedDiagnosticData() {
+func builtInPhysicalKeyboardMigratesOneOldSavedRecord() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let oldIdentityKey = "identity:legacy-built-in|anchor:built-in"
     recordStore.saveName(
@@ -294,19 +294,10 @@ func builtInPhysicalKeyboardMigratesOneOldSavedRecordAndLinkedDiagnosticData() {
         assignment: KeyboardAssignment(inputSourceIdentifier: "com.example.us")
     )
 
-    let diagnostic = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
-    diagnostic.record(
-        code: .assignmentSaved,
-        identityKey: oldIdentityKey,
-        switchingStatus: nil
-    )
-    let oldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: oldIdentityKey)
-
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(
         recordStore: recordStore,
-        discoverer: discoverer,
-        diagnostic: diagnostic
+        discoverer: discoverer
     )
 
     startAndCheck(model)
@@ -328,10 +319,6 @@ func builtInPhysicalKeyboardMigratesOneOldSavedRecordAndLinkedDiagnosticData() {
         recordStore.record(forIdentityKey: "identity:built-in|anchor:built-in")?.customName
             == "Laptop"
     )
-    #expect(
-        diagnostic.allRecords().contains { $0.physicalKeyboardToken == oldDiagnosticToken }
-            == false
-    )
 }
 
 @Test("Built-in Physical Keyboard does not migrate when multiple old records exist")
@@ -351,25 +338,10 @@ func builtInPhysicalKeyboardDoesNotMigrateWhenMultipleOldRecordsExist() {
         assignment: KeyboardAssignment(inputSourceIdentifier: "com.example.us")
     )
 
-    let diagnostic = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
-    diagnostic.record(
-        code: .assignmentSaved,
-        identityKey: firstOldIdentityKey,
-        switchingStatus: nil
-    )
-    diagnostic.record(
-        code: .assignmentSaved,
-        identityKey: secondOldIdentityKey,
-        switchingStatus: nil
-    )
-    let firstOldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: firstOldIdentityKey)
-    let secondOldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: secondOldIdentityKey)
-
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let model = makeLifecycleModel(
         recordStore: recordStore,
-        discoverer: discoverer,
-        diagnostic: diagnostic
+        discoverer: discoverer
     )
 
     startAndCheck(model)
@@ -390,11 +362,6 @@ func builtInPhysicalKeyboardDoesNotMigrateWhenMultipleOldRecordsExist() {
     #expect(recordStore.record(forIdentityKey: firstOldIdentityKey) != nil)
     #expect(recordStore.record(forIdentityKey: secondOldIdentityKey) != nil)
     #expect(recordStore.record(forIdentityKey: "identity:built-in|anchor:built-in") == nil)
-    let diagnosticTokens = Set(
-        diagnostic.allRecords().compactMap(\.physicalKeyboardToken)
-    )
-    #expect(diagnosticTokens.contains(firstOldDiagnosticToken))
-    #expect(diagnosticTokens.contains(secondOldDiagnosticToken))
 }
 
 @Test("Built-in Physical Keyboard migration is evaluated only once across restarts")
@@ -582,10 +549,7 @@ private func makeLifecycleModel(
     recordStore: InMemoryPhysicalKeyboardRecordStore,
     discoverer: SetupModelTestPhysicalKeyboardDiscoverer,
     selector: SetupModelTestInputSourceSelector = SetupModelTestInputSourceSelector(),
-    setupStore: any SetupDecisionStoring = SetupModelTestSetupDecisionStore(),
-    diagnostic: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-        store: InMemoryDiagnosticDataStore()
-    )
+    setupStore: any SetupDecisionStoring = SetupModelTestSetupDecisionStore()
 ) -> KeyameleonSetupModel {
     KeyameleonSetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
@@ -599,7 +563,6 @@ private func makeLifecycleModel(
             ]
         ),
         inputSourceSelector: selector,
-        physicalKeyboardRecordStore: recordStore,
-        diagnosticDataController: diagnostic
+        physicalKeyboardRecordStore: recordStore
     )
 }

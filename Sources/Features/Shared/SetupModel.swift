@@ -122,7 +122,6 @@ final class KeyameleonSetupModel {
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let designationStore: any ManualPhysicalKeyboardDesignationStoring
     private let integrityKeyProvider: any InstallationIntegrityKeyProviding
-    private let diagnosticDataController: any DiagnosticDataControlling
     private let operationalNotifications: OperationalNotifications
     private let resolver: PhysicalKeyboardPresentationResolver
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
@@ -140,7 +139,6 @@ final class KeyameleonSetupModel {
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        diagnosticDataController: any DiagnosticDataControlling,
         operationalNotifications: OperationalNotifications
     ) {
         self.activityTriggeredSwitching = activityTriggeredSwitching
@@ -151,7 +149,6 @@ final class KeyameleonSetupModel {
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
         self.designationStore = designationStore
         self.integrityKeyProvider = integrityKeyProvider
-        self.diagnosticDataController = diagnosticDataController
         self.operationalNotifications = operationalNotifications
         resolver = PhysicalKeyboardPresentationResolver(
             recordStore: physicalKeyboardRecordStore,
@@ -212,9 +209,6 @@ final class KeyameleonSetupModel {
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider(),
-        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-            store: InMemoryDiagnosticDataStore()
-        ),
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
@@ -234,7 +228,6 @@ final class KeyameleonSetupModel {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider,
-            diagnosticDataController: diagnosticDataController,
             operationalNotificationProvider: operationalNotificationProvider,
             notificationEpisodeStore: notificationEpisodeStore,
             notificationSetupStore: notificationSetupStore
@@ -248,7 +241,6 @@ final class KeyameleonSetupModel {
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
             integrityKeyProvider: composition.integrityKeyProvider,
-            diagnosticDataController: composition.diagnosticDataController,
             operationalNotifications: composition.operationalNotifications
         )
     }
@@ -395,10 +387,11 @@ final class KeyameleonSetupModel {
             productName: physicalKeyboard.productName,
             assignment: assignment
         )
-        diagnosticDataController.record(
-            code: assignment == nil ? .assignmentRemoved : .assignmentSaved,
-            identityKey: physicalKeyboard.id.rawValue,
-            switchingStatus: nil
+        KeyameleonLog.debug(
+            .setup,
+            assignment == nil
+                ? "Keyboard Assignment removed for \(physicalKeyboard.name)"
+                : "Keyboard Assignment saved for \(physicalKeyboard.name)"
         )
         publishPhysicalKeyboards()
     }
@@ -447,8 +440,11 @@ final class KeyameleonSetupModel {
             toIdentityKey: connectedID.rawValue,
             productName: connected.productName
         )
+        KeyameleonLog.debug(
+            .setup,
+            "Moved the saved Physical Keyboard record to \(connected.name)"
+        )
         designationStore.delete(identityKey: disconnectedID.rawValue)
-        diagnosticDataController.deleteDiagnosticData(forIdentityKey: disconnectedID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
         activityTriggeredSwitching.replaceActivePhysicalKeyboard(
             from: disconnectedID,
@@ -464,7 +460,7 @@ final class KeyameleonSetupModel {
         }
 
         let removedData =
-            "This removes the saved Physical Keyboard Name, Keyboard Assignment, Manual Physical Keyboard Designation, and linked Diagnostic Data for \(physicalKeyboard.name)."
+            "This removes the saved Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard Designation for \(physicalKeyboard.name)."
         let reconnectResult = switch physicalKeyboard.connectionState {
         case .connected:
             "This connected Physical Keyboard reappears as new and unassigned."
@@ -497,9 +493,12 @@ final class KeyameleonSetupModel {
             return
         }
 
+        let forgottenName = physicalKeyboards
+            .first { $0.id == physicalKeyboardID }?
+            .name ?? "name unknown"
         physicalKeyboardRecordStore.deleteRecord(identityKey: physicalKeyboardID.rawValue)
         designationStore.delete(identityKey: physicalKeyboardID.rawValue)
-        diagnosticDataController.deleteDiagnosticData(forIdentityKey: physicalKeyboardID.rawValue)
+        KeyameleonLog.debug(.setup, "Forgot Physical Keyboard (\(forgottenName))")
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
         cancelManualDesignationIfMatching(physicalKeyboardID)
         activityTriggeredSwitching.forgetPhysicalKeyboard(physicalKeyboardID)
@@ -700,18 +699,16 @@ final class KeyameleonSetupModel {
         }
 
         setupStore.markBuiltInIdentityMigrationEvaluated()
-        guard let migratedRecord = physicalKeyboardRecordStore.migrateSingleOldBuiltInRecord(
+        let migratedRecord = physicalKeyboardRecordStore.migrateSingleOldBuiltInRecord(
             toIdentityKey: builtIn.id.rawValue,
             productName: builtIn.productName
-        ) else {
-            return
-        }
-
-        // Diagnostic Data keeps a one-way token per identity. Migration does
-        // not relink that token to the fixed built-in identity.
-        diagnosticDataController.deleteDiagnosticData(
-            forIdentityKey: migratedRecord.identityKey
         )
+        if migratedRecord != nil {
+            KeyameleonLog.debug(
+                .setup,
+                "Migrated the saved record to the built-in Physical Keyboard"
+            )
+        }
     }
 
     private func startPermissionWaitIfNeeded() {

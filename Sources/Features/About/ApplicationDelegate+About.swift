@@ -2,28 +2,6 @@ import AppKit
 
 extension KeyameleonApplicationDelegate {
     @objc
-    func reviewDiagnostics(_ sender: Any?) {
-        closeMenuBarPanel()
-        uncleanExitStateStore.dismissUncleanExitNotice()
-        generalSettingsModel.refresh()
-        if diagnosticReviewWindowController == nil {
-            diagnosticReviewWindowController = KeyameleonDiagnosticWindowController(
-                model: generalSettingsModel
-            )
-        }
-
-        diagnosticReviewWindowController?.showWindow(sender)
-        NSApp.activate(ignoringOtherApps: true)
-        refreshMenuBarPresentation()
-    }
-
-    @objc
-    func dismissDiagnosticsNotice(_ sender: Any?) {
-        uncleanExitStateStore.dismissUncleanExitNotice()
-        refreshMenuBarPresentation()
-    }
-
-    @objc
     func openAbout(_ sender: Any?) {
         closeMenuBarPanel()
         generalSettingsModel.refresh()

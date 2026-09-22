@@ -22,7 +22,7 @@ enum KeyameleonSettingsSection: String, CaseIterable, Identifiable, Hashable, Se
         case .keyboards:
             "Physical Keyboards and their Keyboard Assignments."
         case .about:
-            "Version, license, updates, and Diagnostic Data."
+            "Version, license, updates, and log files."
         }
     }
 

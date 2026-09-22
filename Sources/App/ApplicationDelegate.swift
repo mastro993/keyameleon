@@ -41,13 +41,14 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     var windowController: KeyameleonWindowController?
     var settingsWindowController: KeyameleonSettingsWindowController?
     var aboutWindowController: KeyameleonAboutWindowController?
-    var diagnosticReviewWindowController: KeyameleonDiagnosticWindowController?
     private let modelContainer: ModelContainer?
-    private let diagnosticModelContainer: ModelContainer?
 
     override convenience init() {
+        let isHostedUnitTest = KeyameleonHostedUnitTestProcess.isDetected()
+        let isPreview = KeyameleonPreviewProcess.isDetected()
+
         let singleInstanceLock: KeyameleonSingleInstanceLock?
-        if KeyameleonPreviewProcess.isDetected() {
+        if isPreview {
             singleInstanceLock = nil
         } else {
             guard let acquiredLock = KeyameleonSingleInstanceLock.acquire() else {
@@ -56,6 +57,14 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             singleInstanceLock = acquiredLock
         }
 
+        if !isHostedUnitTest, !isPreview {
+            KeyameleonLog.start(.file())
+        }
+        KeyameleonLog.debug(
+            .app,
+            "Launching Keyameleon \(KeyameleonAppIdentity.current.versionLabel)"
+        )
+
         let setupStore = UserDefaultsSetupDecisionStore()
         let uncleanExitStateStore = UserDefaultsUncleanExitStateStore()
 
@@ -63,24 +72,12 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         do {
             modelContainer = try SwiftDataPhysicalKeyboardRecordStore.makeContainer()
         } catch {
+            KeyameleonLog.error(.app, "Physical Keyboard records could not be opened")
             fatalError("SwiftData container failed for Physical Keyboard records: \(error)")
         }
 
         let modelContext = ModelContext(modelContainer)
 
-        let diagnosticModelContainer: ModelContainer
-        do {
-            diagnosticModelContainer = try SwiftDataDiagnosticDataStore.makeContainer()
-        } catch {
-            fatalError("SwiftData container failed for Diagnostic Data: \(error)")
-        }
-        let diagnosticDataController = KeyameleonDiagnosticDataService(
-            store: SwiftDataDiagnosticDataStore(
-                modelContext: ModelContext(diagnosticModelContainer)
-            )
-        )
-
-        let isHostedUnitTest = KeyameleonHostedUnitTestProcess.isDetected()
         let operationalNotificationProvider: any OperationalNotificationProviding =
             isHostedUnitTest
                 ? NoOpOperationalNotificationProvider()
@@ -98,7 +95,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             integrityKeyProvider: KeychainInstallationIntegrityKeyProvider(),
-            diagnosticDataController: diagnosticDataController,
             operationalNotificationProvider: operationalNotificationProvider,
             notificationEpisodeStore: notificationEpisodeStore,
             notificationSetupStore: notificationSetupStore
@@ -114,7 +110,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             startsUpdaterOnLaunch: !isHostedUnitTest,
             startsApplicationSurfaceOnLaunch: !isHostedUnitTest,
             modelContainer: modelContainer,
-            diagnosticModelContainer: diagnosticModelContainer,
             singleInstanceLock: singleInstanceLock
         )
     }
@@ -130,11 +125,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         startsUpdaterOnLaunch: Bool,
         startsApplicationSurfaceOnLaunch: Bool,
         modelContainer: ModelContainer?,
-        diagnosticModelContainer: ModelContainer?,
         singleInstanceLock: KeyameleonSingleInstanceLock?
     ) {
         self.modelContainer = modelContainer
-        self.diagnosticModelContainer = diagnosticModelContainer
         self.singleInstanceLock = singleInstanceLock
         self.updateChecker = updateChecker
         self.lifecycleObserver = lifecycleObserver
@@ -151,13 +144,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
             integrityKeyProvider: composition.integrityKeyProvider,
-            diagnosticDataController: composition.diagnosticDataController,
             operationalNotifications: composition.operationalNotifications
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
-            diagnosticDataController: composition.diagnosticDataController,
             operationalNotifications: composition.operationalNotifications,
             notificationSettingsOpener: notificationSettingsOpener,
             uncleanExitStateStore: uncleanExitStateStore
@@ -188,9 +179,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
         lifecycleObserver: any KeyameleonLifecycleObserving = NoOpKeyameleonLifecycleObserver(),
-        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-            store: InMemoryDiagnosticDataStore()
-        ),
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
@@ -205,7 +193,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         startsUpdaterOnLaunch: Bool = true,
         startsApplicationSurfaceOnLaunch: Bool = true,
         modelContainer: ModelContainer? = nil,
-        diagnosticModelContainer: ModelContainer? = nil,
         singleInstanceLock: KeyameleonSingleInstanceLock?
     ) {
         let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
@@ -220,7 +207,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider,
-            diagnosticDataController: diagnosticDataController,
             operationalNotificationProvider: operationalNotificationProvider,
             notificationEpisodeStore: notificationEpisodeStore,
             notificationSetupStore: notificationSetupStore
@@ -236,7 +222,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             startsUpdaterOnLaunch: startsUpdaterOnLaunch,
             startsApplicationSurfaceOnLaunch: startsApplicationSurfaceOnLaunch,
             modelContainer: modelContainer,
-            diagnosticModelContainer: diagnosticModelContainer,
             singleInstanceLock: singleInstanceLock
         )
     }
@@ -244,6 +229,9 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         uncleanExitStateStore.beginLaunch()
+        if uncleanExitStateStore.hasPendingUncleanExitNotice {
+            KeyameleonLog.warning(.app, "The previous launch did not finish normally")
+        }
         if startsApplicationSurfaceOnLaunch {
             lifecycleObserver.start { [weak self] event in
                 self?.activityTriggeredSwitching.handleLifecycleEvent(event)
@@ -287,6 +275,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         uncleanExitStateStore.markCleanTermination()
+        KeyameleonLog.debug(.app, "Terminating")
         lifecycleObserver.stop()
         activityTriggeredSwitching.stop()
         closeMenuBarPanel()

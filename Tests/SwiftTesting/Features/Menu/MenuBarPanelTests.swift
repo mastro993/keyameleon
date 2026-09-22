@@ -134,18 +134,6 @@ func menuBarPanelFooterOverflowDefaultActions() {
     #expect(overflow(content, .settings)?.closesPanel == true)
 }
 
-@Test("Tray actions never include diagnostics")
-@MainActor
-func menuBarPanelFooterOverflowOmitsDiagnostics() {
-    let content = makeMenuBarPanelContent(outcome: .readyFixture())
-
-    #expect(content.actionTitles.contains("Review Diagnostics…") == false)
-    #expect(content.actionTitles.contains("Dismiss Diagnostics Notice") == false)
-    #expect(
-        overflowIDs(content) == [.pause, .settings, .quit]
-    )
-}
-
 @Test("About action does not add setup actions")
 @MainActor
 func menuBarPanelAboutOmitsSetupActions() {

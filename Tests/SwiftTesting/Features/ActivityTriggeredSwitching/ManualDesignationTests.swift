@@ -427,14 +427,12 @@ func tamperedDesignationEvidenceLeavesUnsupported() {
 func replacementDropsManualDesignationForOldIdentity() throws {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let designationStore = InMemoryManualPhysicalKeyboardDesignationStore()
-    let diagnostic = KeyameleonDiagnosticDataService(store: InMemoryDiagnosticDataStore())
     let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
     let model = makeDesignationModel(
         recordStore: recordStore,
         designationStore: designationStore,
         integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
-        discoverer: discoverer,
-        diagnostic: diagnostic
+        discoverer: discoverer
     )
 
     startAndCheck(model)
@@ -446,8 +444,6 @@ func replacementDropsManualDesignationForOldIdentity() throws {
     connectAmbiguousGroup(discoverer, serviceIDs: 253, 254, identity: "macos.keyboard.replaced")
     model.confirmManualDesignationName("Kept Name")
     model.setKeyboardAssignment(oldID, inputSourceIdentifier: "com.example.us")
-    diagnostic.record(code: .physicalKeyboardDisconnected, identityKey: oldID.rawValue)
-    let oldDiagnosticToken = diagnostic.temporaryToken(forIdentityKey: oldID.rawValue)
     discoverer.emit(.disconnected(serviceID: 253))
     discoverer.emit(.disconnected(serviceID: 254))
 
@@ -473,10 +469,6 @@ func replacementDropsManualDesignationForOldIdentity() throws {
     #expect(replaced.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
     #expect(recordStore.record(forIdentityKey: oldID.rawValue) == nil)
     #expect(designationStore.designation(forIdentityKey: oldID.rawValue) == nil)
-    #expect(
-        diagnostic.allRecords().contains { $0.physicalKeyboardToken == oldDiagnosticToken }
-            == false
-    )
 
     connectAmbiguousGroup(discoverer, serviceIDs: 256, 257, identity: "macos.keyboard.replaced")
     let returned = try #require(model.physicalKeyboards.first { $0.id == oldID })
@@ -492,10 +484,7 @@ private func makeDesignationModel(
     recordStore: any PhysicalKeyboardRecordStoring,
     designationStore: any ManualPhysicalKeyboardDesignationStoring,
     integrityKeyProvider: any InstallationIntegrityKeyProviding,
-    discoverer: DesignationTestPhysicalKeyboardDiscoverer,
-    diagnostic: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-        store: InMemoryDiagnosticDataStore()
-    )
+    discoverer: DesignationTestPhysicalKeyboardDiscoverer
 ) -> KeyameleonSetupModel {
     KeyameleonSetupModel(
         permissionProvider: DesignationTestListenPermissionProvider(state: .granted),
@@ -504,8 +493,7 @@ private func makeDesignationModel(
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore,
         designationStore: designationStore,
-        integrityKeyProvider: integrityKeyProvider,
-        diagnosticDataController: diagnostic
+        integrityKeyProvider: integrityKeyProvider
     )
 }
 

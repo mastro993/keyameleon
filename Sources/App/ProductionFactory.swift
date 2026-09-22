@@ -15,7 +15,6 @@ struct KeyameleonActivityTriggeredSwitchingComposition {
     let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     let designationStore: any ManualPhysicalKeyboardDesignationStoring
     let integrityKeyProvider: any InstallationIntegrityKeyProviding
-    let diagnosticDataController: any DiagnosticDataControlling
 }
 
 @MainActor
@@ -27,7 +26,6 @@ enum KeyameleonProductionFactory {
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        diagnosticDataController: any DiagnosticDataControlling,
         operationalNotificationProvider: any OperationalNotificationProviding,
         notificationEpisodeStore: any OperationalNotificationEpisodeStoring,
         notificationSetupStore: any NotificationSetupDecisionStoring
@@ -45,7 +43,6 @@ enum KeyameleonProductionFactory {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider,
-            diagnosticDataController: diagnosticDataController,
             operationalNotificationProvider: operationalNotificationProvider,
             notificationEpisodeStore: notificationEpisodeStore,
             notificationSetupStore: notificationSetupStore
@@ -70,9 +67,6 @@ enum KeyameleonProductionFactory {
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider(),
-        diagnosticDataController: any DiagnosticDataControlling = KeyameleonDiagnosticDataService(
-            store: InMemoryDiagnosticDataStore()
-        ),
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
@@ -103,7 +97,6 @@ enum KeyameleonProductionFactory {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider,
-            diagnosticDataController: diagnosticDataController,
             operationalNotifications: operationalNotifications
         )
 
@@ -115,8 +108,7 @@ enum KeyameleonProductionFactory {
             setupStore: setupStore,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
-            integrityKeyProvider: integrityKeyProvider,
-            diagnosticDataController: diagnosticDataController
+            integrityKeyProvider: integrityKeyProvider
         )
     }
 }

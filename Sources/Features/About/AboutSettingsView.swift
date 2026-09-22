@@ -103,14 +103,13 @@ struct KeyameleonAboutView: View {
                 Section {
                     Text(
                         "The last run of Keyameleon did not finish normally. "
-                            + "Review the Diagnostic Data below, or dismiss this notice."
+                            + "The Logs folder below can help you report the problem."
                     )
                     .foregroundStyle(.secondary)
 
                     HStack {
-                        Button("Review Diagnostics") {
-                            model.dismissUncleanExitNotice()
-                            model.refresh()
+                        Button("Open Logs") {
+                            openFolder(info.logsFolderURL)
                         }
 
                         Button("Dismiss") {
@@ -121,58 +120,6 @@ struct KeyameleonAboutView: View {
                     Text("Previous launch did not finish normally")
                 }
             }
-
-            Section {
-                LabeledContent("Status") {
-                    Text(model.isDiagnosticSessionActive
-                        ? "Active · ends after 10 minutes"
-                        : "Inactive")
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Diagnostic Session")
-                .accessibilityValue(
-                    model.isDiagnosticSessionActive
-                        ? "Active, ends automatically after 10 minutes"
-                        : "Inactive"
-                )
-
-                Button(model.isDiagnosticSessionActive
-                    ? "Stop Diagnostic Session"
-                    : "Start Diagnostic Session") {
-                    if model.isDiagnosticSessionActive {
-                        model.stopDiagnosticSession()
-                    } else {
-                        model.startDiagnosticSession()
-                    }
-                }
-
-                LabeledContent("Stored Data") {
-                    Text(
-                        "\(model.diagnosticRecordCount) records · about \(model.diagnosticEstimatedByteCount) bytes"
-                    )
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Diagnostic Data")
-                .accessibilityValue(
-                    "\(model.diagnosticRecordCount) records, about \(model.diagnosticEstimatedByteCount) bytes"
-                )
-
-                Button("Clear All Diagnostic Data", role: .destructive) {
-                    model.clearAllDiagnosticData()
-                }
-                .disabled(model.diagnosticRecordCount == 0)
-            } header: {
-                Text("Diagnostics")
-            } footer: {
-                Text(
-                    "Retention stops at 7 days or 5 MB. Diagnostic Data never includes Key Content, serial numbers, custom names, assignments, paths, user names, or application names."
-                )
-            }
-
-            KeyameleonDiagnosticBundleReviewView(model: model)
 
             Section("Acknowledgements") {
                 LabeledContent("Sparkle") {
@@ -209,9 +156,9 @@ struct KeyameleonAboutView: View {
     .preferredColorScheme(.dark)
 }
 
-#Preview("About with diagnostics") {
+#Preview("About with large text") {
     KeyameleonAboutView(
-        model: KeyameleonPreviewFixtures.generalWithDiagnosticData(),
+        model: KeyameleonPreviewFixtures.general(),
         info: KeyameleonPreviewFixtures.aboutInfo
     )
     .environment(\.dynamicTypeSize, .xxxLarge)
