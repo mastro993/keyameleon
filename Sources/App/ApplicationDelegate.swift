@@ -12,13 +12,21 @@ enum KeyameleonHostedUnitTestProcess {
     }
 }
 
+enum KeyameleonPreviewProcess {
+    static func isDetected(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> Bool {
+        environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    }
+}
+
 @MainActor
 final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     let setupModel: KeyameleonSetupModel
     let activityTriggeredSwitching: ActivityTriggeredSwitching
     private let updateChecker: any UpdateChecking
     private let lifecycleObserver: any KeyameleonLifecycleObserving
-    private let singleInstanceLock: KeyameleonSingleInstanceLock
+    private let singleInstanceLock: KeyameleonSingleInstanceLock?
     private let startsUpdaterOnLaunch: Bool
     private let startsApplicationSurfaceOnLaunch: Bool
     let uncleanExitStateStore: any UncleanExitStateStoring
@@ -38,8 +46,14 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private let diagnosticModelContainer: ModelContainer?
 
     override convenience init() {
-        guard let singleInstanceLock = KeyameleonSingleInstanceLock.acquire() else {
-            Darwin.exit(KeyameleonSingleInstanceLock.blockedLaunchExitCode)
+        let singleInstanceLock: KeyameleonSingleInstanceLock?
+        if KeyameleonPreviewProcess.isDetected() {
+            singleInstanceLock = nil
+        } else {
+            guard let acquiredLock = KeyameleonSingleInstanceLock.acquire() else {
+                Darwin.exit(KeyameleonSingleInstanceLock.blockedLaunchExitCode)
+            }
+            singleInstanceLock = acquiredLock
         }
 
         let setupStore = UserDefaultsSetupDecisionStore()
@@ -117,7 +131,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         startsApplicationSurfaceOnLaunch: Bool,
         modelContainer: ModelContainer?,
         diagnosticModelContainer: ModelContainer?,
-        singleInstanceLock: KeyameleonSingleInstanceLock
+        singleInstanceLock: KeyameleonSingleInstanceLock?
     ) {
         self.modelContainer = modelContainer
         self.diagnosticModelContainer = diagnosticModelContainer
@@ -192,7 +206,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         startsApplicationSurfaceOnLaunch: Bool = true,
         modelContainer: ModelContainer? = nil,
         diagnosticModelContainer: ModelContainer? = nil,
-        singleInstanceLock: KeyameleonSingleInstanceLock
+        singleInstanceLock: KeyameleonSingleInstanceLock?
     ) {
         let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
