@@ -59,6 +59,34 @@ func messageWithLineBreakStaysOneLine() throws {
     #expect(lines[0].hasSuffix("[debug] [switching] Connected (Travel Keyboard)"))
 }
 
+@Test("An oversized record stays inside the file size limit")
+func oversizedRecordStaysInsideTheFileSizeLimit() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let writer = KeyameleonLogWriter.file(
+        directory: directory,
+        maximumFileByteCount: 120,
+        keptRotatedFileCount: 2
+    )
+
+    let pastedName = String(repeating: "K", count: 5_000)
+    for _ in 1...4 {
+        writer.append(.debug, category: .switching, message: "Connected (\(pastedName))")
+    }
+
+    let names = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+    #expect(names.isEmpty == false)
+    for name in names {
+        let byteCount = try Data(contentsOf: directory.appending(path: name)).count
+        #expect(byteCount <= 120)
+    }
+
+    let lines = try logLines(in: directory)
+    #expect(lines.count == 1)
+    #expect(lines[0].contains("[debug] [switching] Connected (KKKK"))
+    #expect(lines[0].hasSuffix("…"))
+}
+
 @Test("Rotation counts bytes another writer appended")
 func rotationCountsBytesAnotherWriterAppended() throws {
     let directory = temporaryLogDirectory()

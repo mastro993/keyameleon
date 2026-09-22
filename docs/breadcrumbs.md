@@ -37,6 +37,10 @@
   with the same product name stay distinguishable. The writer collapses line
   breaks inside a message and reads the active file size from its descriptor, so
   a blocked launch's appends count toward rotation.
+- Third review round. A record larger than the file budget is truncated with an
+  ellipsis before the rotation check. Rotation happens before the write, so an
+  oversized Physical Keyboard Name would otherwise land in a fresh file and
+  overrun the size limit on its own.
 - `Scripts/run.sh` retargets the Key Content audit at the logging pipeline, and the
   audit now fails loudly when an audited path is missing.
 

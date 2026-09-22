@@ -34,7 +34,12 @@ final class KeyameleonLogFile: Sendable {
     }
 
     func append(_ level: KeyameleonLogLevel, category: KeyameleonLogCategory, message: String) {
-        let line = Self.line(level: level, category: category, message: message)
+        let line = Self.line(
+            level: level,
+            category: category,
+            message: message,
+            maximumByteCount: maximumFileByteCount
+        )
         let lineByteCount = line.utf8.count
 
         // Every file operation is best effort. A missing folder, a full disk, or
@@ -117,13 +122,42 @@ final class KeyameleonLogFile: Sendable {
     private static func line(
         level: KeyameleonLogLevel,
         category: KeyameleonLogCategory,
-        message: String
+        message: String,
+        maximumByteCount: Int
     ) -> String {
         let timestamp = Date().formatted(
             Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .current)
         )
-        return "\(timestamp) [\(level.rawValue)] [\(category.rawValue)] "
-            + "\(singleLineMessage(message))\n"
+        let prefix = "\(timestamp) [\(level.rawValue)] [\(category.rawValue)] "
+        return prefix + boundedMessage(
+            singleLineMessage(message),
+            toUTF8ByteCount: maximumByteCount - prefix.utf8.count - 1
+        ) + "\n"
+    }
+
+    /// A Physical Keyboard Name comes from hardware or from a paste, so one
+    /// message can be larger than the whole file budget. Rotation happens before
+    /// the write, so an unbounded record would land in a fresh file and overrun
+    /// the size limit on its own.
+    private static func boundedMessage(_ message: String, toUTF8ByteCount limit: Int) -> String {
+        guard message.utf8.count > limit else {
+            return message
+        }
+        let marker = "…"
+        let marksTruncation = limit >= marker.utf8.count
+        let textLimit = marksTruncation ? limit - marker.utf8.count : limit
+        var used = 0
+        var end = message.startIndex
+        for index in message.indices {
+            let width = message[index].utf8.count
+            guard used + width <= textLimit else {
+                break
+            }
+            used += width
+            end = message.index(after: index)
+        }
+        let text = String(message[message.startIndex..<end])
+        return marksTruncation ? text + marker : text
     }
 
     /// A Physical Keyboard Name comes from hardware or from the user, so it can
