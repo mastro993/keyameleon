@@ -1,20 +1,23 @@
 name: Release
 
 # Only workflow_dispatch on the default branch starts an Official Release.
-# The annotated tag is created after artifacts exist. A tag push does not publish.
+# The workflow commits the selected version bump to main, then creates the
+# annotated tag after artifacts exist. A tag push does not publish.
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Semantic Versioning core (MAJOR.MINOR.PATCH)
+      release_type:
+        description: Version increment
         required: true
-        type: string
+        default: patch
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 permissions:
-  contents: write
-  actions: read
-  checks: read
-  pull-requests: read
+  contents: read
 
 concurrency:
   group: official-release
@@ -24,6 +27,10 @@ jobs:
   verify:
     name: Verify Official Release
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      checks: read
+      contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
@@ -33,23 +40,38 @@ jobs:
           fetch-depth: 0
 
       - name: Require default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DISPATCH_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          default="${{ github.event.repository.default_branch }}"
-          if [[ "${{ github.ref_name }}" != "${default}" ]]; then
-            echo "Official Release only from ${default}; got ${{ github.ref_name }}" >&2
+          if [[ "${{ github.ref_name }}" != "${DEFAULT_BRANCH}" ]]; then
+            echo "Official Release only from ${DEFAULT_BRANCH}; got ${{ github.ref_name }}" >&2
+            exit 1
+          fi
+          git fetch origin "${DEFAULT_BRANCH}"
+          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
+          if [[ "${DISPATCH_SHA}" != "${remote_sha}" ]]; then
+            echo "main advanced after dispatch: expected ${DISPATCH_SHA}, got ${remote_sha}" >&2
             exit 1
           fi
 
-      - name: Reject used or invalid Official Release version
+      - name: Calculate next Official Release version
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
           set -euo pipefail
           chmod +x Scripts/*.sh
-          VERSION="${{ inputs.version }}"
+          VERSION="$(python3 Scripts/release-version.py "${RELEASE_TYPE}")"
           TAG="v${VERSION}"
           ./Scripts/verify-official-release-tag.sh "$TAG"
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            echo "Official Release already exists: ${TAG}" >&2
+            exit 1
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Official Release already exists: ${TAG}" >&2
             exit 1
           fi
@@ -64,15 +86,101 @@ jobs:
           chmod +x Scripts/*.sh
           ./Scripts/wait-for-ci.sh "${{ github.sha }}"
 
-  produce:
-    name: Produce Official Release artifacts
+  bump:
+    name: Commit Official Release version
     needs: verify
     runs-on: macos-26
     environment: official-release
+    permissions:
+      contents: read
+    outputs:
+      commit: ${{ steps.bump.outputs.commit }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Prepare version commit
+        id: bump
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          SOURCE_SHA: ${{ github.sha }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
+          expected_subject="chore(release): ${VERSION}"
+          git fetch origin "${DEFAULT_BRANCH}"
+          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
+
+          if [[ "${remote_sha}" != "${SOURCE_SHA}" ]]; then
+            remote_parent="$(git rev-parse "${remote_sha}^")"
+            remote_subject="$(git log -1 --format=%s "${remote_sha}")"
+            remote_files="$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)"
+            if [[ "${remote_parent}" == "${SOURCE_SHA}" && \
+                  "${remote_subject}" == "${expected_subject}" && \
+                  "${remote_files}" == "${expected_files}" ]]; then
+              git checkout --detach "${remote_sha}"
+              grep -qE "^    MARKETING_VERSION: \"${VERSION}\"$" project.yml
+              echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
+              echo "reused=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "main changed before the release bump; dispatch again from current main" >&2
+            exit 1
+          fi
+
+          calculated="$(python3 Scripts/release-version.py "${RELEASE_TYPE}" --write)"
+          if [[ "${calculated}" != "${VERSION}" ]]; then
+            echo "release version changed: expected ${VERSION}, got ${calculated}" >&2
+            exit 1
+          fi
+
+          xcodegen generate --spec project.yml
+          git diff --check
+          changed_files="$(git diff --name-only | sort)"
+          if [[ "${changed_files}" != "${expected_files}" ]]; then
+            echo "unexpected release-bump files:" >&2
+            printf '%s\n' "${changed_files}" >&2
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add project.yml Keyameleon.xcodeproj/project.pbxproj
+          git commit -m "chore(release): ${VERSION}"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "reused=false" >> "$GITHUB_OUTPUT"
+
+      - name: Test version commit
+        run: |
+          ./Scripts/run.sh test
+          git diff --exit-code
+
+      - name: Push version commit to main
+        if: steps.bump.outputs.reused != 'true'
+        run: git push origin "HEAD:${{ github.event.repository.default_branch }}"
+
+  produce:
+    name: Produce Official Release artifacts
+    needs:
+      - verify
+      - bump
+    runs-on: macos-26
+    environment: official-release
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.bump.outputs.commit }}
 
       - name: Reject published Official Release
         env:
@@ -125,7 +233,7 @@ jobs:
           chmod +x Scripts/*.sh
           # The notes script excludes TAG if this job is resuming after the tag
           # was created but before the GitHub Release was published.
-          CHANGES="$(./Scripts/official-release-notes.sh --tag "$TAG")"
+          CHANGES="$(./Scripts/official-release-notes.sh --tag "$TAG" --head "${{ github.sha }}")"
           printf '%s\n' "$CHANGES" >"$RUNNER_TEMP/release-notes.md"
 
           if ! git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then

@@ -27,22 +27,28 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 
 1. Ensure the intended commit is on `main` and CI is green for that commit.
 2. Run **Actions → Release → Run workflow** on `main`.
-3. Set **version** to Semantic Versioning core only, for example `1.2.3`.
-   Do not type a leading `v`. Pre-release values (`1.2.3-beta.1`) fail.
-4. Job `verify` checks default branch, unused tag `vMAJOR.MINOR.PATCH`, and a
-   successful `CI` run on that commit.
-5. Job `produce` targets the `official-release` GitHub Environment.
-6. Lead-maintainer approval is required when the repository plan supports
+3. Select **release type**: `patch`, `minor`, or `major`. From `v0.2.3`, these
+   produce `0.2.4`, `0.3.0`, and `1.0.0` respectively.
+4. Job `verify` checks current default branch, calculates from the latest
+   Official Release tag, rejects an existing target tag or Release, and waits
+   for successful CI on the selected commit.
+5. Job `bump` updates `MARKETING_VERSION`, regenerates the Xcode project,
+   commits `chore(release): X.Y.Z`, tests that exact commit, and pushes it to
+   `main`.
+6. Jobs `bump` and `produce` target the `official-release` GitHub Environment;
+   `bump` uses its repository-scoped deploy key, while `produce` receives the
+   distribution secrets.
+7. Lead-maintainer approval is required when the repository plan supports
    environment required reviewers. Configure that protection under
    Settings → Environments → `official-release` → Required reviewers.
-7. After approval, CI builds, signs, notarizes, staples, writes `appcast.xml`
+8. After approval, CI builds, signs, notarizes, staples, writes `appcast.xml`
    and `release-evidence.json`, creates the annotated tag, publishes the DMG to
    the GitHub Release, and publishes the appcast to GitHub Pages. A transient
    ZIP may be used for app notarization only. It is not retained.
 
 A human tag push does **not** start the workflow. Do not `git push` Official
-Release tags. Same version twice fails. A new version on the same `main` commit
-is allowed.
+Release tags. Same version twice fails. If `main` advances during verification,
+the run fails before pushing and must be dispatched again.
 
 Release notes use categorized change sections, a separator, and a `Changelog`
 section with the full comparison and linked commit list. The notes are
@@ -115,7 +121,7 @@ signed updates for existing Official Release binaries.
 Already created. Settings → Environments → `official-release`:
 
 1. **Deployment branches and tags** → Selected branches → `main` only.
-   Produce runs on `workflow_dispatch` from `main` before the tag exists.
+   Bump and produce run on `workflow_dispatch` from `main` before the tag exists.
 2. **Required reviewers** → lead maintainer, if the plan allows it. Private
    free-tier often cannot enable this. Then only the lead maintainer may
    dispatch.
@@ -133,6 +139,8 @@ Already created. Settings → Environments → `official-release`:
    gh secret set SPARKLE_PRIVATE_ED_KEY --env official-release \
      < sparkle_eddsa_private.key.one
    gh secret set SPARKLE_PUBLIC_ED_KEY --env official-release
+   gh secret set RELEASE_DEPLOY_KEY --env official-release \
+     < keyameleon-release-workflow
    ```
 
    Password / ID secrets: `gh secret set NAME --env official-release` then paste
@@ -147,7 +155,7 @@ Confirm names only (values stay hidden):
 gh secret list --env official-release
 ```
 
-Expect the eight names above. Then delete the local p12, p8, and key copies
+Expect the nine names above. Then delete the local p12, p8, and key copies
 from the working tree (`trash`, not git). Keep offline backups.
 
 ### 5. Tag ruleset
@@ -163,42 +171,61 @@ Settings → Rules → Rulesets → New tag ruleset:
 Humans must not create `vMAJOR.MINOR.PATCH` tags. The workflow pushes the tag
 with `GITHUB_TOKEN`. If Actions cannot bypass, publish fails at `git push`.
 
-### 6. Land this workflow on `main`
+### 6. Release deploy key and main branch ruleset
+
+The release workflow needs one narrow exception to the pull-request-only rule:
+
+- Create one Ed25519 deploy key named `Keyameleon Release workflow` with write
+  access to this repository.
+- Store its private key as environment secret `RELEASE_DEPLOY_KEY` in
+  `official-release`.
+- Ruleset: `Main branch protection`
+- Bypass actor: **Deploy keys**
+- Bypass mode: **Always**
+
+GitHub does not allow its first-party Actions app as a bypass actor on this
+personal repository. The deploy key is repository-scoped, available only to
+the protected release environment, and used only by `bump`. The bump job runs
+the full test suite before its normal fast-forward push; it never force-pushes.
+
+### 7. Land this workflow on `main`
 
 1. Merge the pull request (squash is the only allowed merge method).
 2. `verify` waits up to 45 minutes for **Required CI gate** on that SHA.
    You may dispatch as soon as the merge commit is on `main`.
    If CI fails, `verify` fails. If CI never starts, `verify` times out.
 
-### 7. Negative checks (optional, no tag created)
+### 8. Negative checks (optional, no tag created)
 
 From **Actions → Release → Run workflow**:
 
-| Use workflow from | version | Expected |
+| Use workflow from | release type | Expected |
 | --- | --- | --- |
-| feature branch | `1.2.3` | `verify` fails: not default branch |
-| `main` | `v1.2.3` | `verify` fails: tag would be `vv1.2.3` |
-| `main` | `1.2.3-beta.1` | `verify` fails: not SemVer core |
-| `main` | `1.2.3` while CI is running | `verify` waits; continues when **Required CI gate** succeeds |
+| feature branch | `patch` | `verify` fails: not default branch |
+| stale `main` selection | `patch` | `verify` fails because remote `main` advanced |
+| `main` while CI is running | `patch` | `verify` waits; continues when **Required CI gate** succeeds |
+| `main` when target tag exists | any | `verify` fails without changing `main` |
 
-### 8. Publish an Official Release
+### 9. Publish an Official Release
 
 1. Actions → Release → Run workflow on `main`.
-2. Set **version** to `1.2.3` (no leading `v`).
+2. Select `patch`, `minor`, or `major`.
 3. `verify` must go green.
-4. `produce` waits on Environment `official-release`. Approve if reviewers
+4. `bump` commits and pushes `chore(release): X.Y.Z` after its tests pass.
+5. `produce` waits on Environment `official-release`. Approve if reviewers
    are configured.
-5. `produce` signs, notarizes, and staples the DMG, creates annotated tag
-   `v1.2.3`, publishes only `Keyameleon-1.2.3.dmg` to the GitHub Release, and
+6. `produce` signs, notarizes, and staples the DMG, creates annotated tag
+   `vX.Y.Z`, publishes only `Keyameleon-X.Y.Z.dmg` to the GitHub Release, and
    publishes `appcast.xml` to GitHub Pages. There is no dry-run dispatch.
    `SKIP_NOTARIZE=1` local builds are not an Official Release.
 
-If `produce` fails **before** the tag exists, fix the cause and re-run the
-failed job. If the tag exists and the GitHub Release does not, re-run **failed
-jobs** on that run (not a new dispatch). Do not dispatch the same version
-again after its tag exists.
+If `bump` is retried after its push, it reuses only the exact expected bump
+commit. If `produce` fails **before** the tag exists, fix the cause and re-run
+the failed job. If the tag exists and the GitHub Release does not, re-run
+**failed jobs** on that run (not a new dispatch). Do not start another release
+run for that version.
 
-### 9. Verify an Official Release
+### 10. Verify an Official Release
 
 ```sh
 TAG=v1.2.3
@@ -246,7 +273,8 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 
 - Require a pull request before merging
 - Require status check: `Required CI gate`
-- Restrict who can push / bypass
+- Add **Deploy keys** as an `Always` bypass actor for the release bump
+- Keep every other push restricted
 
 ### Tags (Settings → Rulesets)
 
@@ -257,7 +285,7 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 ### `official-release` environment (Settings → Environments)
 
 - Required reviewers: lead maintainer (or release-authority account)
-- Deployment branches: default branch only (`main`). Produce runs from
+- Deployment branches: default branch only (`main`). Bump and produce run from
   `workflow_dispatch` on `main` before the tag exists
 - Secrets listed below exist only as environment or repository secrets — never in git
 
@@ -286,6 +314,7 @@ The release workflow writes the latest signed `appcast.xml` to that branch.
 | `APPLE_TEAM_ID` | Developer team id |
 | `SPARKLE_PRIVATE_ED_KEY` | Sparkle EdDSA private key (generate_appcast / sign_update) |
 | `SPARKLE_PUBLIC_ED_KEY` | Sparkle EdDSA public key embedded as `SUPublicEDKey` at release build |
+| `RELEASE_DEPLOY_KEY` | Private half of the repository-scoped release write key |
 
 Optional variable: `CODESIGN_IDENTITY` (defaults to `Developer ID Application`).
 
