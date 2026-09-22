@@ -26,8 +26,8 @@ settings:
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
     CODE_SIGNING_REQUIRED: NO
-    # Official Release overrides these from the vMAJOR.MINOR.PATCH tag.
-    MARKETING_VERSION: "0.1.0"
+    # Official Release commits MARKETING_VERSION, then verifies both values from its tag.
+    MARKETING_VERSION: "0.2.3"
     CURRENT_PROJECT_VERSION: "1"
 
 targets:
@@ -49,6 +49,7 @@ targets:
         PRODUCT_NAME: Keyameleon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Keyameleon
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_NSInputMonitoringUsageDescription: Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.
       configs:

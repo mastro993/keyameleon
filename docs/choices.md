@@ -488,3 +488,14 @@ Defaults:
 - Update state stays out of `OperationalNotification` and `MenuBarIconMark`.
 - `updater(_:willScheduleUpdateCheckAfterDelay:)` stays unimplemented. Sparkle's sample uses that hook to request notification permission, which would bypass the setup offer gate.
 
+## 2026-09-22 — Release-type dispatch and committed app version
+
+### Defaults
+
+- Release dispatch accepts one choice: `patch`, `minor`, or `major`; `patch` is the default.
+- Latest valid Official Release tag reachable from `main` is the version authority. Checked-in `MARKETING_VERSION` starts aligned with that release and advances with each release commit.
+- Release job commits `MARKETING_VERSION` plus the generated Xcode project as `chore(release): X.Y.Z`, tests that commit, then pushes it directly to `main`.
+- `CURRENT_PROJECT_VERSION` remains unchanged in source. Official Release builds continue deriving both bundle values from the release tag.
+- Main ruleset grants deploy keys `always` bypass because personal repositories cannot add GitHub's first-party Actions app as a bypass actor. One repository-scoped write key lives only in the `official-release` environment; the bump job otherwise has read-only token permissions.
+- Release tag, evidence, signed DMG, and GitHub Release all point to the bump commit. Release notes stop at its parent so the mechanical bump is omitted.
+- This supersedes the 2026-08-14 exact-version input, no-version-commit, and same-SHA-release defaults.
