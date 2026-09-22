@@ -15,10 +15,10 @@ audit_sources() {
     fi
 
     local diagnostic_paths=(
-        Sources/Domain/DiagnosticData.swift
-        Sources/App/DiagnosticDataService.swift
-        Sources/App/DiagnosticDataStore.swift
-        Sources/UI/DiagnosticBundleReviewView.swift
+        Sources/Features/ActivityTriggeredSwitching/DiagnosticData.swift
+        Sources/Features/ActivityTriggeredSwitching/DiagnosticDataService.swift
+        Sources/Features/ActivityTriggeredSwitching/DiagnosticDataStore.swift
+        Sources/Features/About/DiagnosticBundleReviewView.swift
     )
     local prohibited_data_path='PhysicalKeyboardEvent|PhysicalKeyboardEventKind|KeyContent|rawReport|interpretedText|modifierState'
     if grep -REn "$prohibited_data_path" "${diagnostic_paths[@]}"; then
