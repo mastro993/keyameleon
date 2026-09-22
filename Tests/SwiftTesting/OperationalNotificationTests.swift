@@ -275,6 +275,55 @@ func operationalNotificationEpisodeStatePersistsAcrossStoreReload() {
     #expect(!recoveredStore.hasSentNotification(for: episode))
 }
 
+/// Counts UserDefaults writes so a repeated store call can prove it wrote nothing.
+/// Unisolated on purpose: `set(_:forKey:)` is a nonisolated override, so the counts are lock-protected.
+private final class CountingUserDefaults: UserDefaults {
+    private let lock = NSLock()
+    private var counts: [String: Int] = [:]
+
+    var writeCounts: [String: Int] {
+        lock.withLock { counts }
+    }
+
+    init?(suiteName: String) {
+        super.init(suiteName: suiteName)
+    }
+
+    override func set(_ value: Any?, forKey defaultName: String) {
+        lock.withLock { counts[defaultName, default: 0] += 1 }
+        super.set(value, forKey: defaultName)
+    }
+}
+
+@MainActor
+@Test("Granted Listen Permission observation writes once and an absent episode writes nothing")
+func grantedListenPermissionObservationWritesOnceAndAbsentEpisodeWritesNothing() throws {
+    let suiteName = "KeyameleonTests.notifications.noOpWrites.\(UUID().uuidString)"
+    let defaults = try #require(CountingUserDefaults(suiteName: suiteName))
+    defer {
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let grantedKey = "keyameleon.notifications.listenPermissionGranted"
+    let activeEpisodesKey = "keyameleon.notifications.activeEpisodes"
+    let store = UserDefaultsOperationalNotificationEpisodeStore(defaults: defaults)
+
+    store.markGrantedListenPermissionObserved()
+    store.markGrantedListenPermissionObserved()
+
+    #expect(defaults.writeCounts[grantedKey] == 1)
+    #expect(defaults.bool(forKey: grantedKey))
+
+    let neverBegunEpisode = OperationalNotificationEpisode.unavailableKeyboardAssignment(
+        physicalKeyboardID: PhysicalKeyboardRecordID(rawValue: "hardware-never-begun"),
+        inputSourceIdentifier: "com.example.never-begun"
+    )
+    store.end(neverBegunEpisode)
+
+    #expect(defaults.writeCounts[activeEpisodesKey] == nil)
+    #expect((defaults.stringArray(forKey: activeEpisodesKey) ?? []).isEmpty)
+}
+
 @MainActor
 @Test("System notifications request alerts only and set no sound or badge")
 func systemNotificationsRequestAlertsOnlyAndSetNoSoundOrBadge() {

@@ -25,6 +25,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     let generalSettingsModel: KeyameleonGeneralSettingsModel
     let settingsSelection = KeyameleonSettingsSelection()
     var statusItem: NSStatusItem?
+    /// Template status image loaded from `menu_icon.pdf` once per process.
+    var menuBarStatusImage: NSImage?
+    /// System-symbol fallbacks for a missing PDF, keyed by symbol name.
+    var menuBarFallbackImages: [String: NSImage] = [:]
     var menuBarPanelController: KeyameleonMenuBarPanelController?
     var windowController: KeyameleonWindowController?
     var settingsWindowController: KeyameleonSettingsWindowController?

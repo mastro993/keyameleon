@@ -87,6 +87,20 @@ final class InputSourceModule {
         return changed
     }
 
+    /// Refresh only the current Input Source identifier.
+    ///
+    /// Activity-Triggered Switching calls this per Activation Activity. The
+    /// eligible catalog is rebuilt by `refresh()` on `checkAgain` and `retryNow`.
+    func refreshCurrentIdentifier() {
+        let currentIdentifier = selector.currentInputSourceIdentifier()
+        guard currentIdentifier != currentInputSourceIdentifier else {
+            return
+        }
+
+        currentInputSourceIdentifier = currentIdentifier
+        publish()
+    }
+
     func selectAndVerifyInputSource(identifier: String) -> Bool {
         let verified = selector.selectAndVerifyInputSource(identifier: identifier)
         currentInputSourceIdentifier = selector.currentInputSourceIdentifier()

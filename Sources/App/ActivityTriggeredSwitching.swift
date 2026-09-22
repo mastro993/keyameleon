@@ -77,6 +77,11 @@ final class ActivityTriggeredSwitching {
     private var verifiedKeyboardAssignmentIdentifier: String?
     private var observedCurrentInputSourceIdentifier: String?
     private var lastActivePhysicalKeyboard: PhysicalKeyboard?
+
+    /// Cached "any Physical Keyboard record has a Keyboard Assignment".
+    /// Recomputed by `checkAgain` and Physical Keyboard record changes only.
+    private var hasKeyboardAssignment = false
+
     private var discoveryObserverID: UUID?
     private var discoveryRecordObserverID: UUID?
     private var inputSourceObserverID: UUID?
@@ -183,10 +188,11 @@ final class ActivityTriggeredSwitching {
             availableActions: []
         )
 
+        refreshHasKeyboardAssignment()
         operationalNotifications.update(
             listenPermission: permission,
             warnings: [],
-            hasKeyboardAssignment: false,
+            hasKeyboardAssignment: hasKeyboardAssignment,
             paused: setupStore.isActivityTriggeredSwitchingPaused
         )
         rebuildOutcome()
@@ -265,6 +271,7 @@ final class ActivityTriggeredSwitching {
         inputSources.refresh()
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
         _ = reevaluateUnavailableKeyboardAssignments()
+        refreshHasKeyboardAssignment()
 
         let status = SwitchingStatus.resolve(
             listenPermission: permission,
@@ -401,7 +408,7 @@ final class ActivityTriggeredSwitching {
             return
         }
 
-        inputSources.refresh()
+        inputSources.refreshCurrentIdentifier()
         let physicalKeyboard = resolver.resolve(rawKeyboard)
         let activeChanged = physicalKeyboardDiscovery.activePhysicalKeyboardID != physicalKeyboard.id
         lastActivePhysicalKeyboard = physicalKeyboard
@@ -497,10 +504,6 @@ final class ActivityTriggeredSwitching {
         activeWarningByCause.values.sorted { $0.id < $1.id }
     }
 
-    private var hasKeyboardAssignment: Bool {
-        physicalKeyboardRecordStore.allRecords().contains { $0.keyboardAssignment != nil }
-    }
-
     private func updateObservation(for status: SwitchingStatus) {
         guard isStarted else {
             return
@@ -563,6 +566,7 @@ final class ActivityTriggeredSwitching {
     private func handleRecordChange() {
         reconcileWantedAssignmentFromRecords()
         _ = reevaluateUnavailableKeyboardAssignments()
+        refreshHasKeyboardAssignment()
         updateOperationalNotifications()
         rebuildOutcome()
     }
@@ -574,6 +578,12 @@ final class ActivityTriggeredSwitching {
             hasKeyboardAssignment: hasKeyboardAssignment,
             paused: setupStore.isActivityTriggeredSwitchingPaused
         )
+    }
+
+    private func refreshHasKeyboardAssignment() {
+        hasKeyboardAssignment = physicalKeyboardRecordStore.allRecords().contains {
+            $0.keyboardAssignment != nil
+        }
     }
 
     private func reconcileWantedAssignmentFromRecords() {
@@ -808,7 +818,7 @@ final class ActivityTriggeredSwitching {
         }
 
         let availableActions = availableActions(for: outcome.switchingStatus, warnings: warnings)
-        outcome = ActivityTriggeredSwitchingOutcome(
+        let newOutcome = ActivityTriggeredSwitchingOutcome(
             switchingStatus: outcome.switchingStatus,
             temporarilyUnavailableReasons: outcome.temporarilyUnavailableReasons,
             activePhysicalKeyboard: activeKeyboard.map {
@@ -824,6 +834,11 @@ final class ActivityTriggeredSwitching {
             warnings: warnings,
             availableActions: availableActions
         )
+        guard newOutcome != outcome else {
+            return
+        }
+
+        outcome = newOutcome
     }
 
     private func activeKeyboardForOutcome() -> PhysicalKeyboard? {
