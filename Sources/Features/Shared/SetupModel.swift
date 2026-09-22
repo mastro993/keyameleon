@@ -615,7 +615,7 @@ final class KeyameleonSetupModel {
     /// Activity-Triggered Switching clears the catalog on sleep, lock, secure
     /// input, and pause. Those publications must not advance the session.
     private func noteDesignationDisconnect(_ change: PhysicalKeyboardDiscoveryRecordChange) {
-        guard case let .disconnected(physicalKeyboardID) = change else {
+        guard case let .disconnected(physicalKeyboardID, _) = change else {
             return
         }
 

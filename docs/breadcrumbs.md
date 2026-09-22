@@ -21,9 +21,17 @@
   file, plus the store on the application delegate and the notice flag on the
   settings model. No launch tracks normal termination, and no launch opens About
   by itself.
-- Tests: `KeyameleonLogTests.swift` covers the line shape, size rotation, and
-  silence until a writer is installed. Diagnostic-only tests are deleted, and the
-  migration and designation tests no longer assert on diagnostic tokens.
+- Tests: `KeyameleonLogTests.swift` covers the line shape, size rotation, the
+  append-only writer, and silence until a writer is installed. Diagnostic-only
+  tests are deleted, and the migration and designation tests no longer assert on
+  diagnostic tokens.
+- Review round. Split the logging types into one file each. Added the Physical
+  Keyboard Name to `PhysicalKeyboardDiscoveryRecordChange`, because discovery
+  removes a keyboard from the catalog before it publishes a disconnect.
+  `appendOnlyFile` logs the blocked second launch without rotating a file the
+  running app holds open. Dropped the coalesced-selection line that fired on every
+  keypress and moved `verbose` to external Input Source changes. Added
+  `KeyameleonLegacyDiagnosticData` to delete the retired store and its sidecars.
 - `Scripts/run.sh` retargets the Key Content audit at the logging pipeline, and the
   audit now fails loudly when an audited path is missing.
 

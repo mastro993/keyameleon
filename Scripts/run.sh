@@ -14,7 +14,13 @@ audit_sources() {
         return 1
     fi
 
-    local log_writer_path='Sources/Features/Shared/KeyameleonLog.swift'
+    local log_pipeline_paths=(
+        Sources/Features/Shared/KeyameleonLog.swift
+        Sources/Features/Shared/KeyameleonLogFile.swift
+        Sources/Features/Shared/KeyameleonLogWriter.swift
+        Sources/Features/Shared/KeyameleonLogLevel.swift
+        Sources/Features/Shared/KeyameleonLogCategory.swift
+    )
     local log_call_paths=(
         Sources/App/ApplicationDelegate.swift
         Sources/Features/ActivityTriggeredSwitching/ActivityTriggeredSwitching.swift
@@ -23,14 +29,14 @@ audit_sources() {
     )
     local key_content_path='KeyContent|rawReport|interpretedText|modifierState'
     local audited_path
-    for audited_path in "$log_writer_path" "${log_call_paths[@]}"; do
+    for audited_path in "${log_pipeline_paths[@]}" "${log_call_paths[@]}"; do
         if [[ ! -f "$audited_path" ]]; then
             print -u2 "audited path is missing: $audited_path"
             return 1
         fi
     done
 
-    if grep -REn "PhysicalKeyboardEvent|${key_content_path}" "$log_writer_path"; then
+    if grep -REn "PhysicalKeyboardEvent|${key_content_path}" "${log_pipeline_paths[@]}"; then
         print -u2 "prohibited Key Content path found"
         return 1
     fi

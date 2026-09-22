@@ -51,6 +51,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             singleInstanceLock = nil
         } else {
             guard let acquiredLock = KeyameleonSingleInstanceLock.acquire() else {
+                if !isHostedUnitTest {
+                    KeyameleonLog.start(.appendOnlyFile())
+                    KeyameleonLog.warning(
+                        .app,
+                        "Another Keyameleon instance is running; exiting"
+                    )
+                }
                 Darwin.exit(KeyameleonSingleInstanceLock.blockedLaunchExitCode)
             }
             singleInstanceLock = acquiredLock
@@ -75,6 +82,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
 
         let modelContext = ModelContext(modelContainer)
+        KeyameleonLegacyDiagnosticData.removeStoreFiles()
 
         let operationalNotificationProvider: any OperationalNotificationProviding =
             isHostedUnitTest

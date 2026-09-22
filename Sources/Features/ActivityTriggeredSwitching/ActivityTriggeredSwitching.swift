@@ -443,10 +443,6 @@ final class ActivityTriggeredSwitching {
                       currentIdentifier == wantedIdentifier
             {
                 clearWarning(cause: .selectionFailure)
-                KeyameleonLog.verbose(
-                    .switching,
-                    "Input Source \(wantedIdentifier) was already selected for \(physicalKeyboard.name)"
-                )
             } else {
                 wantedKeyboardAssignmentGeneration &+= 1
                 let generation = wantedKeyboardAssignmentGeneration
@@ -484,6 +480,10 @@ final class ActivityTriggeredSwitching {
         if previousObserved != observedCurrentInputSourceIdentifier
             || previousVerified != verifiedKeyboardAssignmentIdentifier
         {
+            KeyameleonLog.verbose(
+                .switching,
+                "Observed Input Source is now \(observedCurrentInputSourceIdentifier ?? "none")"
+            )
             rebuildOutcome()
         }
     }
@@ -530,16 +530,10 @@ final class ActivityTriggeredSwitching {
         _ change: PhysicalKeyboardDiscoveryRecordChange
     ) {
         switch change {
-        case let .connected(physicalKeyboardID):
-            KeyameleonLog.debug(
-                .switching,
-                "Physical Keyboard connected (\(physicalKeyboardName(physicalKeyboardID)))"
-            )
-        case let .disconnected(physicalKeyboardID):
-            KeyameleonLog.debug(
-                .switching,
-                "Physical Keyboard disconnected (\(physicalKeyboardName(physicalKeyboardID)))"
-            )
+        case let .connected(_, name):
+            KeyameleonLog.debug(.switching, "Physical Keyboard connected (\(name))")
+        case let .disconnected(_, name):
+            KeyameleonLog.debug(.switching, "Physical Keyboard disconnected (\(name))")
         }
     }
 

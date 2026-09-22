@@ -193,8 +193,8 @@ struct PhysicalKeyboardActivationActivity: Equatable, Sendable {
 }
 
 enum PhysicalKeyboardDiscoveryRecordChange: Equatable, Sendable {
-    case connected(physicalKeyboardID: PhysicalKeyboardRecordID)
-    case disconnected(physicalKeyboardID: PhysicalKeyboardRecordID)
+    case connected(physicalKeyboardID: PhysicalKeyboardRecordID, name: String)
+    case disconnected(physicalKeyboardID: PhysicalKeyboardRecordID, name: String)
 }
 
 /// Shared internal Physical Keyboard discovery module.
@@ -348,14 +348,18 @@ final class PhysicalKeyboardDiscovery {
             if let keyboard = physicalKeyboard(forServiceID: facts.serviceID),
                keyboard.id.isIdentityBased
             {
-                publishRecordChange(.connected(physicalKeyboardID: keyboard.id))
+                publishRecordChange(
+                    .connected(physicalKeyboardID: keyboard.id, name: keyboard.name)
+                )
             }
         case .disconnected:
             let remainingIDs = Set(catalog.physicalKeyboards.map(\.id))
             for keyboard in previousKeyboards
                 where keyboard.id.isIdentityBased && !remainingIDs.contains(keyboard.id)
             {
-                publishRecordChange(.disconnected(physicalKeyboardID: keyboard.id))
+                publishRecordChange(
+                    .disconnected(physicalKeyboardID: keyboard.id, name: keyboard.name)
+                )
             }
         }
         publish()

@@ -46,6 +46,24 @@ func logFileRotatesAtTheSizeLimitAndKeepsTheNewestRotatedFiles() throws {
     #expect(try logLines(in: directory, fileName: "keyameleon.2.log").last?.hasSuffix("Line 8") == true)
 }
 
+@Test("An append-only writer never rotates a full active file")
+func appendOnlyWriterNeverRotatesAFullActiveFile() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+    try Data(repeating: 0x41, count: KeyameleonLogFile.maximumFileByteCount + 1)
+        .write(to: activeFile)
+
+    let writer = KeyameleonLogWriter.appendOnlyFile(directory: directory)
+    writer.append(.warning, category: .app, message: "Another instance is running")
+
+    let names = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
+    #expect(names == [KeyameleonLogFile.activeFileName])
+    let contents = try String(contentsOf: activeFile, encoding: .utf8)
+    #expect(contents.hasSuffix("[warning] [app] Another instance is running\n"))
+}
+
 @Test("The process writes nothing until a writer is installed")
 func processWritesNothingUntilAWriterIsInstalled() {
     let lines = Mutex<[String]>([])

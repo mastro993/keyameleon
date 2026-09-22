@@ -48,6 +48,28 @@
 - A crash leaves no marker. The previous run never wrote its `Terminating` line,
   so the log file shows it, and the next launch appends to the same file.
 
+## 2026-09-22 — Logging review round
+
+### Defaults
+
+- One file per type, following the project structure rule in `AGENTS.md`. The
+  logging pipeline is now `KeyameleonLog`, `KeyameleonLogFile`,
+  `KeyameleonLogWriter`, `KeyameleonLogLevel`, and `KeyameleonLogCategory`.
+- `PhysicalKeyboardDiscoveryRecordChange` carries the Physical Keyboard Name.
+  Discovery removes a keyboard from the catalog before it publishes a disconnect,
+  so a subscriber that looked the name up read `name unknown` for every real
+  disconnect.
+- `KeyameleonLogWriter.appendOnlyFile` serves the single-instance exit path. A
+  blocked second launch appends its one line and never rotates, so it cannot
+  rename a file the running app holds open, and the line the user needs is still
+  written.
+- No log line per activation. The coalesced-selection line fired on every
+  keypress of an assigned Physical Keyboard, which is normal typing, so `verbose`
+  moved to external Input Source changes, which are rare.
+- `KeyameleonLegacyDiagnosticData.removeStoreFiles` deletes the retired
+  `DiagnosticData.store` and its sidecars once at launch. Nothing else on disk
+  could remove them after the feature went away.
+
 ## 2026-09-21 — Release notes drop the custom Contributors section
 
 ### Defaults
