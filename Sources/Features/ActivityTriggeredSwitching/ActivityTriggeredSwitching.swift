@@ -530,23 +530,39 @@ final class ActivityTriggeredSwitching {
         _ change: PhysicalKeyboardDiscoveryRecordChange
     ) {
         switch change {
-        case let .connected(_, name):
-            KeyameleonLog.debug(.switching, "Physical Keyboard connected (\(name))")
-        case let .disconnected(_, name):
-            KeyameleonLog.debug(.switching, "Physical Keyboard disconnected (\(name))")
+        case let .connected(physicalKeyboardID, name):
+            let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
+            KeyameleonLog.debug(.switching, "Physical Keyboard connected (\(displayName))")
+        case let .disconnected(physicalKeyboardID, name):
+            let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
+            KeyameleonLog.debug(.switching, "Physical Keyboard disconnected (\(displayName))")
         }
     }
 
-    private func physicalKeyboardName(_ physicalKeyboardID: PhysicalKeyboardRecordID?) -> String {
-        guard
-            let physicalKeyboardID,
-            let physicalKeyboard = physicalKeyboardDiscovery.physicalKeyboards.first(where: {
-                $0.id == physicalKeyboardID
-            })
-        else {
-            return "name unknown"
+    /// The name the panel shows, so a log line names the same Physical Keyboard
+    /// the user sees. Catalog entries carry no custom name, and a disconnected
+    /// Physical Keyboard is gone from the catalog, so the saved record comes
+    /// first and the discovery payload is the last resort.
+    private func physicalKeyboardName(
+        _ physicalKeyboardID: PhysicalKeyboardRecordID?,
+        fallback: String? = nil
+    ) -> String {
+        guard let physicalKeyboardID else {
+            return fallback ?? "name unknown"
         }
-        return physicalKeyboard.name
+        if let savedName = physicalKeyboardRecordStore
+            .record(forIdentityKey: physicalKeyboardID.rawValue)?
+            .name
+        {
+            return savedName
+        }
+        if let catalogName = physicalKeyboardDiscovery.physicalKeyboards
+            .first(where: { $0.id == physicalKeyboardID })?
+            .name
+        {
+            return catalogName
+        }
+        return fallback ?? "name unknown"
     }
 
     private func handleInputSourceModuleChange() {

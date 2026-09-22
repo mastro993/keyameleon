@@ -13,7 +13,6 @@ final class KeyameleonLogFile: Sendable {
 
     private struct State {
         var descriptor: Int32?
-        var byteCount = 0
     }
 
     private let directory: URL
@@ -41,10 +40,12 @@ final class KeyameleonLogFile: Sendable {
         // Every file operation is best effort. A missing folder, a full disk, or
         // a locked file must never interrupt switching.
         state.withLock { state in
-            guard openIfNeeded(&state) != nil else {
+            guard let descriptor = openIfNeeded(&state) else {
                 return
             }
-            if rotates, state.byteCount + lineByteCount > maximumFileByteCount, state.byteCount > 0 {
+            // The descriptor's own size, because a blocked launch appends through
+            // its own writer and a cached count would miss those bytes.
+            if rotates, Self.fileByteCount(descriptor) + lineByteCount > maximumFileByteCount {
                 close(&state)
                 rotate()
                 guard openIfNeeded(&state) != nil else {
@@ -52,13 +53,12 @@ final class KeyameleonLogFile: Sendable {
                 }
             }
             guard
-                let descriptor = state.descriptor,
-                let written = Self.write(line, to: descriptor)
+                let rotatedDescriptor = state.descriptor,
+                Self.write(line, to: rotatedDescriptor) != nil
             else {
                 close(&state)
                 return
             }
-            state.byteCount += written
         }
     }
 
@@ -83,7 +83,6 @@ final class KeyameleonLogFile: Sendable {
             return nil
         }
         state.descriptor = descriptor
-        state.byteCount = Self.fileByteCount(at: activeFileURL)
         return descriptor
     }
 
@@ -93,7 +92,6 @@ final class KeyameleonLogFile: Sendable {
         }
         Darwin.close(descriptor)
         state.descriptor = nil
-        state.byteCount = 0
     }
 
     private func rotate() {
@@ -124,12 +122,25 @@ final class KeyameleonLogFile: Sendable {
         let timestamp = Date().formatted(
             Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .current)
         )
-        return "\(timestamp) [\(level.rawValue)] [\(category.rawValue)] \(message)\n"
+        return "\(timestamp) [\(level.rawValue)] [\(category.rawValue)] "
+            + "\(singleLineMessage(message))\n"
     }
 
-    private static func fileByteCount(at url: URL) -> Int {
-        let attributes = try? FileManager.default.attributesOfItem(atPath: url.path)
-        return attributes?[.size] as? Int ?? 0
+    /// A Physical Keyboard Name comes from hardware or from the user, so it can
+    /// contain a line break that would split one record into two.
+    private static func singleLineMessage(_ message: String) -> String {
+        guard message.contains(where: \.isNewline) else {
+            return message
+        }
+        return message.split(whereSeparator: \.isNewline).joined(separator: " ")
+    }
+
+    private static func fileByteCount(_ descriptor: Int32) -> Int {
+        var information = stat()
+        guard fstat(descriptor, &information) == 0 else {
+            return 0
+        }
+        return Int(information.st_size)
     }
 
     private static func write(_ line: String, to descriptor: Int32) -> Int? {

@@ -46,6 +46,50 @@ func logFileRotatesAtTheSizeLimitAndKeepsTheNewestRotatedFiles() throws {
     #expect(try logLines(in: directory, fileName: "keyameleon.2.log").last?.hasSuffix("Line 8") == true)
 }
 
+@Test("A message with a line break stays one line")
+func messageWithLineBreakStaysOneLine() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let writer = KeyameleonLogWriter.file(directory: directory)
+
+    writer.append(.debug, category: .switching, message: "Connected (Travel\r\nKeyboard)")
+
+    let lines = try logLines(in: directory)
+    #expect(lines.count == 1)
+    #expect(lines[0].hasSuffix("[debug] [switching] Connected (Travel Keyboard)"))
+}
+
+@Test("Rotation counts bytes another writer appended")
+func rotationCountsBytesAnotherWriterAppended() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let writer = KeyameleonLogWriter.file(
+        directory: directory,
+        maximumFileByteCount: 200,
+        keptRotatedFileCount: 1
+    )
+
+    writer.append(.debug, category: .app, message: "First")
+    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+    let handle = try FileHandle(forWritingTo: activeFile)
+    try handle.seekToEnd()
+    try handle.write(contentsOf: Data(repeating: 0x42, count: 200))
+    try handle.close()
+
+    writer.append(.debug, category: .app, message: "Second")
+
+    let names = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
+    #expect(names == ["keyameleon.1.log", "keyameleon.log"])
+
+    let active = try logLines(in: directory)
+    #expect(active.count == 1)
+    #expect(active[0].hasSuffix("[debug] [app] Second"))
+
+    let rotated = try logLines(in: directory, fileName: "keyameleon.1.log")
+    #expect(rotated.first?.hasSuffix("[debug] [app] First") == true)
+    #expect(rotated.contains { $0.hasPrefix("BBBB") })
+}
+
 @Test("An append-only writer never rotates a full active file")
 func appendOnlyWriterNeverRotatesAFullActiveFile() throws {
     let directory = temporaryLogDirectory()

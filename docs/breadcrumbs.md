@@ -32,6 +32,11 @@
   running app holds open. Dropped the coalesced-selection line that fired on every
   keypress and moved `verbose` to external Input Source changes. Added
   `KeyameleonLegacyDiagnosticData` to delete the retired store and its sidecars.
+- Second review round. Connection logs resolve the saved Physical Keyboard Name
+  before falling back to the catalog or the discovery payload, so two keyboards
+  with the same product name stay distinguishable. The writer collapses line
+  breaks inside a message and reads the active file size from its descriptor, so
+  a blocked launch's appends count toward rotation.
 - `Scripts/run.sh` retargets the Key Content audit at the logging pipeline, and the
   audit now fails loudly when an audited path is missing.
 

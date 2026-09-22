@@ -69,6 +69,14 @@
 - `KeyameleonLegacyDiagnosticData.removeStoreFiles` deletes the retired
   `DiagnosticData.store` and its sidecars once at launch. Nothing else on disk
   could remove them after the feature went away.
+- Connection logs name the Physical Keyboard the way the panel does. The saved
+  record supplies the custom name, the catalog is the next source, and the
+  discovery payload is the last resort.
+- The writer collapses line breaks inside a message, so a Physical Keyboard Name
+  from hardware or from the user cannot split one record into two.
+- Rotation reads the size from the open descriptor rather than a cached count,
+  because a blocked launch appends through its own writer. The cached count is
+  gone instead of refreshed on a timer.
 
 ## 2026-09-21 — Release notes drop the custom Contributors section
 
