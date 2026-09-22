@@ -57,13 +57,13 @@ enum KeyameleonProductionFactory {
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
-            SystemPhysicalKeyboardDiscoverer(),
+            NoOpPhysicalKeyboardDiscoverer(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving =
-            SystemPhysicalKeyboardEventObserver(),
-        inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
-        inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
+            NoOpPhysicalKeyboardEventObserver(),
+        inputSourceProvider: any InputSourceProviding = NoOpInputSourceProvider(),
+        inputSourceSelector: any InputSourceSelecting = NoOpInputSourceSelector(),
         inputSourceChangeObserver: any InputSourceChangeObserving =
-            SystemInputSourceChangeObserver(),
+            NoOpInputSourceChangeObserver(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring =
             InMemoryPhysicalKeyboardRecordStore(),
         designationStore: any ManualPhysicalKeyboardDesignationStoring =

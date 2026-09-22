@@ -163,8 +163,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider(),
-        inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
-        inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
+        inputSourceProvider: any InputSourceProviding = NoOpInputSourceProvider(),
+        inputSourceSelector: any InputSourceSelecting = NoOpInputSourceSelector(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving =
             NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
