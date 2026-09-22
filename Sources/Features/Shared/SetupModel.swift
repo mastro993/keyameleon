@@ -442,7 +442,7 @@ final class KeyameleonSetupModel {
         )
         KeyameleonLog.debug(
             .setup,
-            "Moved the saved Physical Keyboard record to \(connected.name)"
+            "Moved the saved Physical Keyboard record to \(disconnected.name)"
         )
         designationStore.delete(identityKey: disconnectedID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
