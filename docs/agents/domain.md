@@ -9,7 +9,8 @@ This repo uses a single-context layout:
 /
 ├── CONTEXT.md
 ├── docs/adr/
-└── src/
+├── Sources/
+└── Tests/
 
 ## Before exploration
 

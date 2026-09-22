@@ -4,13 +4,20 @@
 
 Keyameleon is `GPL-3.0-only`. By contributing, you agree your contribution is
 licensed under the same terms. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
+License obligations are tracked by those two files; CI does not run a separate
+license scanner.
 
 ## Pull requests required
 
 Changes land on `main` only through pull requests. Direct pushes to `main` are
 not the contribution path. Each PR must:
 
-1. Pass required CI (`CI` workflow: audit, build, tests, license checks)
+1. Pass the required CI gate (`CI` workflow). The workflow classifies the pull
+   request: code changes (app source, product tests, `Scripts/run.sh`, project
+   or package files, the CI workflow) run `./Scripts/run.sh test` on
+   `macos-26` — the safety audit, then Swift Testing, then XCTest.
+   Documentation-only pull requests still pass because the macOS job is
+   skipped on purpose (ADR 0001).
 2. Include applicable tests for the behavior change
 3. Use glossary terms from `CONTEXT.md` when naming domain concepts
 
