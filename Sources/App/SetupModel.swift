@@ -168,6 +168,9 @@ final class KeyameleonSetupModel {
             self?.advanceManualDesignationSession()
             self?.publishPhysicalKeyboards()
         }
+        _ = physicalKeyboardDiscovery.observeRecordChanges { [weak self] change in
+            self?.noteDesignationDisconnect(change)
+        }
         inputSourceObserverID = inputSources.observeChanges { [weak self] in
             guard let self else {
                 return
@@ -606,17 +609,30 @@ final class KeyameleonSetupModel {
         }
     }
 
+    /// Leave is a real disconnect, never an empty catalog.
+    ///
+    /// Activity-Triggered Switching clears the catalog on sleep, lock, secure
+    /// input, and pause. Those publications must not advance the session.
+    private func noteDesignationDisconnect(_ change: PhysicalKeyboardDiscoveryRecordChange) {
+        guard case let .disconnected(physicalKeyboardID) = change else {
+            return
+        }
+
+        guard case let .awaitingRemoval(recordID) = manualDesignationPhase else {
+            return
+        }
+
+        guard physicalKeyboardID == recordID else {
+            return
+        }
+
+        manualDesignationPhase = .awaitingReturn(recordID)
+    }
+
     private func advanceManualDesignationSession() {
         switch manualDesignationPhase {
-        case .idle, .awaitingNameConfirmation:
+        case .idle, .awaitingRemoval, .awaitingNameConfirmation:
             return
-        case let .awaitingRemoval(recordID):
-            let stillConnected = physicalKeyboardDiscovery.physicalKeyboards.contains {
-                $0.id == recordID
-            }
-            if !stillConnected {
-                manualDesignationPhase = .awaitingReturn(recordID)
-            }
         case let .awaitingReturn(recordID):
             let connected = physicalKeyboardDiscovery.physicalKeyboards
             if let returned = ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
