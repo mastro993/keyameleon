@@ -191,39 +191,40 @@ final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelectin
     }
 
     func selectAndVerifyInputSource(identifier: String) -> Bool {
-        let normalized = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !normalized.isEmpty else {
+        switch InputSourceSelectionPolicy.prepare(
+            identifier: identifier,
+            current: currentInputSourceIdentifier()
+        ) {
+        case .reject:
             return false
-        }
-
-        if currentInputSourceIdentifier() == normalized {
+        case .alreadyCurrent:
             return true
+        case let .select(normalized, previous):
+            // The requested source is the prior Input Source's replacement; a failed
+            // exact readback restores that prior source when it still exists.
+            guard let source = inputSource(withIdentifier: normalized) else {
+                return false
+            }
+
+            let status = TISSelectInputSource(source)
+
+            switch InputSourceSelectionPolicy.afterSelect(
+                selectSucceeded: status == noErr,
+                currentAfter: currentInputSourceIdentifier(),
+                normalized: normalized,
+                previous: previous
+            ) {
+            case .verified:
+                return true
+            case let .restore(previousIdentifier):
+                if let previousSource = inputSource(withIdentifier: previousIdentifier) {
+                    _ = TISSelectInputSource(previousSource)
+                }
+                return false
+            case .failed:
+                return false
+            }
         }
-
-        // Capture prior Input Source so a failed exact readback can restore it.
-        let previousIdentifier = currentInputSourceIdentifier()
-
-        guard let source = inputSource(withIdentifier: normalized) else {
-            return false
-        }
-
-        let status = TISSelectInputSource(source)
-        guard status == noErr else {
-            return false
-        }
-
-        if currentInputSourceIdentifier() == normalized {
-            return true
-        }
-
-        // Exact verification failed: restore prior Input Source when possible.
-        if let previousIdentifier,
-           let previousSource = inputSource(withIdentifier: previousIdentifier)
-        {
-            _ = TISSelectInputSource(previousSource)
-        }
-
-        return false
     }
 
     /// Owns every Input Source it returns, so callers may keep them past the underlying CFArray.
