@@ -29,6 +29,22 @@ final class NoOpInputSourceChangeObserver: InputSourceChangeObserving {
     func stop() {}
 }
 
+/// Test composition default. Reports no eligible Input Sources and never reads the Mac.
+@MainActor
+final class NoOpInputSourceProvider: InputSourceProviding {
+    func eligibleInputSources() -> [EligibleInputSource] { [] }
+}
+
+/// Test composition default. Never selects an Input Source.
+@MainActor
+final class NoOpInputSourceSelector: InputSourceSelecting {
+    func currentInputSourceIdentifier() -> String? { nil }
+
+    func selectAndVerifyInputSource(identifier: String) -> Bool {
+        false
+    }
+}
+
 /// Shared internal Input Source module.
 ///
 /// It owns catalog refresh, current-source observation, exact selection, and

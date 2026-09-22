@@ -196,9 +196,9 @@ final class KeyameleonSetupModel {
         setupStore: any SetupDecisionStoring,
         systemSettingsOpener: any SystemSettingsOpening,
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
-            SystemPhysicalKeyboardDiscoverer(),
-        inputSourceProvider: any InputSourceProviding = SystemInputSourceProvider(),
-        inputSourceSelector: any InputSourceSelecting = SystemInputSourceProvider(),
+            NoOpPhysicalKeyboardDiscoverer(),
+        inputSourceProvider: any InputSourceProviding = NoOpInputSourceProvider(),
+        inputSourceSelector: any InputSourceSelecting = NoOpInputSourceSelector(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring =
             InMemoryPhysicalKeyboardRecordStore(),
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving =
