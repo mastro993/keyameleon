@@ -30,8 +30,7 @@
   removes a keyboard from the catalog before it publishes a disconnect.
   `appendOnlyFile` logs the blocked second launch without rotating a file the
   running app holds open. Dropped the coalesced-selection line that fired on every
-  keypress and moved `verbose` to external Input Source changes. Added
-  `KeyameleonLegacyDiagnosticData` to delete the retired store and its sidecars.
+  keypress and moved `verbose` to external Input Source changes.
 - Second review round. Connection logs resolve the saved Physical Keyboard Name
   before falling back to the catalog or the discovery payload, so two keyboards
   with the same product name stay distinguishable. The writer collapses line

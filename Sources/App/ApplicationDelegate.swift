@@ -82,7 +82,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
 
         let modelContext = ModelContext(modelContainer)
-        KeyameleonLegacyDiagnosticData.removeStoreFiles()
 
         let operationalNotificationProvider: any OperationalNotificationProviding =
             isHostedUnitTest

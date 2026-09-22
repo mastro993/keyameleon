@@ -66,9 +66,8 @@
 - No log line per activation. The coalesced-selection line fired on every
   keypress of an assigned Physical Keyboard, which is normal typing, so `verbose`
   moved to external Input Source changes, which are rare.
-- `KeyameleonLegacyDiagnosticData.removeStoreFiles` deletes the retired
-  `DiagnosticData.store` and its sidecars once at launch. Nothing else on disk
-  could remove them after the feature went away.
+- No cleanup ships for the retired `DiagnosticData.store` in Application Support.
+  There are no production users, so no install can hold one.
 - Connection logs name the Physical Keyboard the way the panel does. The saved
   record supplies the custom name, the catalog is the next source, and the
   discovery payload is the last resort.
@@ -79,10 +78,9 @@
   gone instead of refreshed on a timer.
 - Third round. The writer compares its descriptor's inode against the active
   path, so deleting or replacing the file from the Logs folder reopens it instead
-  of appending to an unlinked file. The retired store path uses
-  `URL.applicationSupportDirectory` instead of indexing the array that
-  `FileManager.urls` returns. The test that installs a process-wide writer runs on
-  the main actor, which serializes it against every other test that installs one.
+  of appending to an unlinked file. The test that installs a process-wide writer
+  runs on the main actor, which serializes it against every other test that
+  installs one.
 
 ## 2026-09-21 — Release notes drop the custom Contributors section
 
