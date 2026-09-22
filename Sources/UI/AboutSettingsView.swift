@@ -99,6 +99,29 @@ struct KeyameleonAboutView: View {
                 .help("Checks whether a newer Keyameleon version is available.")
             }
 
+            if model.hasPendingUncleanExitNotice {
+                Section {
+                    Text(
+                        "The last run of Keyameleon did not finish normally. "
+                            + "Review the Diagnostic Data below, or dismiss this notice."
+                    )
+                    .foregroundStyle(.secondary)
+
+                    HStack {
+                        Button("Review Diagnostics") {
+                            model.dismissUncleanExitNotice()
+                            model.refresh()
+                        }
+
+                        Button("Dismiss") {
+                            model.dismissUncleanExitNotice()
+                        }
+                    }
+                } header: {
+                    Text("Previous launch did not finish normally")
+                }
+            }
+
             Section {
                 LabeledContent("Status") {
                     Text(model.isDiagnosticSessionActive

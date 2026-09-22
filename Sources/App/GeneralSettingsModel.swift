@@ -11,12 +11,14 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     @Published private(set) var diagnosticEstimatedByteCount: Int
     @Published private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
     @Published private(set) var diagnosticBundle: DiagnosticBundle
+    @Published private(set) var hasPendingUncleanExitNotice: Bool
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking
     private let diagnosticDataController: any DiagnosticDataControlling
     private let operationalNotifications: OperationalNotifications
     private let notificationSettingsOpener: any NotificationSettingsOpening
+    private let uncleanExitStateStore: any UncleanExitStateStoring
     private var notificationObserverID: UUID?
 
     init(
@@ -29,11 +31,13 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         operationalNotificationProvider: any OperationalNotificationProviding =
             NoOpOperationalNotificationProvider(),
         notificationSettingsOpener: any NotificationSettingsOpening =
-            NoOpNotificationSettingsOpener()
+            NoOpNotificationSettingsOpener(),
+        uncleanExitStateStore: any UncleanExitStateStoring = NoOpUncleanExitStateStore()
     ) {
         self.launchAtLoginController = launchAtLoginController
         self.updateChecker = updateChecker
         self.diagnosticDataController = diagnosticDataController
+        self.uncleanExitStateStore = uncleanExitStateStore
         let notifications = operationalNotifications ?? OperationalNotifications(
             provider: operationalNotificationProvider
         )
@@ -47,6 +51,7 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
         self.diagnosticEstimatedByteCount = diagnosticDataController.estimatedByteCount
         self.notificationAuthorizationState = notifications.authorizationState
         self.diagnosticBundle = diagnosticDataController.makeDiagnosticBundle()
+        self.hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
         diagnosticDataController.onChange = { [weak self] in
             self?.publishDiagnosticState()
         }
@@ -58,8 +63,14 @@ final class KeyameleonGeneralSettingsModel: ObservableObject {
     func refresh() {
         isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
         canCheckForUpdates = updateChecker.canCheckForUpdates
+        hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
         publishDiagnosticState()
         refreshNotificationAuthorization()
+    }
+
+    func dismissUncleanExitNotice() {
+        uncleanExitStateStore.dismissUncleanExitNotice()
+        hasPendingUncleanExitNotice = uncleanExitStateStore.hasPendingUncleanExitNotice
     }
 
     func setLaunchAtLoginEnabled(_ enabled: Bool) {

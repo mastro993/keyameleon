@@ -9,6 +9,18 @@ protocol UncleanExitStateStoring: AnyObject {
     func dismissUncleanExitNotice()
 }
 
+/// Test and preview default. Never reports or creates a notice.
+@MainActor
+final class NoOpUncleanExitStateStore: UncleanExitStateStoring {
+    var hasPendingUncleanExitNotice: Bool { false }
+
+    func beginLaunch() {}
+
+    func markCleanTermination() {}
+
+    func dismissUncleanExitNotice() {}
+}
+
 @MainActor
 final class UserDefaultsUncleanExitStateStore: UncleanExitStateStoring {
     private enum Key {
