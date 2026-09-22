@@ -447,6 +447,8 @@ final class KeyameleonSetupModel {
             toIdentityKey: connectedID.rawValue,
             productName: connected.productName
         )
+        designationStore.delete(identityKey: disconnectedID.rawValue)
+        diagnosticDataController.deleteDiagnosticData(forIdentityKey: disconnectedID.rawValue)
         lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
         activityTriggeredSwitching.replaceActivePhysicalKeyboard(
             from: disconnectedID,
