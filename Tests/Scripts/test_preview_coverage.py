@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-UI_ROOT = ROOT / "Sources" / "UI"
+FEATURES_ROOT = ROOT / "Sources" / "Features"
 VIEW_DECLARATION = re.compile(
     r"(?m)^\s*(?P<access>public|internal|private|fileprivate|package)?\s*"
     r"struct\s+(?P<name>[A-Za-z_]\w*)(?:<[^>\n]*>)?\s*:\s*(?:some\s+)?View\b"
@@ -15,9 +15,7 @@ PREVIEW_DECLARATION = re.compile(r"#Preview\(\s*\"[^\"]+\"\s*\)")
 class PreviewCoverageTests(unittest.TestCase):
     def test_non_private_views_have_named_previews(self):
         missing = []
-        for path in sorted(UI_ROOT.rglob("*.swift")):
-            if "PreviewSupport" in path.parts:
-                continue
+        for path in sorted(FEATURES_ROOT.rglob("*.swift")):
             source = path.read_text()
             declarations = [
                 match.group("name")
@@ -34,7 +32,7 @@ class PreviewCoverageTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
     def test_preview_fixtures_are_debug_only(self):
-        path = UI_ROOT / "PreviewSupport" / "KeyameleonPreviewFixtures.swift"
+        path = FEATURES_ROOT / "Shared" / "KeyameleonPreviewFixtures.swift"
         source = path.read_text()
         self.assertTrue(source.lstrip().startswith("#if DEBUG"))
         self.assertTrue(source.rstrip().endswith("#endif"))

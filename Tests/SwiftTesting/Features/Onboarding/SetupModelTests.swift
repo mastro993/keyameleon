@@ -77,6 +77,8 @@ func infoPlistDeclaresInputMonitoringUsageDescription() throws {
     let infoPlistURL = testsDirectory
         .deletingLastPathComponent()
         .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
         .appending(path: "Sources/App/Info.plist")
     let data = try Data(contentsOf: infoPlistURL)
     let plist = try #require(
