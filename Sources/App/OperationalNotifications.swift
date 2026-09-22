@@ -262,6 +262,10 @@ final class UserDefaultsOperationalNotificationEpisodeStore: OperationalNotifica
     }
 
     func markGrantedListenPermissionObserved() {
+        guard !hasEverObservedGrantedListenPermission else {
+            return
+        }
+
         defaults.set(true, forKey: Key.hasEverObservedGrantedListenPermission)
     }
 
@@ -296,7 +300,10 @@ final class UserDefaultsOperationalNotificationEpisodeStore: OperationalNotifica
 
     private func remove(_ value: String, fromKey key: String) {
         var values = values(forKey: key)
-        values.remove(value)
+        guard values.remove(value) != nil else {
+            return
+        }
+
         defaults.set(values.sorted(), forKey: key)
     }
 }

@@ -209,27 +209,51 @@ extension KeyameleonApplicationDelegate {
         )
         // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
         // One mark for every state; tooltip and accessibility text carry status.
-        let image: NSImage?
+        let image = statusImage(for: mark)
+        if button.image !== image {
+            button.image = image
+        }
+
+        let toolTip = menuBarIconAccessibilityDescription(for: mark)
+        if button.toolTip != toolTip {
+            button.toolTip = toolTip
+        }
+
+        button.setAccessibilityLabel("Keyameleon")
+    }
+
+    /// One status image per state, loaded once. `menu_icon.pdf` is read on the first request only.
+    private func statusImage(for mark: MenuBarIconMark) -> NSImage? {
+        if let menuBarStatusImage {
+            return menuBarStatusImage
+        }
+
         if let url = Bundle.main.url(forResource: "menu_icon", withExtension: "pdf"),
            let customImage = NSImage(contentsOf: url) {
             customImage.size = NSSize(width: 18, height: 18)
             customImage.accessibilityDescription = "Keyameleon"
-            image = customImage
-        } else {
-            image =
-                NSImage(
-                    systemSymbolName: systemSymbolName(for: mark),
-                    accessibilityDescription: "Keyameleon"
-                )
-                ?? NSImage(
-                    systemSymbolName: systemSymbolName(for: .ready),
-                    accessibilityDescription: "Keyameleon"
-                )
+            customImage.isTemplate = true
+            menuBarStatusImage = customImage
+            return customImage
         }
-        image?.isTemplate = true
-        button.image = image
-        button.toolTip = menuBarIconAccessibilityDescription(for: mark)
-        button.setAccessibilityLabel("Keyameleon")
+
+        let symbolName = systemSymbolName(for: mark)
+        if let fallbackImage = menuBarFallbackImages[symbolName] {
+            return fallbackImage
+        }
+
+        let fallbackImage =
+            NSImage(systemSymbolName: symbolName, accessibilityDescription: "Keyameleon")
+            ?? NSImage(
+                systemSymbolName: systemSymbolName(for: .ready),
+                accessibilityDescription: "Keyameleon"
+            )
+        fallbackImage?.isTemplate = true
+        if let fallbackImage {
+            menuBarFallbackImages[symbolName] = fallbackImage
+        }
+
+        return fallbackImage
     }
 
     func systemSymbolName(for mark: MenuBarIconMark) -> String {
