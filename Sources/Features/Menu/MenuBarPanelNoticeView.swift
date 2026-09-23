@@ -13,6 +13,10 @@ struct MenuBarPanelNoticeView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                         .accessibilityHidden(true)
+                } else if notice.tone == .neutral {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(.blue)
+                        .accessibilityHidden(true)
                 }
 
                 Text(notice.title)
@@ -34,7 +38,7 @@ struct MenuBarPanelNoticeView: View {
                     Text(action.title)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.automatic)
                 .focusable()
                 .focused(focusedTarget, equals: .action(id: action.id))
                 .accessibilityIdentifier("menu-bar-notice-\(action.id.rawValue)")

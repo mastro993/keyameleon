@@ -8,9 +8,6 @@ struct MenuBarActionList: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Divider()
-                .opacity(0.22)
-
             ForEach(actions) { action in
                 if action.id == .quit {
                     Divider()
