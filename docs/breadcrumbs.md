@@ -1,5 +1,23 @@
 # Breadcrumbs
 
+## 2026-09-23 — Assignment pill name, subtitle, and ISO language code
+
+- Pill title is the Physical Keyboard Name: Custom name when set, product name
+  otherwise. Subtitle is the connection type alone, or
+  `<product name> - <connection type>` when a Custom name hides the product name.
+- The assigned Input Source moves to the right edge as its ISO 639 language code
+  (`IT`, `EN`, `FR`). `EligibleInputSource` carries `languageCode`, derived from
+  `kTISPropertyInputSourceLanguages`; the full Input Source name stays in the
+  VoiceOver value, so speech is unchanged.
+- `PhysicalKeyboard.connectionTypeName` owns the USB / Bluetooth / Built-in
+  vocabulary. Keyboard Settings composes its `Connected · USB` line from it
+  instead of a second switch.
+- `MenuBarAssignmentList.Row` gains `subtitle` and `assignedLanguageCode`, and
+  its initializer takes assigned Input Sources instead of names, so the row
+  cannot show a code the Input Source does not have.
+- Tests: the pill row test covers Custom name, subtitle, and code together, plus
+  the no-Custom-name and unavailable-assignment branches.
+
 ## 2026-09-23 — Assignment pill borders
 
 - Connection state now reads from the pill outline. Active keeps its fill and green mark, a connected but inactive Physical Keyboard gets a solid border, and a disconnected one gets a dashed border.

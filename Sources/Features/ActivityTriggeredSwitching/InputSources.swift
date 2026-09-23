@@ -268,7 +268,8 @@ final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelectin
                 category: category(for: stringProperty(source, kTISPropertyInputSourceCategory)),
                 type: type(for: stringProperty(source, kTISPropertyInputSourceType)),
                 isEnabled: boolProperty(source, kTISPropertyInputSourceIsEnabled),
-                isSelectCapable: boolProperty(source, kTISPropertyInputSourceIsSelectCapable)
+                isSelectCapable: boolProperty(source, kTISPropertyInputSourceIsSelectCapable),
+                languages: stringArrayProperty(source, kTISPropertyInputSourceLanguages)
             )
         }
     }
@@ -292,6 +293,15 @@ final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelectin
         }
 
         return CFBooleanGetValue(Unmanaged<CFBoolean>.fromOpaque(value).takeUnretainedValue())
+    }
+
+    private func stringArrayProperty(_ source: TISInputSource, _ key: CFString) -> [String] {
+        guard let value = TISGetInputSourceProperty(source, key) else {
+            return []
+        }
+
+        let list = Unmanaged<CFArray>.fromOpaque(value).takeUnretainedValue() as NSArray
+        return list.compactMap { $0 as? String }
     }
 
     private func category(for value: String?) -> InputSourceCategory {

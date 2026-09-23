@@ -72,5 +72,5 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
 enum MenuBarPanelLayout {
     static let panelWidth: CGFloat = MenuBarPanelContent.panelWidth
     static let nameLineLimit = 2
-    static let inputSourceLineLimit = 1
+    static let subtitleLineLimit = 1
 }

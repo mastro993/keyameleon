@@ -150,9 +150,7 @@ func menuBarAssignmentListUsesCompactHeading() {
         physicalKeyboards: [
             makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
         ],
-        assignedInputSourceNames: [
-            PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
-        ]
+        assignedInputSources: panelNames("travel", "Italian")
     )
 
     #expect(list.heading == "Keyboards")
@@ -160,21 +158,41 @@ func menuBarAssignmentListUsesCompactHeading() {
     #expect(list.heading.contains("1") == false)
 }
 
-@Test("Menu-bar assignment pill uses Physical Keyboard Name and assigned Input Source")
+@Test("Menu-bar assignment pill shows Custom name, product name, and ISO language code")
 func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throws {
     let renamed = makeAssignedPanelKeyboard(
         name: "Keychron K2",
         identifier: "k2",
         customName: "Travel"
     )
+    let untouched = makeAssignedPanelKeyboard(name: "HHKB Professional", identifier: "desk")
     let list = MenuBarAssignmentList(
-        physicalKeyboards: [renamed],
-        assignedInputSourceNames: panelNames("k2", "Italian")
+        physicalKeyboards: [renamed, untouched],
+        assignedInputSources: [
+            PhysicalKeyboardRecordID(rawValue: "k2"): EligibleInputSource(
+                identifier: "com.apple.keylayout.Italian",
+                name: "Italian",
+                languageCode: "IT"
+            ),
+            PhysicalKeyboardRecordID(rawValue: "desk"): EligibleInputSource(
+                identifier: "com.apple.keylayout.US",
+                name: "U.S.",
+                languageCode: "EN"
+            )
+        ]
     )
     let travel = try #require(list.rows.first { $0.id == "k2" })
+    let desk = try #require(list.rows.first { $0.id == "desk" })
 
     #expect(travel.physicalKeyboardName == "Travel")
+    #expect(travel.subtitle == "Keychron K2 - USB")
     #expect(travel.assignedInputSourceName == "Italian")
+    #expect(travel.assignedLanguageCode == "IT")
+
+    // The name line already carries the product name without a Custom name.
+    #expect(desk.physicalKeyboardName == "HHKB Professional")
+    #expect(desk.subtitle == "USB")
+    #expect(desk.assignedLanguageCode == "EN")
 }
 
 @Test("Menu-bar assignment list shows only Physical Keyboards with Keyboard Assignments")
@@ -192,9 +210,7 @@ func menuBarAssignmentListShowsOnlyAssignedPhysicalKeyboards() throws {
     )
     let list = MenuBarAssignmentList(
         physicalKeyboards: [unassigned, assigned, unsupported],
-        assignedInputSourceNames: [
-            PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
-        ]
+        assignedInputSources: panelNames("travel", "Italian")
     )
     let row = try #require(list.rows.first)
 
@@ -233,7 +249,7 @@ func menuBarAssignmentListOrderIgnoresActiveKeyboard() {
     )
     let list = MenuBarAssignmentList(
         physicalKeyboards: [zeta, zebra, desk, apple, active],
-        assignedInputSourceNames: panelNames(
+        assignedInputSources: panelNames(
             "active", "Later",
             "apple", "US",
             "zebra", "Italian",
@@ -267,7 +283,7 @@ func menuBarAssignmentRowsUseDistinctMarksAndDimDisconnected() throws {
                 connectionState: .disconnected
             )
         ],
-        assignedInputSourceNames: panelNames(
+        assignedInputSources: panelNames(
             "active", "Italian",
             "connected", "US",
             "away", "French"
@@ -295,7 +311,7 @@ func menuBarAssignmentListKeepsUnavailableAssignmentWithoutDroppingTheRow() thro
         physicalKeyboards: [
             makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
         ],
-        assignedInputSourceNames: [:]
+        assignedInputSources: [:]
     )
     let row = try #require(list.rows.first)
 
@@ -313,9 +329,7 @@ func menuBarAssignmentRowsWarnOnlyWhenActionIsNeeded() throws {
             makeAssignedPanelKeyboard(name: "Ready", identifier: "ready"),
             makeAssignedPanelKeyboard(name: "Broken", identifier: "broken")
         ],
-        assignedInputSourceNames: [
-            PhysicalKeyboardRecordID(rawValue: "ready"): "Italian"
-        ]
+        assignedInputSources: panelNames("ready", "Italian")
     )
     let ready = try #require(list.rows.first { $0.physicalKeyboardName == "Ready" })
     let broken = try #require(list.rows.first { $0.physicalKeyboardName == "Broken" })
@@ -332,7 +346,7 @@ func menuBarAssignmentListEmptyStateIsCompact() {
         physicalKeyboards: [
             makePanelKeyboard(name: "Studio", identifier: "studio", assignmentState: .unassigned)
         ],
-        assignedInputSourceNames: [:]
+        assignedInputSources: [:]
     )
 
     #expect(list.rows.isEmpty)
@@ -347,9 +361,9 @@ func menuBarAssignmentListScrollsOnlyAfterFiveRows() {
         physicalKeyboards: (1...5).map { index in
             makeAssignedPanelKeyboard(name: "Board \(index)", identifier: "board-\(index)")
         },
-        assignedInputSourceNames: Dictionary(
+        assignedInputSources: Dictionary(
             uniqueKeysWithValues: (1...5).map { index in
-                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), "US")
+                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), panelInputSource("US"))
             }
         )
     )
@@ -357,9 +371,9 @@ func menuBarAssignmentListScrollsOnlyAfterFiveRows() {
         physicalKeyboards: (1...6).map { index in
             makeAssignedPanelKeyboard(name: "Board \(index)", identifier: "board-\(index)")
         },
-        assignedInputSourceNames: Dictionary(
+        assignedInputSources: Dictionary(
             uniqueKeysWithValues: (1...6).map { index in
-                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), "US")
+                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), panelInputSource("US"))
             }
         )
     )
@@ -378,9 +392,9 @@ func menuBarAssignmentListKeepsEveryAssignedRow() {
         physicalKeyboards: (1...count).map { index in
             makeAssignedPanelKeyboard(name: "Board \(index)", identifier: "board-\(index)")
         },
-        assignedInputSourceNames: Dictionary(
+        assignedInputSources: Dictionary(
             uniqueKeysWithValues: (1...count).map { index in
-                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), "US")
+                (PhysicalKeyboardRecordID(rawValue: "board-\(index)"), panelInputSource("US"))
             }
         )
     )
@@ -410,9 +424,7 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
     let content = makeMenuBarPanelContent(
         outcome: .readyFixture(),
         physicalKeyboards: [keyboard],
-        assignedInputSourceNames: [
-            PhysicalKeyboardRecordID(rawValue: "travel"): "Italian"
-        ]
+        assignedInputSources: panelNames("travel", "Italian")
     )
     let row = try #require(content.assignmentList.rows.first)
 
@@ -427,7 +439,7 @@ func menuBarPanelReadyWithoutNoticeConditionsHasNoNotice() {
     let content = makeMenuBarPanelContent(
         outcome: .readyFixture(),
         physicalKeyboards: [makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")],
-        assignedInputSourceNames: panelNames("travel", "U.S.")
+        assignedInputSources: panelNames("travel", "U.S.")
     )
 
     #expect(content.notice == nil)
@@ -836,14 +848,14 @@ func menuBarPanelNoticeExplainsUnfinishedGuidedSetup() {
 private func makeMenuBarPanelContent(
     outcome: ActivityTriggeredSwitchingOutcome,
     physicalKeyboards: [PhysicalKeyboard] = [],
-    assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
+    assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:],
     marketingVersion: String? = "0.1.0",
     isSetupComplete: Bool = true
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
-        assignedInputSourceNames: assignedInputSourceNames,
+        assignedInputSources: assignedInputSources,
         marketingVersion: marketingVersion,
         isSetupComplete: isSetupComplete
     )
@@ -909,10 +921,14 @@ private func overflowIDs(_ content: MenuBarPanelContent) -> [MenuBarPanelActionI
     content.footer.actions.map(\.id)
 }
 
-private func panelNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: String] {
+private func panelInputSource(_ name: String) -> EligibleInputSource {
+    EligibleInputSource(identifier: "com.example.\(name)", name: name)
+}
+
+private func panelNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: EligibleInputSource] {
     Dictionary(
         uniqueKeysWithValues: stride(from: 0, to: pairs.count, by: 2).map { index in
-            (PhysicalKeyboardRecordID(rawValue: pairs[index]), pairs[index + 1])
+            (PhysicalKeyboardRecordID(rawValue: pairs[index]), panelInputSource(pairs[index + 1]))
         }
     )
 }

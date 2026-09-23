@@ -118,7 +118,7 @@ struct KeyameleonMenuBarPanelView: View {
         MenuBarPanelContent(
             outcome: switching.outcome,
             physicalKeyboards: setupModel.physicalKeyboards,
-            assignedInputSourceNames: assignedInputSourceNames,
+            assignedInputSources: assignedInputSources,
             marketingVersion: Bundle.main.object(
                 forInfoDictionaryKey: "CFBundleShortVersionString"
             ) as? String,
@@ -126,10 +126,10 @@ struct KeyameleonMenuBarPanelView: View {
         )
     }
 
-    private var assignedInputSourceNames: [PhysicalKeyboardRecordID: String] {
+    private var assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] {
         Dictionary(
             uniqueKeysWithValues: setupModel.physicalKeyboards.compactMap { physicalKeyboard in
-                setupModel.assignedInputSourceName(for: physicalKeyboard)
+                setupModel.assignedInputSource(for: physicalKeyboard)
                     .map { (physicalKeyboard.id, $0) }
             }
         )

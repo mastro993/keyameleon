@@ -51,7 +51,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
-        assignedInputSourceNames: [PhysicalKeyboardRecordID: String],
+        assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
         marketingVersion: String?,
         isSetupComplete: Bool = true
     ) {
@@ -64,7 +64,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         )
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
-            assignedInputSourceNames: assignedInputSourceNames
+            assignedInputSources: assignedInputSources
         )
         let versionParts = Self.versionParts(marketingVersion: marketingVersion)
         self.footer = Footer(

@@ -578,12 +578,16 @@ final class KeyameleonSetupModel {
         }
     }
 
-    func assignedInputSourceName(for physicalKeyboard: PhysicalKeyboard) -> String? {
+    func assignedInputSource(for physicalKeyboard: PhysicalKeyboard) -> EligibleInputSource? {
         guard let identifier = physicalKeyboard.keyboardAssignment?.inputSourceIdentifier else {
             return nil
         }
 
-        return eligibleInputSources.first { $0.identifier == identifier }?.name
+        return eligibleInputSources.first { $0.identifier == identifier }
+    }
+
+    func assignedInputSourceName(for physicalKeyboard: PhysicalKeyboard) -> String? {
+        assignedInputSource(for: physicalKeyboard)?.name
     }
 
     func filteredInputSources(matching query: String) -> [EligibleInputSource] {

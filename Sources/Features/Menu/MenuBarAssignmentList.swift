@@ -30,7 +30,14 @@ struct MenuBarAssignmentList: Equatable, Sendable {
     struct Row: Equatable, Identifiable, Sendable {
         let id: String
         let physicalKeyboardName: String
+        /// Second line: the product name with the connection type, or the
+        /// connection type alone when the name line already shows the product
+        /// name.
+        let subtitle: String
         let assignedInputSourceName: String
+        /// ISO 639 code of the assigned Input Source, such as `IT`. `nil` when
+        /// the Input Source is unavailable or reports no language.
+        let assignedLanguageCode: String?
         let connectionMark: ConnectionMark
         let isDimmed: Bool
         let warningNote: String?
@@ -66,19 +73,24 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
     init(
         physicalKeyboards: [PhysicalKeyboard],
-        assignedInputSourceNames: [PhysicalKeyboardRecordID: String]
+        assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource]
     ) {
         heading = Self.heading
 
         let assigned = physicalKeyboards.filter { $0.keyboardAssignment != nil }
         let ordered = PhysicalKeyboardListOrdering.sorted(assigned)
         rows = ordered.map { physicalKeyboard in
-            let savedName = assignedInputSourceNames[physicalKeyboard.id]
-            let isUnavailable = savedName == nil
+            let savedSource = assignedInputSources[physicalKeyboard.id]
+            let isUnavailable = savedSource == nil
+            let connectionType = physicalKeyboard.connectionTypeName
             return Row(
                 id: physicalKeyboard.id.rawValue,
                 physicalKeyboardName: physicalKeyboard.name,
-                assignedInputSourceName: savedName ?? Self.unavailableInputSourceName,
+                subtitle: physicalKeyboard.customName == nil
+                    ? connectionType
+                    : "\(physicalKeyboard.productName) - \(connectionType)",
+                assignedInputSourceName: savedSource?.name ?? Self.unavailableInputSourceName,
+                assignedLanguageCode: savedSource?.languageCode,
                 connectionMark: Self.connectionMark(for: physicalKeyboard),
                 isDimmed: physicalKeyboard.connectionState == .disconnected,
                 warningNote: isUnavailable ? Self.unavailableNote : nil,
