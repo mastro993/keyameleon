@@ -544,6 +544,138 @@ func physicalKeyboardListSortIgnoresActiveState() {
     )
 }
 
+@Test("Disconnecting the Active Physical Keyboard does not select the remaining Keyboard Assignment")
+@MainActor
+func disconnectingActivePhysicalKeyboardDoesNotSelectRemainingKeyboardAssignment() {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
+    let model = makeLifecycleModel(
+        recordStore: recordStore,
+        discoverer: discoverer,
+        selector: selector
+    )
+
+    startAndCheck(model)
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 801,
+                identity: "macos.keyboard.alpha",
+                serialNumber: "serial-alpha"
+            )
+        )
+    )
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 802,
+                identity: "macos.keyboard.beta",
+                serialNumber: "serial-beta"
+            )
+        )
+    )
+
+    let alphaID = model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }!.id
+    let betaID = model.physicalKeyboards.first { $0.id.rawValue.contains("beta") }!.id
+    model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.us")
+    model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.italian")
+    model.activityTriggeredSwitching.markActiveForTesting(alphaID)
+    let selectCountBeforeDisconnect = selector.selectCount
+
+    discoverer.emit(.disconnected(serviceID: 801))
+
+    #expect(selector.selectCount == selectCountBeforeDisconnect)
+    #expect(model.activePhysicalKeyboardID == alphaID)
+    let beta = model.physicalKeyboards.first { $0.id == betaID }!
+    #expect(beta.connectionState == .connected)
+    #expect(!beta.isActive)
+}
+
+@Test("Connecting an assigned Physical Keyboard does not select its Keyboard Assignment")
+@MainActor
+func connectingAssignedPhysicalKeyboardDoesNotSelectItsKeyboardAssignment() {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
+    let model = makeLifecycleModel(
+        recordStore: recordStore,
+        discoverer: discoverer,
+        selector: selector
+    )
+
+    startAndCheck(model)
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 801,
+                identity: "macos.keyboard.alpha",
+                serialNumber: "serial-alpha"
+            )
+        )
+    )
+    let alphaID = model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }!.id
+    model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.us")
+    model.activityTriggeredSwitching.markActiveForTesting(alphaID)
+    let selectCountBeforeConnect = selector.selectCount
+
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 802,
+                identity: "macos.keyboard.beta",
+                serialNumber: "serial-beta"
+            )
+        )
+    )
+    let betaID = model.physicalKeyboards.first { $0.id.rawValue.contains("beta") }!.id
+    model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.italian")
+
+    #expect(selector.selectCount == selectCountBeforeConnect)
+    #expect(model.activePhysicalKeyboardID == alphaID)
+    #expect(!model.physicalKeyboards.first { $0.id == betaID }!.isActive)
+}
+
+@Test("Wake and unlock do not select the Active Keyboard Assignment")
+@MainActor
+func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
+    let model = makeLifecycleModel(
+        recordStore: recordStore,
+        discoverer: discoverer,
+        selector: selector
+    )
+
+    startAndCheck(model)
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 801,
+                identity: "macos.keyboard.alpha",
+                serialNumber: "serial-alpha"
+            )
+        )
+    )
+    let alphaID = model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }!.id
+    model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.italian")
+    model.activityTriggeredSwitching.markActiveForTesting(alphaID)
+    #expect(selector.selectCount == 0)
+
+    model.activityTriggeredSwitching.handleLifecycleEvent(.willSleep)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.didWake)
+
+    #expect(selector.selectCount == 0)
+    #expect(model.activePhysicalKeyboardID == alphaID)
+
+    model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidResignActive)
+    model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidBecomeActive)
+
+    #expect(selector.selectCount == 0)
+    #expect(model.activePhysicalKeyboardID == alphaID)
+}
+
 @MainActor
 private func makeLifecycleModel(
     recordStore: InMemoryPhysicalKeyboardRecordStore,
