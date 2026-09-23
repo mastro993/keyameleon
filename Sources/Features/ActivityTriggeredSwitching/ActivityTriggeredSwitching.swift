@@ -49,8 +49,8 @@ final class PhysicalKeyboardPresentationResolver {
 /// Deep Activity-Triggered Switching module.
 ///
 /// External callers learn one outcome and seven product operations. Observation,
-/// exact selection, recovery, lifecycle, notifications, and adapter details
-/// stay inside this module.
+/// exact selection, recovery, lifecycle, and adapter details stay inside this
+/// module.
 @MainActor
 @Observable
 final class ActivityTriggeredSwitching {
@@ -63,7 +63,6 @@ final class ActivityTriggeredSwitching {
     private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let resolver: PhysicalKeyboardPresentationResolver
-    private let operationalNotifications: OperationalNotifications
 
     private var isStarted = false
     private var eventProtectedDataUnavailable = false
@@ -77,14 +76,9 @@ final class ActivityTriggeredSwitching {
     private var observedCurrentInputSourceIdentifier: String?
     private var lastActivePhysicalKeyboard: PhysicalKeyboard?
 
-    /// Cached "any Physical Keyboard record has a Keyboard Assignment".
-    /// Recomputed by `checkAgain` and Physical Keyboard record changes only.
-    private var hasKeyboardAssignment = false
-
     private var discoveryObserverID: UUID?
     private var discoveryRecordObserverID: UUID?
     private var inputSourceObserverID: UUID?
-    private var notificationObserverID: UUID?
 
     // Internal adapter evidence used by focused module tests. It is not part
     // of the product outcome.
@@ -144,8 +138,7 @@ final class ActivityTriggeredSwitching {
         inputSources: InputSourceModule,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
-        integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        operationalNotifications: OperationalNotifications = OperationalNotifications()
+        integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) {
         self.permissionProvider = permissionProvider
         self.protectedStateProvider = protectedStateProvider
@@ -158,7 +151,6 @@ final class ActivityTriggeredSwitching {
             designationStore: designationStore,
             integrityKeyProvider: integrityKeyProvider
         )
-        self.operationalNotifications = operationalNotifications
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
 
         let protectedState = protectedStateProvider.currentProtectedState()
@@ -183,13 +175,6 @@ final class ActivityTriggeredSwitching {
             availableActions: []
         )
 
-        refreshHasKeyboardAssignment()
-        operationalNotifications.update(
-            listenPermission: permission,
-            warnings: [],
-            hasKeyboardAssignment: hasKeyboardAssignment,
-            paused: setupStore.isActivityTriggeredSwitchingPaused
-        )
         rebuildOutcome()
     }
 
@@ -211,9 +196,6 @@ final class ActivityTriggeredSwitching {
         }
         inputSourceObserverID = inputSources.observeChanges { [weak self] in
             self?.handleInputSourceModuleChange()
-        }
-        notificationObserverID = operationalNotifications.observe { [weak self] in
-            self?.rebuildOutcome()
         }
         physicalKeyboardRecordStore.startObservingChanges { [weak self] in
             self?.handleRecordChange()
@@ -238,13 +220,9 @@ final class ActivityTriggeredSwitching {
         if let inputSourceObserverID {
             inputSources.removeObserver(inputSourceObserverID)
         }
-        if let notificationObserverID {
-            operationalNotifications.removeObserver(notificationObserverID)
-        }
         self.discoveryObserverID = nil
         self.discoveryRecordObserverID = nil
         self.inputSourceObserverID = nil
-        self.notificationObserverID = nil
         isStarted = false
         rebuildOutcome()
     }
@@ -266,7 +244,6 @@ final class ActivityTriggeredSwitching {
         inputSources.refresh()
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
         _ = reevaluateUnavailableKeyboardAssignments()
-        refreshHasKeyboardAssignment()
 
         let status = SwitchingStatus.resolve(
             listenPermission: permission,
@@ -276,12 +253,6 @@ final class ActivityTriggeredSwitching {
         recordStatusChange(from: previousStatus, to: status)
         outcome = replacingOutcome(status: status)
         updateObservation(for: status)
-        operationalNotifications.update(
-            listenPermission: permission,
-            warnings: activeWarnings,
-            hasKeyboardAssignment: hasKeyboardAssignment,
-            paused: setupStore.isActivityTriggeredSwitchingPaused
-        )
         rebuildOutcome()
     }
 
@@ -456,7 +427,6 @@ final class ActivityTriggeredSwitching {
             break
         }
 
-        updateOperationalNotifications()
         rebuildOutcome()
     }
 
@@ -574,24 +544,7 @@ final class ActivityTriggeredSwitching {
     private func handleRecordChange() {
         reconcileWantedAssignmentFromRecords()
         _ = reevaluateUnavailableKeyboardAssignments()
-        refreshHasKeyboardAssignment()
-        updateOperationalNotifications()
         rebuildOutcome()
-    }
-
-    private func updateOperationalNotifications() {
-        operationalNotifications.update(
-            listenPermission: lastKnownListenPermission,
-            warnings: activeWarnings,
-            hasKeyboardAssignment: hasKeyboardAssignment,
-            paused: setupStore.isActivityTriggeredSwitchingPaused
-        )
-    }
-
-    private func refreshHasKeyboardAssignment() {
-        hasKeyboardAssignment = physicalKeyboardRecordStore.allRecords().contains {
-            $0.keyboardAssignment != nil
-        }
     }
 
     private func reconcileWantedAssignmentFromRecords() {

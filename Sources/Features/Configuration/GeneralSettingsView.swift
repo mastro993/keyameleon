@@ -80,47 +80,6 @@ private struct KeyameleonGeneralSettingsPane: View {
             } header: {
                 Text("App")
             }
-
-            Section {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack {
-                        Text("Authorization")
-                        Spacer()
-                        Text(notificationAuthorizationName(model.notificationAuthorizationState))
-                            .foregroundStyle(.secondary)
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Notification Authorization")
-                    .accessibilityValue(
-                        notificationAuthorizationName(model.notificationAuthorizationState)
-                    )
-
-                    Divider()
-
-                    HStack {
-
-                        Spacer()
-
-                        if model.notificationAuthorizationState == .notDetermined {
-                            Button("Enable Notifications") {
-                                model.requestOperationalNotificationAuthorization()
-                            }
-                        }
-
-
-                        Button("Open System Settings") {
-                            model.openNotificationSettings()
-                        }
-                    }
-                }
-            } header: {
-                Text("Operational Notifications")
-            } footer: {
-                Text(
-                    "Optional alerts for revoked Input Monitoring permission or unavailable Keyboard Assignments. Keyameleon never requests sound or badge access."
-                )
-            }
-
         }
         .formStyle(.grouped)
     }
@@ -130,21 +89,6 @@ private struct KeyameleonGeneralSettingsPane: View {
             get: { model.isLaunchAtLoginEnabled },
             set: { model.setLaunchAtLoginEnabled($0) }
         )
-    }
-
-    private func notificationAuthorizationName(
-        _ state: OperationalNotificationAuthorizationState
-    ) -> String {
-        switch state {
-        case .unknown:
-            "Checking"
-        case .notDetermined:
-            "Not requested"
-        case .denied:
-            "Denied"
-        case .authorized:
-            "Authorized"
-        }
     }
 }
 
@@ -183,7 +127,7 @@ private struct KeyameleonSettingsPreviewHost: View {
 #Preview("Settings general") {
     KeyameleonSettingsPreviewHost(
         section: .general,
-        model: KeyameleonPreviewFixtures.general(notificationState: .notDetermined),
+        model: KeyameleonPreviewFixtures.general(),
         setupModel: KeyameleonPreviewFixtures.setup(.assignmentsEmpty).model,
         aboutInfo: KeyameleonPreviewFixtures.aboutInfo
     )
@@ -211,16 +155,13 @@ private struct KeyameleonSettingsPreviewHost: View {
 
 #Preview("General pane empty") {
     KeyameleonGeneralSettingsPane(
-        model: KeyameleonPreviewFixtures.general(notificationState: .notDetermined)
+        model: KeyameleonPreviewFixtures.general()
     )
 }
 
 #Preview("General pane launch error") {
     KeyameleonGeneralSettingsPane(
-        model: KeyameleonPreviewFixtures.general(
-            launchAtLoginFailure: true,
-            notificationState: .denied
-        )
+        model: KeyameleonPreviewFixtures.general(launchAtLoginFailure: true)
     )
     .preferredColorScheme(.dark)
 }

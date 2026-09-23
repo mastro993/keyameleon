@@ -39,19 +39,14 @@ enum KeyameleonPreviewFixtures {
     static func general(
         launchAtLoginEnabled: Bool = false,
         launchAtLoginFailure: Bool = false,
-        canCheckForUpdates: Bool = true,
-        notificationState: OperationalNotificationAuthorizationState = .authorized
+        canCheckForUpdates: Bool = true
     ) -> KeyameleonGeneralSettingsModel {
         let model = KeyameleonGeneralSettingsModel(
             launchAtLoginController: PreviewLaunchAtLoginController(
                 isEnabled: launchAtLoginEnabled,
                 shouldFail: launchAtLoginFailure
             ),
-            updateChecker: PreviewUpdateChecker(canCheck: canCheckForUpdates),
-            operationalNotificationProvider: PreviewOperationalNotificationProvider(
-                authorizationState: notificationState
-            ),
-            notificationSettingsOpener: PreviewNotificationSettingsOpener()
+            updateChecker: PreviewUpdateChecker(canCheck: canCheckForUpdates)
         )
 
         if launchAtLoginFailure {
@@ -94,9 +89,6 @@ enum KeyameleonPreviewFixtures {
             designationStore: InMemoryManualPhysicalKeyboardDesignationStore(),
             integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(
                 key: SymmetricKey(data: Data(repeating: 42, count: 32))
-            ),
-            operationalNotificationProvider: PreviewOperationalNotificationProvider(
-                authorizationState: .authorized
             )
         )
         let switching = model.activityTriggeredSwitching
@@ -436,35 +428,6 @@ final class PreviewUpdateChecker: UpdateChecking {
     }
 
     func checkForUpdates() {}
-}
-
-@MainActor
-final class PreviewOperationalNotificationProvider: OperationalNotificationProviding {
-    private(set) var authorizationState: OperationalNotificationAuthorizationState
-
-    init(authorizationState: OperationalNotificationAuthorizationState) {
-        self.authorizationState = authorizationState
-    }
-
-    func refreshAuthorization(
-        onChange: @escaping @MainActor (OperationalNotificationAuthorizationState) -> Void
-    ) {
-        onChange(authorizationState)
-    }
-
-    func requestAlertAuthorization(
-        onChange: @escaping @MainActor (OperationalNotificationAuthorizationState) -> Void
-    ) {
-        authorizationState = .authorized
-        onChange(authorizationState)
-    }
-
-    func send(_ notification: OperationalNotification) {}
-}
-
-@MainActor
-final class PreviewNotificationSettingsOpener: NotificationSettingsOpening {
-    func openNotificationSettings() {}
 }
 
 @MainActor

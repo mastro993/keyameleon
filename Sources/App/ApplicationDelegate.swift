@@ -83,12 +83,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         let modelContext = ModelContext(modelContainer)
 
-        let operationalNotificationProvider: any OperationalNotificationProviding =
-            isHostedUnitTest
-                ? NoOpOperationalNotificationProvider()
-                : SystemOperationalNotificationProvider()
-        let notificationEpisodeStore = UserDefaultsOperationalNotificationEpisodeStore()
-        let notificationSetupStore = UserDefaultsNotificationSetupDecisionStore()
         let physicalKeyboardRecordStore = SwiftDataPhysicalKeyboardRecordStore(
             modelContext: modelContext
         )
@@ -99,15 +93,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             setupStore: setupStore,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
-            integrityKeyProvider: KeychainInstallationIntegrityKeyProvider(),
-            operationalNotificationProvider: operationalNotificationProvider,
-            notificationEpisodeStore: notificationEpisodeStore,
-            notificationSetupStore: notificationSetupStore
+            integrityKeyProvider: KeychainInstallationIntegrityKeyProvider()
         )
         self.init(
             composition: composition,
             systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
-            notificationSettingsOpener: NSWorkspaceNotificationSettingsOpener(),
             lifecycleObserver: SystemKeyameleonLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
@@ -121,7 +111,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     private init(
         composition: KeyameleonActivityTriggeredSwitchingComposition,
         systemSettingsOpener: any SystemSettingsOpening,
-        notificationSettingsOpener: any NotificationSettingsOpening,
         lifecycleObserver: any KeyameleonLifecycleObserving,
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
@@ -145,14 +134,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSources: composition.inputSources,
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
-            integrityKeyProvider: composition.integrityKeyProvider,
-            operationalNotifications: composition.operationalNotifications
+            integrityKeyProvider: composition.integrityKeyProvider
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
-            updateChecker: updateChecker,
-            operationalNotifications: composition.operationalNotifications,
-            notificationSettingsOpener: notificationSettingsOpener
+            updateChecker: updateChecker
         )
 
         super.init()
@@ -180,14 +166,6 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
         lifecycleObserver: any KeyameleonLifecycleObserving = NoOpKeyameleonLifecycleObserver(),
-        operationalNotificationProvider: any OperationalNotificationProviding =
-            NoOpOperationalNotificationProvider(),
-        notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
-            InMemoryOperationalNotificationEpisodeStore(),
-        notificationSetupStore: any NotificationSetupDecisionStoring =
-            InMemoryNotificationSetupDecisionStore(),
-        notificationSettingsOpener: any NotificationSettingsOpening =
-            NoOpNotificationSettingsOpener(),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
@@ -206,15 +184,11 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSourceChangeObserver: inputSourceChangeObserver,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
-            integrityKeyProvider: integrityKeyProvider,
-            operationalNotificationProvider: operationalNotificationProvider,
-            notificationEpisodeStore: notificationEpisodeStore,
-            notificationSetupStore: notificationSetupStore
+            integrityKeyProvider: integrityKeyProvider
         )
         self.init(
             composition: composition,
             systemSettingsOpener: systemSettingsOpener,
-            notificationSettingsOpener: notificationSettingsOpener,
             lifecycleObserver: lifecycleObserver,
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,

@@ -1,5 +1,25 @@
 # Choices
 
+## 2026-09-23 — Operational Notifications removed
+
+This supersedes the Operational Notification seams and defaults recorded under
+Issue #12 and Issue #39, and the notification-authorization bullets under
+Sparkle gentle reminders.
+
+### Defaults
+
+- Delete Operational Notifications end to end: the module, its episode and setup
+  decision stores, the authorization seam, `NotificationSettingsOpening`, and the
+  General Settings section that showed authorization state.
+- Keyameleon requests no notification authorization and sends no user alert.
+  Switching Status and the Menu bar panel stay the only surfaces that report a
+  revoked Input Monitoring permission or an Unavailable Keyboard Assignment.
+- Activity-Triggered Switching keeps its warning episodes. Only the alert
+  delivery and the setup-offer gate that consumed them are gone, so
+  `hasKeyboardAssignment` goes with them.
+- Leftover `keyameleon.notifications.*` UserDefaults keys stay inert. No
+  migration code is added to remove them.
+
 ## 2026-09-23 — Broad Physical Keyboard recognition
 
 ### Defaults
