@@ -169,13 +169,8 @@ build_development_app() {
 }
 
 development_keyameleon_pids() {
-    local pid executable app bundle_id
-    while read -r pid executable; do
-        [[ "${executable}" == */Keyameleon.app/Contents/MacOS/Keyameleon ]] || continue
-        app="${executable%/Contents/MacOS/Keyameleon}"
-        bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${app}/Contents/Info.plist" 2>/dev/null)" || continue
-        [[ "${bundle_id}" == dev.fedemas.keyameleon.development ]] && print -r -- "${pid}"
-    done < <(/bin/ps -axww -o pid=,comm=)
+    /usr/bin/osascript -l JavaScript -e \
+        'ObjC.import("AppKit"); $.NSRunningApplication.runningApplicationsWithBundleIdentifier("dev.fedemas.keyameleon.development").js.map(app => app.processIdentifier).join("\n")'
 }
 
 open_development_app() {
@@ -185,7 +180,10 @@ open_development_app() {
 
     while read -r pid; do
         [[ -n "${pid}" ]] || continue
-        kill "${pid}" || return 1
+        if ! kill "${pid}" 2>/dev/null && [[ -n "$(/bin/ps -p "${pid}" -o pid=)" ]]; then
+            print -u2 "Could not stop Development Build PID ${pid}."
+            return 1
+        fi
     done < <(development_keyameleon_pids)
 
     for (( attempt = 0; attempt < 50; attempt++ )); do
