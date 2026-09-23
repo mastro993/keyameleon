@@ -68,7 +68,7 @@ private struct MenuBarAssignmentRows: View {
     var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
 
     var body: some View {
-        let stack = LazyVStack(alignment: .leading, spacing: 4) {
+        let stack = LazyVStack(alignment: .leading, spacing: 8) {
             ForEach(list.rows) { row in
                 MenuBarAssignmentPill(row: row, emphasis: emphasis)
                     .frame(minHeight: rowHeight, alignment: .top)
@@ -149,14 +149,25 @@ struct MenuBarAssignmentPill: View {
 
 private struct MenuBarConnectionMark: View {
     let mark: MenuBarAssignmentList.ConnectionMark
+    
+    var icon: String {
+        switch mark {
+        case .active:
+            "checkmark.circle.fill"
+        case .connected:
+            "circle"
+        case .disconnected:
+            "circle.slash"
+        }
+    }
 
     var body: some View {
-        Image(systemName: "checkmark.circle.fill")
+        Image(systemName: icon)
             .font(.system(size: 14, weight: .semibold))
             .symbolRenderingMode(.monochrome)
-            .foregroundStyle(.green)
+            .foregroundStyle(mark == .active ? .green : .primary)
             .frame(width: 16, height: 22)
-            .opacity(mark == .active ? 1 : 0)
+            .opacity(mark == .active ? 1 : 0.25)
             .accessibilityHidden(true)
     }
 }
@@ -210,7 +221,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
     }
 
     private var borderLineWidth: CGFloat {
-        emphasis == .highContrast ? 1.5 : 1
+        emphasis == .highContrast ? 1.5 : 0.5
     }
 
     private var borderColor: Color {
@@ -340,6 +351,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
         )
     )
     .frame(width: MenuBarPanelContent.panelWidth)
+    .padding()
     .preferredColorScheme(.dark)
 }
 #endif
