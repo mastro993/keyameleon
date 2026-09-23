@@ -3,6 +3,12 @@ import SwiftUI
 
 @MainActor
 struct KeyameleonOnboardingView: View {
+    static let assignmentStepSubtitle = """
+    Connect every Physical Keyboard you use with this Mac and assign an Input Source. You can finish this later in Settings.
+
+    When you start typing on a different Physical Keyboard, that first key press can still use the previous Input Source. Keyameleon then selects that keyboard's Keyboard Assignment.
+    """
+
     private let model: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
@@ -83,7 +89,7 @@ struct KeyameleonOnboardingView: View {
 
     private var stepSubtitle: String {
         if model.guidedSetupStep == .assignments {
-            "Connect every Physical Keyboard you use with this Mac and assign an Input Source. You can finish this later in Settings."
+            Self.assignmentStepSubtitle
         } else {
             "Keyameleon needs Input Monitoring to observe Activation Activity from each Physical Keyboard."
         }

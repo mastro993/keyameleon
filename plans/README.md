@@ -10,7 +10,7 @@ Planned at commit `c3a172f`.
 |------|-------|----------|--------|------------|--------|
 | 001 | The menu-bar panel explains Switching Status and offers one recovery action | P1 | M | — | DONE |
 | 002 | Lock Input Source selection to Activation Activity | P1 | S | — | DONE |
-| 003 | Guided setup explains the Activation Activity Input Source limit | P2 | S | 002 | TODO |
+| 003 | Guided setup explains the Activation Activity Input Source limit | P2 | S | 002 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 
