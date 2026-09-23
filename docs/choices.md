@@ -1,5 +1,18 @@
 # Choices
 
+## 2026-09-23 — Assignment pill connection borders
+
+### Seams
+
+- `MenuBarAssignmentPillStyle` — takes `MenuBarAssignmentList.ConnectionMark` instead of an `isActive` flag, so the outline follows the enum the row already publishes.
+
+### Defaults
+
+- Active pill is unchanged. Neutral fill, green connection mark, no outline, and the 2 pt accent stroke under increased contrast.
+- Connected but inactive Physical Keyboard: 1 pt solid outline.
+- Disconnected Physical Keyboard: the same outline, dashed `[4, 3]`, still at 0.55 content opacity.
+- Outline colour is `Color.primary` at 0.25 opacity, and 0.5 at 1.5 pt under increased contrast, so it adapts to the appearance and no new colour enters the panel palette.
+
 ## 2026-09-22 — Local log files replace Diagnostic Data
 
 ### Defaults

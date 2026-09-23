@@ -68,7 +68,7 @@ private struct MenuBarAssignmentRows: View {
     var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
 
     var body: some View {
-        let stack = LazyVStack(alignment: .leading, spacing: 4) {
+        let stack = LazyVStack(alignment: .leading, spacing: 8) {
             ForEach(list.rows) { row in
                 MenuBarAssignmentPill(row: row, emphasis: emphasis)
                     .frame(minHeight: rowHeight, alignment: .top)
@@ -133,12 +133,12 @@ struct MenuBarAssignmentPill: View {
         }
         .modifier(
             MenuBarAssignmentPillStyle(
-                isActive: row.isActive,
+                connectionMark: row.connectionMark,
                 isDimmed: row.isDimmed,
                 emphasis: emphasis
             )
         )
-        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: row.isActive)
+        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: row.connectionMark)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(row.accessibilityValue)
@@ -149,14 +149,25 @@ struct MenuBarAssignmentPill: View {
 
 private struct MenuBarConnectionMark: View {
     let mark: MenuBarAssignmentList.ConnectionMark
+    
+    var icon: String {
+        switch mark {
+        case .active:
+            "checkmark.circle.fill"
+        case .connected:
+            "circle"
+        case .disconnected:
+            "circle.slash"
+        }
+    }
 
     var body: some View {
-        Image(systemName: "checkmark.circle.fill")
+        Image(systemName: icon)
             .font(.system(size: 14, weight: .semibold))
             .symbolRenderingMode(.monochrome)
-            .foregroundStyle(.green)
+            .foregroundStyle(mark == .active ? .green : .primary)
             .frame(width: 16, height: 22)
-            .opacity(mark == .active ? 1 : 0)
+            .opacity(mark == .active ? 1 : 0.25)
             .accessibilityHidden(true)
     }
 }
@@ -175,7 +186,7 @@ private struct MenuBarAssignmentFocusBinding: ViewModifier {
 }
 
 private struct MenuBarAssignmentPillStyle: ViewModifier {
-    let isActive: Bool
+    let connectionMark: MenuBarAssignmentList.ConnectionMark
     let isDimmed: Bool
     let emphasis: MenuBarAssignmentEmphasis
 
@@ -186,14 +197,35 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isActive ? Color.primary.opacity(0.12) : .clear, in: shape)
-            .overlay {
-                if isActive, emphasis == .highContrast {
-                    shape.strokeBorder(Color.accentColor, lineWidth: 2)
-                }
-            }
+            .background(connectionMark == .active ? Color.primary.opacity(0.12) : .clear, in: shape)
+            .overlay { border(in: shape) }
             .compositingGroup()
             .clipShape(shape)
+    }
+
+    @ViewBuilder
+    private func border(in shape: RoundedRectangle) -> some View {
+        switch connectionMark {
+        case .active:
+            if emphasis == .highContrast {
+                shape.strokeBorder(Color.accentColor, lineWidth: 2)
+            }
+        case .connected:
+            shape.strokeBorder(borderColor, lineWidth: borderLineWidth)
+        case .disconnected:
+            shape.strokeBorder(
+                borderColor,
+                style: StrokeStyle(lineWidth: borderLineWidth, dash: [4, 3])
+            )
+        }
+    }
+
+    private var borderLineWidth: CGFloat {
+        emphasis == .highContrast ? 1.5 : 0.5
+    }
+
+    private var borderColor: Color {
+        Color.primary.opacity(emphasis == .highContrast ? 0.5 : 0.25)
     }
 }
 
@@ -319,6 +351,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
         )
     )
     .frame(width: MenuBarPanelContent.panelWidth)
+    .padding()
     .preferredColorScheme(.dark)
 }
 #endif
