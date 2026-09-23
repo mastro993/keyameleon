@@ -108,26 +108,34 @@ func matchingBluetoothAddressesGroupHIDServicesAsOnePhysicalKeyboard() {
     #expect(catalog.physicalKeyboards[0].isAssignable)
 }
 
-@Test("Pointer HID with keyboard usage and no LED is not a Physical Keyboard")
-func pointerHIDWithKeyboardUsageAndNoLEDIsNotPhysicalKeyboard() {
+@Test("Keyboard usage stays recognized without LED evidence")
+func keyboardUsageWithoutLEDIsPhysicalKeyboard() {
     let recognition = PhysicalKeyboardHIDRecognition(
         hasKeyboardUsage: true,
-        hasMouseUsage: true,
-        hasKeyboardLED: false
-    )
-
-    #expect(!recognition.isPhysicalKeyboard)
-}
-
-@Test("Keyboard HID with pointing collection and LED is a Physical Keyboard")
-func keyboardHIDWithPointingCollectionAndLEDIsPhysicalKeyboard() {
-    let recognition = PhysicalKeyboardHIDRecognition(
-        hasKeyboardUsage: true,
-        hasMouseUsage: true,
-        hasKeyboardLED: true
+        hasKeyboardInputElement: false
     )
 
     #expect(recognition.isPhysicalKeyboard)
+}
+
+@Test("Keyboard input elements identify a Physical Keyboard without advertised keyboard usage")
+func keyboardInputElementIdentifiesPhysicalKeyboard() {
+    let recognition = PhysicalKeyboardHIDRecognition(
+        hasKeyboardUsage: false,
+        hasKeyboardInputElement: true
+    )
+
+    #expect(recognition.isPhysicalKeyboard)
+}
+
+@Test("Pointer without keyboard usage or key input stays excluded")
+func pointerWithoutKeyboardEvidenceIsNotPhysicalKeyboard() {
+    let recognition = PhysicalKeyboardHIDRecognition(
+        hasKeyboardUsage: false,
+        hasKeyboardInputElement: false
+    )
+
+    #expect(!recognition.isPhysicalKeyboard)
 }
 
 @Test("Different serial facts make a shared Physical Keyboard Identity unsupported")

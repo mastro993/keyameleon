@@ -97,25 +97,12 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
     }
 }
 
-/// HID usage facts used to tell a typing keyboard from a pointer that also
-/// exposes a keyboard collection (Logitech MX Master extra buttons).
 struct PhysicalKeyboardHIDRecognition: Equatable, Sendable {
     var hasKeyboardUsage: Bool
-    var hasMouseUsage: Bool
-    var hasKeyboardLED: Bool
+    var hasKeyboardInputElement: Bool
 
     var isPhysicalKeyboard: Bool {
-        guard hasKeyboardUsage else {
-            return false
-        }
-
-        // Pointer-first composites advertise keyboard usage for extra buttons.
-        // A typing keyboard that also has a pointing collection still has LEDs.
-        if hasMouseUsage && !hasKeyboardLED {
-            return false
-        }
-
-        return true
+        hasKeyboardUsage || hasKeyboardInputElement
     }
 }
 
