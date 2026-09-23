@@ -176,21 +176,24 @@ development_keyameleon_pids() {
 open_development_app() {
     local app="${PRODUCTS_PATH}/Keyameleon.app"
     local executable="${app}/Contents/MacOS/Keyameleon"
-    local pid attempt
+    local pid attempt pids
 
+    pids="$(development_keyameleon_pids)" || return 1
     while read -r pid; do
         [[ -n "${pid}" ]] || continue
         if ! kill "${pid}" 2>/dev/null && [[ -n "$(/bin/ps -p "${pid}" -o pid=)" ]]; then
             print -u2 "Could not stop Development Build PID ${pid}."
             return 1
         fi
-    done < <(development_keyameleon_pids)
+    done <<< "${pids}"
 
     for (( attempt = 0; attempt < 50; attempt++ )); do
-        [[ -z "$(development_keyameleon_pids)" ]] && break
+        pids="$(development_keyameleon_pids)" || return 1
+        [[ -z "${pids}" ]] && break
         sleep 0.2
     done
-    if [[ -n "$(development_keyameleon_pids)" ]]; then
+    pids="$(development_keyameleon_pids)" || return 1
+    if [[ -n "${pids}" ]]; then
         print -u2 'Existing Development Build did not exit.'
         return 1
     fi
