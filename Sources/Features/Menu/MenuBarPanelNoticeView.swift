@@ -10,11 +10,13 @@ struct MenuBarPanelNoticeView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(notice.title)
                 .font(.body.weight(.medium))
+                .accessibilityHidden(true)
 
             Text(notice.detail)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true)
 
             if let action = notice.action {
                 Button(action.title) {
