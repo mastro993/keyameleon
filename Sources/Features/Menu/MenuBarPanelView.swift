@@ -65,6 +65,9 @@ struct KeyameleonMenuBarPanelView: View {
             .padding(.horizontal, 12)
             .padding(.top, 10)
             .padding(.bottom, 10)
+            
+            Divider()
+                .opacity(0.22)
 
             MenuBarActionList(
                 actions: content.footer.actions,
