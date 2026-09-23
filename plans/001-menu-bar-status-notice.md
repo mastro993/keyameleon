@@ -135,7 +135,7 @@ Conventions to match:
 
 ### Step 1: Add the notice model
 
-Create `Sources/Features/Menu/MenuBarPanelNotice.swift` with one struct, `MenuBarPanelNotice: Equatable, Sendable`, holding `title: String`, `detail: String`, and `action: MenuBarPanelContent.Action?`.
+Create `Sources/Features/Menu/MenuBarPanelNotice.swift` with one struct, `MenuBarPanelNotice: Equatable, Sendable`, holding `title: String`, `detail: String`, `action: MenuBarPanelContent.Action?`, and `tone: Tone`. `Tone` is an enum with `warning` and `neutral`, and it drives the alert presentation. Permission Required is `.warning`, every other notice is `.neutral`.
 
 Add `static func make(outcome:physicalKeyboards:isSetupComplete:) -> MenuBarPanelNotice?`. Return the first match below. Do not combine two notices.
 
@@ -214,11 +214,13 @@ Cover these cases:
 
 ### Step 3: Show the notice and speak it
 
-Create `Sources/Features/Menu/MenuBarPanelNoticeView.swift`. `@MainActor struct MenuBarPanelNoticeView: View` takes the notice, a `FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding`, and `perform: (MenuBarPanelContent.Action) -> Void`.
+The notice is a rounded alert card, following Apple's inline warning style. `@MainActor struct MenuBarPanelNoticeView: View` takes the notice, a `FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding`, and `perform: (MenuBarPanelContent.Action) -> Void`.
 
-Layout, top to bottom: title, detail, then the button only when `action` is non-nil. Title uses `.font(.body.weight(.medium))`. Detail uses `.font(.callout)` and `.foregroundStyle(.secondary)` and wraps. The button is `Button(action.title) { perform(action) }` with `.buttonStyle(.bordered)`, `.focusable()`, focused as `.action(id: action.id)`, and `.accessibilityIdentifier("menu-bar-notice-\(action.id.rawValue)")`. The container uses `.accessibilityElement(children: .contain)`, label = title, value = detail, identifier `menu-bar-notice`. Horizontal padding 12, matching `MenuBarAssignmentSection` in `MenuBarPanelView`. Do not set a fixed height. Do not use `CGSize`.
+Layout, top to bottom. A header row holds an `exclamationmark.triangle.fill` glyph in orange when `tone == .warning`, then the title with `.font(.headline)`. Below it the detail with `.font(.callout)`, `.foregroundStyle(.secondary)`, and `.fixedSize(horizontal: false, vertical: true)` so it wraps. Below that the button, only when `action` is non-nil, with the title inside a `Text` that holds `.frame(maxWidth: .infinity)` so the prominent style fills the card width, `.buttonStyle(.borderedProminent)`, `.focusable()`, focused as `.action(id: action.id)`, and `.accessibilityIdentifier("menu-bar-notice-\(action.id.rawValue)")`.
 
-Add `#if DEBUG` / `#Preview("Menu-bar notice")` in that file showing the Permission Required notice at `MenuBarPanelContent.panelWidth`. Copy the `@Previewable @FocusState` shape from the "Menu-bar actions" preview in `MenuBarActionList.swift`.
+The card carries `.padding(12)`, then `.background(background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))` where `background` is `Color.yellow.opacity(0.16)` for `.warning` and `Color.primary.opacity(0.06)` for `.neutral`, then `.padding(.horizontal, 12)` so it lines up with `MenuBarAssignmentSection`. The title, detail, and glyph are `.accessibilityHidden(true)`, so the card stays one element: `.accessibilityElement(children: .contain)`, label = title, value = detail, identifier `menu-bar-notice`, with the button as its only child element. Do not set a fixed height. Do not use `CGSize`.
+
+Add `#if DEBUG` / `#Preview("Menu-bar notice")` in that file showing the Permission Required notice at `MenuBarPanelContent.panelWidth`, and a second named preview for the neutral presentation. Copy the `@Previewable @FocusState` shape from the "Menu-bar actions" preview in `MenuBarActionList.swift`.
 
 In `MenuBarPanelAccessibility`:
 

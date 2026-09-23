@@ -446,11 +446,27 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     let action = try #require(content.notice?.action)
 
     #expect(content.notice?.title == "Permission Required")
+    #expect(content.notice?.tone == .warning)
     #expect(action.id == .requestPermission)
     #expect(action.title == "Request Permission")
     #expect(action.closesPanel == false)
     #expect(overflowIDs(content) == [.pause, .settings, .quit])
     #expect(content.actionTitles.contains("Request Permission") == false)
+}
+
+@Test("Only the Permission Required notice carries the warning tone")
+@MainActor
+func menuBarPanelOnlyPermissionRequiredUsesWarningTone() {
+    #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).notice?.tone == .neutral)
+    #expect(
+        makeMenuBarPanelContent(
+            outcome: .readyFixture(),
+            physicalKeyboards: [
+                makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+            ]
+        ).notice?.tone == .neutral
+    )
+    #expect(makeMenuBarPanelContent(outcome: .readyFixture(), isSetupComplete: false).notice?.tone == .neutral)
 }
 
 @Test("Permission Required notice has no action when unavailable")

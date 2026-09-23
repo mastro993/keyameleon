@@ -1,9 +1,15 @@
 import Foundation
 
 struct MenuBarPanelNotice: Equatable, Sendable {
+    enum Tone: Equatable, Sendable {
+        case warning
+        case neutral
+    }
+
     let title: String
     let detail: String
     let action: MenuBarPanelContent.Action?
+    let tone: Tone
 
     static func make(
         outcome: ActivityTriggeredSwitchingOutcome,
@@ -22,7 +28,8 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                         isEnabled: true,
                         closesPanel: false
                     )
-                    : nil
+                    : nil,
+                tone: .warning
             )
         case .temporarilyUnavailable:
             let reason: String?
@@ -43,7 +50,12 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             } else {
                 detail = "Activity-Triggered Switching resumes automatically."
             }
-            return MenuBarPanelNotice(title: "Temporarily Unavailable", detail: detail, action: nil)
+            return MenuBarPanelNotice(
+                title: "Temporarily Unavailable",
+                detail: detail,
+                action: nil,
+                tone: .neutral
+            )
         case .paused:
             return nil
         case .ready:
@@ -61,7 +73,8 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                             isEnabled: true,
                             closesPanel: false
                         )
-                        : nil
+                        : nil,
+                    tone: .neutral
                 )
             }
 
@@ -72,7 +85,12 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 } else {
                     detail = "The current Input Source is \(sentence(mismatch.currentName)) The Keyboard Assignment is \(sentence(mismatch.assignedName))"
                 }
-                return MenuBarPanelNotice(title: "Input Source differs", detail: detail, action: nil)
+                return MenuBarPanelNotice(
+                    title: "Input Source differs",
+                    detail: detail,
+                    action: nil,
+                    tone: .neutral
+                )
             }
 
             let unassignedNames = physicalKeyboards
@@ -88,14 +106,20 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 default:
                     detail = "\(unassignedNames.count) Physical Keyboards have no Keyboard Assignment."
                 }
-                return MenuBarPanelNotice(title: "Keyboard Assignment needed", detail: detail, action: nil)
+                return MenuBarPanelNotice(
+                    title: "Keyboard Assignment needed",
+                    detail: detail,
+                    action: nil,
+                    tone: .neutral
+                )
             }
 
             if !isSetupComplete {
                 return MenuBarPanelNotice(
                     title: "Guided setup is not finished",
                     detail: "Open Settings to assign an Input Source.",
-                    action: nil
+                    action: nil,
+                    tone: .neutral
                 )
             }
             return nil
