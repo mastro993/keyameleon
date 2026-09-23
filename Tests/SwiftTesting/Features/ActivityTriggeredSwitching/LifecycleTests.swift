@@ -546,7 +546,7 @@ func physicalKeyboardListSortIgnoresActiveState() {
 
 @Test("Disconnecting the Active Physical Keyboard does not select the remaining Keyboard Assignment")
 @MainActor
-func disconnectingActivePhysicalKeyboardDoesNotSelectRemainingKeyboardAssignment() {
+func disconnectingActivePhysicalKeyboardDoesNotSelectRemainingKeyboardAssignment() throws {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
@@ -576,25 +576,25 @@ func disconnectingActivePhysicalKeyboardDoesNotSelectRemainingKeyboardAssignment
         )
     )
 
-    let alphaID = model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }!.id
-    let betaID = model.physicalKeyboards.first { $0.id.rawValue.contains("beta") }!.id
+    let alphaID = try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }?.id)
+    let betaID = try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("beta") }?.id)
     model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.us")
     model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.italian")
-    model.activityTriggeredSwitching.markActiveForTesting(alphaID)
+    driveActivationActivity(serviceID: 801, on: model)
     let selectCountBeforeDisconnect = selector.selectCount
 
     discoverer.emit(.disconnected(serviceID: 801))
 
     #expect(selector.selectCount == selectCountBeforeDisconnect)
     #expect(model.activePhysicalKeyboardID == alphaID)
-    let beta = model.physicalKeyboards.first { $0.id == betaID }!
+    let beta = try #require(model.physicalKeyboards.first { $0.id == betaID })
     #expect(beta.connectionState == .connected)
     #expect(!beta.isActive)
 }
 
 @Test("Connecting an assigned Physical Keyboard does not select its Keyboard Assignment")
 @MainActor
-func connectingAssignedPhysicalKeyboardDoesNotSelectItsKeyboardAssignment() {
+func connectingAssignedPhysicalKeyboardDoesNotSelectItsKeyboardAssignment() throws {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
@@ -614,10 +614,9 @@ func connectingAssignedPhysicalKeyboardDoesNotSelectItsKeyboardAssignment() {
             )
         )
     )
-    let alphaID = model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }!.id
+    let alphaID = try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }?.id)
     model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.us")
-    model.activityTriggeredSwitching.markActiveForTesting(alphaID)
-    let selectCountBeforeConnect = selector.selectCount
+    driveActivationActivity(serviceID: 801, on: model)
 
     discoverer.emit(
         .connected(
@@ -628,17 +627,31 @@ func connectingAssignedPhysicalKeyboardDoesNotSelectItsKeyboardAssignment() {
             )
         )
     )
-    let betaID = model.physicalKeyboards.first { $0.id.rawValue.contains("beta") }!.id
+    let betaID = try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("beta") }?.id)
     model.setKeyboardAssignment(betaID, inputSourceIdentifier: "com.example.italian")
+    discoverer.emit(.disconnected(serviceID: 802))
+    let selectCountBeforeReconnect = selector.selectCount
 
-    #expect(selector.selectCount == selectCountBeforeConnect)
+    discoverer.emit(
+        .connected(
+            makeSetupModelHardwareFacts(
+                serviceID: 802,
+                identity: "macos.keyboard.beta",
+                serialNumber: "serial-beta"
+            )
+        )
+    )
+
+    #expect(selector.selectCount == selectCountBeforeReconnect)
     #expect(model.activePhysicalKeyboardID == alphaID)
-    #expect(!model.physicalKeyboards.first { $0.id == betaID }!.isActive)
+    let beta = try #require(model.physicalKeyboards.first { $0.id == betaID })
+    #expect(beta.connectionState == .connected)
+    #expect(!beta.isActive)
 }
 
 @Test("Wake and unlock do not select the Active Keyboard Assignment")
 @MainActor
-func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() {
+func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() throws {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
@@ -658,22 +671,31 @@ func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() {
             )
         )
     )
-    let alphaID = model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }!.id
+    let alphaID = try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }?.id)
     model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.italian")
-    model.activityTriggeredSwitching.markActiveForTesting(alphaID)
-    #expect(selector.selectCount == 0)
+    driveActivationActivity(serviceID: 801, on: model)
+    #expect(selector.selectCount == 1)
+    let selectCountAfterActivationActivity = selector.selectCount
 
     model.activityTriggeredSwitching.handleLifecycleEvent(.willSleep)
     model.activityTriggeredSwitching.handleLifecycleEvent(.didWake)
 
-    #expect(selector.selectCount == 0)
+    #expect(selector.selectCount == selectCountAfterActivationActivity)
     #expect(model.activePhysicalKeyboardID == alphaID)
 
     model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidResignActive)
     model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidBecomeActive)
 
-    #expect(selector.selectCount == 0)
+    #expect(selector.selectCount == selectCountAfterActivationActivity)
     #expect(model.activePhysicalKeyboardID == alphaID)
+}
+
+@MainActor
+private func driveActivationActivity(serviceID: UInt64, on model: KeyameleonSetupModel) {
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery
+        .handlePhysicalKeyboardEventForTesting(
+            PhysicalKeyboardEvent(serviceID: serviceID, kind: .press)
+        )
 }
 
 @MainActor
