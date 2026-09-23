@@ -19,10 +19,6 @@ final class SystemPhysicalKeyboardEventObserver: PhysicalKeyboardEventObserving 
         self.onEvent = onEvent
 
         managerTask = Task { @MainActor in
-            let criteria = HIDDeviceManager.DeviceMatchingCriteria(
-                primaryUsage: .genericDesktop(.keyboard)
-            )
-
             // Observation is fail-closed: an ended or failed stream resubscribes
             // until `stop()` cancels this task.
             while !Task.isCancelled {
@@ -31,7 +27,7 @@ final class SystemPhysicalKeyboardEventObserver: PhysicalKeyboardEventObserving 
 
                 do {
                     for try await notification in await manager.monitorNotifications(
-                        matchingCriteria: [criteria]
+                        matchingCriteria: PhysicalKeyboardHIDInspection.matchingCriteria
                     ) {
                         guard !Task.isCancelled else {
                             return

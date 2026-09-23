@@ -22,10 +22,6 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
         stop()
 
         task = Task { @MainActor in
-            let criteria = HIDDeviceManager.DeviceMatchingCriteria(
-                primaryUsage: .genericDesktop(.keyboard)
-            )
-
             // Discovery is fail-closed: an ended or failed stream resubscribes
             // until `stop()` cancels this task.
             while !Task.isCancelled {
@@ -34,7 +30,7 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
 
                 do {
                     for try await notification in await manager.monitorNotifications(
-                        matchingCriteria: [criteria]
+                        matchingCriteria: PhysicalKeyboardHIDInspection.matchingCriteria
                     ) {
                         guard !Task.isCancelled else {
                             return
@@ -128,6 +124,10 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
 }
 
 enum PhysicalKeyboardHIDInspection {
+    static var matchingCriteria: [HIDDeviceManager.DeviceMatchingCriteria] {
+        [HIDDeviceManager.DeviceMatchingCriteria()]
+    }
+
     static func recognition(for client: HIDDeviceClient) async -> PhysicalKeyboardHIDRecognition {
         let primaryUsage = await client.primaryUsage
         let deviceUsages = await client.deviceUsages
@@ -135,8 +135,9 @@ enum PhysicalKeyboardHIDInspection {
 
         return PhysicalKeyboardHIDRecognition(
             hasKeyboardUsage: usages.contains { isKeyboardUsage($0) },
-            hasMouseUsage: usages.contains { isMouseUsage($0) },
-            hasKeyboardLED: await client.elements.contains { isKeyboardLED($0) }
+            hasKeyboardInputElement: await client.elements.contains {
+                isKeyboardInputElement($0)
+            }
         )
     }
 
@@ -166,19 +167,12 @@ enum PhysicalKeyboardHIDInspection {
         return false
     }
 
-    private static func isMouseUsage(_ usage: HIDUsage) -> Bool {
-        if case .genericDesktop(.mouse) = usage {
-            return true
-        }
-        return false
-    }
-
-    private static func isKeyboardLED(_ element: HIDElement) -> Bool {
-        guard element.type == .output else {
+    private static func isKeyboardInputElement(_ element: HIDElement) -> Bool {
+        guard element.type == .input else {
             return false
         }
 
-        if case .led = element.usage {
+        if case .keyboardOrKeypad = element.usage {
             return true
         }
         return false

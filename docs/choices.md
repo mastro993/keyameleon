@@ -1,5 +1,13 @@
 # Choices
 
+## 2026-09-23 — Broad Physical Keyboard recognition
+
+### Defaults
+
+- Inspect every CoreHID device because keyboard and keypad collections can appear behind a pointer or vendor-defined primary usage.
+- Recognize a Physical Keyboard when its primary or device usages include keyboard or keypad, or when it exposes a keyboard input element. Do not require LED output or reject a device because it also has pointer usage. This accepts some shortcut-equipped pointers in exchange for fewer missed keyboards and supersedes the 2026-08-23 pointer rule below.
+- Keep recognition separate from assignment. External devices still need a stable, unambiguous hardware identity before they can receive a Keyboard Assignment.
+
 ## 2026-09-23 — Assignment pill connection borders
 
 ### Seams
