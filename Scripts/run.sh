@@ -168,6 +168,47 @@ build_development_app() {
         CODE_SIGNING_REQUIRED=YES
 }
 
+development_keyameleon_pids() {
+    local pid executable app bundle_id
+    while read -r pid executable; do
+        [[ "${executable}" == */Keyameleon.app/Contents/MacOS/Keyameleon ]] || continue
+        app="${executable%/Contents/MacOS/Keyameleon}"
+        bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${app}/Contents/Info.plist" 2>/dev/null)" || continue
+        [[ "${bundle_id}" == dev.fedemas.keyameleon.development ]] && print -r -- "${pid}"
+    done < <(/bin/ps -axww -o pid=,comm=)
+}
+
+open_development_app() {
+    local app="${PRODUCTS_PATH}/Keyameleon.app"
+    local executable="${app}/Contents/MacOS/Keyameleon"
+    local pid attempt
+
+    while read -r pid; do
+        [[ -n "${pid}" ]] || continue
+        kill "${pid}" || return 1
+    done < <(development_keyameleon_pids)
+
+    for (( attempt = 0; attempt < 50; attempt++ )); do
+        [[ -z "$(development_keyameleon_pids)" ]] && break
+        sleep 0.2
+    done
+    if [[ -n "$(development_keyameleon_pids)" ]]; then
+        print -u2 'Existing Development Build did not exit.'
+        return 1
+    fi
+
+    open -n -a "${app}"
+    for (( attempt = 0; attempt < 50; attempt++ )); do
+        if /bin/ps -axww -o comm= | grep -Fx "${executable}" > /dev/null; then
+            sleep 1
+            /bin/ps -axww -o comm= | grep -Fx "${executable}" > /dev/null && return 0
+        fi
+        sleep 0.2
+    done
+    print -u2 "Development Build did not start from ${executable}."
+    return 1
+}
+
 audit_all
 
 case "${1:-test}" in
@@ -187,7 +228,7 @@ case "${1:-test}" in
     open)
         generate_project
         build_development_app
-        open "${PRODUCTS_PATH}/Keyameleon.app"
+        open_development_app
         ;;
     release-tag)
         shift
