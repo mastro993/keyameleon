@@ -90,6 +90,7 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
 
     #expect(assigned.accessibility.keyboardFocusOrder == [
         .about,
+        .action(id: .requestPermission),
         .assignment(id: "desk"),
         .assignment(id: "travel"),
         .action(id: .pause),
@@ -104,12 +105,27 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     ])
     #expect(assigned.accessibility.keyboardOperationTitles == [
         "About Keyameleon",
+        "Request Permission",
         "Desk",
         "Travel",
         "Pause",
         "Settings",
         "Quit Keyameleon"
     ])
+    #expect(assigned.accessibility.voiceOverOrderLabels == [
+        "Keyameleon",
+        "About Keyameleon",
+        "Permission Required",
+        "Request Permission",
+        "Desk",
+        "Travel",
+        "Pause",
+        "Settings",
+        "Quit Keyameleon"
+    ])
+    #expect(assigned.accessibility.notice?.label == "Permission Required")
+    #expect(assigned.accessibility.notice?.value == "Keyameleon needs Input Monitoring to observe Activation Activity.")
+    #expect(assigned.accessibility.noticeActionTitle == "Request Permission")
 }
 
 @Test("Paused and Ready live updates change Switching Status speech and tray actions")
@@ -122,6 +138,8 @@ func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
     #expect(ready.accessibility.panel.value == "Ready")
     #expect(paused.accessibility.panel.value == "Paused")
     #expect(permission.accessibility.panel.value == "Permission Required")
+    #expect(paused.accessibility.notice == nil)
+    #expect(paused.accessibility.noticeActionTitle == nil)
     #expect(ready.accessibility.actions.first?.label == "Pause")
     #expect(paused.accessibility.actions.first?.label == "Resume")
     #expect(permission.accessibility.actions.map(\.label) == [

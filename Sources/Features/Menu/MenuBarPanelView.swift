@@ -41,12 +41,21 @@ struct KeyameleonMenuBarPanelView: View {
         VStack(alignment: .leading, spacing: 0) {
             MenuBarPanelHeader(
                 openAction: content.footer.about,
+                pausedMarker: content.pausedMarker,
                 focusedTarget: $focusedTarget,
                 perform: perform
             )
 
             Divider()
                 .opacity(0.22)
+
+            if let notice = content.notice {
+                MenuBarPanelNoticeView(
+                    notice: notice,
+                    focusedTarget: $focusedTarget,
+                    perform: perform
+                )
+            }
 
             MenuBarAssignmentSection(
                 list: content.assignmentList,
@@ -109,7 +118,8 @@ struct KeyameleonMenuBarPanelView: View {
             assignedInputSourceNames: assignedInputSourceNames,
             marketingVersion: Bundle.main.object(
                 forInfoDictionaryKey: "CFBundleShortVersionString"
-            ) as? String
+            ) as? String,
+            isSetupComplete: setupModel.isSetupComplete
         )
     }
 
@@ -140,6 +150,8 @@ struct KeyameleonMenuBarPanelView: View {
             setupModel.openSystemSettings()
         case .checkAgain:
             switching.checkAgain()
+        case .retryNow:
+            switching.retryNow()
         case .settings:
             actions.openSettings()
         case .quit:
@@ -150,15 +162,25 @@ struct KeyameleonMenuBarPanelView: View {
 
 struct MenuBarPanelHeader: View {
     let openAction: MenuBarPanelContent.Action
+    let pausedMarker: String?
     var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding
     let perform: (MenuBarPanelContent.Action) -> Void
 
     var body: some View {
         HStack(alignment: .center, spacing: 4) {
-            Text("Keyameleon")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("Keyameleon")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.primary)
+
+                if let pausedMarker {
+                    Text(pausedMarker)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Button {
                 perform(openAction)
@@ -198,6 +220,18 @@ struct MenuBarPanelHeader: View {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarPanelHeader(
         openAction: KeyameleonPreviewFixtures.aboutAction(),
+        pausedMarker: nil,
+        focusedTarget: $focusedTarget,
+        perform: { _ in }
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+}
+
+#Preview("Menu-bar header paused") {
+    @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
+    MenuBarPanelHeader(
+        openAction: KeyameleonPreviewFixtures.aboutAction(),
+        pausedMarker: "(paused)",
         focusedTarget: $focusedTarget,
         perform: { _ in }
     )

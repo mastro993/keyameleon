@@ -20,6 +20,7 @@
 		159B98D5103B09A498E7AAD6 /* KeyameleonLogLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AA723EBE985D1DDC17F329 /* KeyameleonLogLevel.swift */; };
 		15EADB73F954D79F813518EC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5225FE09338A066FF3E0C002 /* Carbon.framework */; };
 		1AA27BA749DA8FBD0D8FCB9E /* PhysicalKeyboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B511C748DA6CA0346AF82293 /* PhysicalKeyboardStore.swift */; };
+		20ACB033A217515B3E545CAC /* MenuBarPanelNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 974256D0031FBD3AB7489104 /* MenuBarPanelNoticeView.swift */; };
 		25585C64D960E44C5FE14C77 /* SetupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2346EDBABE7C49A31D94212 /* SetupModel.swift */; };
 		296377FCFED883C896E32623 /* ManualPhysicalKeyboardDesignation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4A25E4C7869A3366B201DF /* ManualPhysicalKeyboardDesignation.swift */; };
 		2BB4E861F71DA62BC5F2CAC8 /* MenuBarAssignmentSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5014C6C08F2939E299149C5F /* MenuBarAssignmentSection.swift */; };
@@ -53,6 +54,7 @@
 		64E3E73BCBE33BBF8DA964B2 /* SwiftData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81634072FBBCD7BCF66DC8CC /* SwiftData.framework */; };
 		696C257B3027894F98A70B80 /* KeyboardAssignmentPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A026DD82D56CC75927527C54 /* KeyboardAssignmentPickerView.swift */; };
 		6E6AE5997646E58C9C409CDC /* SwitchingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF80C3CAC82D1C136650952 /* SwitchingStatus.swift */; };
+		6FF404006B8CEF0ACCB33811 /* MenuBarPanelNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D5F96A2362DECAA7C5162F /* MenuBarPanelNotice.swift */; };
 		70F07E3878FB7A8185FCDD81 /* AboutFolderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B1A81B1FF64DA2C31377B4 /* AboutFolderRow.swift */; };
 		70F9C19E96F2EF3FEED1EB56 /* UpdatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B795111210D68DF941CB9B7E /* UpdatePolicy.swift */; };
 		72696326EB311035F8CE8AF8 /* SetupModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D81ECA454E56A9D56B8466 /* SetupModelTests.swift */; };
@@ -137,6 +139,7 @@
 		0E4A25E4C7869A3366B201DF /* ManualPhysicalKeyboardDesignation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignation.swift; sourceTree = "<group>"; };
 		11B88E798212B2B74226E09A /* GeneralSettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsModelTests.swift; sourceTree = "<group>"; };
 		11E7EF7669CDB881F2120DA4 /* KeyameleonRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonRootView.swift; sourceTree = "<group>"; };
+		15D5F96A2362DECAA7C5162F /* MenuBarPanelNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelNotice.swift; sourceTree = "<group>"; };
 		18D81ECA454E56A9D56B8466 /* SetupModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupModelTests.swift; sourceTree = "<group>"; };
 		1A6DB2E3039606970CA2C0BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1D1883A29573897172890DDD /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
@@ -188,6 +191,7 @@
 		9506787E8D42CD09D52DDF8C /* AboutWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindowController.swift; sourceTree = "<group>"; };
 		967B7E1070DD4601582EE6C6 /* Keyameleon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keyameleon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		96EAAA7C23460CFB5FE490B2 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		974256D0031FBD3AB7489104 /* MenuBarPanelNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelNoticeView.swift; sourceTree = "<group>"; };
 		981CB4EAD210A214863F3D5B /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		9B335F899F75BAB9FEE776B5 /* InputSourceSelectionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSelectionPolicy.swift; sourceTree = "<group>"; };
 		9D397C615AE93268A186585C /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
@@ -543,6 +547,8 @@
 				6C8AFAF78F5FABB017191BA6 /* MenuBarPanelChrome.swift */,
 				F2ADA91C6FC6F792ABAD2F3D /* MenuBarPanelContent.swift */,
 				3AF43CA4CDCBA6A5E9C39CB4 /* MenuBarPanelController.swift */,
+				15D5F96A2362DECAA7C5162F /* MenuBarPanelNotice.swift */,
+				974256D0031FBD3AB7489104 /* MenuBarPanelNoticeView.swift */,
 				60C37F30071FDD379B2A7118 /* MenuBarPanelPreviews.swift */,
 				B2187CBFC2E4C31121A67AAE /* MenuBarPanelView.swift */,
 			);
@@ -731,6 +737,8 @@
 				11ED7611FEDA155DC96D5752 /* MenuBarPanelChrome.swift in Sources */,
 				F4D7658A578A8B574CB65E86 /* MenuBarPanelContent.swift in Sources */,
 				B5EC86AEFA479559EB8A8E80 /* MenuBarPanelController.swift in Sources */,
+				6FF404006B8CEF0ACCB33811 /* MenuBarPanelNotice.swift in Sources */,
+				20ACB033A217515B3E545CAC /* MenuBarPanelNoticeView.swift in Sources */,
 				0FECCB093604246B6608FD55 /* MenuBarPanelPreviews.swift in Sources */,
 				4CDF5DC52582BF9C61F200A7 /* MenuBarPanelView.swift in Sources */,
 				53924388EA332DF79586922F /* OnboardingView.swift in Sources */,
