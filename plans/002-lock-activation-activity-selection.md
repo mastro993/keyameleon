@@ -120,19 +120,21 @@ Add the tests below to `LifecycleTests.swift`, above the private `makeLifecycleM
 
 Each test uses two distinct identities when it connects two keyboards: `macos.keyboard.alpha` / `serial-alpha` and `macos.keyboard.beta` / `serial-beta`. Assign `com.example.us` and `com.example.italian` from the helper's catalog. Construct the selector as `SetupModelTestInputSourceSelector(current: "com.example.us")` so a selection of Italian would increment `selectCount`.
 
-Resolve a connected keyboard's id the way the sort test in this file does: `model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }`. The record id contains the identity string. Do not use the service id as the record id.
+Resolve a connected keyboard's id with `try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }?.id)`, so each test is `throws` and a discovery regression fails one test with a message instead of trapping the test process. The record id contains the identity string. Do not use the service id as the record id.
+
+Drive Activation Activity through the discovery seam, the way `assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadback` in `SwitchingTests.swift` does: `model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 801, kind: .press))`. That populates the wanted assignment, which `markActiveForTesting` does not, so a regression that retries the wanted assignment on a lifecycle event has something to retry. Put one private helper for it above `makeLifecycleModel`.
 
 1. `@Test("Disconnecting the Active Physical Keyboard does not select the remaining Keyboard Assignment")`
 
-   Connect both keyboards. Assign each. `markActiveForTesting` on the alpha id. Record `selector.selectCount`. Disconnect service `801` (alpha). Expect `selectCount` unchanged, `activePhysicalKeyboardID` still alpha, and the beta keyboard still `.connected` and not `isActive`.
+   Connect both keyboards. Assign each. Drive Activation Activity on service `801` (alpha). Record `selector.selectCount` after it. Disconnect service `801`. Expect `selectCount` unchanged, `activePhysicalKeyboardID` still alpha, and the beta keyboard still `.connected` and not `isActive`.
 
 2. `@Test("Connecting an assigned Physical Keyboard does not select its Keyboard Assignment")`
 
-   Connect and assign alpha. `markActiveForTesting` on alpha. Record `selectCount`. Connect and assign beta. Expect `selectCount` unchanged, the active id still alpha, and beta not `isActive`.
+   Connect and assign alpha. Drive Activation Activity on `801`. Connect beta and assign it, then disconnect `802` and record `selectCount`. Connect `802` again, so the Physical Keyboard that connects is one that already has a Keyboard Assignment. Expect `selectCount` unchanged, the active id still alpha, and beta connected and not `isActive`.
 
 3. `@Test("Wake and unlock do not select the Active Keyboard Assignment")`
 
-   Connect and assign one keyboard to `com.example.italian`. `markActiveForTesting`. Expect `selectCount == 0`. Call `handleLifecycleEvent(.willSleep)` then `.didWake`. Expect `selectCount == 0` and the same active id. Call `.sessionDidResignActive` then `.sessionDidBecomeActive`. Expect `selectCount == 0` and the same active id.
+   Connect and assign one keyboard to `com.example.italian`. Drive Activation Activity on `801` and expect `selectCount == 1`. Record that count. Call `handleLifecycleEvent(.willSleep)` then `.didWake`. Expect `selectCount` unchanged and the same active id. Call `.sessionDidResignActive` then `.sessionDidBecomeActive`. Expect the same.
 
 Use service ids `801` and `802` so they do not collide with existing literals in this file in a way that matters; the discoverer is per test, so uniqueness inside the test is what matters. Do not assert log text. Do not assert observation start counts.
 
@@ -167,6 +169,7 @@ Until that later plan exists, plan 003 tells the user about the current limit.
 - Three new `@Test` functions in `LifecycleTests.swift`, described in Step 1.
 - Pattern: `disconnectedActivePhysicalKeyboardStaysActiveWithNoInputSourceRequest` in the same file, and `makeLifecycleModel`.
 - No production assertions beyond `selectCount`, the active id, and connection / `isActive` on the keyboards under test.
+- Each test was checked red-first against an injected regression: a selection on disconnect, a selection of a saved assignment on connect, and a retry of the wanted assignment from `checkAgain()`. All three tests fail under their own regression.
 - `./Scripts/run.sh test` exits 0.
 
 ## Done criteria
@@ -182,7 +185,7 @@ Until that later plan exists, plan 003 tells the user about the current limit.
 Stop and report back (do not improvise) if:
 
 - `handleLifecycleEvent` or `handleDiscoveryRecordChange` already calls `applyWantedKeyboardAssignment` or otherwise selects an Input Source. The premise of this plan is false.
-- After `setKeyboardAssignment` and `markActiveForTesting`, `selectCount` is already non-zero. Saving an assignment is not supposed to select. Report that instead of loosening the wake test.
+- After `setKeyboardAssignment`, `selectCount` is already non-zero. Saving an assignment is not supposed to select. Report that instead of loosening the wake test.
 - `makeLifecycleModel` no longer takes a `selector:` or no longer offers `com.example.italian`.
 - A new test cannot express two Physical Keyboards without changing production identity rules.
 - You believe the sole-remaining-keyboard rule should ship in this change. It must not. Report that, and leave production code untouched.
@@ -192,5 +195,5 @@ Stop and report back (do not improvise) if:
 ## Maintenance notes
 
 - These tests are the contract plan 003's sentence relies on. If selection starts happening on disconnect, wake, or connect, update the sentence in the same pull request.
-- A reviewer should confirm the diff is test-only and that `selectCount` is compared against a recorded value, not against a hardcoded `0` that hides a select performed while arranging the test. Recording `selectCount` before the disconnect or connect is the arrangement used above. The wake test can expect `0` because `markActiveForTesting` and `setKeyboardAssignment` do not select.
+- A reviewer should confirm the diff is test-only and that `selectCount` is compared against a recorded value, not against a hardcoded `0` that hides a select performed while arranging the test. Every test records `selectCount` after the Activation Activity that sets the wanted assignment, so the baseline is a real selection and the lifecycle events must not add another one.
 - Do not treat this plan's "Not adopted" section as permission to start the implementation inside the same branch.
