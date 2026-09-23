@@ -14,7 +14,7 @@ struct MenuBarPanelNoticeView: View {
                         .foregroundStyle(.orange)
                         .accessibilityHidden(true)
                 } else if notice.tone == .neutral {
-                    Image(systemName: "info.circle.fill")
+                    Image(systemName: "info.triangle.fill")
                         .foregroundStyle(.blue)
                         .accessibilityHidden(true)
                 }
