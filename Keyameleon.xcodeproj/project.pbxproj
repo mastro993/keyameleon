@@ -24,6 +24,7 @@
 		25585C64D960E44C5FE14C77 /* SetupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2346EDBABE7C49A31D94212 /* SetupModel.swift */; };
 		296377FCFED883C896E32623 /* ManualPhysicalKeyboardDesignation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4A25E4C7869A3366B201DF /* ManualPhysicalKeyboardDesignation.swift */; };
 		2BB4E861F71DA62BC5F2CAC8 /* MenuBarAssignmentSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5014C6C08F2939E299149C5F /* MenuBarAssignmentSection.swift */; };
+		2C7BC2E27A434F49F0D45F59 /* MenuBarAssignmentPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E27BD2B35874DAC97B53B75 /* MenuBarAssignmentPill.swift */; };
 		2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9163A19B113812EA758F0681 /* ProductionFactory.swift */; };
 		34EFF25115723D444C623637 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F3881EDB96F08B18FD0F617B /* Sparkle */; };
 		35E9CFDD030E21B10BA02FBF /* MenuBarPanelAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77232F12327C5871ACA91EE6 /* MenuBarPanelAccessibilityTests.swift */; };
@@ -39,6 +40,7 @@
 		48015E432FD28317B7DD5C50 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D397C615AE93268A186585C /* ServiceManagement.framework */; };
 		49316C09EF30EEB66F3802AF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6BDE001E72B645ABFC8A82 /* Security.framework */; };
 		4CDF5DC52582BF9C61F200A7 /* MenuBarPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2187CBFC2E4C31121A67AAE /* MenuBarPanelView.swift */; };
+		4E3F7FC607BD3E2CC2399318 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337ED7456362DDDFDE630664 /* View+Extension.swift */; };
 		527BD2B0EDC53489589D89E0 /* KeyameleonLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F260D47DE0A4E16CBDA1163E /* KeyameleonLog.swift */; };
 		53924388EA332DF79586922F /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DB2E3039606970CA2C0BC /* OnboardingView.swift */; };
 		53DAC0C0ACEFFC5D2629B5AE /* MenuBarAssignmentList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E753CF14DC01BCC8D08D3D /* MenuBarAssignmentList.swift */; };
@@ -150,6 +152,7 @@
 		2B175759F1BE920DB617F59E /* MenuFirstTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuFirstTests.swift; sourceTree = "<group>"; };
 		2EBBE2F8099D138DBCFAC869 /* SettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSection.swift; sourceTree = "<group>"; };
 		31B1A81B1FF64DA2C31377B4 /* AboutFolderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutFolderRow.swift; sourceTree = "<group>"; };
+		337ED7456362DDDFDE630664 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		33E753CF14DC01BCC8D08D3D /* MenuBarAssignmentList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentList.swift; sourceTree = "<group>"; };
 		34CCDD31AB22CC0C28426FAD /* ManualDesignationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualDesignationTests.swift; sourceTree = "<group>"; };
 		36713BE2699501700BE41232 /* ReleasePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicyTests.swift; sourceTree = "<group>"; };
@@ -160,6 +163,7 @@
 		4027C628E86898D2BC6C501A /* ReplaceSavedPhysicalKeyboardPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplaceSavedPhysicalKeyboardPickerView.swift; sourceTree = "<group>"; };
 		4BD58202CA21D92931C62863 /* ManualPhysicalKeyboardDesignationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualPhysicalKeyboardDesignationStore.swift; sourceTree = "<group>"; };
 		4C7BDAC18E923F6E0AF78EF7 /* KeyameleonLogWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyameleonLogWriter.swift; sourceTree = "<group>"; };
+		4E27BD2B35874DAC97B53B75 /* MenuBarAssignmentPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentPill.swift; sourceTree = "<group>"; };
 		5014C6C08F2939E299149C5F /* MenuBarAssignmentSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAssignmentSection.swift; sourceTree = "<group>"; };
 		5225FE09338A066FF3E0C002 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		538184558F7BE381E06F05FC /* ListenPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenPermission.swift; sourceTree = "<group>"; };
@@ -377,6 +381,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		690D45A48DB6BADE36B56FF6 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				337ED7456362DDDFDE630664 /* View+Extension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 		6B808CCF35D6FF7CE5A949BF /* ActivityTriggeredSwitching */ = {
 			isa = PBXGroup;
 			children = (
@@ -451,6 +463,7 @@
 				C0329C82BF8FA843134637A5 /* About */,
 				A087AE9094823234A5557439 /* ActivityTriggeredSwitching */,
 				B5FCEB22EF79CE73D43F9899 /* Configuration */,
+				690D45A48DB6BADE36B56FF6 /* Extensions */,
 				F22E23C1937159435006ABD9 /* Menu */,
 				448C4DD3D0D8D88103D8114C /* Onboarding */,
 				311DE57ADB71ED2CBF26A90D /* Shared */,
@@ -545,6 +558,7 @@
 				ACC728BFDBEAA5AFF42FCD74 /* ApplicationDelegate+Menu.swift */,
 				7FB0CFC4FB84DA213C85B8A1 /* MenuBarActionList.swift */,
 				33E753CF14DC01BCC8D08D3D /* MenuBarAssignmentList.swift */,
+				4E27BD2B35874DAC97B53B75 /* MenuBarAssignmentPill.swift */,
 				5014C6C08F2939E299149C5F /* MenuBarAssignmentSection.swift */,
 				7CCC61240C377CC0B57490FF /* MenuBarPanelAccessibility.swift */,
 				6C8AFAF78F5FABB017191BA6 /* MenuBarPanelChrome.swift */,
@@ -735,6 +749,7 @@
 				99A02E0432C706B27AA974F3 /* ManualPhysicalKeyboardDesignationStore.swift in Sources */,
 				9FDF6F39554FA2B0AB814980 /* MenuBarActionList.swift in Sources */,
 				53DAC0C0ACEFFC5D2629B5AE /* MenuBarAssignmentList.swift in Sources */,
+				2C7BC2E27A434F49F0D45F59 /* MenuBarAssignmentPill.swift in Sources */,
 				2BB4E861F71DA62BC5F2CAC8 /* MenuBarAssignmentSection.swift in Sources */,
 				C3629FBFE85FABA73119A005 /* MenuBarPanelAccessibility.swift in Sources */,
 				11ED7611FEDA155DC96D5752 /* MenuBarPanelChrome.swift in Sources */,
@@ -761,6 +776,7 @@
 				E4C4892DEE368B7B9262DC5C /* SwitchingWarning.swift in Sources */,
 				36F0019B86A7140B10EC0B34 /* UpdateChecker.swift in Sources */,
 				70F9C19E96F2EF3FEED1EB56 /* UpdatePolicy.swift in Sources */,
+				4E3F7FC607BD3E2CC2399318 /* View+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
