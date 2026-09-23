@@ -534,14 +534,23 @@ func menuBarPanelTemporarilyUnavailableNoticeWithoutKnownReasonExplainsAutomatic
     #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Activity-Triggered Switching resumes automatically.")
 }
 
-@Test("Paused notice explains Switching Status")
+@Test("Paused panel marks the title and shows no notice")
 @MainActor
-func menuBarPanelPausedNoticeExplainsSwitchingStatus() {
-    let notice = makeMenuBarPanelContent(outcome: .pausedFixture()).notice
+func menuBarPanelPausedMarksTitleWithoutNotice() {
+    let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(notice?.title == "Paused")
-    #expect(notice?.detail == "Activity-Triggered Switching is paused.")
-    #expect(notice?.action == nil)
+    #expect(content.pausedMarker == "(paused)")
+    #expect(content.notice == nil)
+    #expect(overflow(content, .resume)?.title == "Resume")
+}
+
+@Test("Paused marker appears only while switching is paused")
+@MainActor
+func menuBarPanelPausedMarkerAppearsOnlyWhilePaused() {
+    #expect(makeMenuBarPanelContent(outcome: .readyFixture()).pausedMarker == nil)
+    #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).pausedMarker == nil)
+    #expect(makeMenuBarPanelContent(outcome: .permissionRequiredFixture()).pausedMarker == nil)
+    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).pausedMarker == "(paused)")
 }
 
 @Test("Input Source differs notice names the Active Physical Keyboard")

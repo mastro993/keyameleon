@@ -24,6 +24,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
 ## What these plans decided
 
 - The menu-bar panel gets one notice and at most one button (Request Permission or Retry Now). The footer stays Pause or Resume, Settings, and Quit. Keyboard Assignment editing stays in Settings.
+- Paused is the one Switching Status with no notice block. It rides on the panel title as `(paused)`, because one word is enough and the Resume action is already in the footer.
 - Early selection on disconnect is not adopted. The setup sentence describes the current limit instead.
 - Virtual HID, keyboard seizure, and a First-Key Guarantee stay out of scope.
 

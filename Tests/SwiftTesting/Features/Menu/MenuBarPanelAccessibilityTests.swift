@@ -138,6 +138,8 @@ func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
     #expect(ready.accessibility.panel.value == "Ready")
     #expect(paused.accessibility.panel.value == "Paused")
     #expect(permission.accessibility.panel.value == "Permission Required")
+    #expect(paused.accessibility.notice == nil)
+    #expect(paused.accessibility.noticeActionTitle == nil)
     #expect(ready.accessibility.actions.first?.label == "Pause")
     #expect(paused.accessibility.actions.first?.label == "Resume")
     #expect(permission.accessibility.actions.map(\.label) == [

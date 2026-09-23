@@ -45,11 +45,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             }
             return MenuBarPanelNotice(title: "Temporarily Unavailable", detail: detail, action: nil)
         case .paused:
-            return MenuBarPanelNotice(
-                title: "Paused",
-                detail: "Activity-Triggered Switching is paused.",
-                action: nil
-            )
+            return nil
         case .ready:
             if let warning = outcome.warnings.first(where: { $0.category == .selectionFailed }) {
                 let detail = warning.physicalKeyboardName.map {

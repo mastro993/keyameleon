@@ -146,7 +146,7 @@ Add `static func make(outcome:physicalKeyboards:isSetupComplete:) -> MenuBarPane
    - `.secureInput` → `Secure Input is active.`
    - `.protectedDataUnavailable` → `Protected data is unavailable.`
    - If none of those are present, the detail is only `Activity-Triggered Switching resumes automatically.`
-3. **Paused.** Title `Paused`. Detail `Activity-Triggered Switching is paused.` Action nil. Resume stays in the footer.
+3. **Paused.** No notice. Return nil, so the header carries the paused state instead. Give `MenuBarPanelContent` a `let pausedMarker: String?`, set to `"(paused)"` when `outcome.switchingStatus == .paused` and to nil otherwise. `MenuBarPanelHeader` takes `pausedMarker: String?` and renders it beside the `Keyameleon` title in secondary style, hidden from accessibility because the panel value already speaks the Switching Status. Resume stays in the footer.
 4. **Ready, selection failure.** If `outcome.warnings` contains `.selectionFailed`, title `Couldn't select the Keyboard Assignment`. Detail is `Retry the Keyboard Assignment for <name>.` when `physicalKeyboardName` is non-nil, otherwise `Retry the Keyboard Assignment.` Action is Retry Now (`id: .retryNow`, title `Retry Now`, `closesPanel: false`) only when `outcome.hasAction(.retryNow)`. This case outranks mismatch and unassigned keyboards.
 5. **Ready, mismatch.** If `outcome.mismatch` is non-nil, title `Input Source differs`. Detail is `The current Input Source is <currentName>. <Active Physical Keyboard name>'s Keyboard Assignment is <assignedName>.` when `outcome.activePhysicalKeyboard?.name` is non-nil. Otherwise omit the keyboard name: `The current Input Source is <currentName>. The Keyboard Assignment is <assignedName>.` Action nil.
 6. **Ready, unassigned.** Physical Keyboards whose `assignmentState` is `.unassigned`, in the array order given, with no extra sort:
@@ -199,7 +199,8 @@ Cover these cases:
 - Permission Required fixture → notice title `Permission Required`, action id `.requestPermission`, action title `Request Permission`, `closesPanel == false`. Footer ids stay `[.pause, .settings, .quit]`. `actionTitles` does not contain `Request Permission`.
 - Temporarily Unavailable fixture (reasons `[.sleeping]`) → detail is `The Mac is sleeping. Activity-Triggered Switching resumes automatically.` Action nil. Footer still contains `.pause`.
 - Temporarily Unavailable with reasons `[.secureInput, .sleeping]` → detail starts with `The Mac is sleeping.`
-- Paused fixture → title `Paused`, action nil.
+- Paused fixture → `notice == nil`, `pausedMarker == "(paused)"`, and the footer still offers Resume.
+- Ready, Temporarily Unavailable, and Permission Required fixtures → `pausedMarker == nil`.
 - Ready with `ActivityTriggeredSwitchingMismatch(currentName: "Italian", assignedName: "U.S.")` and `activePhysicalKeyboard` name `Travel` → detail is `The current Input Source is Italian. Travel's Keyboard Assignment is U.S.` Action nil.
 - Ready with a warning `ActivityTriggeredSwitchingWarning(physicalKeyboardName: "Travel", category: .selectionFailed, recoveryAction: .retryNow)` and `availableActions` containing `.retryNow` → action title `Retry Now`.
 - The same warning with `availableActions` equal to `[.pause]` → notice exists, action nil.
@@ -252,6 +253,7 @@ Run `./Scripts/run.sh generate`.
 - [ ] `python3 -m unittest Tests/Scripts/test_preview_coverage.py` prints `OK`
 - [ ] A Ready panel with no mismatch, no selection failure, no unassigned Physical Keyboard, and completed setup has `notice == nil`
 - [ ] Permission Required shows a Request Permission notice action and the footer ids remain `[.pause, .settings, .quit]`
+- [ ] A Paused panel shows `pausedMarker == "(paused)"`, no notice, and Resume in the footer
 - [ ] `rg -n "Check Again|Open System Settings" Sources/Features/Menu/MenuBarPanelNotice.swift` prints no matches
 - [ ] `rg -n "first-key|First-Key|guarantee" Sources/Features/Menu/MenuBarPanelNotice.swift` prints no matches
 - [ ] `git status --short` shows only files in the in-scope list, plus `plans/README.md`
@@ -272,6 +274,7 @@ Stop and report back (do not improvise) if:
 ## Maintenance notes
 
 - The notice priority is the product contract. A new Switching Status or warning category has to be placed in that list on purpose, in `MenuBarPanelNotice.make` and in `MenuBarPanelTests`.
+- Paused is the one status with no notice block. It rides on the header as `MenuBarPanelContent.pausedMarker`, because the panel is already open and the paused state needs one word, not a paragraph. A status that needs an action still belongs in the notice ladder.
 - Reviewers should check that the footer tests still forbid recovery actions in the footer, and that Retry Now calls `switching.retryNow()` rather than a new selection path.
 - Request Permission keeps the panel open (`closesPanel: false`). If a later change finds the system permission prompt hidden behind the panel, flip only that action's `closesPanel` to `true` and update the Permission Required test.
 - Unavailable Keyboard Assignment stays on the row. Do not also add a panel notice for it unless the row copy is removed.

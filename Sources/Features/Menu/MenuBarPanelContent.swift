@@ -34,6 +34,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
     let assignmentList: MenuBarAssignmentList
     let footer: Footer
     let notice: MenuBarPanelNotice?
+    let pausedMarker: String?
 
     var accessibility: MenuBarPanelAccessibility {
         MenuBarPanelAccessibility(content: self)
@@ -55,6 +56,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         isSetupComplete: Bool = true
     ) {
         self.switchingStatus = outcome.switchingStatus
+        self.pausedMarker = outcome.switchingStatus == .paused ? "(paused)" : nil
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
             physicalKeyboards: physicalKeyboards,
