@@ -83,7 +83,6 @@ targets:
       - sdk: ServiceManagement.framework
       - sdk: SwiftData.framework
       - sdk: SwiftUI.framework
-      - sdk: UserNotifications.framework
 
   KeyameleonSwiftTesting:
     type: bundle.unit-test

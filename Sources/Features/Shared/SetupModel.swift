@@ -107,8 +107,6 @@ final class KeyameleonSetupModel {
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
-    private(set) var notificationAuthorizationState: OperationalNotificationAuthorizationState
-    private(set) var shouldOfferOperationalNotificationSetup: Bool
     private(set) var isWaitingForListenPermission = false
 
     var onGuidedSetupCompleted: (() -> Void)?
@@ -122,12 +120,10 @@ final class KeyameleonSetupModel {
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let designationStore: any ManualPhysicalKeyboardDesignationStoring
     private let integrityKeyProvider: any InstallationIntegrityKeyProviding
-    private let operationalNotifications: OperationalNotifications
     private let resolver: PhysicalKeyboardPresentationResolver
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var discoveryObserverID: UUID?
     private var inputSourceObserverID: UUID?
-    private var notificationObserverID: UUID?
     private var permissionPollTask: Task<Void, Never>?
 
     init(
@@ -138,8 +134,7 @@ final class KeyameleonSetupModel {
         inputSources: InputSourceModule,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
-        integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        operationalNotifications: OperationalNotifications
+        integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) {
         self.activityTriggeredSwitching = activityTriggeredSwitching
         self.setupStore = setupStore
@@ -149,7 +144,6 @@ final class KeyameleonSetupModel {
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
         self.designationStore = designationStore
         self.integrityKeyProvider = integrityKeyProvider
-        self.operationalNotifications = operationalNotifications
         resolver = PhysicalKeyboardPresentationResolver(
             recordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
@@ -158,8 +152,6 @@ final class KeyameleonSetupModel {
         isSetupComplete = setupStore.hasCompletedGuidedSetup
         hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
         guidedSetupStep = setupStore.guidedSetupStep
-        notificationAuthorizationState = operationalNotifications.authorizationState
-        shouldOfferOperationalNotificationSetup = operationalNotifications.shouldOfferSetup
 
         discoveryObserverID = physicalKeyboardDiscovery.observeChanges { [weak self] _ in
             self?.advanceManualDesignationSession()
@@ -174,14 +166,6 @@ final class KeyameleonSetupModel {
             }
 
             eligibleInputSources = inputSources.eligibleInputSources
-        }
-        notificationObserverID = operationalNotifications.observe { [weak self] in
-            guard let self else {
-                return
-            }
-
-            notificationAuthorizationState = operationalNotifications.authorizationState
-            shouldOfferOperationalNotificationSetup = operationalNotifications.shouldOfferSetup
         }
 
         publishPhysicalKeyboards()
@@ -208,13 +192,7 @@ final class KeyameleonSetupModel {
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
-            InMemoryInstallationIntegrityKeyProvider(),
-        operationalNotificationProvider: any OperationalNotificationProviding =
-            NoOpOperationalNotificationProvider(),
-        notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
-            InMemoryOperationalNotificationEpisodeStore(),
-        notificationSetupStore: any NotificationSetupDecisionStoring =
-            InMemoryNotificationSetupDecisionStore()
+            InMemoryInstallationIntegrityKeyProvider()
     ) {
         let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
@@ -227,10 +205,7 @@ final class KeyameleonSetupModel {
             inputSourceChangeObserver: inputSourceChangeObserver,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
-            integrityKeyProvider: integrityKeyProvider,
-            operationalNotificationProvider: operationalNotificationProvider,
-            notificationEpisodeStore: notificationEpisodeStore,
-            notificationSetupStore: notificationSetupStore
+            integrityKeyProvider: integrityKeyProvider
         )
         self.init(
             activityTriggeredSwitching: composition.activityTriggeredSwitching,
@@ -240,8 +215,7 @@ final class KeyameleonSetupModel {
             inputSources: composition.inputSources,
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
-            integrityKeyProvider: composition.integrityKeyProvider,
-            operationalNotifications: composition.operationalNotifications
+            integrityKeyProvider: composition.integrityKeyProvider
         )
     }
 
@@ -274,18 +248,6 @@ final class KeyameleonSetupModel {
                 nil
             }
         }
-    }
-
-    func refreshNotificationAuthorization() {
-        operationalNotifications.refreshAuthorization()
-    }
-
-    func requestOperationalNotificationAuthorization() {
-        operationalNotifications.requestAlertAuthorization()
-    }
-
-    func dismissOperationalNotificationSetup() {
-        operationalNotifications.dismissSetupOffer()
     }
 
     func beginGuidedSetup() {

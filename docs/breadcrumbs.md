@@ -1,5 +1,29 @@
 # Breadcrumbs
 
+## 2026-09-23 — Operational Notifications removed
+
+- Removed the Operational Notifications subsystem end to end:
+  `OperationalNotifications.swift` and `OperationalNotificationTests.swift` are
+  deleted, along with the `operationalNotifications` parameter on
+  `ActivityTriggeredSwitching`, `KeyameleonSetupModel`,
+  `KeyameleonGeneralSettingsModel`, and the composition root.
+- General Settings loses the Operational Notifications section: the authorization
+  row, the Enable Notifications button, and the System Settings shortcut that
+  opened notification settings. `NotificationSettingsOpening`,
+  `NSWorkspaceNotificationSettingsOpener`, and `NoOpNotificationSettingsOpener`
+  go with it.
+- `ActivityTriggeredSwitching` loses `hasKeyboardAssignment` and
+  `refreshHasKeyboardAssignment()`, which existed only to gate the setup offer,
+  plus `updateOperationalNotifications()` and its observer.
+- `KeyameleonSetupModel` loses `notificationAuthorizationState` and
+  `shouldOfferOperationalNotificationSetup`. Guided setup and Keyboard
+  Assignment editing are unchanged.
+- `UserNotifications.framework` is no longer linked.
+- Leftover `keyameleon.notifications.*` UserDefaults keys stay inert; no
+  migration code removes them.
+- Tests: the notification suite is deleted. Switching, recovery, lifecycle,
+  pause, and settings tests are unchanged.
+
 ## 2026-09-23 — Assignment pill name, subtitle, and ISO language code
 
 - Pill title is the Physical Keyboard Name: Custom name when set, product name

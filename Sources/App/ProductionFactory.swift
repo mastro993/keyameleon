@@ -3,13 +3,11 @@ import Foundation
 /// The application composition root for Activity-Triggered Switching.
 ///
 /// This factory builds the shared internal modules once so SetupModel and
-/// Activity-Triggered Switching use the same discovery, Input Source, and
-/// Operational Notification state.
+/// Activity-Triggered Switching use the same discovery and Input Source.
 @MainActor
 struct KeyameleonActivityTriggeredSwitchingComposition {
     let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
     let inputSources: InputSourceModule
-    let operationalNotifications: OperationalNotifications
     let activityTriggeredSwitching: ActivityTriggeredSwitching
     let setupStore: any SetupDecisionStoring
     let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
@@ -25,10 +23,7 @@ enum KeyameleonProductionFactory {
         setupStore: any SetupDecisionStoring,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
-        integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        operationalNotificationProvider: any OperationalNotificationProviding,
-        notificationEpisodeStore: any OperationalNotificationEpisodeStoring,
-        notificationSetupStore: any NotificationSetupDecisionStoring
+        integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) -> KeyameleonActivityTriggeredSwitchingComposition {
         let inputSources = SystemInputSourceProvider()
         return makeActivityTriggeredSwitching(
@@ -42,10 +37,7 @@ enum KeyameleonProductionFactory {
             inputSourceChangeObserver: SystemInputSourceChangeObserver(),
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
-            integrityKeyProvider: integrityKeyProvider,
-            operationalNotificationProvider: operationalNotificationProvider,
-            notificationEpisodeStore: notificationEpisodeStore,
-            notificationSetupStore: notificationSetupStore
+            integrityKeyProvider: integrityKeyProvider
         )
     }
 
@@ -66,13 +58,7 @@ enum KeyameleonProductionFactory {
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
-            InMemoryInstallationIntegrityKeyProvider(),
-        operationalNotificationProvider: any OperationalNotificationProviding =
-            NoOpOperationalNotificationProvider(),
-        notificationEpisodeStore: any OperationalNotificationEpisodeStoring =
-            InMemoryOperationalNotificationEpisodeStore(),
-        notificationSetupStore: any NotificationSetupDecisionStoring =
-            InMemoryNotificationSetupDecisionStore()
+            InMemoryInstallationIntegrityKeyProvider()
     ) -> KeyameleonActivityTriggeredSwitchingComposition {
         let physicalKeyboardDiscovery = PhysicalKeyboardDiscovery(
             discoverer: physicalKeyboardDiscoverer,
@@ -83,11 +69,6 @@ enum KeyameleonProductionFactory {
             selector: inputSourceSelector,
             changeObserver: inputSourceChangeObserver
         )
-        let operationalNotifications = OperationalNotifications(
-            provider: operationalNotificationProvider,
-            episodeStore: notificationEpisodeStore,
-            setupStore: notificationSetupStore
-        )
         let activityTriggeredSwitching = ActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
             protectedStateProvider: protectedStateProvider,
@@ -96,14 +77,12 @@ enum KeyameleonProductionFactory {
             inputSources: inputSources,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
-            integrityKeyProvider: integrityKeyProvider,
-            operationalNotifications: operationalNotifications
+            integrityKeyProvider: integrityKeyProvider
         )
 
         return KeyameleonActivityTriggeredSwitchingComposition(
             physicalKeyboardDiscovery: physicalKeyboardDiscovery,
             inputSources: inputSources,
-            operationalNotifications: operationalNotifications,
             activityTriggeredSwitching: activityTriggeredSwitching,
             setupStore: setupStore,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
