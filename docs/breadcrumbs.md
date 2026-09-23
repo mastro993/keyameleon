@@ -1,5 +1,10 @@
 # Breadcrumbs
 
+## 2026-09-23 — Assignment pill borders
+
+- Connection state now reads from the pill outline. Active keeps its fill and green mark, a connected but inactive Physical Keyboard gets a solid border, and a disconnected one gets a dashed border.
+- `MenuBarAssignmentPillStyle` takes the row's `ConnectionMark` instead of an `isActive` boolean, so the outline cannot disagree with the row it renders.
+
 ## 2026-09-22 — Local logging replaces Diagnostic Data
 
 - Removed the Diagnostic Data feature: `DiagnosticData.swift`,

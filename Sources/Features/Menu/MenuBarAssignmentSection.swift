@@ -133,12 +133,12 @@ struct MenuBarAssignmentPill: View {
         }
         .modifier(
             MenuBarAssignmentPillStyle(
-                isActive: row.isActive,
+                connectionMark: row.connectionMark,
                 isDimmed: row.isDimmed,
                 emphasis: emphasis
             )
         )
-        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: row.isActive)
+        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: row.connectionMark)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(row.accessibilityValue)
@@ -175,7 +175,7 @@ private struct MenuBarAssignmentFocusBinding: ViewModifier {
 }
 
 private struct MenuBarAssignmentPillStyle: ViewModifier {
-    let isActive: Bool
+    let connectionMark: MenuBarAssignmentList.ConnectionMark
     let isDimmed: Bool
     let emphasis: MenuBarAssignmentEmphasis
 
@@ -186,14 +186,35 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isActive ? Color.primary.opacity(0.12) : .clear, in: shape)
-            .overlay {
-                if isActive, emphasis == .highContrast {
-                    shape.strokeBorder(Color.accentColor, lineWidth: 2)
-                }
-            }
+            .background(connectionMark == .active ? Color.primary.opacity(0.12) : .clear, in: shape)
+            .overlay { border(in: shape) }
             .compositingGroup()
             .clipShape(shape)
+    }
+
+    @ViewBuilder
+    private func border(in shape: RoundedRectangle) -> some View {
+        switch connectionMark {
+        case .active:
+            if emphasis == .highContrast {
+                shape.strokeBorder(Color.accentColor, lineWidth: 2)
+            }
+        case .connected:
+            shape.strokeBorder(borderColor, lineWidth: borderLineWidth)
+        case .disconnected:
+            shape.strokeBorder(
+                borderColor,
+                style: StrokeStyle(lineWidth: borderLineWidth, dash: [4, 3])
+            )
+        }
+    }
+
+    private var borderLineWidth: CGFloat {
+        emphasis == .highContrast ? 1.5 : 1
+    }
+
+    private var borderColor: Color {
+        Color.primary.opacity(emphasis == .highContrast ? 0.5 : 0.25)
     }
 }
 
