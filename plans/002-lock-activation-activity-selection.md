@@ -134,7 +134,7 @@ Drive Activation Activity through the discovery seam, the way `assignedActivatio
 
 3. `@Test("Wake and unlock do not select the Active Keyboard Assignment")`
 
-   Connect and assign one keyboard to `com.example.italian`. Drive Activation Activity on `801` and expect `selectCount == 1`. Record that count. Call `handleLifecycleEvent(.willSleep)` then `.didWake`. Expect `selectCount` unchanged and the same active id. Call `.sessionDidResignActive` then `.sessionDidBecomeActive`. Expect the same.
+   Connect and assign one keyboard to `com.example.italian`. Drive Activation Activity on `801` and expect `selectCount == 1`. Record that count. Call `handleLifecycleEvent(.willSleep)` then `.didWake`, and emit the alpha `.connected` facts again afterwards. `PhysicalKeyboardDiscovery.stop()` clears the catalog and the discoverer test double does not replay devices, so only the emit puts back what the real wake flow rediscovers. Expect `selectCount` unchanged and the same active id. Repeat the emit after `.sessionDidResignActive` and `.sessionDidBecomeActive`, and expect the same.
 
 Use service ids `801` and `802` so they do not collide with existing literals in this file in a way that matters; the discoverer is per test, so uniqueness inside the test is what matters. Do not assert log text. Do not assert observation start counts.
 
@@ -169,7 +169,7 @@ Until that later plan exists, plan 003 tells the user about the current limit.
 - Three new `@Test` functions in `LifecycleTests.swift`, described in Step 1.
 - Pattern: `disconnectedActivePhysicalKeyboardStaysActiveWithNoInputSourceRequest` in the same file, and `makeLifecycleModel`.
 - No production assertions beyond `selectCount`, the active id, and connection / `isActive` on the keyboards under test.
-- Each test was checked red-first against an injected regression: a selection on disconnect, a selection of a saved assignment on connect, and a retry of the wanted assignment from `checkAgain()`. All three tests fail under their own regression.
+- Each test was checked red-first against an injected regression: a selection on disconnect, a selection of a saved assignment on connect, and a retry of the wanted assignment from `checkAgain()`. All three tests fail under their own regression. The connect-selection regression also fails the wake and unlock test, because that test now emits the reconnect the real wake flow produces.
 - `./Scripts/run.sh test` exits 0.
 
 ## Done criteria

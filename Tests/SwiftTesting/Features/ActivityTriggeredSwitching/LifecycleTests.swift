@@ -662,15 +662,12 @@ func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() throws {
     )
 
     startAndCheck(model)
-    discoverer.emit(
-        .connected(
-            makeSetupModelHardwareFacts(
-                serviceID: 801,
-                identity: "macos.keyboard.alpha",
-                serialNumber: "serial-alpha"
-            )
-        )
+    let alphaFacts = makeSetupModelHardwareFacts(
+        serviceID: 801,
+        identity: "macos.keyboard.alpha",
+        serialNumber: "serial-alpha"
     )
+    discoverer.emit(.connected(alphaFacts))
     let alphaID = try #require(model.physicalKeyboards.first { $0.id.rawValue.contains("alpha") }?.id)
     model.setKeyboardAssignment(alphaID, inputSourceIdentifier: "com.example.italian")
     driveActivationActivity(serviceID: 801, on: model)
@@ -679,12 +676,14 @@ func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() throws {
 
     model.activityTriggeredSwitching.handleLifecycleEvent(.willSleep)
     model.activityTriggeredSwitching.handleLifecycleEvent(.didWake)
+    discoverer.emit(.connected(alphaFacts))
 
     #expect(selector.selectCount == selectCountAfterActivationActivity)
     #expect(model.activePhysicalKeyboardID == alphaID)
 
     model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidResignActive)
     model.activityTriggeredSwitching.handleLifecycleEvent(.sessionDidBecomeActive)
+    discoverer.emit(.connected(alphaFacts))
 
     #expect(selector.selectCount == selectCountAfterActivationActivity)
     #expect(model.activePhysicalKeyboardID == alphaID)
