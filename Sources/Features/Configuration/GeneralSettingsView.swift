@@ -32,7 +32,7 @@ struct KeyameleonSettingsView: View {
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
             .toolbar(removing: .sidebarToggle)
         } detail: {
-            settingsPane(selection.section) {
+            settingsPane {
                 switch selection.section {
                 case .general:
                     KeyameleonGeneralSettingsPane(model: model)
@@ -49,24 +49,10 @@ struct KeyameleonSettingsView: View {
     }
 
     private func settingsPane<Content: View>(
-        _ section: KeyameleonSettingsSection,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(section.title)
-                    .font(.largeTitle)
-                    .accessibilityAddTraits(.isHeader)
-                Text(section.subtitle)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 28)
-            .padding(.top, 24)
-            .padding(.bottom, 16)
-
-            content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        }
+        content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 
@@ -78,7 +64,7 @@ private struct KeyameleonGeneralSettingsPane: View {
         Form {
             Section {
                 VStack(alignment: .leading, spacing: 14) {
-                    Toggle("Launch Keyameleon at login", isOn: launchAtLoginBinding)
+                    Toggle("Launch at login", isOn: launchAtLoginBinding)
                         .toggleStyle(.switch)
                         .frame(maxWidth: .infinity)
 
@@ -92,9 +78,7 @@ private struct KeyameleonGeneralSettingsPane: View {
                     }
                 }
             } header: {
-                Text("Startup")
-            } footer: {
-                Text("Starts Keyameleon when you log in.")
+                Text("App")
             }
 
             Section {

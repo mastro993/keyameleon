@@ -15,17 +15,6 @@ enum KeyameleonSettingsSection: String, CaseIterable, Identifiable, Hashable, Se
         }
     }
 
-    var subtitle: String {
-        switch self {
-        case .general:
-            "Startup and Operational Notifications."
-        case .keyboards:
-            "Physical Keyboards and their Keyboard Assignments."
-        case .about:
-            "Version, license, updates, and log files."
-        }
-    }
-
     var systemImage: String {
         switch self {
         case .general: "gearshape"

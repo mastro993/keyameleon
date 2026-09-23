@@ -9,7 +9,6 @@ func settingsSectionsAreGeneralKeyboardsThenAbout() {
     #expect(KeyameleonSettingsSection.about.title == "About")
     for section in KeyameleonSettingsSection.allCases {
         #expect(!section.title.isEmpty)
-        #expect(!section.subtitle.isEmpty)
         #expect(!section.systemImage.isEmpty)
     }
 }
