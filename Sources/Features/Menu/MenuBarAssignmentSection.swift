@@ -134,8 +134,16 @@ struct MenuBarAssignmentPill: View {
             if let languageCode = row.assignedLanguageCode {
                 Text(languageCode)
                     .font(.callout.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                     .lineLimit(1)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .overlay {
+                        Capsule().strokeBorder(
+                            emphasis.outlineColor,
+                            lineWidth: emphasis.outlineLineWidth
+                        )
+                    }
                     .accessibilityHidden(true)
             }
         }
@@ -177,6 +185,17 @@ private struct MenuBarConnectionMark: View {
             .frame(width: 16, height: 22)
             .opacity(mark == .active ? 1 : 0.25)
             .accessibilityHidden(true)
+    }
+}
+
+private extension MenuBarAssignmentEmphasis {
+    /// Shared outline vocabulary for the pill and its language badge.
+    var outlineColor: Color {
+        Color.primary.opacity(self == .highContrast ? 0.5 : 0.25)
+    }
+
+    var outlineLineWidth: CGFloat {
+        self == .highContrast ? 1.5 : 0.5
     }
 }
 
@@ -229,11 +248,11 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
     }
 
     private var borderLineWidth: CGFloat {
-        emphasis == .highContrast ? 1.5 : 0.5
+        emphasis.outlineLineWidth
     }
 
     private var borderColor: Color {
-        Color.primary.opacity(emphasis == .highContrast ? 0.5 : 0.25)
+        emphasis.outlineColor
     }
 }
 
