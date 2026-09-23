@@ -358,25 +358,10 @@ struct KeyameleonKeyboardSettingsView: View {
     }
 
     private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {
-        let connection = switch physicalKeyboard.connectionState {
-        case .connected: "Connected"
+        switch physicalKeyboard.connectionState {
         case .disconnected: "Disconnected"
+        case .connected: "Connected · \(physicalKeyboard.connectionTypeName)"
         }
-        guard physicalKeyboard.connectionState == .connected else {
-            return connection
-        }
-
-        let hardware = if physicalKeyboard.isBuiltIn {
-            "Built-in"
-        } else {
-            switch physicalKeyboard.transport {
-            case .usb: "USB"
-            case .bluetooth: "Bluetooth"
-            case .bluetoothLowEnergy: "Bluetooth Low Energy"
-            case .other: "Other"
-            }
-        }
-        return "\(connection) · \(hardware)"
     }
 
     private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {

@@ -111,10 +111,10 @@ struct MenuBarAssignmentPill: View {
                     .font(.body.weight(row.isActive ? .semibold : .medium))
                     .foregroundStyle(.primary)
                     .lineLimit(MenuBarPanelLayout.nameLineLimit)
-                Text(row.assignedInputSourceName)
+                Text(row.subtitle)
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                    .lineLimit(MenuBarPanelLayout.inputSourceLineLimit)
+                    .lineLimit(MenuBarPanelLayout.subtitleLineLimit)
                 if let warningNote = row.warningNote {
                     Text(warningNote)
                         .font(.caption2)
@@ -128,6 +128,14 @@ struct MenuBarAssignmentPill: View {
                     .font(.body)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+
+            if let languageCode = row.assignedLanguageCode {
+                Text(languageCode)
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
                     .accessibilityHidden(true)
             }
         }
@@ -268,10 +276,22 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
                     isActive: false
                 )
             ],
-            assignedInputSourceNames: [
-                PhysicalKeyboardRecordID(rawValue: "travel"): "Italian",
-                PhysicalKeyboardRecordID(rawValue: "desk"): "US",
-                PhysicalKeyboardRecordID(rawValue: "away"): "French"
+            assignedInputSources: [
+                PhysicalKeyboardRecordID(rawValue: "travel"): EligibleInputSource(
+                    identifier: "com.apple.keylayout.Italian",
+                    name: "Italian",
+                    languageCode: "IT"
+                ),
+                PhysicalKeyboardRecordID(rawValue: "desk"): EligibleInputSource(
+                    identifier: "com.apple.keylayout.US",
+                    name: "U.S.",
+                    languageCode: "EN"
+                ),
+                PhysicalKeyboardRecordID(rawValue: "away"): EligibleInputSource(
+                    identifier: "com.apple.keylayout.French",
+                    name: "French",
+                    languageCode: "FR"
+                )
             ]
         )
     )
@@ -296,13 +316,13 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
                         isActive: false
                     )
                 ],
-                assignedInputSourceNames: [:]
+                assignedInputSources: [:]
             )
         )
         MenuBarAssignmentSection(
             list: MenuBarAssignmentList(
                 physicalKeyboards: [],
-                assignedInputSourceNames: [:]
+                assignedInputSources: [:]
             )
         )
     }
@@ -314,7 +334,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
     MenuBarAssignmentSection(
         list: MenuBarAssignmentList(
             physicalKeyboards: [],
-            assignedInputSourceNames: [:]
+            assignedInputSources: [:]
         )
     )
     .frame(width: MenuBarPanelContent.panelWidth)
@@ -330,7 +350,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
                     assignment: "com.apple.keylayout.Missing"
                 )
             ],
-            assignedInputSourceNames: [:]
+            assignedInputSources: [:]
         ),
         emphasis: .highContrast
     )
@@ -343,7 +363,9 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
         row: MenuBarAssignmentList.Row(
             id: "preview-disconnected",
             physicalKeyboardName: "Office Keyboard",
+            subtitle: "HHKB Professional - Bluetooth",
             assignedInputSourceName: "German",
+            assignedLanguageCode: "DE",
             connectionMark: .disconnected,
             isDimmed: true,
             warningNote: nil,

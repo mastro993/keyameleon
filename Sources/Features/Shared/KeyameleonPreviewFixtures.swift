@@ -223,9 +223,21 @@ enum KeyameleonPreviewFixtures {
 
     static func inputSources() -> [EligibleInputSource] {
         [
-            EligibleInputSource(identifier: "com.apple.keylayout.Italian", name: "Italian"),
-            EligibleInputSource(identifier: "com.apple.keylayout.US", name: "U.S."),
-            EligibleInputSource(identifier: "com.apple.keylayout.German", name: "German")
+            EligibleInputSource(
+                identifier: "com.apple.keylayout.Italian",
+                name: "Italian",
+                languageCode: "IT"
+            ),
+            EligibleInputSource(
+                identifier: "com.apple.keylayout.US",
+                name: "U.S.",
+                languageCode: "EN"
+            ),
+            EligibleInputSource(
+                identifier: "com.apple.keylayout.German",
+                name: "German",
+                languageCode: "DE"
+            )
         ]
     }
 

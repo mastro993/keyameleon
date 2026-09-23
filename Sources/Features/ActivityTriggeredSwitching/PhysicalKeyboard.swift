@@ -275,6 +275,20 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
         customName ?? productName
     }
 
+    /// Connection type a person recognizes, such as `USB` or `Built-in`.
+    var connectionTypeName: String {
+        if isBuiltIn {
+            return "Built-in"
+        }
+
+        return switch transport {
+        case .usb: "USB"
+        case .bluetooth: "Bluetooth"
+        case .bluetoothLowEnergy: "Bluetooth Low Energy"
+        case .other: "Other"
+        }
+    }
+
     var keyboardAssignment: KeyboardAssignment? {
         if case let .assigned(assignment) = assignmentState {
             return assignment

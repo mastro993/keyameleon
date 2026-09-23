@@ -10,7 +10,7 @@ func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
         physicalKeyboards: [
             makeAssignedAccessibleKeyboard(name: "Travel", identifier: "travel", isActive: true)
         ],
-        assignedInputSourceNames: panelAccessibilityNames("travel", "Italian")
+        assignedInputSources: panelAccessibilityNames("travel", "Italian")
     )
     let accessibility = content.accessibility
 
@@ -45,7 +45,7 @@ func menuBarAssignmentRowVoiceOverAvoidsDuplicateSpeech() throws {
             ),
             makeAssignedAccessibleKeyboard(name: "Broken", identifier: "broken")
         ],
-        assignedInputSourceNames: panelAccessibilityNames(
+        assignedInputSources: panelAccessibilityNames(
             "travel", "Italian",
             "desk", "US",
             "studio", "French"
@@ -84,7 +84,7 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
             makeAssignedAccessibleKeyboard(name: "Travel", identifier: "travel", isActive: true),
             makeAssignedAccessibleKeyboard(name: "Desk", identifier: "desk")
         ],
-        assignedInputSourceNames: panelAccessibilityNames("travel", "Italian", "desk", "US")
+        assignedInputSources: panelAccessibilityNames("travel", "Italian", "desk", "US")
     )
     let empty = makeAccessiblePanelContent(outcome: .readyFixture())
 
@@ -158,7 +158,7 @@ func menuBarPanelAccessibilityLiveUpdatesWithAssignments() {
         physicalKeyboards: [
             makeAssignedAccessibleKeyboard(name: "Travel", identifier: "travel", isActive: true)
         ],
-        assignedInputSourceNames: panelAccessibilityNames("travel", "Italian")
+        assignedInputSources: panelAccessibilityNames("travel", "Italian")
     )
 
     #expect(empty.accessibility.items.first?.label == "No assigned keyboards")
@@ -201,7 +201,7 @@ func menuBarPanelLongNamesStayCompleteInSpeech() {
         physicalKeyboards: [
             makeAssignedAccessibleKeyboard(name: name, identifier: "long")
         ],
-        assignedInputSourceNames: panelAccessibilityNames("long", "Italian - QWERTY")
+        assignedInputSources: panelAccessibilityNames("long", "Italian - QWERTY")
     )
     let row = list.rows[0]
 
@@ -212,13 +212,13 @@ func menuBarPanelLongNamesStayCompleteInSpeech() {
 private func makeAccessiblePanelContent(
     outcome: ActivityTriggeredSwitchingOutcome,
     physicalKeyboards: [PhysicalKeyboard] = [],
-    assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
+    assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:] ,
     marketingVersion: String? = "0.1.0"
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
-        assignedInputSourceNames: assignedInputSourceNames,
+        assignedInputSources: assignedInputSources,
         marketingVersion: marketingVersion
     )
 }
@@ -256,10 +256,16 @@ private extension ActivityTriggeredSwitchingOutcome {
     }
 }
 
-private func panelAccessibilityNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: String] {
+private func panelAccessibilityNames(_ pairs: String...) -> [PhysicalKeyboardRecordID: EligibleInputSource] {
     Dictionary(
         uniqueKeysWithValues: stride(from: 0, to: pairs.count, by: 2).map { index in
-            (PhysicalKeyboardRecordID(rawValue: pairs[index]), pairs[index + 1])
+            (
+                PhysicalKeyboardRecordID(rawValue: pairs[index]),
+                EligibleInputSource(
+                    identifier: "com.example.\(pairs[index])",
+                    name: pairs[index + 1]
+                )
+            )
         }
     )
 }
