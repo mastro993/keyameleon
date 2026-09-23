@@ -48,6 +48,14 @@ struct KeyameleonMenuBarPanelView: View {
             Divider()
                 .opacity(0.22)
 
+            if let notice = content.notice {
+                MenuBarPanelNoticeView(
+                    notice: notice,
+                    focusedTarget: $focusedTarget,
+                    perform: perform
+                )
+            }
+
             MenuBarAssignmentSection(
                 list: content.assignmentList,
                 emphasis: chrome.assignmentEmphasis,
@@ -109,7 +117,8 @@ struct KeyameleonMenuBarPanelView: View {
             assignedInputSourceNames: assignedInputSourceNames,
             marketingVersion: Bundle.main.object(
                 forInfoDictionaryKey: "CFBundleShortVersionString"
-            ) as? String
+            ) as? String,
+            isSetupComplete: setupModel.isSetupComplete
         )
     }
 
@@ -140,6 +149,8 @@ struct KeyameleonMenuBarPanelView: View {
             setupModel.openSystemSettings()
         case .checkAgain:
             switching.checkAgain()
+        case .retryNow:
+            switching.retryNow()
         case .settings:
             actions.openSettings()
         case .quit:

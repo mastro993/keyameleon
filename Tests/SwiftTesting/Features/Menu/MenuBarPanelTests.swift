@@ -421,17 +421,406 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
     #expect(content.footer.about.id == .about)
 }
 
+@Test("Ready panel without notice conditions has no notice")
+@MainActor
+func menuBarPanelReadyWithoutNoticeConditionsHasNoNotice() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        physicalKeyboards: [makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")],
+        assignedInputSourceNames: panelNames("travel", "U.S.")
+    )
+
+    #expect(content.notice == nil)
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+}
+
+@Test("Permission Required shows Request Permission on notice, not footer")
+@MainActor
+func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
+    let content = makeMenuBarPanelContent(
+        outcome: .permissionRequiredFixture(),
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+        ]
+    )
+    let action = try #require(content.notice?.action)
+
+    #expect(content.notice?.title == "Permission Required")
+    #expect(action.id == .requestPermission)
+    #expect(action.title == "Request Permission")
+    #expect(action.closesPanel == false)
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(content.actionTitles.contains("Request Permission") == false)
+}
+
+@Test("Permission Required notice has no action when unavailable")
+@MainActor
+func menuBarPanelPermissionNoticeOmitsUnavailableRequestAction() {
+    let outcome = ActivityTriggeredSwitchingOutcome.permissionRequiredFixture(
+        availableActions: [.pause]
+    )
+
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action == nil)
+}
+
+@Test("Temporarily Unavailable explains sleeping and keeps Pause in footer")
+@MainActor
+func menuBarPanelTemporarilyUnavailableNoticeExplainsSleeping() {
+    let content = makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture())
+
+    #expect(content.notice?.detail == "The Mac is sleeping. Activity-Triggered Switching resumes automatically.")
+    #expect(content.notice?.action == nil)
+    #expect(overflowIDs(content).contains(.pause))
+}
+
+@Test("Temporarily Unavailable reason priority ignores input order")
+@MainActor
+func menuBarPanelTemporarilyUnavailableNoticeUsesReasonPriority() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .temporarilyUnavailable,
+        temporarilyUnavailableReasons: [.secureInput, .sleeping],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .none,
+        currentInputSourceName: nil,
+        mismatch: nil,
+        warnings: [],
+        availableActions: [.pause]
+    )
+    let content = makeMenuBarPanelContent(outcome: outcome)
+
+    #expect(content.notice?.detail == "The Mac is sleeping. Activity-Triggered Switching resumes automatically.")
+}
+
+@Test("Temporarily Unavailable reason copy covers lock, Secure Input, and protected data")
+@MainActor
+func menuBarPanelTemporarilyUnavailableNoticeExplainsEveryReason() {
+    let cases: [([SwitchingUnavailableReason], String)] = [
+        ([.secureInput, .inactiveSession], "The session is locked."),
+        ([.secureInput, .protectedDataUnavailable], "Secure Input is active."),
+        ([.protectedDataUnavailable], "Protected data is unavailable.")
+    ]
+
+    for (reasons, reason) in cases {
+        let outcome = ActivityTriggeredSwitchingOutcome(
+            switchingStatus: .temporarilyUnavailable,
+            temporarilyUnavailableReasons: reasons,
+            activePhysicalKeyboard: nil,
+            currentKeyboardAssignment: .none,
+            currentInputSourceName: nil,
+            mismatch: nil,
+            warnings: [],
+            availableActions: [.pause]
+        )
+        let content = makeMenuBarPanelContent(outcome: outcome)
+
+        #expect(content.notice?.detail == "\(reason) Activity-Triggered Switching resumes automatically.")
+    }
+}
+
+@Test("Temporarily Unavailable without a known reason explains automatic recovery")
+@MainActor
+func menuBarPanelTemporarilyUnavailableNoticeWithoutKnownReasonExplainsAutomaticRecovery() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .temporarilyUnavailable,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .none,
+        currentInputSourceName: nil,
+        mismatch: nil,
+        warnings: [],
+        availableActions: [.pause]
+    )
+
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Activity-Triggered Switching resumes automatically.")
+}
+
+@Test("Paused notice explains Switching Status")
+@MainActor
+func menuBarPanelPausedNoticeExplainsSwitchingStatus() {
+    let notice = makeMenuBarPanelContent(outcome: .pausedFixture()).notice
+
+    #expect(notice?.title == "Paused")
+    #expect(notice?.detail == "Activity-Triggered Switching is paused.")
+    #expect(notice?.action == nil)
+}
+
+@Test("Input Source differs notice names the Active Physical Keyboard")
+@MainActor
+func menuBarPanelMismatchNoticeNamesActivePhysicalKeyboard() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: ActivityTriggeredSwitchingActivePhysicalKeyboard(
+            name: "Travel",
+            connectionState: .connected,
+            assignment: .assigned(name: "U.S.")
+        ),
+        currentKeyboardAssignment: .assigned(name: "U.S."),
+        currentInputSourceName: "Italian",
+        mismatch: ActivityTriggeredSwitchingMismatch(currentName: "Italian", assignedName: "U.S."),
+        warnings: [],
+        availableActions: [.pause]
+    )
+    let notice = makeMenuBarPanelContent(outcome: outcome).notice
+
+    #expect(notice?.title == "Input Source differs")
+    #expect(notice?.detail == "The current Input Source is Italian. Travel's Keyboard Assignment is U.S.")
+    #expect(notice?.action == nil)
+}
+
+@Test("Input Source differs notice omits a missing Active Physical Keyboard name")
+@MainActor
+func menuBarPanelMismatchNoticeOmitsMissingActivePhysicalKeyboardName() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .assigned(name: "U.S."),
+        currentInputSourceName: "Italian",
+        mismatch: ActivityTriggeredSwitchingMismatch(currentName: "Italian", assignedName: "U.S."),
+        warnings: [],
+        availableActions: [.pause]
+    )
+
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "The current Input Source is Italian. The Keyboard Assignment is U.S.")
+}
+
+@Test("Input Source differs notice does not double the period in an Input Source name")
+@MainActor
+func menuBarPanelMismatchNoticeDoesNotDoublePunctuation() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: ActivityTriggeredSwitchingActivePhysicalKeyboard(
+            name: "Travel",
+            connectionState: .connected,
+            assignment: .assigned(name: "Italian")
+        ),
+        currentKeyboardAssignment: .assigned(name: "Italian"),
+        currentInputSourceName: "U.S.",
+        mismatch: ActivityTriggeredSwitchingMismatch(currentName: "U.S.", assignedName: "Italian"),
+        warnings: [],
+        availableActions: [.pause]
+    )
+
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "The current Input Source is U.S. Travel's Keyboard Assignment is Italian.")
+}
+
+@Test("Retry Now is the only selection-failure notice action")
+@MainActor
+func menuBarPanelSelectionFailureNoticeOffersRetryWhenAvailable() throws {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .none,
+        currentInputSourceName: nil,
+        mismatch: nil,
+        warnings: [
+            ActivityTriggeredSwitchingWarning(
+                physicalKeyboardName: "Travel",
+                category: .selectionFailed,
+                recoveryAction: .retryNow
+            )
+        ],
+        availableActions: [.pause, .retryNow]
+    )
+    let content = makeMenuBarPanelContent(outcome: outcome)
+    let action = try #require(content.notice?.action)
+
+    #expect(content.notice?.title == "Couldn't select the Keyboard Assignment")
+    #expect(content.notice?.detail == "Retry the Keyboard Assignment for Travel.")
+    #expect(action.id == .retryNow)
+    #expect(action.title == "Retry Now")
+    #expect(action.closesPanel == false)
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+}
+
+@Test("Selection-failure notice stays without Retry Now when action is unavailable")
+@MainActor
+func menuBarPanelSelectionFailureNoticeOmitsUnavailableRetryAction() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .none,
+        currentInputSourceName: nil,
+        mismatch: nil,
+        warnings: [
+            ActivityTriggeredSwitchingWarning(
+                physicalKeyboardName: nil,
+                category: .selectionFailed,
+                recoveryAction: .retryNow
+            )
+        ],
+        availableActions: [.pause]
+    )
+
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Retry the Keyboard Assignment.")
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action == nil)
+}
+
+@Test("Keyboard Assignment needed notice names one unassigned Physical Keyboard")
+@MainActor
+func menuBarPanelUnassignedNoticeUsesKeyboardName() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+        ]
+    )
+
+    #expect(content.notice?.title == "Keyboard Assignment needed")
+    #expect(content.notice?.detail == "Travel has no Keyboard Assignment.")
+    #expect(content.notice?.action == nil)
+}
+
+@Test("Keyboard Assignment needed notice preserves Physical Keyboard order")
+@MainActor
+func menuBarPanelUnassignedNoticePreservesKeyboardOrder() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned),
+            makePanelKeyboard(name: "Desk", identifier: "desk", assignmentState: .unassigned)
+        ]
+    )
+
+    #expect(content.notice?.detail == "Travel and Desk have no Keyboard Assignment.")
+}
+
+@Test("Keyboard Assignment needed notice counts three unassigned Physical Keyboards")
+@MainActor
+func menuBarPanelUnassignedNoticeCountsThreePhysicalKeyboards() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned),
+            makePanelKeyboard(name: "Desk", identifier: "desk", assignmentState: .unassigned),
+            makePanelKeyboard(name: "Studio", identifier: "studio", assignmentState: .unassigned)
+        ]
+    )
+
+    #expect(content.notice?.detail == "3 Physical Keyboards have no Keyboard Assignment.")
+}
+
+@Test("Unavailable Keyboard Assignment stays on assignment row without a notice")
+@MainActor
+func menuBarPanelUnavailableAssignmentDoesNotCreateNotice() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        physicalKeyboards: [makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")]
+    )
+
+    #expect(content.assignmentList.rows.first?.warningNote == MenuBarAssignmentList.unavailableNote)
+    #expect(content.notice == nil)
+}
+
+@Test("Permission Required notice outranks unassigned Physical Keyboards")
+@MainActor
+func menuBarPanelNoticePrioritizesPermissionOverUnassignedKeyboard() {
+    let content = makeMenuBarPanelContent(
+        outcome: .permissionRequiredFixture(),
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+        ]
+    )
+
+    #expect(content.notice?.title == "Permission Required")
+}
+
+@Test("Selection failure notice outranks mismatch and unassigned conditions")
+@MainActor
+func menuBarPanelNoticePrioritizesSelectionFailure() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .none,
+        currentInputSourceName: "Italian",
+        mismatch: ActivityTriggeredSwitchingMismatch(currentName: "Italian", assignedName: "U.S."),
+        warnings: [
+            ActivityTriggeredSwitchingWarning(
+                physicalKeyboardName: "Travel",
+                category: .selectionFailed,
+                recoveryAction: .retryNow
+            )
+        ],
+        availableActions: [.pause]
+    )
+    let content = makeMenuBarPanelContent(
+        outcome: outcome,
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+        ]
+    )
+
+    #expect(content.notice?.title == "Couldn't select the Keyboard Assignment")
+}
+
+@Test("Input Source mismatch notice outranks unassigned and unfinished setup")
+@MainActor
+func menuBarPanelNoticePrioritizesMismatch() {
+    let outcome = ActivityTriggeredSwitchingOutcome(
+        switchingStatus: .ready,
+        temporarilyUnavailableReasons: [],
+        activePhysicalKeyboard: nil,
+        currentKeyboardAssignment: .assigned(name: "U.S."),
+        currentInputSourceName: "Italian",
+        mismatch: ActivityTriggeredSwitchingMismatch(currentName: "Italian", assignedName: "U.S."),
+        warnings: [],
+        availableActions: [.pause]
+    )
+    let content = makeMenuBarPanelContent(
+        outcome: outcome,
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+        ],
+        isSetupComplete: false
+    )
+
+    #expect(content.notice?.title == "Input Source differs")
+}
+
+@Test("Unassigned notice outranks unfinished Guided setup")
+@MainActor
+func menuBarPanelNoticePrioritizesUnassignedKeyboardOverSetup() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        physicalKeyboards: [
+            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
+        ],
+        isSetupComplete: false
+    )
+
+    #expect(content.notice?.title == "Keyboard Assignment needed")
+}
+
+@Test("Unfinished Guided setup notice appears when no earlier condition matches")
+@MainActor
+func menuBarPanelNoticeExplainsUnfinishedGuidedSetup() {
+    let content = makeMenuBarPanelContent(
+        outcome: .readyFixture(),
+        isSetupComplete: false
+    )
+
+    #expect(content.notice?.title == "Guided setup is not finished")
+    #expect(content.notice?.detail == "Open Settings to assign an Input Source.")
+}
+
 private func makeMenuBarPanelContent(
     outcome: ActivityTriggeredSwitchingOutcome,
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSourceNames: [PhysicalKeyboardRecordID: String] = [:],
-    marketingVersion: String? = "0.1.0"
+    marketingVersion: String? = "0.1.0",
+    isSetupComplete: Bool = true
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
         assignedInputSourceNames: assignedInputSourceNames,
-        marketingVersion: marketingVersion
+        marketingVersion: marketingVersion,
+        isSetupComplete: isSetupComplete
     )
 }
 

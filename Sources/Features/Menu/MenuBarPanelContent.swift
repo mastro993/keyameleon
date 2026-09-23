@@ -7,6 +7,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case about
     case openSystemSettings
     case checkAgain
+    case retryNow
     case settings
     case quit
 }
@@ -32,6 +33,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
     let switchingStatus: SwitchingStatus
     let assignmentList: MenuBarAssignmentList
     let footer: Footer
+    let notice: MenuBarPanelNotice?
 
     var accessibility: MenuBarPanelAccessibility {
         MenuBarPanelAccessibility(content: self)
@@ -49,9 +51,15 @@ struct MenuBarPanelContent: Equatable, Sendable {
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSourceNames: [PhysicalKeyboardRecordID: String],
-        marketingVersion: String?
+        marketingVersion: String?,
+        isSetupComplete: Bool = true
     ) {
         self.switchingStatus = outcome.switchingStatus
+        self.notice = MenuBarPanelNotice.make(
+            outcome: outcome,
+            physicalKeyboards: physicalKeyboards,
+            isSetupComplete: isSetupComplete
+        )
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
             assignedInputSourceNames: assignedInputSourceNames

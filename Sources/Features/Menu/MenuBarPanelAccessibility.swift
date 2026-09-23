@@ -18,18 +18,23 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
     let panel: Speech
     let items: [Speech]
     let about: Speech
+    let notice: Speech?
+    let noticeActionTitle: String?
     let actions: [Speech]
     let keyboardFocusOrder: [FocusTarget]
     let assignmentFocusTitles: [String]
 
     var voiceOverOrderLabels: [String] {
         [panel.label, about.label]
+            + (notice.map { [$0.label] } ?? [])
+            + (noticeActionTitle.map { [$0] } ?? [])
             + items.map(\.label)
             + actions.map(\.label)
     }
 
     var keyboardOperationTitles: [String] {
         [about.label]
+            + (noticeActionTitle.map { [$0] } ?? [])
             + assignmentFocusTitles
             + actions.map(\.label)
     }
@@ -50,10 +55,13 @@ struct MenuBarPanelAccessibility: Equatable, Sendable {
             }
         }
         about = Speech(label: content.footer.about.title, value: nil)
+        notice = content.notice.map { Speech(label: $0.title, value: $0.detail) }
+        noticeActionTitle = content.notice?.action?.title
         actions = content.footer.actions.map { action in
             Speech(label: action.title, value: nil)
         }
         keyboardFocusOrder = [.about]
+            + (content.notice?.action.map { [.action(id: $0.id)] } ?? [])
             + content.assignmentList.rows.map { .assignment(id: $0.id) }
             + content.footer.actions
                 .filter(\.isEnabled)

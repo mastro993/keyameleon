@@ -94,6 +94,8 @@ private extension MenuBarPanelContent.Action {
             "gearshape.fill"
         case .checkAgain:
             "arrow.clockwise.circle.fill"
+        case .retryNow:
+            "arrow.clockwise"
         case .settings:
             "gearshape.fill"
         case .quit:
