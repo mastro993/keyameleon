@@ -27,7 +27,7 @@ settings:
     CODE_SIGN_IDENTITY: "-"
     CODE_SIGNING_REQUIRED: NO
     # Official Release commits MARKETING_VERSION, then verifies both values from its tag.
-    MARKETING_VERSION: "0.4.2"
+    MARKETING_VERSION: "0.4.3"
     CURRENT_PROJECT_VERSION: "1"
 
 targets:
