@@ -233,7 +233,7 @@ VERSION=1.2.3
 gh release view "$TAG"
 gh release download "$TAG" --pattern "Keyameleon-${VERSION}.dmg" --dir /tmp/keyameleon-release
 cd /tmp/keyameleon-release
-curl -fsSL https://mastro993.github.io/Keyameleon/appcast.xml | head
+curl -fsSL https://mastro993.github.io/keyameleon/appcast.xml | head
 shasum -a 256 Keyameleon-${VERSION}.dmg
 codesign --display --verbose=2 Keyameleon-${VERSION}.dmg
 xcrun stapler validate Keyameleon-${VERSION}.dmg
@@ -253,7 +253,7 @@ shasum -a 256 -c <(jq -r '"\(.artifactSHA256)  \(.artifactFileName)"' release-ev
 ```
 
 `evidence.tag` must be `TAG`. `feedURLString` must be
-`https://mastro993.github.io/Keyameleon/appcast.xml`. The appcast enclosure
+`https://mastro993.github.io/keyameleon/appcast.xml`. The appcast enclosure
 URL must be
 `https://github.com/mastro993/Keyameleon/releases/download/TAG/Keyameleon-VERSION.dmg`.
 Release notes must contain categorized sections, `### Changelog`, a full

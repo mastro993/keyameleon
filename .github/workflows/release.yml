@@ -267,7 +267,8 @@ jobs:
           app_plist="build/official-release/Keyameleon.xcarchive/Products/Applications/Keyameleon.app/Contents/Info.plist"
           feed_url="$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$app_plist")"
           for attempt in {1..20}; do
-            if curl -fsSL "$feed_url" 2>/dev/null | grep -qF "<sparkle:version>${VERSION}</sparkle:version>"; then
+            body="$(curl -fsSL "$feed_url" 2>/dev/null || true)"
+            if grep -qF "<sparkle:version>${VERSION}</sparkle:version>" <<<"$body"; then
               echo "feed ${feed_url} serves ${VERSION}"
               exit 0
             fi

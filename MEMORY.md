@@ -13,7 +13,7 @@ Inspected 2026-08-17. Native macOS 26 LSUIElement menu-bar app (Swift 6 + AppKit
 - Scheme: `Keyameleon` — app + `KeyameleonSwiftTesting` + `KeyameleonXCTest`
 - Single-instance lock (ADR 0002). LSUIElement agent, no Dock. Quit the running instance before relaunch.
 - Domain names: `CONTEXT.md`
-- Sparkle feed: `https://mastro993.github.io/Keyameleon/appcast.xml`
+- Sparkle feed: `https://mastro993.github.io/keyameleon/appcast.xml`
 - Official artifacts: DMG on GitHub Release; appcast on GitHub Pages; evidence as workflow artifact (ADR 0006)
 - CI: GitHub Actions `Required CI gate`; macos-26, 8 min. Release waits via `Scripts/wait-for-ci.sh`.
 - Issues via `gh` CLI.
