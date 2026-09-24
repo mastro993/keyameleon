@@ -36,8 +36,8 @@ struct MenuBarAssignmentPill: View {
                     }
             }
 
-            if let languageCode = row.assignedLanguageCode {
-                Text(languageCode)
+            if let localeCode = row.assignedLocaleCode {
+                Text(localeCode)
                     .font(.callout.weight(.medium))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
@@ -95,7 +95,7 @@ private struct MenuBarConnectionMark: View {
 }
 
 private extension MenuBarAssignmentEmphasis {
-    /// Shared outline vocabulary for the pill and its language badge.
+    /// Shared outline vocabulary for the pill and its locale badge.
     var outlineColor: Color {
         Color.primary.opacity(self == .highContrast ? 0.5 : 0.25)
     }
@@ -157,7 +157,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             physicalKeyboardName: "Office Keyboard",
             subtitle: "HHKB Professional - Bluetooth",
             assignedInputSourceName: "German",
-            assignedLanguageCode: "DE",
+            assignedLocaleCode: "DE",
             connectionMark: .disconnected,
             isDimmed: true,
             warningNote: nil,

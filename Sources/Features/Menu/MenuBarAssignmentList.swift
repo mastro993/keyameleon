@@ -35,9 +35,9 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         /// name.
         let subtitle: String
         let assignedInputSourceName: String
-        /// ISO 639 code of the assigned Input Source, such as `IT`. `nil` when
-        /// the Input Source is unavailable or reports no language.
-        let assignedLanguageCode: String?
+        /// Locale code of the assigned Input Source, such as `US` or `IT`.
+        /// `nil` when the Input Source is unavailable or reports no language.
+        let assignedLocaleCode: String?
         let connectionMark: ConnectionMark
         let isDimmed: Bool
         let warningNote: String?
@@ -90,7 +90,7 @@ struct MenuBarAssignmentList: Equatable, Sendable {
                     ? connectionType
                     : "\(physicalKeyboard.productName) - \(connectionType)",
                 assignedInputSourceName: savedSource?.name ?? Self.unavailableInputSourceName,
-                assignedLanguageCode: savedSource?.languageCode,
+                assignedLocaleCode: savedSource?.localeCode,
                 connectionMark: Self.connectionMark(for: physicalKeyboard),
                 isDimmed: physicalKeyboard.connectionState == .disconnected,
                 warningNote: isUnavailable ? Self.unavailableNote : nil,
