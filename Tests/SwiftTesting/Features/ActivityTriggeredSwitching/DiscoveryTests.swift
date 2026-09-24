@@ -314,6 +314,43 @@ func eligibleInputSourcesContainEnabledSelectableKeyboardLayoutsOnly() {
     #expect(inputSources.allSatisfy { !$0.name.contains("com.example") })
 }
 
+@Test("Eligible input source locale code names the layout locale, not its language")
+func eligibleInputSourceLocaleCodeNamesLayoutLocale() {
+    let inputSources = EligibleInputSourceCatalog.eligible(
+        from: [
+            InputSourceFacts(
+                identifier: "com.apple.keylayout.US",
+                name: "U.S.",
+                category: .keyboard,
+                type: .keyboardLayout,
+                isEnabled: true,
+                isSelectCapable: true,
+                languages: ["en", "it"]
+            ),
+            InputSourceFacts(
+                identifier: "com.apple.keylayout.Italian-Pro",
+                name: "Italian",
+                category: .keyboard,
+                type: .keyboardLayout,
+                isEnabled: true,
+                isSelectCapable: true,
+                languages: ["it"]
+            ),
+            InputSourceFacts(
+                identifier: "com.apple.keylayout.ABC",
+                name: "ABC",
+                category: .keyboard,
+                type: .keyboardLayout,
+                isEnabled: true,
+                isSelectCapable: true,
+                languages: []
+            )
+        ]
+    )
+
+    #expect(inputSources.map(\.localeCode) == [nil, "IT", "US"])
+}
+
 @Test("Ready Switching Status starts discovery and publishes configuration choices")
 @MainActor
 func readySwitchingStatusStartsDiscoveryAndPublishesConfigurationChoices() {
