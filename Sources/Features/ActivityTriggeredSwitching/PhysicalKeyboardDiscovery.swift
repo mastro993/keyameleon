@@ -244,6 +244,22 @@ final class PhysicalKeyboardDiscovery {
         observers[id] = nil
     }
 
+    /// Exclusion snapshot for the catalog. The CoreHID path stays store-free and
+    /// the saved decision stays in one place.
+    func setExcludedKeys(_ keys: Set<String>) {
+        guard catalog.setExcludedKeys(keys) else {
+            return
+        }
+
+        publish()
+    }
+
+    /// Key a person excludes this Physical Keyboard by, or nil when it cannot be
+    /// excluded, which is the built-in Physical Keyboard.
+    func exclusionKey(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String? {
+        catalog.exclusionKey(for: physicalKeyboardID)
+    }
+
     @discardableResult
     func observeRecordChanges(
         _ observer: @escaping @MainActor (PhysicalKeyboardDiscoveryRecordChange) -> Void
@@ -277,7 +293,7 @@ final class PhysicalKeyboardDiscovery {
 
         discoverer.stop()
         discoveryStarted = false
-        catalog = PhysicalKeyboardCatalog()
+        catalog.removeAllServices()
         publish()
     }
 

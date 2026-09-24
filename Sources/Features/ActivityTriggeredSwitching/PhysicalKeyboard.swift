@@ -71,7 +71,7 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
         "\(value)|anchor:\(hardwareAnchor?.rawValue ?? "unstable")"
     }
 
-    fileprivate var groupingKey: String {
+    var groupingKey: String {
         value
     }
 
@@ -419,6 +419,7 @@ struct PhysicalKeyboardCatalog: Sendable {
     private var services: [UInt64: PhysicalKeyboardHardwareFacts] = [:]
     private var serviceToRecordID: [UInt64: PhysicalKeyboardRecordID] = [:]
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
+    private var excludedKeys: Set<String> = []
 
     mutating func apply(_ change: PhysicalKeyboardDiscoveryChange) {
         switch change {
@@ -429,6 +430,39 @@ struct PhysicalKeyboardCatalog: Sendable {
         }
 
         rebuild()
+    }
+
+    /// Exclusion is saved user state, not discovered state, so the facts stay for
+    /// the whole session: restoring a connected device needs no reconnect.
+    ///
+    /// Returns whether the set changed, so a caller publishes only on a real change.
+    @discardableResult
+    mutating func setExcludedKeys(_ keys: Set<String>) -> Bool {
+        guard excludedKeys != keys else {
+            return false
+        }
+
+        excludedKeys = keys
+        rebuild()
+        return true
+    }
+
+    mutating func removeAllServices() {
+        services.removeAll()
+        rebuild()
+    }
+
+    /// Key a person excludes this Physical Keyboard by, or nil when it cannot be
+    /// excluded, which is the built-in Physical Keyboard.
+    func exclusionKey(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String? {
+        guard let serviceID = serviceToRecordID
+            .first(where: { $0.value == physicalKeyboardID })?
+            .key
+        else {
+            return nil
+        }
+
+        return services[serviceID].flatMap(PhysicalKeyboardExclusionKey.key(for:))
     }
 
     func physicalKeyboard(forServiceID serviceID: UInt64) -> PhysicalKeyboard? {
@@ -450,8 +484,15 @@ struct PhysicalKeyboardCatalog: Sendable {
     ) -> (records: [PhysicalKeyboard], serviceToRecordID: [UInt64: PhysicalKeyboardRecordID]) {
         var serviceToRecordID: [UInt64: PhysicalKeyboardRecordID] = [:]
 
-        let builtInServices = services.filter(\.isBuiltIn)
-        let externalServices = services.filter { !$0.isBuiltIn }
+        let visibleServices = services.filter { facts in
+            guard let key = PhysicalKeyboardExclusionKey.key(for: facts) else {
+                return true
+            }
+
+            return !excludedKeys.contains(key)
+        }
+        let builtInServices = visibleServices.filter(\.isBuiltIn)
+        let externalServices = visibleServices.filter { !$0.isBuiltIn }
 
         var builtInRecords: [PhysicalKeyboard] = []
         if !builtInServices.isEmpty {

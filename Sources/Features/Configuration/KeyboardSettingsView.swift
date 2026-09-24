@@ -9,6 +9,7 @@ struct KeyameleonKeyboardSettingsView: View {
     @State private var pendingReplaceConnectedID: PhysicalKeyboardRecordID?
     @State private var replaceTargetDisconnectedID: PhysicalKeyboardRecordID?
     @State private var forgetCandidateID: PhysicalKeyboardRecordID?
+    @State private var excludeCandidateID: PhysicalKeyboardRecordID?
     @State private var nameDrafts: [String: String] = [:]
     @State private var designationNameDraft = ""
 
@@ -53,6 +54,42 @@ struct KeyameleonKeyboardSettingsView: View {
                     Text("Name each keyboard and choose its assigned Input Source.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            if !model.excludedPhysicalKeyboards.isEmpty {
+                Section {
+                    VStack(spacing: 12) {
+                        ForEach(model.excludedPhysicalKeyboards, id: \.key) { exclusion in
+                            HStack {
+                                Text(exclusion.name)
+                                Spacer()
+                                Button("Include Again") {
+                                    model.restorePhysicalKeyboard(exclusionKey: exclusion.key)
+                                }
+                                .accessibilityIdentifier("include-excluded-device-again")
+                                .accessibilityLabel("Include \(exclusion.name) again")
+                            }
+                            .padding(20)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                Color.primary.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            )
+                        }
+                    }
+                    .padding(contentPadding)
+                    .accessibilityIdentifier("excluded-devices")
+                } header: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Excluded Devices")
+                        Text("Keyameleon does not treat these devices as Physical Keyboards.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                        Text("Include one again to list it.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
@@ -106,6 +143,25 @@ struct KeyameleonKeyboardSettingsView: View {
         } message: {
             if let forgetCandidateID {
                 Text(model.forgetConfirmationMessage(for: forgetCandidateID))
+            }
+        }
+        .confirmationDialog(
+            "Not a Physical Keyboard?",
+            isPresented: excludeConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Exclude") {
+                if let excludeCandidateID {
+                    model.excludePhysicalKeyboard(excludeCandidateID)
+                }
+                excludeCandidateID = nil
+            }
+            Button("Cancel", role: .cancel) {
+                excludeCandidateID = nil
+            }
+        } message: {
+            if let excludeCandidateID {
+                Text(model.exclusionConfirmationMessage(for: excludeCandidateID))
             }
         }
         .confirmationDialog(
@@ -255,6 +311,22 @@ struct KeyameleonKeyboardSettingsView: View {
                     model.startManualDesignation(for: physicalKeyboard.id)
                 }
             }
+
+            if model.canExcludePhysicalKeyboard(physicalKeyboard.id) {
+                Divider()
+                HStack {
+                    Button("Not a Keyboard…") {
+                        excludeCandidateID = physicalKeyboard.id
+                    }
+                    .accessibilityIdentifier("not-a-keyboard")
+                    .accessibilityLabel("Not a Keyboard")
+                    .accessibilityHint(
+                        "Removes \(physicalKeyboard.name) from the Physical Keyboards list."
+                    )
+
+                    Spacer()
+                }
+            }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -296,6 +368,17 @@ struct KeyameleonKeyboardSettingsView: View {
             set: { isPresented in
                 if !isPresented {
                     forgetCandidateID = nil
+                }
+            }
+        )
+    }
+
+    private var excludeConfirmationPresented: Binding<Bool> {
+        Binding(
+            get: { excludeCandidateID != nil },
+            set: { isPresented in
+                if !isPresented {
+                    excludeCandidateID = nil
                 }
             }
         )
@@ -407,6 +490,11 @@ struct KeyameleonKeyboardSettingsView: View {
 
 #Preview("Keyboard settings designation") {
     let fixture = KeyameleonPreviewFixtures.setup(.designationInProgress)
+    KeyameleonKeyboardSettingsView(model: fixture.model)
+}
+
+#Preview("Keyboard settings excluded devices") {
+    let fixture = KeyameleonPreviewFixtures.setup(.excludedDevices)
     KeyameleonKeyboardSettingsView(model: fixture.model)
 }
 #endif

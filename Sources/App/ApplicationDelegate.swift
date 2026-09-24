@@ -93,6 +93,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             setupStore: setupStore,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
+            exclusionStore: UserDefaultsPhysicalKeyboardExclusionStore(),
             integrityKeyProvider: KeychainInstallationIntegrityKeyProvider()
         )
         self.init(
@@ -134,6 +135,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             inputSources: composition.inputSources,
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
+            exclusionStore: composition.exclusionStore,
             integrityKeyProvider: composition.integrityKeyProvider
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(

@@ -12,6 +12,7 @@ struct KeyameleonOnboardingView: View {
     private let model: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
+    @State private var excludeCandidateID: PhysicalKeyboardRecordID?
 
     init(model: KeyameleonSetupModel, switching: ActivityTriggeredSwitching) {
         self.model = model
@@ -52,6 +53,25 @@ struct KeyameleonOnboardingView: View {
                     assignmentPickerKeyboardID = nil
                 }
             )
+        }
+        .confirmationDialog(
+            "Not a Physical Keyboard?",
+            isPresented: excludeConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Exclude") {
+                if let excludeCandidateID {
+                    model.excludePhysicalKeyboard(excludeCandidateID)
+                }
+                excludeCandidateID = nil
+            }
+            Button("Cancel", role: .cancel) {
+                excludeCandidateID = nil
+            }
+        } message: {
+            if let excludeCandidateID {
+                Text(model.exclusionConfirmationMessage(for: excludeCandidateID))
+            }
         }
     }
 
@@ -128,7 +148,10 @@ struct KeyameleonOnboardingView: View {
                             ),
                             onAssign: {
                                 assignmentPickerKeyboardID = physicalKeyboard.id
-                            }
+                            },
+                            onExclude: model.canExcludePhysicalKeyboard(physicalKeyboard.id)
+                                ? { excludeCandidateID = physicalKeyboard.id }
+                                : nil
                         )
                     }
                 }
@@ -151,6 +174,17 @@ struct KeyameleonOnboardingView: View {
         } else {
             .required
         }
+    }
+
+    private var excludeConfirmationPresented: Binding<Bool> {
+        Binding(
+            get: { excludeCandidateID != nil },
+            set: { isPresented in
+                if !isPresented {
+                    excludeCandidateID = nil
+                }
+            }
+        )
     }
 
     private var assignmentPickerBinding: Binding<PhysicalKeyboard?> {
@@ -270,6 +304,7 @@ struct OnboardingPhysicalKeyboardCard: View {
     let physicalKeyboard: PhysicalKeyboard
     let assignedInputSourceName: String?
     let onAssign: () -> Void
+    let onExclude: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -286,11 +321,22 @@ struct OnboardingPhysicalKeyboardCard: View {
                 .font(.callout)
                 .foregroundStyle(physicalKeyboard.isAssignable ? Color.secondary : Color.orange)
 
-            if physicalKeyboard.isAssignable {
-                Button(
-                    assignedInputSourceName == nil ? "Assign Input Source" : "Change Input Source",
-                    action: onAssign
-                )
+            HStack {
+                if physicalKeyboard.isAssignable {
+                    Button(
+                        assignedInputSourceName == nil ? "Assign Input Source" : "Change Input Source",
+                        action: onAssign
+                    )
+                }
+
+                if let onExclude {
+                    Button("Not a Keyboard…", action: onExclude)
+                        .accessibilityIdentifier("not-a-keyboard")
+                        .accessibilityLabel("Not a Keyboard")
+                        .accessibilityHint(
+                            "Removes \(physicalKeyboard.name) from the Physical Keyboards list."
+                        )
+                }
             }
         }
         .padding(20)
@@ -369,6 +415,11 @@ struct OnboardingPhysicalKeyboardCard: View {
     KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
 }
 
+#Preview("Onboarding excluded device") {
+    let fixture = KeyameleonPreviewFixtures.setup(.excludedDevices)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+}
+
 #Preview("Input Monitoring required") {
     ListenPermissionOnboardingCard(status: .required, action: {})
         .frame(width: 520)
@@ -389,7 +440,8 @@ struct OnboardingPhysicalKeyboardCard: View {
     OnboardingPhysicalKeyboardCard(
         physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(),
         assignedInputSourceName: "Italian",
-        onAssign: {}
+        onAssign: {},
+        onExclude: {}
     )
     .frame(width: 520)
 }
@@ -398,7 +450,8 @@ struct OnboardingPhysicalKeyboardCard: View {
     OnboardingPhysicalKeyboardCard(
         physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(assignment: nil),
         assignedInputSourceName: nil,
-        onAssign: {}
+        onAssign: {},
+        onExclude: {}
     )
     .frame(width: 520)
 }
@@ -410,7 +463,8 @@ struct OnboardingPhysicalKeyboardCard: View {
             connection: .disconnected
         ),
         assignedInputSourceName: "U.S.",
-        onAssign: {}
+        onAssign: {},
+        onExclude: {}
     )
     .frame(width: 520)
 }
@@ -421,9 +475,23 @@ struct OnboardingPhysicalKeyboardCard: View {
             reason: .ambiguousIdentity
         ),
         assignedInputSourceName: nil,
-        onAssign: {}
+        onAssign: {},
+        onExclude: {}
     )
     .frame(width: 520)
     .environment(\.dynamicTypeSize, .xxxLarge)
+}
+
+#Preview("Physical Keyboard built-in") {
+    OnboardingPhysicalKeyboardCard(
+        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(
+            name: "Built-in Keyboard",
+            id: "identity:built-in|anchor:built-in"
+        ),
+        assignedInputSourceName: "Italian",
+        onAssign: {},
+        onExclude: nil
+    )
+    .frame(width: 520)
 }
 #endif

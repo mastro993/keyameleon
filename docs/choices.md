@@ -1,5 +1,40 @@
 # Choices
 
+## 2026-09-24 — Physical Keyboard Exclusion
+
+Broad recognition stays as decided on 2026-09-23. A shortcut-equipped pointer is
+still recognized as a Physical Keyboard; the person removes the device instead.
+
+### Defaults
+
+- One saved exclusion per physical input device, keyed by that device rather than
+  by a CoreHID service: the Physical Keyboard Identity value when the device has
+  one, and the vendor, product, and model facts when it has none. The identity
+  anchor is dropped from the key, so services of one device agree.
+- The built-in Physical Keyboard is never excludable. It takes the nil branch of
+  the key derivation, not a runtime check, so a stale saved key cannot hide it.
+- Exclusion is a filter, not a deletion. The saved Physical Keyboard Name, the
+  Keyboard Assignment, and an authenticated Manual Physical Keyboard Designation
+  survive an exclusion and come back on restore.
+- A device excluded once stays excluded across disconnect, reconnect, restart,
+  and the discovery catalogue reset that sleep, lock, and pause perform.
+- The excluded device disappears from every surface that reads the Physical
+  Keyboard list, produces no Activation Activity, opens no Switching Status
+  warning, and cannot be retried: an exclusion clears the wanted Keyboard
+  Assignment and the selection-failure warning that named it.
+- The exclusion set lives in `UserDefaults` under
+  `keyameleon.excludedPhysicalKeyboards` as JSON, next to the guided-setup
+  decisions. `PhysicalKeyboardSchemaV1` keeps its two models and
+  `PhysicalKeyboardMigrationPlan.stages` stays empty.
+- Nothing removes an exclusion automatically. The Excluded Devices section in
+  Settings is the only restore path, because every disconnect signal is also
+  sleep, lock, and pause.
+- Both surfaces offer the same action and the same confirmation: `Not a
+  Keyboard…` on the Physical Keyboard card in guided setup and in Settings,
+  followed by a `Not a Physical Keyboard?` dialog that names the device and says
+  where to restore it. The action is not marked destructive: it deletes nothing.
+- Onboarding shows no restore list. Settings ▸ Excluded Devices is the way back.
+
 ## 2026-09-23 — Operational Notifications removed
 
 This supersedes the Operational Notification seams and defaults recorded under

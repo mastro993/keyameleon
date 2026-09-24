@@ -105,6 +105,7 @@ final class KeyameleonSetupModel {
     private(set) var hasStartedGuidedSetup: Bool
     private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
+    private(set) var excludedPhysicalKeyboards: [SavedPhysicalKeyboardExclusion] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     private(set) var isWaitingForListenPermission = false
@@ -119,6 +120,7 @@ final class KeyameleonSetupModel {
     private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     private let designationStore: any ManualPhysicalKeyboardDesignationStoring
+    private let exclusionStore: any PhysicalKeyboardExclusionStoring
     private let integrityKeyProvider: any InstallationIntegrityKeyProviding
     private let resolver: PhysicalKeyboardPresentationResolver
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
@@ -134,6 +136,7 @@ final class KeyameleonSetupModel {
         inputSources: InputSourceModule,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
+        exclusionStore: any PhysicalKeyboardExclusionStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) {
         self.activityTriggeredSwitching = activityTriggeredSwitching
@@ -143,6 +146,7 @@ final class KeyameleonSetupModel {
         self.inputSources = inputSources
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
         self.designationStore = designationStore
+        self.exclusionStore = exclusionStore
         self.integrityKeyProvider = integrityKeyProvider
         resolver = PhysicalKeyboardPresentationResolver(
             recordStore: physicalKeyboardRecordStore,
@@ -153,6 +157,7 @@ final class KeyameleonSetupModel {
         hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
         guidedSetupStep = setupStore.guidedSetupStep
 
+        applyExclusionKeysToDiscovery()
         discoveryObserverID = physicalKeyboardDiscovery.observeChanges { [weak self] _ in
             self?.advanceManualDesignationSession()
             self?.publishPhysicalKeyboards()
@@ -191,6 +196,8 @@ final class KeyameleonSetupModel {
             NoOpInputSourceChangeObserver(),
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
+        exclusionStore: any PhysicalKeyboardExclusionStoring =
+            InMemoryPhysicalKeyboardExclusionStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider()
     ) {
@@ -205,6 +212,7 @@ final class KeyameleonSetupModel {
             inputSourceChangeObserver: inputSourceChangeObserver,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
+            exclusionStore: exclusionStore,
             integrityKeyProvider: integrityKeyProvider
         )
         self.init(
@@ -215,6 +223,7 @@ final class KeyameleonSetupModel {
             inputSources: composition.inputSources,
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
+            exclusionStore: composition.exclusionStore,
             integrityKeyProvider: composition.integrityKeyProvider
         )
     }
@@ -467,6 +476,74 @@ final class KeyameleonSetupModel {
         publishPhysicalKeyboards()
     }
 
+    /// True for every listed device a person can exclude.
+    func canExcludePhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
+        exclusionKey(for: physicalKeyboardID) != nil
+    }
+
+    func excludePhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
+        guard let key = exclusionKey(for: physicalKeyboardID),
+              let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
+        else {
+            return
+        }
+
+        KeyameleonLog.debug(.setup, "Excluded \(physicalKeyboard.name) as a Physical Keyboard")
+        cancelManualDesignationIfMatching(physicalKeyboardID)
+        lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
+        activityTriggeredSwitching.forgetPhysicalKeyboard(physicalKeyboardID)
+        exclusionStore.exclude(SavedPhysicalKeyboardExclusion(key: key, name: physicalKeyboard.name))
+        applyExclusionKeysToDiscovery()
+    }
+
+    /// Key a person excludes this device by, or nil when it is not excludable.
+    ///
+    /// The built-in Physical Keyboard takes the nil branch. A connected device keys
+    /// by its discovered facts, which is the only way to key a device without a
+    /// Physical Keyboard Identity. A saved record keys by its own identity, so a
+    /// disconnected Physical Keyboard stays excludable.
+    private func exclusionKey(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String? {
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
+              !physicalKeyboard.isBuiltIn
+        else {
+            return nil
+        }
+
+        return physicalKeyboardDiscovery.exclusionKey(for: physicalKeyboardID)
+            ?? (physicalKeyboardID.isIdentityBased
+                ? PhysicalKeyboardExclusionKey.key(for: physicalKeyboardID)
+                : nil)
+    }
+
+    func restorePhysicalKeyboard(exclusionKey: String) {
+        guard excludedPhysicalKeyboards.contains(where: { $0.key == exclusionKey }) else {
+            return
+        }
+
+        KeyameleonLog.debug(.setup, "Restored an excluded device to the Physical Keyboard list")
+        exclusionStore.restore(key: exclusionKey)
+        applyExclusionKeysToDiscovery()
+    }
+
+    func exclusionConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
+        else {
+            return ""
+        }
+
+        let removal =
+            "Keyameleon stops treating \(physicalKeyboard.name) as a Physical Keyboard. "
+            + "It leaves the list and never triggers Activity-Triggered Switching."
+        let restore = "You can include it again in Settings."
+
+        guard physicalKeyboardRecordStore.record(forIdentityKey: physicalKeyboardID.rawValue) != nil
+        else {
+            return "\(removal) \(restore)"
+        }
+
+        return "\(removal) Its saved Physical Keyboard Name and Keyboard Assignment stay saved. \(restore)"
+    }
+
     func canStartManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
         guard manualDesignationPhase == .idle,
               let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
@@ -628,12 +705,18 @@ final class KeyameleonSetupModel {
             return published
         }
 
+        excludedPhysicalKeyboards = exclusionStore.allExclusions()
+        let excludedKeys = Set(excludedPhysicalKeyboards.map(\.key))
+
         let connectedIdentityKeys = Set(
             connected.filter(\.id.isIdentityBased).map(\.id.rawValue)
         )
         var disconnected = physicalKeyboardRecordStore
             .allRecords()
-            .filter { !connectedIdentityKeys.contains($0.identityKey) }
+            .filter {
+                !connectedIdentityKeys.contains($0.identityKey)
+                    && !excludedKeys.contains(PhysicalKeyboardExclusionKey.key(for: $0.recordID))
+            }
             .map { savedRecord in
                 PhysicalKeyboard
                     .disconnected(from: savedRecord)
@@ -643,6 +726,7 @@ final class KeyameleonSetupModel {
 
         if let activeID,
            activeID.isIdentityBased,
+           !excludedKeys.contains(PhysicalKeyboardExclusionKey.key(for: activeID)),
            !connectedIdentityKeys.contains(activeID.rawValue),
            !disconnectedIdentityKeys.contains(activeID.rawValue),
            let lastKnown = lastKnownPhysicalKeyboards[activeID.rawValue]
@@ -652,6 +736,12 @@ final class KeyameleonSetupModel {
 
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
             connected + disconnected
+        )
+    }
+
+    private func applyExclusionKeysToDiscovery() {
+        physicalKeyboardDiscovery.setExcludedKeys(
+            Set(exclusionStore.allExclusions().map(\.key))
         )
     }
 

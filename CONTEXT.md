@@ -22,6 +22,10 @@ _Avoid_: Keyboard override, trusted device
 The user-visible name of a Physical Keyboard. It uses the macOS product name by default and can have a custom value. It does not identify the Physical Keyboard.
 _Avoid_: Device name, keyboard label
 
+**Physical Keyboard Exclusion**:
+A saved user decision that one physical input device is not a Physical Keyboard. Keyameleon keeps it out of the Physical Keyboard list, attributes no Activation Activity to it, and triggers no Activity-Triggered Switching for it.
+_Avoid_: Blocklist, ignore list, hidden device
+
 **Physical Keyboard Event**:
 An observable input-state change or repeat attributed to one Physical Keyboard. It can contain one or more simultaneous key transitions.
 _Avoid_: Keyboard event, HID report
