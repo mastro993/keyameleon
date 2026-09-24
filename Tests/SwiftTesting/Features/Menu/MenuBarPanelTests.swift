@@ -158,7 +158,7 @@ func menuBarAssignmentListUsesCompactHeading() {
     #expect(list.heading.contains("1") == false)
 }
 
-@Test("Menu-bar assignment pill shows Custom name, product name, and ISO language code")
+@Test("Menu-bar assignment pill shows Custom name, product name, and locale code")
 func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throws {
     let renamed = makeAssignedPanelKeyboard(
         name: "Keychron K2",
@@ -172,12 +172,12 @@ func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throw
             PhysicalKeyboardRecordID(rawValue: "k2"): EligibleInputSource(
                 identifier: "com.apple.keylayout.Italian",
                 name: "Italian",
-                languageCode: "IT"
+                localeCode: "IT"
             ),
             PhysicalKeyboardRecordID(rawValue: "desk"): EligibleInputSource(
                 identifier: "com.apple.keylayout.US",
                 name: "U.S.",
-                languageCode: "EN"
+                localeCode: "US"
             )
         ]
     )
@@ -187,12 +187,12 @@ func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throw
     #expect(travel.physicalKeyboardName == "Travel")
     #expect(travel.subtitle == "Keychron K2 - USB")
     #expect(travel.assignedInputSourceName == "Italian")
-    #expect(travel.assignedLanguageCode == "IT")
+    #expect(travel.assignedLocaleCode == "IT")
 
     // The name line already carries the product name without a Custom name.
     #expect(desk.physicalKeyboardName == "HHKB Professional")
     #expect(desk.subtitle == "USB")
-    #expect(desk.assignedLanguageCode == "EN")
+    #expect(desk.assignedLocaleCode == "US")
 }
 
 @Test("Menu-bar assignment list shows only Physical Keyboards with Keyboard Assignments")

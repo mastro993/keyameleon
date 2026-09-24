@@ -1,5 +1,26 @@
 # Breadcrumbs
 
+## 2026-09-24 — Assignment pill shows the layout locale code
+
+- The right-edge badge on an assignment pill shows the assigned Input Source's
+  locale code (`US`, `IT`, `FR`) instead of its ISO 639 language code, so a U.S.
+  layout reads `US` rather than `EN`.
+- `EligibleInputSource.languageCode` becomes `localeCode`, and
+  `MenuBarAssignmentList.Row.assignedLanguageCode` becomes `assignedLocaleCode`.
+  No alias survives.
+- macOS reports the layout's languages alone, so
+  `EligibleInputSourceCatalog.localeCode(from:)` resolves the region from the
+  primary language's canonical locale (`en` → `US`) and falls back to the
+  language code when the language has no canonical region. A layout that reports
+  no language keeps no badge.
+- Region-variant layouts whose identifier carries no region code (British,
+  Canadian, Australian, New Zealand, Swiss, Austrian, Belgian, Portuguese) show
+  their language's canonical region, so the British layout reads `US`. Add a
+  layout-identifier lookup only when someone reports it.
+- Tests: the pill row test asserts `IT` and `US`, and a discovery test asserts
+  the locale code for a U.S. layout, an Italian layout, and a layout that
+  reports no language.
+
 ## 2026-09-23 — Operational Notifications removed
 
 - Removed the Operational Notifications subsystem end to end:

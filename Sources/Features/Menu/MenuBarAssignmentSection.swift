@@ -154,17 +154,17 @@ private struct MenuBarAssignmentFocusBinding: ViewModifier {
                 PhysicalKeyboardRecordID(rawValue: "travel"): EligibleInputSource(
                     identifier: "com.apple.keylayout.Italian",
                     name: "Italian",
-                    languageCode: "IT"
+                    localeCode: "IT"
                 ),
                 PhysicalKeyboardRecordID(rawValue: "desk"): EligibleInputSource(
                     identifier: "com.apple.keylayout.US",
                     name: "U.S.",
-                    languageCode: "EN"
+                    localeCode: "US"
                 ),
                 PhysicalKeyboardRecordID(rawValue: "away"): EligibleInputSource(
                     identifier: "com.apple.keylayout.French",
                     name: "French",
-                    languageCode: "FR"
+                    localeCode: "FR"
                 )
             ]
         )

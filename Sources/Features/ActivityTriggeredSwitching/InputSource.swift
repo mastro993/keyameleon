@@ -47,14 +47,14 @@ struct InputSourceFacts: Equatable, Sendable {
 struct EligibleInputSource: Identifiable, Equatable, Sendable {
     let identifier: String
     let name: String
-    /// ISO 639 code of the layout's primary language, such as `IT` or `EN`.
-    /// `nil` when the system reports no language for the layout.
-    let languageCode: String?
+    /// Locale code of the layout, such as `US` or `IT`. `nil` when the system
+    /// reports no language for the layout.
+    let localeCode: String?
 
-    init(identifier: String, name: String, languageCode: String? = nil) {
+    init(identifier: String, name: String, localeCode: String? = nil) {
         self.identifier = identifier
         self.name = name
-        self.languageCode = languageCode
+        self.localeCode = localeCode
     }
 
     var id: String {
@@ -80,7 +80,7 @@ enum EligibleInputSourceCatalog {
                 EligibleInputSource(
                     identifier: $0.identifier,
                     name: $0.name,
-                    languageCode: languageCode(from: $0.languages)
+                    localeCode: localeCode(from: $0.languages)
                 )
             }
             .sorted { left, right in
@@ -93,16 +93,40 @@ enum EligibleInputSourceCatalog {
             }
     }
 
-    /// Primary language of the layout as an uppercase ISO 639 code.
+    /// Locale code of the layout, such as `US` for a U.S. layout or `IT` for an
+    /// Italian one.
     ///
-    /// macOS reports script and region variants such as `hi_Latn`; only the
-    /// language subtag reaches the panel.
-    static func languageCode(from languages: [String]) -> String? {
+    /// macOS reports the layout's language alone, so the region comes from that
+    /// language's canonical locale. A language without a canonical region falls
+    /// back to its ISO 639 code.
+    static func localeCode(from languages: [String]) -> String? {
         guard let primary = languages.first else {
             return nil
         }
 
-        let code = primary.prefix { $0 != "-" && $0 != "_" }
+        return regionCode(from: primary) ?? languageCode(from: primary)
+    }
+
+    /// Region of the language's canonical locale, such as `US` for `en`.
+    private static func regionCode(from language: String) -> String? {
+        let maximal = Locale(identifier: language).language.maximalIdentifier
+        guard
+            let region = maximal.split(separator: "-").last,
+            region.count == 2,
+            region.allSatisfy(\.isUppercase)
+        else {
+            return nil
+        }
+
+        return String(region)
+    }
+
+    /// Primary language of the layout as an uppercase ISO 639 code.
+    ///
+    /// macOS reports script and region variants such as `hi_Latn`; only the
+    /// language subtag reaches the fallback.
+    private static func languageCode(from language: String) -> String? {
+        let code = language.prefix { $0 != "-" && $0 != "_" }
         guard (2...3).contains(code.count) else {
             return nil
         }

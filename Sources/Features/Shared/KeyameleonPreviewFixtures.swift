@@ -218,17 +218,17 @@ enum KeyameleonPreviewFixtures {
             EligibleInputSource(
                 identifier: "com.apple.keylayout.Italian",
                 name: "Italian",
-                languageCode: "IT"
+                localeCode: "IT"
             ),
             EligibleInputSource(
                 identifier: "com.apple.keylayout.US",
                 name: "U.S.",
-                languageCode: "EN"
+                localeCode: "US"
             ),
             EligibleInputSource(
                 identifier: "com.apple.keylayout.German",
                 name: "German",
-                languageCode: "DE"
+                localeCode: "DE"
             )
         ]
     }
