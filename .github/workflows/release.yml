@@ -257,6 +257,26 @@ jobs:
           publish_dir: ./public
           keep_files: true
 
+      # The feed URL the app was built with is the only one installed copies
+      # read, so a feed that does not serve this version ships a broken updater.
+      - name: Verify the published feed serves this version
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          app_plist="build/official-release/Keyameleon.xcarchive/Products/Applications/Keyameleon.app/Contents/Info.plist"
+          feed_url="$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$app_plist")"
+          for attempt in {1..20}; do
+            if curl -fsSL "$feed_url" 2>/dev/null | grep -qF "<sparkle:version>${VERSION}</sparkle:version>"; then
+              echo "feed ${feed_url} serves ${VERSION}"
+              exit 0
+            fi
+            echo "attempt ${attempt}: ${feed_url} does not serve ${VERSION} yet" >&2
+            sleep 6
+          done
+          echo "feed ${feed_url} does not serve ${VERSION}" >&2
+          exit 1
+
       # Publish last. If Pages fails, rerunning this job can reuse the tag and
       # try Pages again without an existing GitHub Release blocking recovery.
       - name: Publish GitHub Release
