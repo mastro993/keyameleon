@@ -9,6 +9,7 @@ enum KeyameleonPreviewSetupState: Equatable {
     case assignmentsPopulated
     case mixedAssignments
     case manyAssignments
+    case excludedDevices
     case designationInProgress
     case paused
     case completed
@@ -103,6 +104,11 @@ enum KeyameleonPreviewFixtures {
             discoverer.emit(.connected(fact))
         }
         configureAssignments(for: model, state: state)
+
+        if state == .excludedDevices,
+           let pointer = model.physicalKeyboards.first(where: { !$0.isAssignable }) {
+            model.excludePhysicalKeyboard(pointer.id)
+        }
 
         if state == .designationInProgress,
            let keyboard = model.physicalKeyboards.first(where: {
@@ -317,6 +323,22 @@ enum KeyameleonPreviewFixtures {
                     identity: nil,
                     serial: nil,
                     name: "Unidentifiable Keyboard"
+                )
+            ]
+        case .excludedDevices:
+            return [
+                makeFacts(
+                    serviceID: 30,
+                    identity: "preview.travel",
+                    serial: "travel",
+                    name: "Keychron K2"
+                ),
+                makeFacts(
+                    serviceID: 31,
+                    identity: nil,
+                    serial: nil,
+                    name: "Logitech USB Receiver",
+                    vendorID: 200
                 )
             ]
         case .permissionRequired, .assignmentsEmpty, .completed:

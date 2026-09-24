@@ -62,6 +62,7 @@ final class ActivityTriggeredSwitching {
     private let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
     private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
+    private let exclusionStore: any PhysicalKeyboardExclusionStoring
     private let resolver: PhysicalKeyboardPresentationResolver
 
     private var isStarted = false
@@ -138,6 +139,7 @@ final class ActivityTriggeredSwitching {
         inputSources: InputSourceModule,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
+        exclusionStore: any PhysicalKeyboardExclusionStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) {
         self.permissionProvider = permissionProvider
@@ -146,6 +148,7 @@ final class ActivityTriggeredSwitching {
         self.physicalKeyboardDiscovery = physicalKeyboardDiscovery
         self.inputSources = inputSources
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
+        self.exclusionStore = exclusionStore
         resolver = PhysicalKeyboardPresentationResolver(
             recordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
@@ -308,14 +311,30 @@ final class ActivityTriggeredSwitching {
     }
 
     /// Internal management seam used when a saved Physical Keyboard is
-    /// forgotten or explicitly replaced.
+    /// forgotten, excluded, or explicitly replaced.
+    ///
+    /// The wanted Keyboard Assignment goes with it: Retry Now must not select an
+    /// Input Source for a Physical Keyboard the person just removed.
     func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
-        guard physicalKeyboardDiscovery.activePhysicalKeyboardID == physicalKeyboardID else {
+        var changed = false
+
+        if wantedKeyboardAssignment?.physicalKeyboardID == physicalKeyboardID {
+            wantedKeyboardAssignment = nil
+            wantedKeyboardAssignmentIdentifier = nil
+            clearWarning(cause: .selectionFailure)
+            changed = true
+        }
+
+        if physicalKeyboardDiscovery.activePhysicalKeyboardID == physicalKeyboardID {
+            lastActivePhysicalKeyboard = nil
+            physicalKeyboardDiscovery.clearActive(if: physicalKeyboardID)
+            changed = true
+        }
+
+        guard changed else {
             return
         }
 
-        lastActivePhysicalKeyboard = nil
-        physicalKeyboardDiscovery.clearActive(if: physicalKeyboardID)
         rebuildOutcome()
     }
 
@@ -684,6 +703,7 @@ final class ActivityTriggeredSwitching {
     private func reevaluateUnavailableKeyboardAssignments() -> Bool {
         var changed = false
         let eligibleIdentifiers = Set(inputSources.eligibleInputSources.map(\.identifier))
+        let excludedKeys = Set(exclusionStore.allExclusions().map(\.key))
         var remainingUnavailableIDs = Set(
             activeWarningByCause.keys.compactMap { cause -> PhysicalKeyboardRecordID? in
                 if case let .unavailableKeyboardAssignment(id) = cause {
@@ -699,6 +719,10 @@ final class ActivityTriggeredSwitching {
             }
 
             let physicalKeyboardID = record.recordID
+            // An excluded device keeps its record, so its warning must not survive.
+            guard !excludedKeys.contains(PhysicalKeyboardExclusionKey.key(for: physicalKeyboardID)) else {
+                continue
+            }
             if KeyboardAssignmentAvailability.isAvailable(
                 assignment,
                 eligibleIdentifiers: eligibleIdentifiers

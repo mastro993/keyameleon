@@ -12,6 +12,7 @@ struct KeyameleonActivityTriggeredSwitchingComposition {
     let setupStore: any SetupDecisionStoring
     let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     let designationStore: any ManualPhysicalKeyboardDesignationStoring
+    let exclusionStore: any PhysicalKeyboardExclusionStoring
     let integrityKeyProvider: any InstallationIntegrityKeyProviding
 }
 
@@ -23,6 +24,7 @@ enum KeyameleonProductionFactory {
         setupStore: any SetupDecisionStoring,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
+        exclusionStore: any PhysicalKeyboardExclusionStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) -> KeyameleonActivityTriggeredSwitchingComposition {
         let inputSources = SystemInputSourceProvider()
@@ -37,6 +39,7 @@ enum KeyameleonProductionFactory {
             inputSourceChangeObserver: SystemInputSourceChangeObserver(),
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
+            exclusionStore: exclusionStore,
             integrityKeyProvider: integrityKeyProvider
         )
     }
@@ -57,6 +60,8 @@ enum KeyameleonProductionFactory {
             InMemoryPhysicalKeyboardRecordStore(),
         designationStore: any ManualPhysicalKeyboardDesignationStoring =
             InMemoryManualPhysicalKeyboardDesignationStore(),
+        exclusionStore: any PhysicalKeyboardExclusionStoring =
+            InMemoryPhysicalKeyboardExclusionStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider()
     ) -> KeyameleonActivityTriggeredSwitchingComposition {
@@ -77,6 +82,7 @@ enum KeyameleonProductionFactory {
             inputSources: inputSources,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
+            exclusionStore: exclusionStore,
             integrityKeyProvider: integrityKeyProvider
         )
 
@@ -87,6 +93,7 @@ enum KeyameleonProductionFactory {
             setupStore: setupStore,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
+            exclusionStore: exclusionStore,
             integrityKeyProvider: integrityKeyProvider
         )
     }

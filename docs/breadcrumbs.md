@@ -1,5 +1,37 @@
 # Breadcrumbs
 
+## 2026-09-24 — Physical Keyboard Exclusion
+
+- Reported: a Logitech mouse is listed as a Physical Keyboard, so Activity-
+  Triggered Switching can act on a device that is not a keyboard. Broad
+  recognition is a recorded decision (`docs/choices.md`), so the device gets a
+  saved Physical Keyboard Exclusion instead of a narrower rule.
+- Domain: `SavedPhysicalKeyboardExclusion` and `PhysicalKeyboardExclusionKey` in
+  `PhysicalKeyboardExclusion.swift`. The key is the Physical Keyboard Identity
+  value with the anchor dropped, or the vendor, product, and model facts for a
+  device that has no Identity. The built-in Physical Keyboard has no key.
+- Persistence: `UserDefaultsPhysicalKeyboardExclusionStore` writes JSON under
+  `keyameleon.excludedPhysicalKeyboards`. No SwiftData model, no schema version,
+  no migration stage.
+- `PhysicalKeyboardCatalog.setExcludedKeys(_:)` filters excluded facts out of the
+  catalogue, and `removeAllServices()` keeps the set across the stop that pause,
+  lock, and sleep perform. Excluded devices therefore reach no consumer: no card,
+  no Activation Activity, no Active Physical Keyboard, no connection log.
+- `KeyameleonSetupModel` gains `canExcludePhysicalKeyboard`,
+  `excludePhysicalKeyboard`, `restorePhysicalKeyboard`, and
+  `excludedPhysicalKeyboards`, and filters a saved record of an excluded device
+  out of the disconnected rows it publishes. A saved record stays excludable
+  while its Physical Keyboard is disconnected.
+- `ActivityTriggeredSwitching` skips excluded records when it re-evaluates
+  Unavailable Keyboard Assignments. `forgetPhysicalKeyboard` now also clears the
+  wanted Keyboard Assignment and its selection-failure warning, so Retry Now
+  cannot select an Input Source for a device the person just excluded.
+- UI: `Not a Keyboard…` on each Physical Keyboard card in guided setup and in
+  Settings, a `Not a Physical Keyboard?` confirmation that names the device, and
+  an Excluded Devices section with `Include Again`.
+- Tests: `ExclusionTests.swift`. Docs: CONTEXT.md Glossary term, `docs/choices.md`
+  entry for 2026-09-24.
+
 ## 2026-09-24 — Sparkle update checks hit a 404 feed
 
 - Keyameleon shipped `SUFeedURL` as
