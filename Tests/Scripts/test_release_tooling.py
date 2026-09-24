@@ -165,7 +165,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
             self.assertEqual(evidence["artifactFileName"], "Keyameleon-1.2.3.dmg")
             self.assertEqual(
                 evidence["feedURLString"],
-                "https://mastro993.github.io/Keyameleon/appcast.xml",
+                "https://mastro993.github.io/keyameleon/appcast.xml",
             )
             self.assertNotIn("sourceArchiveFileName", evidence)
 

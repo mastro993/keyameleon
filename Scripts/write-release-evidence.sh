@@ -60,7 +60,7 @@ if [[ "$(basename "$artifact")" != "$archive_name" ]]; then
     echo "artifact must be named ${archive_name}" >&2
     exit 1
 fi
-feed_url="https://mastro993.github.io/Keyameleon/appcast.xml"
+feed_url="https://mastro993.github.io/keyameleon/appcast.xml"
 
 mkdir -p "$(dirname "$output")"
 

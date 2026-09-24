@@ -19,7 +19,7 @@ enum KeyameleonUpdatePolicy {
 
     /// Official Release appcast published on the Keyameleon GitHub Pages site.
     static let feedURLString =
-        "https://mastro993.github.io/Keyameleon/appcast.xml"
+        "https://mastro993.github.io/keyameleon/appcast.xml"
 
     static func shouldCheckForUpdates(
         lastCheckDate: Date?,

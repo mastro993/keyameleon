@@ -1,5 +1,30 @@
 # Breadcrumbs
 
+## 2026-09-24 — Sparkle update checks hit a 404 feed
+
+- Keyameleon shipped `SUFeedURL` as
+  `https://mastro993.github.io/Keyameleon/appcast.xml`. GitHub Pages serves a
+  project site under the repository's lowercase path, so the capitalized path
+  returned the Pages "site not found" page with `Content-Type: text/html` and
+  every update check failed with Sparkle's "Update Error! An error occurred in
+  retrieving update information. Please try again later."
+- Repro before the fix: on the installed 0.4.0 build, about window, Check for
+  Updates. The system URL cache for `dev.fedemas.keyameleon` recorded that
+  request returning the 404 HTML body.
+- Control: the same build with only `SUFeedURL` overridden to the lowercase path
+  reported "Keyameleon 0.4.1 is now available—you have 0.4.0", which isolates
+  the path case as the cause and shows the appcast, version comparison, and
+  EdDSA key all work.
+- Fixed in `project.yml`, `Sources/App/Info.plist`,
+  `KeyameleonUpdatePolicy.feedURLString`, `Scripts/write-release-evidence.sh`,
+  `docs/release/official-release.md`, and `MEMORY.md`.
+- The release workflow now reads `SUFeedURL` back out of the archived app and
+  requires the published feed to serve the released `<sparkle:version>` before
+  the GitHub Release is published, so a feed that does not resolve fails the
+  release instead of shipping.
+- `0.4.0` and `0.4.1` installed copies carry the old URL and cannot self-update.
+  They need one manual install; anything built after this change updates itself.
+
 ## 2026-09-24 — Assignment pill shows the layout locale code
 
 - The right-edge badge on an assignment pill shows the assigned Input Source's
