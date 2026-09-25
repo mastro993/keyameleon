@@ -1,5 +1,58 @@
 # Choices
 
+## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card
+
+One Physical Keyboard takes one card. The cards sit in a single list, so the set
+stays scannable and the whole set fits one window.
+
+### Seams
+
+- `KeyameleonCardSurface` is the pane's card surface. It carries the one fill, the
+  one radius, the one padding, and `isHighlighted` for the Active Physical
+  Keyboard, so no call site invents its own.
+- `KeyboardSettingsRow` derives one card's content from one Physical Keyboard: the
+  status line, the optional warning and guidance lines, the Input Source control,
+  and which actions the card offers. The list branches on nothing.
+- `KeyboardSettingsRowView` draws that card and its actions menu.
+- `PhysicalKeyboardNameSheet` edits the Physical Keyboard Name, opened from
+  `Rename…` in the card's actions menu. The name is no longer an always-visible
+  field.
+- `KeyameleonKeyboardSettingsView` keeps the state and the sheets and dialogs,
+  and no longer carries a `contentPadding` parameter that had one caller.
+
+### Defaults
+
+- The card fill is `Color.primary.opacity(0.06)`, and the Active Physical
+  Keyboard's card uses `.tint.opacity(0.12)`.
+- Card layout: a keyboard symbol, the Physical Keyboard Name, an `Active` marker,
+  the connection state on its own line, a trailing Input Source button, and an
+  actions menu. The Active Physical Keyboard's card takes the accent fill, and the
+  `Active` marker stays beside the name so the state is never colour alone.
+- One card is about 62 pt tall. Six Physical Keyboards fit one window, where the
+  card this replaces needed about 235 pt each.
+- List rows hide their separators and take 4 pt above and below, so the cards read
+  as separate surfaces.
+- The trailing Input Source button shows the assigned Input Source name and opens
+  the searchable picker sheet. It reads `Assign Input Source…` when nothing is
+  assigned, and `Input Source Unavailable` in orange when the assignment's Input
+  Source is not on this Mac.
+- Unsupported identifiers keep the connection state on the status line and report
+  the reason on a second line, so a disconnected device still says so. A card that
+  can start Manual Physical Keyboard Designation adds `Save it after it leaves and
+  returns.` under the reason, which is where the card used to explain it.
+- One actions menu per card holds `Rename…`, `Remove Assignment`, `Replace Saved
+  Physical Keyboard…`, `Manual Physical Keyboard Designation…`, `Forget…`, and
+  `Not a Keyboard…`. Items appear only when the model says the action is possible.
+  `Not a Keyboard…` is an item in that menu rather than a button on a card, and
+  its action and confirmation are unchanged.
+- Renaming keeps the macOS product name visible as the sheet's field placeholder,
+  so clearing the field is the documented way back to the product name.
+- Excluded Devices stays its own section on the same card surface, with a footer,
+  an `Include Again` button per row, and the `include-excluded-device-again`
+  identifier.
+- The pane keeps the `physical-keyboard-configuration`, `excluded-devices`, and
+  `not-a-keyboard` identifiers and every confirmation dialog message.
+
 ## 2026-09-24 — Physical Keyboard Exclusion
 
 Broad recognition stays as decided on 2026-09-23. A shortcut-equipped pointer is
