@@ -3,97 +3,88 @@ import SwiftUI
 @MainActor
 struct KeyameleonKeyboardSettingsView: View {
     private let model: KeyameleonSetupModel
-    private let contentPadding: CGFloat
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var replacePickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var pendingReplaceConnectedID: PhysicalKeyboardRecordID?
     @State private var replaceTargetDisconnectedID: PhysicalKeyboardRecordID?
     @State private var forgetCandidateID: PhysicalKeyboardRecordID?
     @State private var excludeCandidateID: PhysicalKeyboardRecordID?
-    @State private var nameDrafts: [String: String] = [:]
+    @State private var renameCandidateID: PhysicalKeyboardRecordID?
+    @State private var renameDraft = ""
     @State private var designationNameDraft = ""
 
-    init(
-        model: KeyameleonSetupModel,
-        contentPadding: CGFloat = 28
-    ) {
+    init(model: KeyameleonSetupModel) {
         self.model = model
-        self.contentPadding = contentPadding
     }
 
     var body: some View {
-        Form {
-            Section {
-                VStack(alignment: .leading, spacing: 12) {
+        Group {
+            if model.physicalKeyboards.isEmpty, model.excludedPhysicalKeyboards.isEmpty {
+                ContentUnavailableView {
+                    Label("No Physical Keyboards", systemImage: "keyboard")
+                } description: {
+                    Text("Connect a Physical Keyboard to register it with Keyameleon.")
+                }
+            } else {
+                List {
                     if let designationStatus = model.manualDesignationStatusText() {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(designationStatus)
-                                .foregroundStyle(.secondary)
-                            Button("Cancel Designation") {
-                                model.cancelManualDesignation()
+                        Section {
+                            HStack(spacing: 12) {
+                                Text(designationStatus)
+                                Spacer(minLength: 12)
+                                Button("Cancel Designation", action: model.cancelManualDesignation)
                             }
                         }
                     }
 
-                    if model.physicalKeyboards.isEmpty {
-                        Text("No Physical Keyboards found.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        VStack(spacing: 12) {
-                            ForEach(model.physicalKeyboards) { physicalKeyboard in
-                                physicalKeyboardCard(physicalKeyboard)
-                            }
-                        }
-                    }
-                }
-                .padding(contentPadding)
-                .accessibilityIdentifier("physical-keyboard-configuration")
-            } header: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Physical Keyboards")
-                    Text("Name each keyboard and choose its assigned Input Source.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if !model.excludedPhysicalKeyboards.isEmpty {
-                Section {
-                    VStack(spacing: 12) {
-                        ForEach(model.excludedPhysicalKeyboards, id: \.key) { exclusion in
-                            HStack {
-                                Text(exclusion.name)
-                                Spacer()
-                                Button("Include Again") {
-                                    model.restorePhysicalKeyboard(exclusionKey: exclusion.key)
-                                }
-                                .accessibilityIdentifier("include-excluded-device-again")
-                                .accessibilityLabel("Include \(exclusion.name) again")
-                            }
-                            .padding(20)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                Color.primary.opacity(0.06),
-                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    Section {
+                        ForEach(model.physicalKeyboards) { physicalKeyboard in
+                            KeyboardSettingsRowView(
+                                row: makeRow(for: physicalKeyboard),
+                                actions: makeActions(for: physicalKeyboard)
                             )
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                         }
                     }
-                    .padding(contentPadding)
-                    .accessibilityIdentifier("excluded-devices")
-                } header: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Excluded Devices")
-                        Text("Keyameleon does not treat these devices as Physical Keyboards.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                        Text("Include one again to list it.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
+
+                    if !model.excludedPhysicalKeyboards.isEmpty {
+                        Section {
+                            ForEach(model.excludedPhysicalKeyboards, id: \.key) { exclusion in
+                                HStack(spacing: 12) {
+                                    Image(systemName: "keyboard.badge.ellipsis")
+                                        .font(.title3)
+                                        .foregroundStyle(.secondary)
+                                        .accessibilityHidden(true)
+                                    Text(exclusion.name)
+                                        .font(.headline)
+                                    Spacer(minLength: 16)
+                                    Button("Include Again") {
+                                        model.restorePhysicalKeyboard(exclusionKey: exclusion.key)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .accessibilityIdentifier("include-excluded-device-again")
+                                    .accessibilityLabel("Include \(exclusion.name) again")
+                                }
+                                .keyameleonCard()
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(
+                                    EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
+                                )
+                            }
+                        } header: {
+                            Text("Excluded Devices")
+                        } footer: {
+                            Text("Keyameleon does not treat these devices as Physical Keyboards.")
+                                .font(.callout)
+                        }
+                        .accessibilityIdentifier("excluded-devices")
                     }
                 }
+                .listStyle(.inset)
             }
         }
-        .formStyle(.grouped)
+        .accessibilityIdentifier("physical-keyboard-configuration")
         .sheet(item: assignmentPickerBinding) { keyboard in
             KeyboardAssignmentPickerView(
                 physicalKeyboard: keyboard,
@@ -123,6 +114,19 @@ struct KeyameleonKeyboardSettingsView: View {
                 onCancel: {
                     replacePickerKeyboardID = nil
                     pendingReplaceConnectedID = nil
+                }
+            )
+        }
+        .sheet(item: renameCandidateBinding) { keyboard in
+            PhysicalKeyboardNameSheet(
+                nameDraft: $renameDraft,
+                productName: keyboard.productName,
+                onSave: {
+                    model.setPhysicalKeyboardName(keyboard.id, customName: renameDraft)
+                    renameCandidateID = nil
+                },
+                onCancel: {
+                    renameCandidateID = nil
                 }
             )
         }
@@ -215,133 +219,56 @@ struct KeyameleonKeyboardSettingsView: View {
         }
     }
 
-    private func physicalKeyboardCard(_ physicalKeyboard: PhysicalKeyboard) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(physicalKeyboard.isAssignable
-                    ? "Physical Keyboard Name"
-                    : physicalKeyboard.name)
-                    .font(physicalKeyboard.isAssignable ? .caption : .body.weight(.medium))
-                    .foregroundStyle(physicalKeyboard.isAssignable ? .secondary : .primary)
-
-                Spacer()
-
-                if physicalKeyboard.isActive {
-                    Text("Active")
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(.tint.opacity(0.18), in: Capsule())
-                }
-            }
-
-            if physicalKeyboard.isAssignable {
-                TextField(
-                    physicalKeyboard.productName,
-                    text: nameBinding(for: physicalKeyboard)
-                )
-                .textFieldStyle(.roundedBorder)
-                .accessibilityLabel("Physical Keyboard Name for \(physicalKeyboard.name)")
-                .onSubmit {
-                    commitName(for: physicalKeyboard)
-                }
-                .onChange(of: nameDrafts[physicalKeyboard.id.rawValue] ?? "") { _, newValue in
-                    model.setPhysicalKeyboardName(
-                        physicalKeyboard.id,
-                        customName: newValue
-                    )
-                }
-            }
-
-            Divider()
-
-            HStack {
-                Text(connectionDescription(for: physicalKeyboard))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(assignmentStatusText(for: physicalKeyboard))
-                    .foregroundStyle(
-                        physicalKeyboard.isAssignable ? Color.secondary : Color.orange
-                    )
-            }
-
-            if physicalKeyboard.isAssignable {
-                Divider()
-
-                HStack {
-                    Button(physicalKeyboard.keyboardAssignment == nil
-                        ? "Assign…"
-                        : "Change Assignment") {
-                        assignmentPickerKeyboardID = physicalKeyboard.id
-                    }
-
-                    if physicalKeyboard.keyboardAssignment != nil {
-                        Button("Remove Assignment") {
-                            model.setKeyboardAssignment(
-                                physicalKeyboard.id,
-                                inputSourceIdentifier: nil
-                            )
-                        }
-                    }
-
-                    Spacer()
-
-                    if physicalKeyboard.connectionState == .connected,
-                       !model.replaceCandidates(for: physicalKeyboard.id).isEmpty {
-                        Button("Replace…") {
-                            pendingReplaceConnectedID = physicalKeyboard.id
-                            replacePickerKeyboardID = physicalKeyboard.id
-                        }
-                    }
-
-                    if model.canForgetPhysicalKeyboard(physicalKeyboard.id) {
-                        Button("Forget…", role: .destructive) {
-                            forgetCandidateID = physicalKeyboard.id
-                        }
-                    }
-                }
-            } else if model.canStartManualDesignation(for: physicalKeyboard.id) {
-                Divider()
-                Text(
-                    "Save this external identity group only after it leaves, returns, and you confirm its name."
-                )
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                Button("Manual Physical Keyboard Designation…") {
-                    model.startManualDesignation(for: physicalKeyboard.id)
-                }
-            }
-
-            if model.canExcludePhysicalKeyboard(physicalKeyboard.id) {
-                Divider()
-                HStack {
-                    Button("Not a Keyboard…") {
-                        excludeCandidateID = physicalKeyboard.id
-                    }
-                    .accessibilityIdentifier("not-a-keyboard")
-                    .accessibilityLabel("Not a Keyboard")
-                    .accessibilityHint(
-                        "Removes \(physicalKeyboard.name) from the Physical Keyboards list."
-                    )
-
-                    Spacer()
-                }
-            }
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            physicalKeyboard.isActive
-                ? Color.accentColor.opacity(0.12)
-                : Color.primary.opacity(0.06),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+    private func makeRow(for physicalKeyboard: PhysicalKeyboard) -> KeyboardSettingsRow {
+        KeyboardSettingsRow(
+            physicalKeyboard: physicalKeyboard,
+            assignedInputSourceName: model.assignedInputSourceName(for: physicalKeyboard),
+            canReplace: !model.replaceCandidates(for: physicalKeyboard.id).isEmpty,
+            canForget: model.canForgetPhysicalKeyboard(physicalKeyboard.id),
+            canExclude: model.canExcludePhysicalKeyboard(physicalKeyboard.id),
+            canStartManualDesignation: model.canStartManualDesignation(for: physicalKeyboard.id)
         )
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(physicalKeyboard.name)
-        .accessibilityValue(
-            physicalKeyboard.isActive
-                ? "Active · \(connectionDescription(for: physicalKeyboard))"
-                : connectionDescription(for: physicalKeyboard)
+    }
+
+    private func makeActions(for physicalKeyboard: PhysicalKeyboard) -> KeyboardSettingsRowActions {
+        KeyboardSettingsRowActions(
+            chooseInputSource: {
+                assignmentPickerKeyboardID = physicalKeyboard.id
+            },
+            removeAssignment: {
+                model.setKeyboardAssignment(physicalKeyboard.id, inputSourceIdentifier: nil)
+            },
+            rename: {
+                renameDraft = physicalKeyboard.name
+                renameCandidateID = physicalKeyboard.id
+            },
+            replace: {
+                pendingReplaceConnectedID = physicalKeyboard.id
+                replacePickerKeyboardID = physicalKeyboard.id
+            },
+            forget: {
+                forgetCandidateID = physicalKeyboard.id
+            },
+            exclude: {
+                excludeCandidateID = physicalKeyboard.id
+            },
+            startManualDesignation: {
+                model.startManualDesignation(for: physicalKeyboard.id)
+            }
+        )
+    }
+
+    private var renameCandidateBinding: Binding<PhysicalKeyboard?> {
+        Binding(
+            get: {
+                guard let renameCandidateID else {
+                    return nil
+                }
+                return model.physicalKeyboards.first { $0.id == renameCandidateID }
+            },
+            set: { keyboard in
+                renameCandidateID = keyboard?.id
+            }
         )
     }
 
@@ -422,51 +349,6 @@ struct KeyameleonKeyboardSettingsView: View {
                 replacePickerKeyboardID = keyboard?.id
             }
         )
-    }
-
-    private func nameBinding(for physicalKeyboard: PhysicalKeyboard) -> Binding<String> {
-        Binding(
-            get: {
-                nameDrafts[physicalKeyboard.id.rawValue]
-                    ?? physicalKeyboard.customName
-                    ?? physicalKeyboard.productName
-            },
-            set: { nameDrafts[physicalKeyboard.id.rawValue] = $0 }
-        )
-    }
-
-    private func commitName(for physicalKeyboard: PhysicalKeyboard) {
-        let draft = nameDrafts[physicalKeyboard.id.rawValue] ?? physicalKeyboard.name
-        model.setPhysicalKeyboardName(physicalKeyboard.id, customName: draft)
-    }
-
-    private func connectionDescription(for physicalKeyboard: PhysicalKeyboard) -> String {
-        switch physicalKeyboard.connectionState {
-        case .disconnected: "Disconnected"
-        case .connected: "Connected · \(physicalKeyboard.connectionTypeName)"
-        }
-    }
-
-    private func assignmentStatusText(for physicalKeyboard: PhysicalKeyboard) -> String {
-        switch physicalKeyboard.assignmentState {
-        case .unassigned:
-            "Unassigned"
-        case .assigned:
-            model.assignedInputSourceName(for: physicalKeyboard)
-                .map { "Keyboard Assignment: \($0)" }
-                ?? "Unavailable Keyboard Assignment"
-        case let .unsupported(reason):
-            "Unsupported — \(unsupportedReasonName(reason))"
-        }
-    }
-
-    private func unsupportedReasonName(_ reason: PhysicalKeyboardUnsupportedReason) -> String {
-        switch reason {
-        case .missingIdentity: "Physical Keyboard Identity unavailable"
-        case .unstableIdentity: "Physical Keyboard Identity unstable"
-        case .sharedIdentity: "Physical Keyboard Identity shared"
-        case .ambiguousIdentity: "Physical Keyboard Identity ambiguous"
-        }
     }
 }
 
