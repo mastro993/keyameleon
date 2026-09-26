@@ -5,7 +5,7 @@ extension View {
     @ViewBuilder
     func ifLet<Value, Content: View>(
         _ value: Value?,
-        if ifTransform: (Self, Value) -> Content
+        if ifTransform: @escaping (Self, Value) -> Content
     ) -> some View {
         if let value {
             ifTransform(self, value)
