@@ -51,13 +51,12 @@ struct KeyboardSettingsRowView: View {
 
             Spacer(minLength: 16)
 
-            if row.hasActions {
-                actionsMenu
-            }
-            
-
             if let control = row.inputSourceControl {
                 inputSourceButton(control)
+            }
+
+            if row.hasActions {
+                actionsMenu
             }
         }
         .keyameleonCard(isHighlighted: row.isActive)
@@ -80,46 +79,26 @@ struct KeyboardSettingsRowView: View {
     }
 
     private var actionsMenu: some View {
-        HStack {
+        Menu {
             if row.canRename {
-                Button("Rename", systemImage: "pencil", action: actions.rename)
-                    .help("Rename \(row.name)")
+                Button("Rename…", action: actions.rename)
             }
             if row.hasAssignment {
-                Button("Remove Assignment", systemImage: "minus.circle", action: actions.removeAssignment)
-                    .help("Remove Assignment from \(row.name)")
-            }
-            if row.canReplace {
-                Button(
-                    "Replace Saved Physical Keyboard",
-                    systemImage: "arrow.triangle.2.circlepath",
-                    action: actions.replace
-                )
-                .help("Replace Saved Physical Keyboard")
-            }
-            if row.canStartManualDesignation {
-                Button(
-                    "Manual Physical Keyboard Designation",
-                    systemImage: "hand.point.up.left",
-                    action: actions.startManualDesignation
-                )
-                .help("Start Manual Physical Keyboard Designation")
-            }
-            if row.canForget {
-                Button("Forget", systemImage: "trash", role: .destructive, action: actions.forget)
-                    .help("Forget \(row.name)")
+                Button("Forget", action: actions.removeAssignment)
             }
             if row.canExclude {
-                Button("Not a Keyboard", systemImage: "xmark.circle", action: actions.exclude)
-                    .help("Mark \(row.name) as Not a Keyboard")
+                Button("Disable…", action: actions.exclude)
                     .accessibilityIdentifier("not-a-keyboard")
                     .accessibilityHint("Removes \(row.name) from the Physical Keyboards list.")
             }
+        } label: {
+            Image(systemName: "ellipsis")
+                .accessibilityLabel("Actions for \(row.name)")
         }
-        .labelStyle(.iconOnly)
-        .buttonStyle(.borderless)
+        .menuIndicator(.hidden)
+        .menuStyle(.borderlessButton)
         .fixedSize()
-        .frame(maxWidth: .infinity, alignment: .trailing)
+        .help("Actions for \(row.name)")
     }
 
     private func helpText(for control: KeyboardSettingsRow.InputSourceControl) -> String {

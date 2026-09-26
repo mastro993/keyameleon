@@ -1,5 +1,25 @@
 # Breadcrumbs
 
+## 2026-09-26 — Keyboard card actions collapse into a three-dot menu
+
+- Reported: the card's actions were five icon-only buttons of the same weight, so
+  `Rename` and the destructive `Forget` read as equals of an exclusion.
+- UI: `KeyboardSettingsRowView` draws one `Menu` behind a three-dot `Image`, after
+  the Input Source button. Its items are `Rename…`, `Forget` for a card with a
+  Keyboard Assignment, and `Disable…` for a card the model lets a person exclude.
+- `KeyboardSettingsRow.hasActions` now follows those three items, so the row stays
+  the one place that decides which actions a card offers and the view cannot draw
+  an empty menu.
+- Unchanged: the rename sheet, the exclusion confirmation and action, the
+  `not-a-keyboard` identifier, and the Excluded Devices restore row.
+- Not drawn anywhere: `replace`, `forget`, and `startManualDesignation` on
+  `KeyboardSettingsRowActions`, and `canReplace`, `canForget`, and
+  `canStartManualDesignation` on the row.
+- Test: `KeyboardSettingsRowTests.swift` gains a case where the row can only offer
+  replace, forget, and Manual Physical Keyboard Designation, and expects
+  `hasActions == false`.
+- Docs: `docs/choices.md` entry for 2026-09-26.
+
 ## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card
 
 - Reported: the Keyboards pane in Settings takes a whole window per Physical

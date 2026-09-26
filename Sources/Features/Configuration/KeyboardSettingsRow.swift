@@ -95,8 +95,7 @@ struct KeyboardSettingsRow: Identifiable, Equatable {
     }
 
     var hasActions: Bool {
-        canRename || hasAssignment || canReplace || canForget || canExclude
-            || canStartManualDesignation
+        canRename || hasAssignment || canExclude
     }
 
     /// What a screen reader reads for this row.

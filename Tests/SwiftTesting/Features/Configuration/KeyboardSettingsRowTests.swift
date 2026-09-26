@@ -138,6 +138,23 @@ func rowWithoutActionsHidesMenu() {
     #expect(row.hasActions == false)
 }
 
+@Test("A row offers Actions only for the items its menu holds")
+func rowOffersActionsOnlyForMenuItems() {
+    let row = KeyboardSettingsRow(
+        physicalKeyboard: makePhysicalKeyboard(
+            id: "service:preview-menu-items",
+            assignmentState: .unassigned
+        ),
+        assignedInputSourceName: nil,
+        canReplace: true,
+        canForget: true,
+        canExclude: false,
+        canStartManualDesignation: true
+    )
+
+    #expect(row.hasActions == false)
+}
+
 @Test("A built-in Physical Keyboard reports its transport as Built-in")
 func builtInKeyboardReportsBuiltInTransport() {
     let row = KeyboardSettingsRow(

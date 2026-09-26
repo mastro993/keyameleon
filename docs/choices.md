@@ -1,5 +1,32 @@
 # Choices
 
+## 2026-09-26 — Keyboard card actions collapse into a three-dot menu
+
+Supersedes the actions-menu bullet under 2026-09-25. The card keeps one actions
+menu and its contents shrink to three items.
+
+### Defaults
+
+- The menu trigger is a three-dot button placed after the Input Source button, so
+  it follows the locale code the Input Source button shows.
+- The menu holds three items: `Rename…`, `Forget` when the card has a Keyboard
+  Assignment, and `Disable…` when the model offers a Physical Keyboard Exclusion.
+- `Forget` clears the Keyboard Assignment. It leaves the saved Physical Keyboard
+  Name and a Manual Physical Keyboard Designation in place, so the action is not
+  destructive and takes no confirmation.
+- `Disable…` keeps the Physical Keyboard Exclusion action, the `Not a Physical
+  Keyboard?` confirmation, the `not-a-keyboard` identifier, and the Excluded
+  Devices restore path.
+- `KeyboardSettingsRow.hasActions` follows those three items only. A card that can
+  offer none of them draws no trigger.
+- `KeyboardSettingsRow` keeps `canReplace`, `canForget`, and
+  `canStartManualDesignation`, and `KeyboardSettingsRowActions` keeps its
+  `replace`, `forget`, and `startManualDesignation` closures. No card draws them,
+  so Replace Saved Physical Keyboard, the destructive Forget, and Manual Physical
+  Keyboard Designation have no Settings entry point while this stands. A card that
+  can start Manual Physical Keyboard Designation still prints `Save it after it
+  leaves and returns.` under the reason.
+
 ## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card
 
 One Physical Keyboard takes one card. The cards sit in a single list, so the set
