@@ -5,19 +5,23 @@
 - Reported: the card's actions were five icon-only buttons of the same weight, so
   `Rename` and the destructive `Forget` read as equals of an exclusion.
 - UI: `KeyboardSettingsRowView` draws one `Menu` behind a three-dot `Image`, after
-  the Input Source button. Its items are `Rename…`, `Forget` for a card with a
-  Keyboard Assignment, and `Disable…` for a card the model lets a person exclude.
+  the Input Source button. Its items are `Rename`, `Forget` for a card the model
+  allows forgetting, and `Disable` for a card the model lets a person exclude.
+- `Forget` keeps `role: .destructive` and `actions.forget`, so the
+  `Forget Physical Keyboard?` confirmation and `forgetCandidateID` in
+  `KeyameleonKeyboardSettingsView` are still the path.
 - `KeyboardSettingsRow.hasActions` now follows those three items, so the row stays
   the one place that decides which actions a card offers and the view cannot draw
-  an empty menu.
+  an empty menu. `hasAssignment` and `actions.removeAssignment` are no longer read
+  by the card.
 - Unchanged: the rename sheet, the exclusion confirmation and action, the
   `not-a-keyboard` identifier, and the Excluded Devices restore row.
-- Not drawn anywhere: `replace`, `forget`, and `startManualDesignation` on
-  `KeyboardSettingsRowActions`, and `canReplace`, `canForget`, and
-  `canStartManualDesignation` on the row.
+- Not drawn anywhere: `replace` and `startManualDesignation` on
+  `KeyboardSettingsRowActions`, and `canReplace` and `canStartManualDesignation`
+  on the row.
 - Test: `KeyboardSettingsRowTests.swift` gains a case where the row can only offer
-  replace, forget, and Manual Physical Keyboard Designation, and expects
-  `hasActions == false`.
+  replace and Manual Physical Keyboard Designation, and expects `hasActions ==
+  false`, plus a row whose only action is `Forget`, which expects `hasActions`.
 - Docs: `docs/choices.md` entry for 2026-09-26.
 
 ## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card

@@ -81,13 +81,13 @@ struct KeyboardSettingsRowView: View {
     private var actionsMenu: some View {
         Menu {
             if row.canRename {
-                Button("Rename…", action: actions.rename)
+                Button("Rename", action: actions.rename)
             }
-            if row.hasAssignment {
-                Button("Forget", action: actions.removeAssignment)
+            if row.canForget {
+                Button("Forget", role: .destructive, action: actions.forget)
             }
             if row.canExclude {
-                Button("Disable…", action: actions.exclude)
+                Button("Disable", action: actions.exclude)
                     .accessibilityIdentifier("not-a-keyboard")
                     .accessibilityHint("Removes \(row.name) from the Physical Keyboards list.")
             }

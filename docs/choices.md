@@ -9,23 +9,32 @@ menu and its contents shrink to three items.
 
 - The menu trigger is a three-dot button placed after the Input Source button, so
   it follows the locale code the Input Source button shows.
-- The menu holds three items: `Rename…`, `Forget` when the card has a Keyboard
-  Assignment, and `Disable…` when the model offers a Physical Keyboard Exclusion.
-- `Forget` clears the Keyboard Assignment. It leaves the saved Physical Keyboard
-  Name and a Manual Physical Keyboard Designation in place, so the action is not
-  destructive and takes no confirmation.
-- `Disable…` keeps the Physical Keyboard Exclusion action, the `Not a Physical
+- The menu holds three items: `Rename`, `Forget` when the model allows forgetting
+  the Physical Keyboard, and `Disable` when the model offers a Physical Keyboard
+  Exclusion.
+- No item in this menu uses the ellipsis character. A menu item that opens a
+  sheet or a confirmation takes the bare verb, so the item reads `Rename`, not
+  `Rename…`. Keyameleon copy must not use the ellipsis character at all. These
+  sites still do and are outstanding: `Assign Input Source…` in
+  `KeyboardSettingsRow`, `Not a Keyboard…` in `OnboardingView`, `Check for
+  Updates…` in `AboutSettingsView` and `CompactAboutView`, `Waiting…` in
+  `OnboardingView`, and the `…` truncation marker in `KeyameleonLogFile`.
+- `Forget` is the Physical Keyboard forget, unchanged: it removes the saved
+  Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard
+  Designation, keeps `role: .destructive`, and is followed by the
+  `Forget Physical Keyboard?` confirmation. Nothing clears a Keyboard Assignment
+  on its own; changing the Input Source is the way to act on an assignment.
+- `Disable` keeps the Physical Keyboard Exclusion action, the `Not a Physical
   Keyboard?` confirmation, the `not-a-keyboard` identifier, and the Excluded
   Devices restore path.
 - `KeyboardSettingsRow.hasActions` follows those three items only. A card that can
   offer none of them draws no trigger.
-- `KeyboardSettingsRow` keeps `canReplace`, `canForget`, and
-  `canStartManualDesignation`, and `KeyboardSettingsRowActions` keeps its
-  `replace`, `forget`, and `startManualDesignation` closures. No card draws them,
-  so Replace Saved Physical Keyboard, the destructive Forget, and Manual Physical
-  Keyboard Designation have no Settings entry point while this stands. A card that
-  can start Manual Physical Keyboard Designation still prints `Save it after it
-  leaves and returns.` under the reason.
+- `KeyboardSettingsRow` keeps `canReplace` and `canStartManualDesignation`, and
+  `KeyboardSettingsRowActions` keeps its `replace` and `startManualDesignation`
+  closures. No card draws them, so Replace Saved Physical Keyboard and Manual
+  Physical Keyboard Designation have no Settings entry point while this stands. A
+  card that can start Manual Physical Keyboard Designation still prints `Save it
+  after it leaves and returns.` under the reason.
 
 ## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card
 
