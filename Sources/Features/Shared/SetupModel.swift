@@ -502,7 +502,7 @@ final class KeyameleonSetupModel {
     /// by its discovered facts, which is the only way to key a device without a
     /// Physical Keyboard Identity. A saved record keys by its own identity, so a
     /// disconnected Physical Keyboard stays excludable.
-    private func exclusionKey(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String? {
+    func exclusionKey(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String? {
         guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
               !physicalKeyboard.isBuiltIn
         else {
@@ -531,17 +531,17 @@ final class KeyameleonSetupModel {
             return ""
         }
 
-        let removal =
+        let effect =
             "Keyameleon stops treating \(physicalKeyboard.name) as a Physical Keyboard. "
-            + "It leaves the list and never triggers Activity-Triggered Switching."
-        let restore = "You can include it again in Settings."
+            + "It stays visible as excluded and never triggers Activity-Triggered Switching."
+        let restore = "You can include it again during onboarding or in Settings."
 
         guard physicalKeyboardRecordStore.record(forIdentityKey: physicalKeyboardID.rawValue) != nil
         else {
-            return "\(removal) \(restore)"
+            return "\(effect) \(restore)"
         }
 
-        return "\(removal) Its saved Physical Keyboard Name and Keyboard Assignment stay saved. \(restore)"
+        return "\(effect) Its saved Physical Keyboard Name and Keyboard Assignment stay saved. \(restore)"
     }
 
     func canStartManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
@@ -719,7 +719,7 @@ final class KeyameleonSetupModel {
             }
             .map { savedRecord in
                 PhysicalKeyboard
-                    .disconnected(from: savedRecord)
+                    .restored(from: savedRecord)
                     .markingActive(savedRecord.recordID == activeID)
             }
         let disconnectedIdentityKeys = Set(disconnected.map(\.id.rawValue))

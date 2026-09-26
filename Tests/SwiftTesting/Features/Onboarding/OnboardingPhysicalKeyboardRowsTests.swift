@@ -1,0 +1,114 @@
+import Testing
+@testable import Keyameleon
+
+@Test("Excluding and restoring preserves onboarding row identity and order")
+@MainActor
+func excludingAndRestoringPreservesOnboardingRowIdentityAndOrder() {
+    let firstKeyboard = makeOnboardingRowKeyboard(
+        id: "identity:first|anchor:serial:first",
+        name: "First Keyboard"
+    )
+    let secondKeyboard = makeOnboardingRowKeyboard(
+        id: "identity:second|anchor:serial:second",
+        name: "Second Keyboard"
+    )
+    let firstKey = "identity:first"
+    let secondKey = "identity:second"
+    let exclusion = SavedPhysicalKeyboardExclusion(key: firstKey, name: "First Keyboard")
+    var rows = OnboardingPhysicalKeyboardRows(
+        physicalKeyboards: [firstKeyboard, secondKeyboard],
+        exclusionKeyFor: { keyboardID in
+            keyboardID == firstKeyboard.id ? firstKey : secondKey
+        }
+    )
+    let originalIDs = rows.rows.map(\.id)
+
+    rows.reconcile(
+        physicalKeyboards: [secondKeyboard],
+        exclusions: [exclusion],
+        exclusionKeyFor: { $0 == secondKeyboard.id ? secondKey : firstKey }
+    )
+
+    #expect(rows.rows.map(\.id) == originalIDs)
+    #expect(rows.rows[0].state == .excluded(exclusion))
+    #expect(rows.rows[1].state == .included(secondKeyboard))
+
+    rows.reconcile(
+        physicalKeyboards: [firstKeyboard, secondKeyboard],
+        exclusions: [],
+        exclusionKeyFor: { $0 == firstKeyboard.id ? firstKey : secondKey }
+    )
+
+    #expect(rows.rows.map(\.id) == originalIDs)
+    #expect(rows.rows[0].state == .included(firstKeyboard))
+    #expect(rows.rows[1].state == .included(secondKeyboard))
+}
+
+@Test("Repeated exclusions keep shared hardware-key rows unique and in place")
+@MainActor
+func repeatedExclusionsKeepSharedHardwareKeyRowsUniqueAndInPlace() {
+    let firstKeyboard = makeOnboardingRowKeyboard(id: "service:first", name: "Receiver")
+    let secondKeyboard = makeOnboardingRowKeyboard(id: "service:second", name: "Receiver")
+    let hardwareKey = "hardware:200:100:Model"
+    let exclusion = SavedPhysicalKeyboardExclusion(key: hardwareKey, name: "Receiver")
+    var rows = OnboardingPhysicalKeyboardRows(
+        physicalKeyboards: [firstKeyboard, secondKeyboard],
+        exclusionKeyFor: { _ in hardwareKey }
+    )
+    let originalIDs = rows.rows.map(\.id)
+
+    for _ in 0..<2 {
+        rows.reconcile(
+            physicalKeyboards: [],
+            exclusions: [exclusion],
+            exclusionKeyFor: { _ in hardwareKey }
+        )
+    }
+
+    #expect(rows.rows.map(\.id) == originalIDs)
+    #expect(Set(rows.rows.map(\.id)).count == 2)
+    #expect(rows.rows.map(\.state) == [.excluded(exclusion), .excluded(exclusion)])
+
+    let newKeyboard = makeOnboardingRowKeyboard(id: "identity:new", name: "New Keyboard")
+    rows.reconcile(
+        physicalKeyboards: [newKeyboard],
+        exclusions: [exclusion],
+        exclusionKeyFor: { $0 == newKeyboard.id ? "identity:new" : hardwareKey }
+    )
+
+    #expect(rows.rows.map(\.id) == originalIDs + [.keyboard(newKeyboard.id)])
+    #expect(rows.rows.last?.state == .included(newKeyboard))
+}
+
+@Test("Persisted exclusions appear on onboarding and unavailable devices disappear on restore")
+@MainActor
+func persistedExclusionsAppearAndUnavailableDevicesDisappearOnRestore() {
+    let exclusion = SavedPhysicalKeyboardExclusion(
+        key: "hardware:200:100:Model",
+        name: "USB Receiver"
+    )
+    var rows = OnboardingPhysicalKeyboardRows(
+        exclusions: [exclusion],
+        exclusionKeyFor: { _ in nil }
+    )
+
+    #expect(rows.rows == [OnboardingPhysicalKeyboardRow(exclusion: exclusion)])
+
+    rows.reconcile(physicalKeyboards: [], exclusions: [], exclusionKeyFor: { _ in nil })
+
+    #expect(rows.rows.isEmpty)
+}
+
+private func makeOnboardingRowKeyboard(id: String, name: String) -> PhysicalKeyboard {
+    PhysicalKeyboard(
+        id: PhysicalKeyboardRecordID(rawValue: id),
+        productName: name,
+        customName: nil,
+        transport: .usb,
+        isBuiltIn: false,
+        assignmentState: .unassigned,
+        connectedServiceCount: 1,
+        connectionState: .connected,
+        isActive: false
+    )
+}

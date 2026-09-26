@@ -25,6 +25,14 @@ struct KeyameleonPreviewSetupFixture {
 enum KeyameleonPreviewFixtures {
     static let fixedDate = Date(timeIntervalSince1970: 1_735_689_600)
 
+    static func setupWithAllKeyboardsExcluded() -> KeyameleonPreviewSetupFixture {
+        let fixture = setup(.excludedDevices)
+        fixture.model.physicalKeyboards.forEach { physicalKeyboard in
+            fixture.model.excludePhysicalKeyboard(physicalKeyboard.id)
+        }
+        return fixture
+    }
+
     static let aboutInfo = KeyameleonAboutInfo(
         identity: KeyameleonAppIdentity(
             infoDictionary: [

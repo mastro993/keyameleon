@@ -17,7 +17,11 @@ struct KeyameleonRootView: View {
         Group {
             if model.isSetupComplete {
                 VStack(spacing: 12) {
-                    Text("Keyameleon")
+                    Image(systemName: "checkmark.circle.fill")
+                        .resizable()
+                        .frame(width: 32.0, height: 32.0)
+                        .foregroundColor(.green)
+                    Text("Keyameleon is ready")
                         .font(.title.weight(.semibold))
                         .accessibilityAddTraits(.isHeader)
                     Text("Guided setup is complete. Keyameleon stays in the menu bar.")
@@ -28,9 +32,7 @@ struct KeyameleonRootView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityIdentifier("guided-setup")
             } else {
-                ScrollView {
-                    KeyameleonOnboardingView(model: model, switching: switching)
-                }
+                KeyameleonOnboardingView(model: model, switching: switching)
             }
         }
         .frame(minWidth: 520, minHeight: 520)
