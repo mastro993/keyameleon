@@ -85,7 +85,6 @@
 		92FCE554A36D231F5208EE17 /* PhysicalKeyboardExclusionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01D8873E79CB25ABA18D9A2 /* PhysicalKeyboardExclusionStore.swift */; };
 		939E71CD62D4340FEBDB4BB4 /* UpdatePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5868A989ABD180A75EA90AE /* UpdatePolicyTests.swift */; };
 		99A02E0432C706B27AA974F3 /* ManualPhysicalKeyboardDesignationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BD58202CA21D92931C62863 /* ManualPhysicalKeyboardDesignationStore.swift */; };
-		9C819D2C3067C80F002EFE88 /* Button+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C819D2B3067C808002EFE88 /* Button+Extension.swift */; };
 		9FDF6F39554FA2B0AB814980 /* MenuBarActionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB0CFC4FB84DA213C85B8A1 /* MenuBarActionList.swift */; };
 		A0A788E3E8075E65BD6A3D7B /* AssignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5ADE2BAB6057D00D67E9912 /* AssignmentTests.swift */; };
 		A1D53B54EA46E21E4902916F /* MenuBarPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2780C6032D0F86AADE9642E3 /* MenuBarPanelTests.swift */; };
@@ -100,6 +99,7 @@
 		B210CF1E13BBF10B3A99DB5C /* InputSourceSelectionPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3AA1C8CDDC99DBE211A276 /* InputSourceSelectionPolicyTests.swift */; };
 		B5EC86AEFA479559EB8A8E80 /* MenuBarPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF43CA4CDCBA6A5E9C39CB4 /* MenuBarPanelController.swift */; };
 		B991A91F165AEE327285A2F3 /* KeyameleonRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E7EF7669CDB881F2120DA4 /* KeyameleonRootView.swift */; };
+		BA2065E12E46CBA0736B64B4 /* Button+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B324351AAACA6EFE8C0BB53B /* Button+Extension.swift */; };
 		BCB7ACEA4648C2132116CC89 /* KeyameleonLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F3046374701BF7F84715A39 /* KeyameleonLogTests.swift */; };
 		C141129AF9884DB0A559E5FE /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20816E84928BD26D95B5E9C /* AppIdentityTests.swift */; };
 		C3629FBFE85FABA73119A005 /* MenuBarPanelAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCC61240C377CC0B57490FF /* MenuBarPanelAccessibility.swift */; };
@@ -208,7 +208,6 @@
 		974256D0031FBD3AB7489104 /* MenuBarPanelNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelNoticeView.swift; sourceTree = "<group>"; };
 		981CB4EAD210A214863F3D5B /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		9B335F899F75BAB9FEE776B5 /* InputSourceSelectionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSelectionPolicy.swift; sourceTree = "<group>"; };
-		9C819D2B3067C808002EFE88 /* Button+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Extension.swift"; sourceTree = "<group>"; };
 		9D397C615AE93268A186585C /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		9DF80C3CAC82D1C136650952 /* SwitchingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchingStatus.swift; sourceTree = "<group>"; };
 		A026DD82D56CC75927527C54 /* KeyboardAssignmentPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardAssignmentPickerView.swift; sourceTree = "<group>"; };
@@ -221,6 +220,7 @@
 		B121C255CD8D68E9673F4BA4 /* ReleasePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleasePolicy.swift; sourceTree = "<group>"; };
 		B2187CBFC2E4C31121A67AAE /* MenuBarPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelView.swift; sourceTree = "<group>"; };
 		B21982B92ADD6DEDFAED13E9 /* KeyboardSettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSettingsRowView.swift; sourceTree = "<group>"; };
+		B324351AAACA6EFE8C0BB53B /* Button+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Extension.swift"; sourceTree = "<group>"; };
 		B374C67570AA786A07343B93 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
 		B511C748DA6CA0346AF82293 /* PhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardStore.swift; sourceTree = "<group>"; };
 		B5ADE2BAB6057D00D67E9912 /* AssignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignmentTests.swift; sourceTree = "<group>"; };
@@ -395,7 +395,7 @@
 		690D45A48DB6BADE36B56FF6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				9C819D2B3067C808002EFE88 /* Button+Extension.swift */,
+				B324351AAACA6EFE8C0BB53B /* Button+Extension.swift */,
 				337ED7456362DDDFDE630664 /* View+Extension.swift */,
 			);
 			path = Extensions;
@@ -739,6 +739,7 @@
 				5CDFD62C23A8F54415F01C5D /* ApplicationDelegate+Menu.swift in Sources */,
 				5E10210835C0A77985329259 /* ApplicationDelegate+Onboarding.swift in Sources */,
 				906721B0DAE0F8DF5F7B2847 /* ApplicationDelegate.swift in Sources */,
+				BA2065E12E46CBA0736B64B4 /* Button+Extension.swift in Sources */,
 				746EC1F1EEE185B138668067 /* CompactAboutView.swift in Sources */,
 				3FCC0C2040726064934932F7 /* GeneralSettingsModel.swift in Sources */,
 				DA112CC022D978D0343C12D6 /* GeneralSettingsView.swift in Sources */,
@@ -776,7 +777,6 @@
 				F4D7658A578A8B574CB65E86 /* MenuBarPanelContent.swift in Sources */,
 				B5EC86AEFA479559EB8A8E80 /* MenuBarPanelController.swift in Sources */,
 				6FF404006B8CEF0ACCB33811 /* MenuBarPanelNotice.swift in Sources */,
-				9C819D2C3067C80F002EFE88 /* Button+Extension.swift in Sources */,
 				20ACB033A217515B3E545CAC /* MenuBarPanelNoticeView.swift in Sources */,
 				0FECCB093604246B6608FD55 /* MenuBarPanelPreviews.swift in Sources */,
 				4CDF5DC52582BF9C61F200A7 /* MenuBarPanelView.swift in Sources */,
