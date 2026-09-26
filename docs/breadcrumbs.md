@@ -1,5 +1,60 @@
 # Breadcrumbs
 
+## 2026-09-26 — Keyboard card actions collapse into a three-dot menu
+
+- Reported: the card's actions were five icon-only buttons of the same weight, so
+  `Rename` and the destructive `Forget` read as equals of an exclusion.
+- UI: `KeyboardSettingsRowView` draws one `Menu` behind a three-dot `Image`, after
+  the Input Source button. Its items are `Rename…`, `Forget` for a card with a
+  Keyboard Assignment, and `Disable…` for a card the model lets a person exclude.
+- `KeyboardSettingsRow.hasActions` now follows those three items, so the row stays
+  the one place that decides which actions a card offers and the view cannot draw
+  an empty menu.
+- Unchanged: the rename sheet, the exclusion confirmation and action, the
+  `not-a-keyboard` identifier, and the Excluded Devices restore row.
+- Not drawn anywhere: `replace`, `forget`, and `startManualDesignation` on
+  `KeyboardSettingsRowActions`, and `canReplace`, `canForget`, and
+  `canStartManualDesignation` on the row.
+- Test: `KeyboardSettingsRowTests.swift` gains a case where the row can only offer
+  replace, forget, and Manual Physical Keyboard Designation, and expects
+  `hasActions == false`.
+- Docs: `docs/choices.md` entry for 2026-09-26.
+
+## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card
+
+- Reported: the Keyboards pane in Settings takes a whole window per Physical
+  Keyboard, prints the name three times, and gives five buttons the same weight,
+  so a person with six Physical Keyboards cannot see them at once.
+- UI: `KeyameleonKeyboardSettingsView` is a `List` of one card per Physical
+  Keyboard, plus an Excluded Devices section on the same card surface and a Manual
+  Physical Keyboard Designation banner while a designation session is running. A
+  card shows a keyboard symbol, the name, an `Active` marker, the connection
+  state, a trailing Input Source button, and an actions menu, and is about 62 pt
+  tall against 235 pt for the card it replaces.
+- `KeyameleonCardSurface` carries the fill, the radius, the padding, and
+  `isHighlighted` for the Active Physical Keyboard, so the keyboard cards and the
+  excluded-device cards cannot drift apart. Rows hide their separators and take
+  4 pt above and below.
+- `KeyboardSettingsRow` derives everything a card shows from one Physical Keyboard
+  and the model's answers for it, so the list has no branching. `statusText` stays
+  the connection state for every Physical Keyboard; `warningText` carries an
+  unsupported identifier reason; `guidanceText` carries the Manual Physical
+  Keyboard Designation instruction.
+- `KeyboardSettingsRowView` draws the card. The actions menu holds `Rename…`,
+  `Remove Assignment`, `Replace Saved Physical Keyboard…`, `Manual Physical
+  Keyboard Designation…`, `Forget…`, and `Not a Keyboard…`, each shown only when
+  the model offers it.
+- `PhysicalKeyboardNameSheet` replaces the always-visible name field with a sheet
+  opened from `Rename…`. The macOS product name is the field placeholder, so an
+  empty field reverts to it through the existing `setPhysicalKeyboardName` path.
+- Identifiers and messages are unchanged: `physical-keyboard-configuration`,
+  `excluded-devices`, `include-excluded-device-again`, `not-a-keyboard`, and every
+  confirmation dialog title and message.
+- Tests: `KeyboardSettingsRowTests.swift` covers the Input Source control, the
+  status, warning, and guidance lines, the accessibility value, the rename and
+  replace gates, and the built-in transport name. Docs: `docs/choices.md` entry
+  for 2026-09-25.
+
 ## 2026-09-24 — Physical Keyboard Exclusion
 
 - Reported: a Logitech mouse is listed as a Physical Keyboard, so Activity-
