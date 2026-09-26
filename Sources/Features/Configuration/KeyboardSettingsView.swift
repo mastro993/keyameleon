@@ -220,9 +220,11 @@ struct KeyameleonKeyboardSettingsView: View {
     }
 
     private func makeRow(for physicalKeyboard: PhysicalKeyboard) -> KeyboardSettingsRow {
-        KeyboardSettingsRow(
+        let assignedInputSource = model.assignedInputSource(for: physicalKeyboard)
+        return KeyboardSettingsRow(
             physicalKeyboard: physicalKeyboard,
-            assignedInputSourceName: model.assignedInputSourceName(for: physicalKeyboard),
+            assignedInputSourceName: assignedInputSource?.name,
+            assignedInputSourceLocaleCode: assignedInputSource?.localeCode,
             canReplace: !model.replaceCandidates(for: physicalKeyboard.id).isEmpty,
             canForget: model.canForgetPhysicalKeyboard(physicalKeyboard.id),
             canExclude: model.canExcludePhysicalKeyboard(physicalKeyboard.id),

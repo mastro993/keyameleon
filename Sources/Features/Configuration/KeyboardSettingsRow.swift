@@ -10,15 +10,22 @@ struct KeyboardSettingsRow: Identifiable, Equatable {
     enum InputSourceControl: Equatable {
         case assign
         /// A Keyboard Assignment resolves to this Input Source name.
-        case change(name: String)
+        case change(name: String, localeCode: String?)
         /// A Keyboard Assignment is saved but its Input Source is not available.
         case unavailable
 
         var title: String {
             switch self {
             case .assign: "Assign Input Source…"
-            case let .change(name): name
+            case let .change(name, _): name
             case .unavailable: "Input Source Unavailable"
+            }
+        }
+
+        var displayTitle: String {
+            switch self {
+            case .assign, .unavailable: "--"
+            case let .change(_, localeCode): localeCode ?? "--"
             }
         }
 
@@ -48,6 +55,7 @@ struct KeyboardSettingsRow: Identifiable, Equatable {
     init(
         physicalKeyboard: PhysicalKeyboard,
         assignedInputSourceName: String?,
+        assignedInputSourceLocaleCode: String? = nil,
         canReplace: Bool,
         canForget: Bool,
         canExclude: Bool,
@@ -72,8 +80,9 @@ struct KeyboardSettingsRow: Identifiable, Equatable {
         case .assigned:
             warningText = nil
             guidanceText = nil
-            inputSourceControl = assignedInputSourceName.map(InputSourceControl.change(name:))
-                ?? .unavailable
+            inputSourceControl = assignedInputSourceName.map {
+                InputSourceControl.change(name: $0, localeCode: assignedInputSourceLocaleCode)
+            } ?? .unavailable
             hasAssignment = true
         case let .unsupported(reason):
             warningText = Self.unsupportedWarningText(reason)

@@ -2,16 +2,18 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("An assigned Physical Keyboard shows its Input Source name")
-func assignedKeyboardShowsInputSourceName() {
+@Test("An assigned Physical Keyboard shows its Input Source locale code")
+func assignedKeyboardShowsInputSourceLocaleCode() {
     let row = makeRow(
         assignmentState: .assigned(KeyboardAssignment(inputSourceIdentifier: "com.apple.keylayout.Italian")!),
         assignedInputSourceName: "Italian",
+        assignedInputSourceLocaleCode: "IT",
         connectionState: .connected,
         isActive: true
     )
 
-    #expect(row.inputSourceControl == .change(name: "Italian"))
+    #expect(row.inputSourceControl == .change(name: "Italian", localeCode: "IT"))
+    #expect(row.inputSourceControl?.displayTitle == "IT")
     #expect(row.statusText == "Connected · USB")
     #expect(row.warningText == nil)
     #expect(row.guidanceText == nil)
@@ -28,6 +30,7 @@ func unavailableInputSourceReportsUnavailable() {
 
     #expect(row.inputSourceControl == .unavailable)
     #expect(row.inputSourceControl?.title == "Input Source Unavailable")
+    #expect(row.inputSourceControl?.displayTitle == "--")
     #expect(row.inputSourceControl?.needsAttention == true)
     #expect(row.hasAssignment)
     #expect(row.accessibilityValue == "Connected · USB · Input Source Unavailable")
@@ -39,6 +42,7 @@ func unassignedKeyboardOffersAssign() {
 
     #expect(row.inputSourceControl == .assign)
     #expect(row.inputSourceControl?.title == "Assign Input Source…")
+    #expect(row.inputSourceControl?.displayTitle == "--")
     #expect(row.hasAssignment == false)
     #expect(row.accessibilityValue == "Connected · USB · Assign Input Source…")
 }
@@ -95,7 +99,7 @@ func disconnectedKeyboardKeepsControl() {
     )
 
     #expect(row.statusText == "Disconnected")
-    #expect(row.inputSourceControl == .change(name: "U.S."))
+    #expect(row.inputSourceControl == .change(name: "U.S.", localeCode: nil))
 }
 
 @Test("A Physical Keyboard without identity cannot be renamed")
@@ -156,6 +160,7 @@ func builtInKeyboardReportsBuiltInTransport() {
 private func makeRow(
     assignmentState: PhysicalKeyboardAssignmentState,
     assignedInputSourceName: String?,
+    assignedInputSourceLocaleCode: String? = nil,
     connectionState: PhysicalKeyboardConnectionState = .connected,
     isActive: Bool = false
 ) -> KeyboardSettingsRow {
@@ -166,6 +171,7 @@ private func makeRow(
             isActive: isActive
         ),
         assignedInputSourceName: assignedInputSourceName,
+        assignedInputSourceLocaleCode: assignedInputSourceLocaleCode,
         canReplace: false,
         canForget: false,
         canExclude: false,
