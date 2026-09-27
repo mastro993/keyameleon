@@ -5,6 +5,8 @@ import SwiftUI
 struct KeyameleonOnboardingView: View {
     static let assignmentStepSubtitle = """
     Connect every Physical Keyboard you use with this Mac and assign an Input Source. You can finish this later in Settings.
+
+    When you start typing on a different Physical Keyboard, that first key press can still use the previous Input Source. Keyameleon then selects that keyboard's Keyboard Assignment.
     """
 
     private let model: KeyameleonSetupModel
