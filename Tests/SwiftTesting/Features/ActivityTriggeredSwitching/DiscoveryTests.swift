@@ -400,6 +400,50 @@ func permissionRequiredStopsPhysicalKeyboardDiscovery() {
     #expect(model.physicalKeyboards.isEmpty)
 }
 
+@Test("The built-in keyboard is always first")
+func builtInKeyboardIsAlwaysFirst() {
+    let external = PhysicalKeyboard(
+        id: PhysicalKeyboardRecordID(rawValue: "identity:external|anchor:serial:external"),
+        productName: "External Keyboard",
+        customName: nil,
+        transport: .usb,
+        isBuiltIn: false,
+        assignmentState: .unassigned,
+        connectedServiceCount: 1,
+        connectionState: .connected,
+        isActive: false
+    )
+    let builtIn = PhysicalKeyboard(
+        id: .builtIn,
+        productName: "MacBook Keyboard",
+        customName: nil,
+        transport: .other,
+        isBuiltIn: true,
+        assignmentState: .unassigned,
+        connectedServiceCount: 1,
+        connectionState: .connected,
+        isActive: false
+    )
+
+    let ordered = PhysicalKeyboardListOrdering.sorted([external, builtIn])
+
+    #expect(ordered.map(\.id) == [builtIn.id, external.id])
+}
+
+@Test("A saved built-in keyboard remains connected")
+func savedBuiltInKeyboardRemainsConnected() {
+    let record = SavedPhysicalKeyboardRecord(
+        identityKey: PhysicalKeyboardRecordID.builtIn.rawValue,
+        productName: "MacBook Keyboard"
+    )
+
+    let restored = PhysicalKeyboard.restored(from: record)
+
+    #expect(restored.isBuiltIn)
+    #expect(restored.connectionState == .connected)
+    #expect(restored.connectedServiceCount == 1)
+}
+
 private func makeHardwareFacts(
     serviceID: UInt64,
     identity: String? = "macos.keyboard.shared",

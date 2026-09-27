@@ -361,23 +361,24 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
         )
     }
 
-    static func disconnected(from savedRecord: SavedPhysicalKeyboardRecord) -> PhysicalKeyboard {
+    static func restored(from savedRecord: SavedPhysicalKeyboardRecord) -> PhysicalKeyboard {
         let assignmentState: PhysicalKeyboardAssignmentState =
             if let assignment = savedRecord.keyboardAssignment {
                 .assigned(assignment)
             } else {
                 .unassigned
             }
+        let isBuiltIn = savedRecord.isBuiltInIdentity
 
         return PhysicalKeyboard(
             id: savedRecord.recordID,
             productName: savedRecord.productName,
             customName: savedRecord.customName,
             transport: .other,
-            isBuiltIn: savedRecord.isBuiltInIdentity,
+            isBuiltIn: isBuiltIn,
             assignmentState: assignmentState,
-            connectedServiceCount: 0,
-            connectionState: .disconnected,
+            connectedServiceCount: isBuiltIn ? 1 : 0,
+            connectionState: isBuiltIn ? .connected : .disconnected,
             isActive: false
         )
     }
@@ -406,11 +407,15 @@ enum PhysicalKeyboardListOrdering {
     private static func sortRank(
         for physicalKeyboard: PhysicalKeyboard
     ) -> Int {
+        if physicalKeyboard.isBuiltIn {
+            return 0
+        }
+
         switch physicalKeyboard.connectionState {
         case .connected:
-            return 0
-        case .disconnected:
             return 1
+        case .disconnected:
+            return 2
         }
     }
 }

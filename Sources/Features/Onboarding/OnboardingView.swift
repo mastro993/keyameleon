@@ -11,12 +11,20 @@ struct KeyameleonOnboardingView: View {
 
     private let model: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
+    @State private var keyboardRows: OnboardingPhysicalKeyboardRows
     @State private var assignmentPickerKeyboardID: PhysicalKeyboardRecordID?
     @State private var excludeCandidateID: PhysicalKeyboardRecordID?
 
     init(model: KeyameleonSetupModel, switching: ActivityTriggeredSwitching) {
         self.model = model
         self.switching = switching
+        _keyboardRows = State(
+            initialValue: OnboardingPhysicalKeyboardRows(
+                physicalKeyboards: model.physicalKeyboards,
+                exclusions: model.excludedPhysicalKeyboards,
+                exclusionKeyFor: model.exclusionKey(for:)
+            )
+        )
     }
 
     var body: some View {
@@ -62,6 +70,7 @@ struct KeyameleonOnboardingView: View {
             Button("Exclude") {
                 if let excludeCandidateID {
                     model.excludePhysicalKeyboard(excludeCandidateID)
+                    reconcileKeyboardRows()
                 }
                 excludeCandidateID = nil
             }
@@ -73,6 +82,12 @@ struct KeyameleonOnboardingView: View {
                 Text(model.exclusionConfirmationMessage(for: excludeCandidateID))
             }
         }
+        .onChange(of: model.physicalKeyboards) { _, _ in
+            reconcileKeyboardRows()
+        }
+        .onChange(of: model.excludedPhysicalKeyboards) { _, _ in
+            reconcileKeyboardRows()
+        }
     }
 
     private var header: some View {
@@ -83,10 +98,6 @@ struct KeyameleonOnboardingView: View {
                 .scaledToFit()
                 .frame(width: 72, height: 72)
                 .accessibilityLabel("Keyameleon app icon")
-
-            Text("Keyameleon")
-                .font(.largeTitle.weight(.semibold))
-                .accessibilityAddTraits(.isHeader)
 
             Text(stepTitle)
                 .font(.title2.weight(.semibold))
@@ -125,7 +136,7 @@ struct KeyameleonOnboardingView: View {
 
     private var keyboardCheck: some View {
         VStack(spacing: 16) {
-            if model.physicalKeyboards.isEmpty {
+            if keyboardRows.rows.isEmpty {
                 Text("Connect a Physical Keyboard to register it with Keyameleon.")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,22 +150,36 @@ struct KeyameleonOnboardingView: View {
                             .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
                     }
             } else {
-                VStack(spacing: 12) {
-                    ForEach(model.physicalKeyboards) { physicalKeyboard in
-                        OnboardingPhysicalKeyboardCard(
-                            physicalKeyboard: physicalKeyboard,
-                            assignedInputSourceName: model.assignedInputSourceName(
-                                for: physicalKeyboard
-                            ),
-                            onAssign: {
-                                assignmentPickerKeyboardID = physicalKeyboard.id
-                            },
-                            onExclude: model.canExcludePhysicalKeyboard(physicalKeyboard.id)
-                                ? { excludeCandidateID = physicalKeyboard.id }
-                                : nil
-                        )
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(keyboardRows.rows) { row in
+                            switch row.state {
+                            case let .included(physicalKeyboard):
+                                OnboardingPhysicalKeyboardCard(
+                                    physicalKeyboard: physicalKeyboard,
+                                    assignedInputSourceName: model.assignedInputSourceName(
+                                        for: physicalKeyboard
+                                    ),
+                                    onAssign: {
+                                        assignmentPickerKeyboardID = physicalKeyboard.id
+                                    },
+                                    onExclude: model.canExcludePhysicalKeyboard(physicalKeyboard.id)
+                                        ? { excludeCandidateID = physicalKeyboard.id }
+                                        : nil
+                                )
+                            case let .excluded(exclusion):
+                                OnboardingExcludedPhysicalKeyboardCard(
+                                    exclusion: exclusion
+                                ) {
+                                    model.restorePhysicalKeyboard(exclusionKey: exclusion.key)
+                                    reconcileKeyboardRows()
+                                }
+                            }
+                        }
                     }
                 }
+                .scrollIndicators(.hidden)
+                .frame(maxHeight: .infinity)
             }
 
             Button("Continue", action: completeGuidedSetup)
@@ -207,6 +232,14 @@ struct KeyameleonOnboardingView: View {
 
     private func completeGuidedSetup() {
         model.completeSetup()
+    }
+
+    private func reconcileKeyboardRows() {
+        keyboardRows.reconcile(
+            physicalKeyboards: model.physicalKeyboards,
+            exclusions: model.excludedPhysicalKeyboards,
+            exclusionKeyFor: model.exclusionKey(for:)
+        )
     }
 }
 
@@ -299,99 +332,6 @@ struct ListenPermissionOnboardingCard: View {
     }
 }
 
-@MainActor
-struct OnboardingPhysicalKeyboardCard: View {
-    let physicalKeyboard: PhysicalKeyboard
-    let assignedInputSourceName: String?
-    let onAssign: () -> Void
-    let onExclude: (() -> Void)?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(physicalKeyboard.name)
-                    .font(.headline)
-                Spacer()
-                Text(connectionLabel)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-
-            Text(assignmentLabel)
-                .font(.callout)
-                .foregroundStyle(physicalKeyboard.isAssignable ? Color.secondary : Color.orange)
-
-            HStack {
-                if physicalKeyboard.isAssignable {
-                    Button(
-                        assignedInputSourceName == nil ? "Assign Input Source" : "Change Input Source",
-                        action: onAssign
-                    )
-                }
-
-                if let onExclude {
-                    Button("Not a Keyboard…", action: onExclude)
-                        .accessibilityIdentifier("not-a-keyboard")
-                        .accessibilityLabel("Not a Keyboard")
-                        .accessibilityHint(
-                            "Removes \(physicalKeyboard.name) from the Physical Keyboards list."
-                        )
-                }
-            }
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.primary.opacity(0.04),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(physicalKeyboard.name)
-        .accessibilityValue("\(connectionLabel). \(assignmentLabel)")
-    }
-
-    private var connectionLabel: String {
-        switch physicalKeyboard.connectionState {
-        case .connected:
-            "Connected"
-        case .disconnected:
-            "Disconnected"
-        }
-    }
-
-    private var assignmentLabel: String {
-        switch physicalKeyboard.assignmentState {
-        case .unassigned:
-            "No Input Source assigned"
-        case .assigned:
-            if let assignedInputSourceName {
-                assignedInputSourceName
-            } else {
-                "Unavailable Keyboard Assignment"
-            }
-        case let .unsupported(reason):
-            unsupportedReasonName(reason)
-        }
-    }
-
-    private func unsupportedReasonName(_ reason: PhysicalKeyboardUnsupportedReason) -> String {
-        switch reason {
-        case .missingIdentity:
-            "Unsupported — Physical Keyboard Identity unavailable"
-        case .unstableIdentity:
-            "Unsupported — Physical Keyboard Identity unstable"
-        case .sharedIdentity:
-            "Unsupported — Physical Keyboard Identity shared"
-        case .ambiguousIdentity:
-            "Unsupported — Physical Keyboard Identity ambiguous"
-        }
-    }
-}
-
 #if DEBUG
 #Preview("Onboarding permission required") {
     let fixture = KeyameleonPreviewFixtures.setup(.permissionRequired)
@@ -417,6 +357,11 @@ struct OnboardingPhysicalKeyboardCard: View {
 
 #Preview("Onboarding excluded device") {
     let fixture = KeyameleonPreviewFixtures.setup(.excludedDevices)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+}
+
+#Preview("Onboarding all keyboards excluded") {
+    let fixture = KeyameleonPreviewFixtures.setupWithAllKeyboardsExcluded()
     KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
 }
 

@@ -16,7 +16,7 @@ menu and its contents shrink to three items.
   sheet or a confirmation takes the bare verb, so the item reads `Rename`, not
   `Rename…`. Keyameleon copy must not use the ellipsis character at all. These
   sites still do and are outstanding: `Assign Input Source…` in
-  `KeyboardSettingsRow`, `Not a Keyboard…` in `OnboardingView`, `Check for
+  `KeyboardSettingsRow`, `Check for
   Updates…` in `AboutSettingsView` and `CompactAboutView`, `Waiting…` in
   `OnboardingView`, and the `…` truncation marker in `KeyameleonLogFile`.
 - `Forget` is the Physical Keyboard forget, unchanged: it removes the saved
@@ -35,6 +35,23 @@ menu and its contents shrink to three items.
   Physical Keyboard Designation have no Settings entry point while this stands. A
   card that can start Manual Physical Keyboard Designation still prints `Save it
   after it leaves and returns.` under the reason.
+
+## 2026-09-27 — Onboarding keeps excluded keyboards visible
+
+This supersedes the onboarding restore details in the 2026-09-24 exclusion entry.
+
+### Defaults
+
+- An excluded keyboard stays in its onboarding row, marked `Excluded`, with an
+  `Include Again` action in place of assignment controls.
+- Existing row identities and positions stay stable through exclude and restore
+  during the current onboarding session. Newly discovered keyboards append in
+  the existing Physical Keyboard order. Saved exclusions without a current row
+  append after them.
+- The keyboard list scrolls independently; `Continue` stays reachable when every
+  listed keyboard is excluded.
+- Exclusions remain filtered from Activity-Triggered Switching. The Settings
+  Excluded Devices section remains available after onboarding.
 
 ## 2026-09-25 — Keyboards settings pane gives each Physical Keyboard a card
 
@@ -79,7 +96,7 @@ stays scannable and the whole set fits one window.
 - One actions menu per card holds `Rename…`, `Remove Assignment`, `Replace Saved
   Physical Keyboard…`, `Manual Physical Keyboard Designation…`, `Forget…`, and
   `Not a Keyboard…`. Items appear only when the model says the action is possible.
-  `Not a Keyboard…` is an item in that menu rather than a button on a card, and
+  `Not a Keyboard` is an item in that menu rather than a button on a card, and
   its action and confirmation are unchanged.
 - Renaming keeps the macOS product name visible as the sheet's field placeholder,
   so clearing the field is the documented way back to the product name.
@@ -107,22 +124,20 @@ still recognized as a Physical Keyboard; the person removes the device instead.
   survive an exclusion and come back on restore.
 - A device excluded once stays excluded across disconnect, reconnect, restart,
   and the discovery catalogue reset that sleep, lock, and pause perform.
-- The excluded device disappears from every surface that reads the Physical
-  Keyboard list, produces no Activation Activity, opens no Switching Status
-  warning, and cannot be retried: an exclusion clears the wanted Keyboard
-  Assignment and the selection-failure warning that named it.
+- The excluded device leaves the active Physical Keyboard list, produces no
+  Activation Activity, opens no Switching Status warning, and cannot be retried:
+  an exclusion clears the wanted Keyboard Assignment and selection-failure
+  warning that named it. Onboarding and Settings show a separate excluded row.
 - The exclusion set lives in `UserDefaults` under
   `keyameleon.excludedPhysicalKeyboards` as JSON, next to the guided-setup
   decisions. `PhysicalKeyboardSchemaV1` keeps its two models and
   `PhysicalKeyboardMigrationPlan.stages` stays empty.
-- Nothing removes an exclusion automatically. The Excluded Devices section in
-  Settings is the only restore path, because every disconnect signal is also
-  sleep, lock, and pause.
-- Both surfaces offer the same action and the same confirmation: `Not a
-  Keyboard…` on the Physical Keyboard card in guided setup and in Settings,
-  followed by a `Not a Physical Keyboard?` dialog that names the device and says
-  where to restore it. The action is not marked destructive: it deletes nothing.
-- Onboarding shows no restore list. Settings ▸ Excluded Devices is the way back.
+- Nothing removes an exclusion automatically. Onboarding and Settings offer an
+  explicit restore action, because every disconnect signal is also sleep, lock,
+  and pause.
+- Guided setup offers `Not a Keyboard` on its Physical Keyboard card. Settings
+  offers `Disable` in the card menu. Both use the `Not a Physical Keyboard?`
+  confirmation, and neither action deletes saved names or assignments.
 
 ## 2026-09-23 — Operational Notifications removed
 

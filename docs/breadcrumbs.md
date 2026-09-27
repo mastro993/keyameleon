@@ -1,5 +1,19 @@
 # Breadcrumbs
 
+## 2026-09-27 — Guided setup keeps excluded keyboards visible
+
+- Onboarding now keeps an excluded keyboard at its original row position with an
+  `Excluded` state and `Include Again` action. Assignment and connection details
+  stay hidden while excluded.
+- `OnboardingPhysicalKeyboardRows` reconciles included keyboards with persisted
+  exclusions. It preserves row identity and order for the session, appends newly
+  discovered keyboards, and removes an unavailable unsaved device after restore.
+- The onboarding keyboard list scrolls separately from the header and `Continue`
+  button. Settings keeps its existing Excluded Devices restore section.
+- Tests cover ordered exclude and restore, repeated toggles, shared hardware keys,
+  persisted exclusions, new devices, connected restoration, disconnected saved
+  devices, and unavailable unsaved devices.
+
 ## 2026-09-26 — Keyboard card actions collapse into a three-dot menu
 
 - Reported: the card's actions were five icon-only buttons of the same weight, so
