@@ -1,5 +1,12 @@
 # Choices
 
+## 2026-09-28 — Resume unfinished Guided setup from the menu bar
+
+- While Guided setup is incomplete, the menu-bar action list offers `Continue Guided Setup` in every Switching Status. It stays available even when a higher-priority notice is showing.
+- The action uses the existing `continueSetup` presentation path. The saved permission or assignment step remains in `KeyameleonSetupModel`; reopening only advances permission when Input Monitoring has since been granted.
+- Completing setup removes the action and unfinished notice. Reopening a second app instance remains silent.
+- This supersedes the old `No Continue Setup action` menu decision below.
+
 ## 2026-09-26 — Keyboard card actions collapse into a three-dot menu
 
 Supersedes the actions-menu bullet under 2026-09-25. The card keeps one actions

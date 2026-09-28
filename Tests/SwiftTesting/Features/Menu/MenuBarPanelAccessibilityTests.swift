@@ -128,6 +128,21 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     #expect(assigned.accessibility.noticeActionTitle == "Request Permission")
 }
 
+@Test("Continue Guided Setup is reachable by keyboard and VoiceOver")
+@MainActor
+func menuBarPanelGuidedSetupContinuationIsAccessible() {
+    let incomplete = makeAccessiblePanelContent(
+        outcome: .permissionRequiredFixture(),
+        isSetupComplete: false
+    )
+    let complete = makeAccessiblePanelContent(outcome: .readyFixture())
+
+    #expect(incomplete.accessibility.keyboardOperationTitles.contains("Continue Guided Setup"))
+    #expect(incomplete.accessibility.voiceOverOrderLabels.contains("Continue Guided Setup"))
+    #expect(incomplete.accessibility.keyboardFocusOrder.contains(.action(id: .continueSetup)))
+    #expect(complete.accessibility.keyboardOperationTitles.contains("Continue Guided Setup") == false)
+}
+
 @Test("Paused and Ready live updates change Switching Status speech and tray actions")
 @MainActor
 func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
@@ -212,14 +227,16 @@ func menuBarPanelLongNamesStayCompleteInSpeech() {
 private func makeAccessiblePanelContent(
     outcome: ActivityTriggeredSwitchingOutcome,
     physicalKeyboards: [PhysicalKeyboard] = [],
-    assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:] ,
-    marketingVersion: String? = "0.1.0"
+    assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:],
+    marketingVersion: String? = "0.1.0",
+    isSetupComplete: Bool = true
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
         assignedInputSources: assignedInputSources,
-        marketingVersion: marketingVersion
+        marketingVersion: marketingVersion,
+        isSetupComplete: isSetupComplete
     )
 }
 

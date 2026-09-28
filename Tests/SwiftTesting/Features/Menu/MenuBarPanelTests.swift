@@ -144,6 +144,26 @@ func menuBarPanelAboutOmitsSetupActions() {
     #expect(content.actionTitles.contains("Continue Setup") == false)
 }
 
+@Test("Incomplete Guided setup has a continuation in every switching state")
+@MainActor
+func menuBarPanelOffersGuidedSetupContinuation() {
+    for outcome in [
+        ActivityTriggeredSwitchingOutcome.readyFixture(),
+        .permissionRequiredFixture(),
+        .temporarilyUnavailableFixture(),
+        .pausedFixture()
+    ] {
+        let incomplete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: false)
+        let complete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: true)
+
+        #expect(incomplete.footer.actions.first?.id == .continueSetup)
+        #expect(incomplete.footer.actions.first?.closesPanel == true)
+        #expect(incomplete.footer.actions.map(\.title).contains("Continue Guided Setup"))
+        #expect(complete.footer.actions.map(\.title).contains("Continue Guided Setup") == false)
+        #expect(complete.notice?.title != "Guided setup is not finished")
+    }
+}
+
 @Test("Menu-bar assignment list heading has no app name or assignment count")
 func menuBarAssignmentListUsesCompactHeading() {
     let list = MenuBarAssignmentList(
@@ -842,7 +862,7 @@ func menuBarPanelNoticeExplainsUnfinishedGuidedSetup() {
     )
 
     #expect(content.notice?.title == "Guided setup is not finished")
-    #expect(content.notice?.detail == "Open Settings to assign an Input Source.")
+    #expect(content.notice?.detail == "Continue Guided Setup to finish.")
 }
 
 private func makeMenuBarPanelContent(
