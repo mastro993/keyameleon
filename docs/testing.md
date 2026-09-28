@@ -19,10 +19,10 @@ with `XCTestConfigurationFilePath` or `XCTestBundlePath`. See
 
 CI uses one stable required check, `Required CI gate`, with two paths:
 
-- Pull requests and `main` commits that do not change app source, product tests,
-  the test runner, project or package files, or the CI workflow do not run tests
-  and do not use a macOS runner.
-- Changes to those code paths run the complete macOS product tests and safety
+- Changes outside the paths in CI's `Check whether code changed` step, such as
+  documentation-only changes, do not run tests or use a macOS runner.
+- Changes to those paths, including `Scripts`, `.github/workflows/ci.yml`, and
+  `.github/workflows/release.yml`, run the complete macOS product tests and safety
   audit.
 
 The macOS job has an eight-minute limit and no automatic retry. A maintainer can
