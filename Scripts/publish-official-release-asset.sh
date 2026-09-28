@@ -28,10 +28,32 @@ if ! gh release view "$tag" --json isDraft >/dev/null 2>&1; then
         --verify-tag
 fi
 
-if ! gh release view "$tag" --json assets --jq '.assets[].name' | grep -Fxq "$archive"; then
-    # A previous create may have stopped after creating a draft.
-    gh release upload "$tag" "$artifact"
-fi
+assets="$(gh release view "$tag" --json assets)"
+asset_state="$(jq -r --arg name "$archive" '.assets[] | select(.name == $name) | .state' <<< "$assets")"
+case "$asset_state" in
+    uploaded)
+        ;;
+    starter)
+        # GitHub can leave an empty asset after a failed upload. Delete only
+        # that asset by ID; never replace an uploaded DMG.
+        asset_url="$(jq -r --arg name "$archive" '.assets[] | select(.name == $name) | .apiUrl' <<< "$assets")"
+        asset_id="${asset_url##*/}"
+        if [[ ! "$asset_id" =~ ^[0-9]+$ ]]; then
+            echo "invalid starter asset ID: ${asset_id}" >&2
+            exit 1
+        fi
+        gh api --method DELETE "repos/mastro993/keyameleon/releases/assets/${asset_id}"
+        gh release upload "$tag" "$artifact"
+        ;;
+    "")
+        # A previous create may have stopped after creating a draft.
+        gh release upload "$tag" "$artifact"
+        ;;
+    *)
+        echo "unexpected state for ${archive}: ${asset_state}" >&2
+        exit 1
+        ;;
+esac
 
 if [[ "$(gh release view "$tag" --json isDraft --jq '.isDraft')" == true ]]; then
     gh release edit "$tag" --draft=false

@@ -261,7 +261,7 @@ class ReleaseAppcastTests(unittest.TestCase):
 
 
 class PublishReleaseAssetTests(unittest.TestCase):
-    def test_retry_keeps_existing_release_asset(self) -> None:
+    def test_retry_keeps_uploaded_asset_and_repairs_starter_asset(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             directory = Path(temporary_directory)
             dist = directory / "dist"
@@ -280,10 +280,22 @@ printf '%s\\n' "$*" >> "$STUB_CALLS"
 case "$1 $2" in
   'release view')
     [[ -f "$STUB_RELEASE" ]] || exit 1
-    if [[ -f "$STUB_ASSET_EXISTS" ]]; then printf '%s\\n' 'Keyameleon-1.2.3.dmg'; fi
+    if [[ "$*" == *'--json assets'* ]]; then
+      if [[ -f "$STUB_ASSET_STATE" ]]; then
+        printf '{"assets":[{"name":"Keyameleon-1.2.3.dmg","state":"%s","apiUrl":"https://api.github.com/repos/mastro993/keyameleon/releases/assets/123"}]}\\n' "$(cat "$STUB_ASSET_STATE")"
+      else
+        printf '%s\\n' '{"assets":[]}'
+      fi
+    else
+      printf '%s\\n' false
+    fi
     ;;
-  'release create') touch "$STUB_RELEASE" "$STUB_ASSET_EXISTS" ;;
-  'release upload') touch "$STUB_ASSET_EXISTS" ;;
+  'release create') touch "$STUB_RELEASE"; printf uploaded > "$STUB_ASSET_STATE" ;;
+  'release upload') printf uploaded > "$STUB_ASSET_STATE" ;;
+  'api --method')
+    [[ "$*" == *'/releases/assets/123' ]] || exit 2
+    rm "$STUB_ASSET_STATE"
+    ;;
   *) exit 2 ;;
 esac
 """,
@@ -295,6 +307,7 @@ esac
                 """#!/usr/bin/env bash
 set -euo pipefail
 printf '%s\\n' "$*" >> "$STUB_CALLS"
+[[ -f "$STUB_ASSET_STATE" && "$(cat "$STUB_ASSET_STATE")" == uploaded ]] || exit 22
 if [[ ! -f "$STUB_CURL_FAILED" ]]; then
   touch "$STUB_CURL_FAILED"
   exit 22
@@ -316,7 +329,7 @@ exit 2
                 PATH=f"{fake_bin}{os.pathsep}{environment['PATH']}",
                 STUB_CALLS=str(directory / "calls.txt"),
                 STUB_RELEASE=str(directory / "release-exists"),
-                STUB_ASSET_EXISTS=str(directory / "asset-exists"),
+                STUB_ASSET_STATE=str(directory / "asset-state"),
                 STUB_CURL_FAILED=str(directory / "curl-failed"),
                 STUB_ASSET_SOURCE=str(asset),
             )
@@ -327,15 +340,20 @@ exit 2
 
             failed = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
             self.assertNotEqual(failed.returncode, 0)
-            self.assertTrue(Path(environment["STUB_ASSET_EXISTS"]).exists())
+            self.assertEqual(Path(environment["STUB_ASSET_STATE"]).read_text(), "uploaded")
             self.assertFalse((download / asset.name).exists())
 
             retried = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
             self.assertEqual(retried.returncode, 0, retried.stderr)
             self.assertEqual((download / asset.name).read_bytes(), asset.read_bytes())
+            Path(environment["STUB_ASSET_STATE"]).write_text("starter")
+            repaired = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
+            self.assertEqual(repaired.returncode, 0, repaired.stderr)
+            self.assertEqual(Path(environment["STUB_ASSET_STATE"]).read_text(), "uploaded")
             calls = Path(environment["STUB_CALLS"]).read_text(encoding="utf-8").splitlines()
             self.assertEqual(sum(call.startswith("release create ") for call in calls), 1)
-            self.assertEqual(sum(call.startswith("release upload ") for call in calls), 0)
+            self.assertEqual(sum(call.startswith("release upload ") for call in calls), 1)
+            self.assertEqual(sum(call.startswith("api --method DELETE ") for call in calls), 1)
             self.assertFalse(any("--clobber" in call for call in calls))
 
 

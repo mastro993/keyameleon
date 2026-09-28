@@ -233,8 +233,9 @@ commit. If `produce` or `publish` fails, fix the cause and re-run **failed
 jobs** on the same run (`gh run rerun RUN_ID --failed`), not a new dispatch.
 The successful `produce` job is not rerun when `publish` fails, so the retry
 uses the same signed bytes. `publish` reuses a matching tag and asset, or
-uploads a missing asset from that workflow artifact. It never replaces
-published asset bytes. A mismatched tag or asset stops the run for manual
+uploads a missing asset from that workflow artifact. If an upload left an empty
+`starter` asset, it deletes that asset by ID before retrying. It never replaces
+an uploaded asset. A mismatched tag or asset stops the run for manual
 investigation. Failure before the GitHub Release leaves the previous feed
 intact; failure after the Release but before Pages leaves a downloadable DMG
 available for retry.
