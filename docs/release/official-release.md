@@ -38,9 +38,9 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 6. Jobs `bump` and `produce` target the `official-release` GitHub Environment;
    `bump` uses its repository-scoped deploy key, while `produce` receives the
    distribution secrets.
-7. Lead-maintainer approval is required when the repository plan supports
-   environment required reviewers. Configure that protection under
-   Settings → Environments → `official-release` → Required reviewers.
+7. GitHub holds each job at the `official-release` environment until the lead
+   maintainer approves it. The job receives environment secrets only after
+   approval.
 8. After approval, `produce` builds, signs, notarizes, staples, verifies the
    Sparkle signature, and saves the DMG, `appcast.xml`, and
    `release-evidence.json` as one workflow artifact. `publish` uses those same
@@ -126,9 +126,9 @@ Already created. Settings → Environments → `official-release`:
 
 1. **Deployment branches and tags** → Selected branches → `main` only.
    Bump and produce run on `workflow_dispatch` from `main` before the tag exists.
-2. **Required reviewers** → lead maintainer, if the plan allows it. Private
-   free-tier often cannot enable this. Then only the lead maintainer may
-   dispatch.
+2. **Required reviewers** → `mastro993` (lead maintainer). Allow self-review so
+   the sole maintainer can approve their own dispatch. Disable administrator
+   bypass so approval cannot be skipped.
 3. **Environment secrets** (not repository secrets):
 
    ```sh
@@ -215,12 +215,12 @@ From **Actions → Release → Run workflow**:
 1. Actions → Release → Run workflow on `main`.
 2. Select `patch`, `minor`, or `major`.
 3. `verify` must go green.
-4. `bump` commits and pushes `chore(release): X.Y.Z` after its tests pass.
-5. `produce` waits on Environment `official-release`. Approve if reviewers
-   are configured.
-6. `produce` signs, notarizes, staples, and verifies the DMG and appcast,
+4. Approve the pending `official-release` deployment before `bump` runs.
+5. `bump` commits and pushes `chore(release): X.Y.Z` after its tests pass.
+6. Approve `produce` if GitHub requests another review.
+7. `produce` signs, notarizes, staples, and verifies the DMG and appcast,
    then saves their exact bytes with release evidence as a workflow artifact.
-7. `publish` creates annotated tag `vX.Y.Z`, publishes only
+8. `publish` creates annotated tag `vX.Y.Z`, publishes only
    `Keyameleon-X.Y.Z.dmg` to the GitHub Release, and verifies its public
    download before publishing `appcast.xml` to GitHub Pages. The final check
    compares the served signed feed with the staged feed and checks the
@@ -299,15 +299,23 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 
 ### `official-release` environment (Settings → Environments)
 
-- Required reviewers: lead maintainer (or release-authority account)
+- Required reviewer: `mastro993`; self-review allowed; administrator bypass
+  disabled. These settings require an explicit approval while allowing the
+  sole maintainer to dispatch an Official Release.
 - Deployment branches: default branch only (`main`). Bump and produce run from
   `workflow_dispatch` on `main` before the tag exists
 - Secrets listed below exist only as environment or repository secrets — never in git
 
-**Plan note (2026-08-10):** private free-tier API returned that required reviewers
-and branch protection need a higher plan or a public repository. Until that is
-enabled, only the lead maintainer may run Official Release `workflow_dispatch`,
-and the environment exists without enforced approval.
+The repository is public, so GitHub supports required environment reviewers.
+Check the live policy with `gh api repos/mastro993/Keyameleon/environments/official-release`
+and confirm `required_reviewers` lists `mastro993`, `prevent_self_review` is
+`false`, and `can_admins_bypass` is `false`. Check
+`gh api repos/mastro993/Keyameleon/environments/official-release/deployment-branch-policies`
+and confirm `main` is the only branch. To check the gate without changing
+`main`, dispatch Release, confirm `bump` waits for review, and cancel without
+approving it. This checks `bump` only. `produce` uses the same protected
+environment, but checking its wait would require approving `bump`, which can
+push a real version commit. Do not approve `bump` solely to test `produce`.
 
 ### GitHub Pages (Settings → Pages)
 
