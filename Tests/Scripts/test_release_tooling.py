@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import base64
+import fnmatch
 import json
 import os
 import subprocess
@@ -482,7 +483,6 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertIn('git commit -m "chore(release): ${VERSION}"', workflow)
         self.assertIn("ref: ${{ needs.bump.outputs.commit }}", workflow)
         self.assertIn('--head "${{ github.sha }}"', workflow)
-        self.assertIn("ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}", workflow)
 
     def test_release_asset_precedes_pages_and_crosses_artifact_boundary(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
@@ -497,6 +497,33 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertLess(publish.index("Publish and verify downloadable DMG"), publish.index("peaceiris/actions-gh-pages@v4"))
         self.assertNotIn("Keyameleon-source-", workflow)
         self.assertIn("pull-requests: read", workflow)
+
+    def test_protected_version_commit_and_tag_use_deploy_key(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        bump = workflow.split("\n  bump:\n", maxsplit=1)[1].split("\n  produce:\n", maxsplit=1)[0]
+        publish = workflow.split("\n  publish:\n", maxsplit=1)[1]
+        for job in (bump, publish):
+            with self.subTest(job=job.split("\n", maxsplit=1)[0]):
+                checkout = job.split("- uses: actions/checkout@v7\n", maxsplit=1)[1].split(
+                    "\n\n", maxsplit=1
+                )[0]
+                self.assertIn("ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}", checkout)
+                self.assertIn("environment: official-release", job)
+
+        documentation = (ROOT / "docs" / "release" / "official-release.md").read_text(
+            encoding="utf-8"
+        )
+        glob = documentation.split("Target tags: `", maxsplit=1)[1].split("`", maxsplit=1)[0]
+        self.assertTrue(fnmatch.fnmatchcase("v0.4.5", glob))
+        self.assertTrue(fnmatch.fnmatchcase("v0notasemver", glob))
+        rejected = subprocess.run(
+            (str(ROOT / "Scripts" / "verify-official-release-tag.sh"), "v0notasemver"),
+            cwd=ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(rejected.returncode, 1)
 
 
 if __name__ == "__main__":

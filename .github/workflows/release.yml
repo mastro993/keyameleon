@@ -233,6 +233,7 @@ jobs:
       - bump
       - produce
     runs-on: ubuntu-latest
+    environment: official-release
     permissions:
       contents: write
       pull-requests: read
@@ -241,6 +242,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ needs.bump.outputs.commit }}
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
       - name: Download exact produced artifacts
         uses: actions/download-artifact@v7
