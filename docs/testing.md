@@ -17,17 +17,19 @@ not start live CoreHID observation or the menu-bar status item. Detect them
 with `XCTestConfigurationFilePath` or `XCTestBundlePath`. See
 `docs/adr/0005-hosted-unit-tests-skip-live-surface.md`.
 
-CI uses one stable required gate with two paths:
+CI uses one stable required check, `Required CI gate`, with two paths:
 
-- Pull requests and `main` commits that do not change app source, product tests,
-  the test runner, project or package files, or the CI workflow do not run tests
-  and do not use a macOS runner.
-- Changes to those code paths run the complete macOS product tests and safety
+- Changes outside the paths in CI's `Check whether code changed` step, such as
+  documentation-only changes, do not run tests or use a macOS runner.
+- Changes to those paths, including `Scripts`, `.github/workflows/ci.yml`, and
+  `.github/workflows/release.yml`, run the complete macOS product tests and safety
   audit.
 
 The macOS job has an eight-minute limit and no automatic retry. A maintainer can
-rerun an infrastructure failure after inspection. GitHub branch rules require
-the stable gate for pull-request merges; repository administrators retain the
+rerun an infrastructure failure after inspection. The `main` branch ruleset
+requires `Required CI gate` from GitHub Actions for pull-request merges. Do not
+require the conditional `Build and test` job: skipped jobs can satisfy a required
+check even when the aggregate gate fails. Repository administrators retain the
 emergency override.
 
 Keep these rules as hard failures:
