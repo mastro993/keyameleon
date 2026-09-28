@@ -41,14 +41,18 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 7. Lead-maintainer approval is required when the repository plan supports
    environment required reviewers. Configure that protection under
    Settings → Environments → `official-release` → Required reviewers.
-8. After approval, CI builds, signs, notarizes, staples, writes `appcast.xml`
-   and `release-evidence.json`, creates the annotated tag, publishes the DMG to
-   the GitHub Release, and publishes the appcast to GitHub Pages. A transient
-   ZIP may be used for app notarization only. It is not retained.
+8. After approval, `produce` builds, signs, notarizes, staples, verifies the
+   Sparkle signature, and saves the DMG, `appcast.xml`, and
+   `release-evidence.json` as one workflow artifact. `publish` uses those same
+   bytes to create the annotated tag and GitHub Release, verifies the public
+   DMG download, then publishes the appcast to GitHub Pages. Its final check
+   verifies the served feed and enclosure. A transient ZIP may be used for app
+   notarization only. It is not retained.
 
 A human tag push does **not** start the workflow. Do not `git push` Official
-Release tags. Same version twice fails. If `main` advances during verification,
-the run fails before pushing and must be dispatched again.
+Release tags. A new dispatch for an existing version fails; retry the original
+run as described below. If `main` advances during verification, the run fails
+before pushing and must be dispatched again.
 
 Release notes use categorized change sections, a separator, and a `Changelog`
 section with the full comparison and linked commit list. The notes are
@@ -214,16 +218,26 @@ From **Actions → Release → Run workflow**:
 4. `bump` commits and pushes `chore(release): X.Y.Z` after its tests pass.
 5. `produce` waits on Environment `official-release`. Approve if reviewers
    are configured.
-6. `produce` signs, notarizes, and staples the DMG, creates annotated tag
-   `vX.Y.Z`, publishes only `Keyameleon-X.Y.Z.dmg` to the GitHub Release, and
-   publishes `appcast.xml` to GitHub Pages. There is no dry-run dispatch.
-   `SKIP_NOTARIZE=1` local builds are not an Official Release.
+6. `produce` signs, notarizes, staples, and verifies the DMG and appcast,
+   then saves their exact bytes with release evidence as a workflow artifact.
+7. `publish` creates annotated tag `vX.Y.Z`, publishes only
+   `Keyameleon-X.Y.Z.dmg` to the GitHub Release, and verifies its public
+   download before publishing `appcast.xml` to GitHub Pages. The final check
+   compares the served signed feed with the staged feed and checks the
+   enclosure version, URL, size, signature, and downloaded DMG SHA-256.
+   There is no dry-run dispatch. `SKIP_NOTARIZE=1` local builds are not an
+   Official Release.
 
 If `bump` is retried after its push, it reuses only the exact expected bump
-commit. If `produce` fails **before** the tag exists, fix the cause and re-run
-the failed job. If the tag exists and the GitHub Release does not, re-run
-**failed jobs** on that run (not a new dispatch). Do not start another release
-run for that version.
+commit. If `produce` or `publish` fails, fix the cause and re-run **failed
+jobs** on the same run (`gh run rerun RUN_ID --failed`), not a new dispatch.
+The successful `produce` job is not rerun when `publish` fails, so the retry
+uses the same signed bytes. `publish` reuses a matching tag and asset, or
+uploads a missing asset from that workflow artifact. It never replaces
+published asset bytes. A mismatched tag or asset stops the run for manual
+investigation. Failure before the GitHub Release leaves the previous feed
+intact; failure after the Release but before Pages leaves a downloadable DMG
+available for retry.
 
 ### 10. Verify an Official Release
 

@@ -297,6 +297,26 @@ path.write_text(text, encoding="utf-8")
 print(f"rewrote {count} enclosure URL(s)")
 PY
 
+# Prove the generated enclosure signature verifies against the exact DMG.
+sign_update="${generate_appcast:h}/sign_update"
+if [[ ! -x "$sign_update" ]]; then
+    print -u2 "sign_update not found beside generate_appcast"
+    exit 1
+fi
+signature="$(python3 - "${dist_dir}/appcast.xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+namespace = "{http://www.andymatuschak.org/xml-namespaces/sparkle}"
+root = ET.parse(sys.argv[1]).getroot()
+enclosure = root.find("./channel/item/enclosure")
+if enclosure is None or not enclosure.get(f"{namespace}edSignature"):
+    raise SystemExit("appcast enclosure has no EdDSA signature")
+print(enclosure.get(f"{namespace}edSignature"))
+PY
+)"
+"$sign_update" --ed-key-file "$sparkle_private_key_path" --verify "$dmg_path" "$signature"
+
 evidence_path="${dist_dir}/release-evidence.json"
 "${script_dir}/write-release-evidence.sh" \
     --tag "$tag" \

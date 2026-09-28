@@ -174,24 +174,12 @@ jobs:
     runs-on: macos-26
     environment: official-release
     permissions:
-      contents: write
-      pull-requests: read
+      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ needs.bump.outputs.commit }}
-
-      - name: Reject published Official Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          TAG="${{ needs.verify.outputs.tag }}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Official Release already exists: ${TAG}" >&2
-            exit 1
-          fi
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -215,12 +203,63 @@ jobs:
           fi
           ./Scripts/official-release.sh
 
+      - name: Check installed feed URL and complete artifact bundle
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          test -s "dist/Keyameleon-${VERSION}.dmg"
+          test -s dist/appcast.xml
+          test -s dist/release-evidence.json
+          app_plist="build/official-release/Keyameleon.xcarchive/Products/Applications/Keyameleon.app/Contents/Info.plist"
+          installed_feed="$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$app_plist")"
+          evidence_feed="$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["feedURLString"])')"
+          test "$installed_feed" = "$evidence_feed"
+
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v7
         with:
           name: official-release-${{ needs.verify.outputs.version }}
-          path: dist/release-evidence.json
+          path: |
+            dist/Keyameleon-${{ needs.verify.outputs.version }}.dmg
+            dist/appcast.xml
+            dist/release-evidence.json
           if-no-files-found: error
+
+  publish:
+    name: Publish Official Release
+    needs:
+      - verify
+      - bump
+      - produce
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.bump.outputs.commit }}
+
+      - name: Download exact produced artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: official-release-${{ needs.verify.outputs.version }}
+          path: dist
+
+      - name: Require complete artifact bundle
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          COMMIT: ${{ needs.bump.outputs.commit }}
+        run: |
+          set -euo pipefail
+          test -s "dist/Keyameleon-${VERSION}.dmg"
+          test -s dist/appcast.xml
+          test -s dist/release-evidence.json
+          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["gitCommit"])')" = "$COMMIT"
+          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["tag"])')" = "$TAG"
 
       - name: Prepare Official Release tag and notes
         env:
@@ -228,6 +267,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           VERSION: ${{ needs.verify.outputs.version }}
           TAG: ${{ needs.verify.outputs.tag }}
+          COMMIT: ${{ needs.bump.outputs.commit }}
         run: |
           set -euo pipefail
           chmod +x Scripts/*.sh
@@ -236,12 +276,29 @@ jobs:
           CHANGES="$(./Scripts/official-release-notes.sh --tag "$TAG" --head "${{ github.sha }}")"
           printf '%s\n' "$CHANGES" >"$RUNNER_TEMP/release-notes.md"
 
-          if ! git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            tagged_commit="$(git ls-remote --tags origin "refs/tags/${TAG}^{}" | awk '{print $1}')"
+            if [[ "${tagged_commit}" != "$COMMIT" ]]; then
+              echo "existing tag ${TAG} does not point to the release commit" >&2
+              exit 1
+            fi
+          else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git tag -a "$TAG" -m "Keyameleon ${VERSION}"
             git push origin "$TAG"
           fi
+
+      - name: Publish and verify downloadable DMG
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          TAG: ${{ needs.verify.outputs.tag }}
+        run: |
+          set -euo pipefail
+          bash Scripts/publish-official-release-asset.sh \
+            "$TAG" "$VERSION" "$RUNNER_TEMP/release-notes.md" \
+            dist "$RUNNER_TEMP/release-asset"
 
       - name: Stage Sparkle appcast for GitHub Pages
         run: |
@@ -257,43 +314,31 @@ jobs:
           publish_dir: ./public
           keep_files: true
 
-      # The feed URL the app was built with is the only one installed copies
-      # read, so a feed that does not serve this version ships a broken updater.
-      - name: Verify the published feed serves this version
+      # Installed copies use this feed. Its exact signed bytes must resolve to
+      # the already verified public DMG before this job can pass.
+      - name: Verify published feed and enclosure
         env:
           VERSION: ${{ needs.verify.outputs.version }}
         run: |
           set -euo pipefail
-          app_plist="build/official-release/Keyameleon.xcarchive/Products/Applications/Keyameleon.app/Contents/Info.plist"
-          feed_url="$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$app_plist")"
+          feed_url="$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["feedURLString"])')"
+          archive="Keyameleon-${VERSION}.dmg"
+          tag="v${VERSION}"
+          public_url="https://github.com/mastro993/Keyameleon/releases/download/${tag}/${archive}"
           for attempt in {1..20}; do
-            body="$(curl -fsSL "$feed_url" 2>/dev/null || true)"
-            if grep -qF "<sparkle:version>${VERSION}</sparkle:version>" <<<"$body"; then
-              echo "feed ${feed_url} serves ${VERSION}"
+            if curl -fsSL -o "$RUNNER_TEMP/published-appcast.xml" "$feed_url" 2>/dev/null && \
+              cmp -s "$RUNNER_TEMP/published-appcast.xml" dist/appcast.xml && \
+              curl -fLsS -o "$RUNNER_TEMP/release-asset/${archive}" "$public_url" 2>/dev/null && \
+              python3 Scripts/verify-release-appcast.py \
+                --appcast "$RUNNER_TEMP/published-appcast.xml" \
+                --expected-appcast dist/appcast.xml \
+                --evidence dist/release-evidence.json \
+                --artifact "$RUNNER_TEMP/release-asset/${archive}"; then
+              echo "feed ${feed_url} serves verified ${VERSION} enclosure"
               exit 0
             fi
-            echo "attempt ${attempt}: ${feed_url} does not serve ${VERSION} yet" >&2
+            echo "attempt ${attempt}: ${feed_url} does not serve verified ${VERSION} enclosure yet" >&2
             sleep 6
           done
-          echo "feed ${feed_url} does not serve ${VERSION}" >&2
+          echo "feed ${feed_url} does not serve verified ${VERSION} enclosure" >&2
           exit 1
-
-      # Publish last. If Pages fails, rerunning this job can reuse the tag and
-      # try Pages again without an existing GitHub Release blocking recovery.
-      - name: Publish GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.verify.outputs.version }}
-          TAG: ${{ needs.verify.outputs.tag }}
-        run: |
-          set -euo pipefail
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Official Release already exists: ${TAG}" >&2
-            exit 1
-          fi
-
-          gh release create "$TAG" \
-            "dist/Keyameleon-${VERSION}.dmg" \
-            --title "Keyameleon ${VERSION}" \
-            --notes-file "$RUNNER_TEMP/release-notes.md" \
-            --verify-tag
