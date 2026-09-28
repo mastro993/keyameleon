@@ -147,6 +147,7 @@ enum KeyameleonPreviewFixtures {
     static func panelActions() -> MenuBarPanelActions {
         MenuBarPanelActions(
             openAbout: {},
+            continueSetup: {},
             openSettings: {},
             quit: {},
             closePanel: {}

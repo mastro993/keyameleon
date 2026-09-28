@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarPanelActions {
     var openAbout: () -> Void
+    var continueSetup: () -> Void
     var openSettings: () -> Void
     var quit: () -> Void
     var closePanel: () -> Void
@@ -65,7 +66,7 @@ struct KeyameleonMenuBarPanelView: View {
             .padding(.horizontal, 12)
             .padding(.top, 10)
             .padding(.bottom, 10)
-            
+
             Divider()
                 .opacity(0.22)
 
@@ -135,7 +136,8 @@ struct KeyameleonMenuBarPanelView: View {
         )
     }
 
-    private func perform(_ action: MenuBarPanelContent.Action) {
+    // swiftlint:disable:next cyclomatic_complexity
+    func perform(_ action: MenuBarPanelContent.Action) {
         if action.closesPanel {
             actions.closePanel()
         }
@@ -155,6 +157,8 @@ struct KeyameleonMenuBarPanelView: View {
             switching.checkAgain()
         case .retryNow:
             switching.retryNow()
+        case .continueSetup:
+            actions.continueSetup()
         case .settings:
             actions.openSettings()
         case .quit:

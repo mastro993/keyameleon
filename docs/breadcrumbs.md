@@ -1,5 +1,11 @@
 # Breadcrumbs
 
+## 2026-09-28 — Closed Guided setup can resume from the menu bar
+
+- Issue #119: closing Guided setup left no path back from the menu-bar app.
+- The menu action list now offers `Continue Guided Setup` while setup is incomplete, regardless of the current notice or Switching Status. The action reopens the saved step through `continueSetup`.
+- Completing setup hides the continuation and unfinished notice. Menu and application tests cover visibility, keyboard and VoiceOver order, and the closed-window action at both saved steps.
+
 ## 2026-09-27 — Guided setup keeps excluded keyboards visible
 
 - Onboarding now keeps an excluded keyboard at its original row position with an

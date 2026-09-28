@@ -117,7 +117,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             if !isSetupComplete {
                 return MenuBarPanelNotice(
                     title: "Guided setup is not finished",
-                    detail: "Open Settings to assign an Input Source.",
+                    detail: "Continue Guided Setup to finish.",
                     action: nil,
                     tone: .neutral
                 )

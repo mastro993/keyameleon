@@ -8,6 +8,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case openSystemSettings
     case checkAgain
     case retryNow
+    case continueSetup
     case settings
     case quit
 }
@@ -76,7 +77,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
                 isEnabled: true,
                 closesPanel: true
             ),
-            actions: Self.makeActions(outcome: outcome)
+            actions: Self.makeActions(outcome: outcome, isSetupComplete: isSetupComplete)
         )
     }
 
@@ -96,13 +97,22 @@ struct MenuBarPanelContent: Equatable, Sendable {
     }
 
     private static func makeActions(
-        outcome: ActivityTriggeredSwitchingOutcome
+        outcome: ActivityTriggeredSwitchingOutcome,
+        isSetupComplete: Bool
     ) -> [Action] {
-        [
-            pauseOrResume(outcome: outcome),
-            Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true),
-            Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true),
-        ]
+        var actions = [Action]()
+        if !isSetupComplete {
+            actions.append(Action(
+                id: .continueSetup,
+                title: "Continue Guided Setup",
+                isEnabled: true,
+                closesPanel: true
+            ))
+        }
+        actions.append(pauseOrResume(outcome: outcome))
+        actions.append(Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true))
+        actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true))
+        return actions
     }
 
     private static func pauseOrResume(

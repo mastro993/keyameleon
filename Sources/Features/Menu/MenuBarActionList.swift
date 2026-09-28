@@ -93,6 +93,8 @@ private extension MenuBarPanelContent.Action {
             "arrow.clockwise.circle.fill"
         case .retryNow:
             "arrow.clockwise"
+        case .continueSetup:
+            "arrow.right.circle.fill"
         case .settings:
             "gearshape.fill"
         case .quit:

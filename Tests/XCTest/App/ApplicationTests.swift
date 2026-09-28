@@ -270,6 +270,59 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testMenuActionContinuesClosedGuidedSetupAtSavedStep() throws {
+        for (step, permission) in [
+            (GuidedSetupStep.permission, ListenPermissionState.denied),
+            (.assignments, .granted)
+        ] {
+            let setupStore = ApplicationTestSetupDecisionStore(
+                hasStartedGuidedSetup: true,
+                hasCompletedGuidedSetup: false,
+                guidedSetupStep: step
+            )
+            let delegate = makeApplicationTestDelegate(
+                permissionProvider: ApplicationTestListenPermissionProvider(state: permission),
+                setupStore: setupStore
+            )
+            delegate.applicationDidFinishLaunching(
+                Notification(name: NSApplication.didFinishLaunchingNotification)
+            )
+            let anchor = MenuBarPanelTestAnchorWindow()
+            defer {
+                stopApplicationTestSurface(delegate)
+                delegate.windowController?.close()
+                anchor.close()
+            }
+            XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)
+            delegate.windowController?.close()
+            XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
+
+            let panel = try XCTUnwrap(delegate.menuBarPanelController)
+            panel.show(from: anchor.positioningView)
+            XCTAssertTrue(delegate.isMenuBarPanelShown)
+
+            let content = MenuBarPanelContent(
+                outcome: delegate.activityTriggeredSwitching.outcome,
+                physicalKeyboards: delegate.setupModel.physicalKeyboards,
+                assignedInputSources: [:],
+                marketingVersion: nil,
+                isSetupComplete: delegate.setupModel.isSetupComplete
+            )
+            let action = try XCTUnwrap(content.footer.actions.first { $0.id == .continueSetup })
+            let view = KeyameleonMenuBarPanelView(
+                setupModel: delegate.setupModel,
+                switching: delegate.activityTriggeredSwitching,
+                actions: delegate.makeMenuBarPanelActions()
+            )
+            view.perform(action)
+            XCTAssertFalse(delegate.isMenuBarPanelShown)
+            XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
+            XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)
+            XCTAssertFalse(delegate.setupModel.isSetupComplete)
+        }
+    }
+
+    @MainActor
     func testRelaunchAfterPermissionGrantOpensKeyboardCheck() throws {
         let setupStore = ApplicationTestSetupDecisionStore(
             hasStartedGuidedSetup: true,

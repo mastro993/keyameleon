@@ -47,25 +47,22 @@ extension KeyameleonApplicationDelegate {
             rootView: KeyameleonMenuBarPanelView(
                 setupModel: setupModel,
                 switching: activityTriggeredSwitching,
-                actions: MenuBarPanelActions(
-                    openAbout: { [weak self] in
-                        self?.openAbout(nil)
-                    },
-                    openSettings: { [weak self] in
-                        self?.openSettings(nil)
-                    },
-                    quit: { [weak self] in
-                        self?.quitKeyameleon(nil)
-                    },
-                    closePanel: { [weak self] in
-                        self?.closeMenuBarPanel()
-                    }
-                )
+                actions: makeMenuBarPanelActions()
             ),
             refresh: { [weak self] in
                 self?.activityTriggeredSwitching.checkAgain()
                 self?.refreshMenuBarPresentation()
             }
+        )
+    }
+
+    func makeMenuBarPanelActions() -> MenuBarPanelActions {
+        MenuBarPanelActions(
+            openAbout: { [weak self] in self?.openAbout(nil) },
+            continueSetup: { [weak self] in self?.continueSetup(nil) },
+            openSettings: { [weak self] in self?.openSettings(nil) },
+            quit: { [weak self] in self?.quitKeyameleon(nil) },
+            closePanel: { [weak self] in self?.closeMenuBarPanel() }
         )
     }
 
