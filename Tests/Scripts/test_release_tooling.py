@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import base64
 import json
 import os
 import subprocess
@@ -11,6 +12,8 @@ NOTES_SCRIPT = ROOT / "Scripts" / "official-release-notes.sh"
 EVIDENCE_SCRIPT = ROOT / "Scripts" / "write-release-evidence.sh"
 RELEASE_VERSION_SCRIPT = ROOT / "Scripts" / "release-version.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
+VERIFY_APPCAST_SCRIPT = ROOT / "Scripts" / "verify-release-appcast.py"
+PUBLISH_ASSET_SCRIPT = ROOT / "Scripts" / "publish-official-release-asset.sh"
 
 
 def run(*args: str, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -170,6 +173,190 @@ class ReleaseEvidenceTests(unittest.TestCase):
             self.assertNotIn("sourceArchiveFileName", evidence)
 
 
+class ReleaseAppcastTests(unittest.TestCase):
+    @staticmethod
+    def make_release(directory: Path) -> tuple[Path, Path, Path]:
+        artifact = directory / "Keyameleon-1.2.3.dmg"
+        artifact.write_bytes(b"signed disk image fixture")
+        evidence = directory / "release-evidence.json"
+        run(
+            str(EVIDENCE_SCRIPT),
+            "--tag", "v1.2.3",
+            "--commit", "abc123",
+            "--artifact", str(artifact),
+            "--output", str(evidence),
+            cwd=ROOT,
+        )
+        appcast = directory / "appcast.xml"
+        signature = base64.b64encode(bytes(range(64))).decode("ascii")
+        appcast.write_text(
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">\n'
+            '<channel><item>\n'
+            '<sparkle:version>1.2.3</sparkle:version>\n'
+            '<sparkle:shortVersionString>1.2.3</sparkle:shortVersionString>\n'
+            f'<enclosure url="https://github.com/mastro993/Keyameleon/releases/download/v1.2.3/{artifact.name}" '
+            f'length="{artifact.stat().st_size}" sparkle:edSignature="{signature}" '
+            'type="application/octet-stream"/>\n'
+            '</item></channel></rss>\n',
+            encoding="utf-8",
+        )
+        return artifact, evidence, appcast
+
+    def verify(self, artifact: Path, evidence: Path, appcast: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            (
+                "python3", str(VERIFY_APPCAST_SCRIPT),
+                "--appcast", str(appcast),
+                "--evidence", str(evidence),
+                "--artifact", str(artifact),
+                *extra,
+            ),
+            cwd=ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+
+    def test_matching_appcast_and_evidence_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            artifact, evidence, appcast = self.make_release(Path(temporary_directory))
+            self.assertEqual(self.verify(artifact, evidence, appcast).returncode, 0)
+
+    def test_appcast_rejects_wrong_version_size_signature_or_url(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            artifact, evidence, appcast = self.make_release(Path(temporary_directory))
+            original = appcast.read_text(encoding="utf-8")
+            signature = base64.b64encode(bytes(range(64))).decode("ascii")
+            for label, changed in (
+                ("version", original.replace("<sparkle:version>1.2.3", "<sparkle:version>1.2.2")),
+                ("size", original.replace(f'length="{artifact.stat().st_size}"', 'length="1"')),
+                ("signature", original.replace(f'sparkle:edSignature="{signature}"', 'sparkle:edSignature=""')),
+                ("url", original.replace("/download/v1.2.3/", "/download/v1.2.2/")),
+            ):
+                with self.subTest(label=label):
+                    appcast.write_text(changed, encoding="utf-8")
+                    self.assertNotEqual(self.verify(artifact, evidence, appcast).returncode, 0)
+
+    def test_appcast_rejects_changed_artifact_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            artifact, evidence, appcast = self.make_release(Path(temporary_directory))
+            artifact.write_bytes(b"changed disk image fixture")
+            self.assertNotEqual(self.verify(artifact, evidence, appcast).returncode, 0)
+
+    def test_published_feed_must_match_staged_feed_byte_for_byte(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            artifact, evidence, appcast = self.make_release(Path(temporary_directory))
+            published = appcast.with_name("published-appcast.xml")
+            published.write_bytes(appcast.read_bytes())
+            self.assertEqual(
+                self.verify(artifact, evidence, published, "--expected-appcast", str(appcast)).returncode,
+                0,
+            )
+            published.write_bytes(appcast.read_bytes() + b"<!-- stale cache -->\n")
+            self.assertNotEqual(
+                self.verify(artifact, evidence, published, "--expected-appcast", str(appcast)).returncode,
+                0,
+            )
+
+
+class PublishReleaseAssetTests(unittest.TestCase):
+    def test_retry_keeps_uploaded_asset_and_repairs_starter_asset(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            dist = directory / "dist"
+            dist.mkdir()
+            download = directory / "download"
+            asset, _, _ = ReleaseAppcastTests.make_release(dist)
+            notes = directory / "notes.md"
+            notes.write_text("Release notes\n", encoding="utf-8")
+            fake_bin = directory / "bin"
+            fake_bin.mkdir()
+            fake_gh = fake_bin / "gh"
+            fake_gh.write_text(
+                """#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\\n' "$*" >> "$STUB_CALLS"
+case "$1 $2" in
+  'release view')
+    [[ -f "$STUB_RELEASE" ]] || exit 1
+    if [[ "$*" == *'--json assets'* ]]; then
+      if [[ -f "$STUB_ASSET_STATE" ]]; then
+        printf '{"assets":[{"name":"Keyameleon-1.2.3.dmg","state":"%s","apiUrl":"https://api.github.com/repos/mastro993/keyameleon/releases/assets/123"}]}\\n' "$(cat "$STUB_ASSET_STATE")"
+      else
+        printf '%s\\n' '{"assets":[]}'
+      fi
+    else
+      printf '%s\\n' false
+    fi
+    ;;
+  'release create') touch "$STUB_RELEASE"; printf uploaded > "$STUB_ASSET_STATE" ;;
+  'release upload') printf uploaded > "$STUB_ASSET_STATE" ;;
+  'api --method')
+    [[ "$*" == *'/releases/assets/123' ]] || exit 2
+    rm "$STUB_ASSET_STATE"
+    ;;
+  *) exit 2 ;;
+esac
+""",
+                encoding="utf-8",
+            )
+            fake_gh.chmod(0o755)
+            fake_curl = fake_bin / "curl"
+            fake_curl.write_text(
+                """#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\\n' "$*" >> "$STUB_CALLS"
+[[ -f "$STUB_ASSET_STATE" && "$(cat "$STUB_ASSET_STATE")" == uploaded ]] || exit 22
+if [[ ! -f "$STUB_CURL_FAILED" ]]; then
+  touch "$STUB_CURL_FAILED"
+  exit 22
+fi
+while [[ $# -gt 0 ]]; do
+  if [[ "$1" == '-o' || "$1" == '--output' ]]; then
+    cp "$STUB_ASSET_SOURCE" "$2"
+    exit 0
+  fi
+  shift
+done
+exit 2
+""",
+                encoding="utf-8",
+            )
+            fake_curl.chmod(0o755)
+            environment = os.environ.copy()
+            environment.update(
+                PATH=f"{fake_bin}{os.pathsep}{environment['PATH']}",
+                STUB_CALLS=str(directory / "calls.txt"),
+                STUB_RELEASE=str(directory / "release-exists"),
+                STUB_ASSET_STATE=str(directory / "asset-state"),
+                STUB_CURL_FAILED=str(directory / "curl-failed"),
+                STUB_ASSET_SOURCE=str(asset),
+            )
+            command = (
+                "bash", str(PUBLISH_ASSET_SCRIPT),
+                "v1.2.3", "1.2.3", str(notes), str(dist), str(download),
+            )
+
+            failed = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertEqual(Path(environment["STUB_ASSET_STATE"]).read_text(), "uploaded")
+            self.assertFalse((download / asset.name).exists())
+
+            retried = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
+            self.assertEqual(retried.returncode, 0, retried.stderr)
+            self.assertEqual((download / asset.name).read_bytes(), asset.read_bytes())
+            Path(environment["STUB_ASSET_STATE"]).write_text("starter")
+            repaired = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
+            self.assertEqual(repaired.returncode, 0, repaired.stderr)
+            self.assertEqual(Path(environment["STUB_ASSET_STATE"]).read_text(), "uploaded")
+            calls = Path(environment["STUB_CALLS"]).read_text(encoding="utf-8").splitlines()
+            self.assertEqual(sum(call.startswith("release create ") for call in calls), 1)
+            self.assertEqual(sum(call.startswith("release upload ") for call in calls), 1)
+            self.assertEqual(sum(call.startswith("api --method DELETE ") for call in calls), 1)
+            self.assertFalse(any("--clobber" in call for call in calls))
+
+
 class ReleaseVersionTests(unittest.TestCase):
     def make_repository(self, directory: Path, tags: tuple[str, ...] = ("v0.2.3",)) -> Path:
         repository = directory / "repository"
@@ -297,15 +484,18 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertIn('--head "${{ github.sha }}"', workflow)
         self.assertIn("ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}", workflow)
 
-    def test_release_page_has_only_the_dmg_as_a_managed_asset(self) -> None:
+    def test_release_asset_precedes_pages_and_crosses_artifact_boundary(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        release_create = workflow.split('gh release create "$TAG"', maxsplit=1)[1]
-        self.assertIn('"dist/Keyameleon-${VERSION}.dmg"', release_create)
-        self.assertNotIn("dist/appcast.xml", release_create)
-        self.assertNotIn("dist/release-evidence.json", release_create)
+        produce = workflow.split("  produce:", maxsplit=1)[1].split("  publish:", maxsplit=1)[0]
+        publish = workflow.split("  publish:", maxsplit=1)[1]
+        self.assertIn("actions/upload-artifact@", produce)
+        self.assertIn("dist/Keyameleon-${{ needs.verify.outputs.version }}.dmg", produce)
+        self.assertIn("dist/appcast.xml", produce)
+        self.assertIn("dist/release-evidence.json", produce)
+        self.assertIn("- produce", publish)
+        self.assertIn("actions/download-artifact@", publish)
+        self.assertLess(publish.index("Publish and verify downloadable DMG"), publish.index("peaceiris/actions-gh-pages@v4"))
         self.assertNotIn("Keyameleon-source-", workflow)
-        self.assertIn("peaceiris/actions-gh-pages@v4", workflow)
-        self.assertIn("path: dist/release-evidence.json", workflow)
         self.assertIn("pull-requests: read", workflow)
 
 
