@@ -35,9 +35,9 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 5. Job `bump` updates `MARKETING_VERSION`, regenerates the Xcode project,
    commits `chore(release): X.Y.Z`, tests that exact commit, and pushes it to
    `main`.
-6. Jobs `bump` and `produce` target the `official-release` GitHub Environment;
-   `bump` uses its repository-scoped deploy key, while `produce` receives the
-   distribution secrets.
+6. Jobs `bump`, `produce`, and `publish` target the `official-release` GitHub
+   Environment. `bump` and `publish` use its repository-scoped deploy key to
+   push the version commit and tag. `produce` receives the distribution secrets.
 7. GitHub holds each job at the `official-release` environment until the lead
    maintainer approves it. The job receives environment secrets only after
    approval.
@@ -125,7 +125,7 @@ signed updates for existing Official Release binaries.
 Already created. Settings → Environments → `official-release`:
 
 1. **Deployment branches and tags** → Selected branches → `main` only.
-   Bump and produce run on `workflow_dispatch` from `main` before the tag exists.
+   All three release jobs run on `workflow_dispatch` from `main`.
 2. **Required reviewers** → `mastro993` (lead maintainer). Allow self-review so
    the sole maintainer can approve their own dispatch. Disable administrator
    bypass so approval cannot be skipped.
@@ -164,16 +164,23 @@ from the working tree (`trash`, not git). Keep offline backups.
 
 ### 5. Tag ruleset
 
-Settings → Rules → Rulesets → New tag ruleset:
+Apply this change after the workflow pull request merges into `main` (step 7).
+The older workflow pushes tags with `GITHUB_TOKEN`, which cannot use the
+deploy-key bypass.
+
+Settings → Rules → Rulesets → `Official Release tags`:
 
 - Name: `Official Release tags`
 - Enforcement: Active
-- Target tags: `v[0-9]+.[0-9]+.[0-9]+` (Official Release pattern only)
+- Target tags: `v[0-9]*` (GitHub glob; includes valid Official Release tags)
 - Rules: Restrict creations, Restrict updates, Restrict deletions
-- Bypass list: **GitHub Actions**, bypass mode **Always**
+- Bypass actor: **Deploy keys**, bypass mode **Always**
 
-Humans must not create `vMAJOR.MINOR.PATCH` tags. The workflow pushes the tag
-with `GITHUB_TOKEN`. If Actions cannot bypass, publish fails at `git push`.
+GitHub rulesets use globs, not regular expressions. This glob also matches
+some invalid version names. `Scripts/verify-official-release-tag.sh` checks the
+exact `vMAJOR.MINOR.PATCH` format before the workflow creates a tag. Humans
+cannot create tags that match the ruleset. The workflow pushes with
+`RELEASE_DEPLOY_KEY`; `GITHUB_TOKEN` cannot bypass this ruleset.
 
 ### 6. Release deploy key and main branch ruleset
 
@@ -188,9 +195,10 @@ The release workflow needs one narrow exception to the pull-request-only rule:
 - Bypass mode: **Always**
 
 GitHub does not allow its first-party Actions app as a bypass actor on this
-personal repository. The deploy key is repository-scoped, available only to
-the protected release environment, and used only by `bump`. The bump job runs
-the full test suite before its normal fast-forward push; it never force-pushes.
+personal repository. The deploy key is repository-scoped and available only to
+the protected release environment. Both `bump` and `publish` use it for their
+pushes. The bump job runs the full test suite before its normal fast-forward
+push; it never force-pushes.
 
 ### 7. Land this workflow on `main`
 
@@ -220,7 +228,8 @@ From **Actions → Release → Run workflow**:
 6. Approve `produce` if GitHub requests another review.
 7. `produce` signs, notarizes, staples, and verifies the DMG and appcast,
    then saves their exact bytes with release evidence as a workflow artifact.
-8. `publish` creates annotated tag `vX.Y.Z`, publishes only
+8. Approve `publish` if GitHub requests another review.
+9. `publish` creates annotated tag `vX.Y.Z`, publishes only
    `Keyameleon-X.Y.Z.dmg` to the GitHub Release, and verifies its public
    download before publishing `appcast.xml` to GitHub Pages. The final check
    compares the served signed feed with the staged feed and checks the
@@ -293,8 +302,9 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 
 ### Tags (Settings → Rulesets)
 
-- Block humans from creating tags matching `v*.*.*` (Official Release pattern)
-- Allow GitHub Actions (`GITHUB_TOKEN`) to create those tags
+- Restrict creation, updates, and deletion of tags matching the glob
+  `v[0-9]*`; the release script validates the exact version format
+- Allow **Deploy keys** with an `Always` bypass to push the annotated tag
 - `workflow_dispatch` is the only supported way to mint an Official Release tag
 
 ### `official-release` environment (Settings → Environments)
@@ -302,8 +312,8 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 - Required reviewer: `mastro993`; self-review allowed; administrator bypass
   disabled. These settings require an explicit approval while allowing the
   sole maintainer to dispatch an Official Release.
-- Deployment branches: default branch only (`main`). Bump and produce run from
-  `workflow_dispatch` on `main` before the tag exists
+- Deployment branches: default branch only (`main`). All three release jobs run
+  from `workflow_dispatch` on `main`
 - Secrets listed below exist only as environment or repository secrets — never in git
 
 The repository is public, so GitHub supports required environment reviewers.
@@ -313,9 +323,10 @@ and confirm `required_reviewers` lists `mastro993`, `prevent_self_review` is
 `gh api repos/mastro993/Keyameleon/environments/official-release/deployment-branch-policies`
 and confirm `main` is the only branch. To check the gate without changing
 `main`, dispatch Release, confirm `bump` waits for review, and cancel without
-approving it. This checks `bump` only. `produce` uses the same protected
-environment, but checking its wait would require approving `bump`, which can
-push a real version commit. Do not approve `bump` solely to test `produce`.
+approving it. This checks `bump` only. `produce` and `publish` use the same
+protected environment, but checking their waits would require approving
+`bump`, which can push a real version commit. Do not approve `bump` solely to
+test the later jobs.
 
 ### GitHub Pages (Settings → Pages)
 
