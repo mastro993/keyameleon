@@ -14,7 +14,7 @@ publishes for users. It is:
 | Notarized | `notarytool submit --wait` |
 | Stapled | `stapler staple` on the app and final DMG |
 | Updates | Sparkle `appcast.xml` EdDSA-signed; feed URL in Info.plist |
-| Channel | Stable. GitHub Release has one DMG; appcast is on GitHub Pages; evidence is a workflow artifact |
+| Channel | Stable. GitHub Release has one DMG; appcast and permanent versioned evidence are on GitHub Pages |
 
 The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 
@@ -45,8 +45,9 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
    Sparkle signature, and saves the DMG, `appcast.xml`, and
    `release-evidence.json` as one workflow artifact. `publish` uses those same
    bytes to create the annotated tag and GitHub Release, verifies the public
-   DMG download, then publishes the appcast to GitHub Pages. Its final check
-   verifies the served feed and enclosure. A transient ZIP may be used for app
+   DMG download, then publishes the appcast and versioned evidence to GitHub
+   Pages. Its final check verifies the served feed, evidence, and enclosure.
+   A transient ZIP may be used for app
    notarization only. It is not retained.
 
 A human tag push does **not** start the workflow. Do not `git push` Official
@@ -255,8 +256,9 @@ From **Actions → Release → Run workflow**:
 8. Approve `publish` if GitHub requests another review.
 9. `publish` creates annotated tag `vX.Y.Z`, publishes only
    `Keyameleon-X.Y.Z.dmg` to the GitHub Release, and verifies its public
-   download before publishing `appcast.xml` to GitHub Pages. The final check
-   compares the served signed feed with the staged feed and checks the
+   download before publishing `appcast.xml` and permanent
+   `releases/vX.Y.Z/release-evidence.json` to GitHub Pages. The final check
+   compares both served files byte for byte with the staged files and checks the
    enclosure version, URL, size, signature, and downloaded DMG SHA-256.
    There is no dry-run dispatch. `SKIP_NOTARIZE=1` local builds are not an
    Official Release.
@@ -268,7 +270,8 @@ The successful `produce` job is not rerun when `publish` fails, so the retry
 uses the same signed bytes. `publish` reuses a matching tag and asset, or
 uploads a missing asset from that workflow artifact. If an upload left an empty
 `starter` asset, it deletes that asset by ID before retrying. It never replaces
-an uploaded asset. A mismatched tag or asset stops the run for manual
+an uploaded asset or changes published evidence for the same tag. An identical
+Pages retry makes no commit. A mismatched tag, asset, or evidence stops for manual
 investigation. Failure before the GitHub Release leaves the previous feed
 intact; failure after the Release but before Pages leaves a downloadable DMG
 available for retry.
@@ -293,9 +296,11 @@ hdiutil detach /tmp/keyameleon-mounted
 git rev-parse "${TAG}^{commit}"   # compare with evidence.gitCommit
 ```
 
-Download `release-evidence.json` from the workflow run, then verify its hash:
+Download durable evidence from Pages, then verify its hash:
 
 ```sh
+curl -fsSL -o release-evidence.json \
+  "https://mastro993.github.io/keyameleon/releases/${TAG}/release-evidence.json"
 jq '{tag,semanticVersion,gitCommit,artifactFileName,feedURLString}' release-evidence.json
 shasum -a 256 -c <(jq -r '"\(.artifactSHA256)  \(.artifactFileName)"' release-evidence.json)
 ```
@@ -358,7 +363,12 @@ test the later jobs.
 - Branch: `gh-pages`
 - Folder: `/ (root)`
 
-The release workflow writes the latest signed `appcast.xml` to that branch.
+The release workflow writes the latest signed `appcast.xml` and retains each
+version's `releases/<tag>/release-evidence.json` on that branch. It uses the
+`RELEASE_DEPLOY_KEY` from the protected `publish` checkout for a normal push.
+GitHub Pages branch deployment does not start from a `GITHUB_TOKEN` push,
+as described in [GitHub's publishing-source documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+Older evidence files are preserved; a retry cannot overwrite changed bytes.
 
 ## Secrets (never commit)
 
@@ -398,7 +408,7 @@ Artifacts land in `dist/`:
 
 - `Keyameleon-<version>.dmg`
 - `appcast.xml` (published to GitHub Pages by the workflow)
-- `release-evidence.json` (uploaded as a workflow artifact)
+- `release-evidence.json` (workflow artifact and durable GitHub Pages record)
 
 `SKIP_NOTARIZE=1` builds and signs without notarization. Local artifacts and a
 manual GitHub Release are **not** an Official Release. Only `workflow_dispatch`
@@ -411,7 +421,38 @@ cd dist
 jq -r '"\(.artifactSHA256)  \(.artifactFileName)"' release-evidence.json | shasum -a 256 -c -
 ```
 
-Confirm `tag` / `gitCommit` match the public tag object.
+Confirm `tag` / `gitCommit` match the public annotated tag's peeled commit.
+
+### Backfill `v0.4.5` evidence
+
+The `v0.4.5` run predates permanent Pages evidence. Its workflow artifact
+expires on 2026-12-26. Backfill only from that run's original
+`release-evidence.json`, the existing public DMG, and the existing Pages feed.
+Do not regenerate evidence or dispatch another release. In a clean checkout
+with the release deploy key configured for `origin`:
+
+```sh
+TAG=v0.4.5
+COMMIT=71514f9790593beda36885f6cc7aa03ba0e87e58
+mkdir -p /tmp/keyameleon-backfill
+gh run download 36336223890 --name official-release-0.4.5 --dir /tmp/keyameleon-backfill
+curl -fsSL -o /tmp/keyameleon-backfill/appcast.xml \
+  https://mastro993.github.io/keyameleon/appcast.xml
+curl -fLsS -o /tmp/keyameleon-backfill/Keyameleon-0.4.5.dmg \
+  https://github.com/mastro993/Keyameleon/releases/download/v0.4.5/Keyameleon-0.4.5.dmg
+bash Scripts/publish-release-pages.sh "$TAG" "$COMMIT" \
+  /tmp/keyameleon-backfill /tmp/keyameleon-backfill/Keyameleon-0.4.5.dmg
+curl -fsSL https://mastro993.github.io/keyameleon/releases/v0.4.5/release-evidence.json \
+  | cmp - /tmp/keyameleon-backfill/release-evidence.json
+```
+
+Run this backfill while `v0.4.5` is still the current feed version. If a newer
+release has replaced the feed, stop and recover the original signed appcast
+before arranging an evidence-only backfill.
+
+The publisher verifies the public DMG hash, feed, and remote annotated tag
+before a push. An identical retry leaves `gh-pages` unchanged. This backfill
+adds only the evidence record when the current feed already has matching bytes.
 
 ## Sparkle public key in debug builds
 

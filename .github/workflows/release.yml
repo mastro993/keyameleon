@@ -277,6 +277,7 @@ jobs:
           # was created but before the GitHub Release was published.
           CHANGES="$(./Scripts/official-release-notes.sh --tag "$TAG" --head "${{ github.sha }}")"
           printf '%s\n' "$CHANGES" >"$RUNNER_TEMP/release-notes.md"
+          printf '\nPermanent release evidence: https://mastro993.github.io/keyameleon/releases/%s/release-evidence.json\n' "$TAG" >>"$RUNNER_TEMP/release-notes.md"
 
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
             tagged_commit="$(git ls-remote --tags origin "refs/tags/${TAG}^{}" | awk '{print $1}')"
@@ -302,19 +303,15 @@ jobs:
             "$TAG" "$VERSION" "$RUNNER_TEMP/release-notes.md" \
             dist "$RUNNER_TEMP/release-asset"
 
-      - name: Stage Sparkle appcast for GitHub Pages
+      - name: Publish Sparkle appcast and permanent evidence to GitHub Pages
+        env:
+          TAG: ${{ needs.verify.outputs.tag }}
+          COMMIT: ${{ needs.bump.outputs.commit }}
+          VERSION: ${{ needs.verify.outputs.version }}
         run: |
           set -euo pipefail
-          mkdir -p public
-          cp dist/appcast.xml public/appcast.xml
-
-      - name: Publish Sparkle appcast to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./public
-          keep_files: true
+          bash Scripts/publish-release-pages.sh \
+            "$TAG" "$COMMIT" dist "$RUNNER_TEMP/release-asset/Keyameleon-${VERSION}.dmg"
 
       # Installed copies use this feed. Its exact signed bytes must resolve to
       # the already verified public DMG before this job can pass.
@@ -326,17 +323,20 @@ jobs:
           feed_url="$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["feedURLString"])')"
           archive="Keyameleon-${VERSION}.dmg"
           tag="v${VERSION}"
+          evidence_url="https://mastro993.github.io/keyameleon/releases/${tag}/release-evidence.json"
           public_url="https://github.com/mastro993/Keyameleon/releases/download/${tag}/${archive}"
           for attempt in {1..20}; do
             if curl -fsSL -o "$RUNNER_TEMP/published-appcast.xml" "$feed_url" 2>/dev/null && \
               cmp -s "$RUNNER_TEMP/published-appcast.xml" dist/appcast.xml && \
+              curl -fsSL -o "$RUNNER_TEMP/published-evidence.json" "$evidence_url" 2>/dev/null && \
+              cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json && \
               curl -fLsS -o "$RUNNER_TEMP/release-asset/${archive}" "$public_url" 2>/dev/null && \
               python3 Scripts/verify-release-appcast.py \
                 --appcast "$RUNNER_TEMP/published-appcast.xml" \
                 --expected-appcast dist/appcast.xml \
-                --evidence dist/release-evidence.json \
+                --evidence "$RUNNER_TEMP/published-evidence.json" \
                 --artifact "$RUNNER_TEMP/release-asset/${archive}"; then
-              echo "feed ${feed_url} serves verified ${VERSION} enclosure"
+              echo "feed ${feed_url} and evidence ${evidence_url} serve verified ${VERSION} enclosure"
               exit 0
             fi
             echo "attempt ${attempt}: ${feed_url} does not serve verified ${VERSION} enclosure yet" >&2
