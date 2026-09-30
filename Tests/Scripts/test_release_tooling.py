@@ -614,6 +614,17 @@ run_tests
             self.assertIn("Scripts/publish-release-pages.sh", result.stderr)
             self.assertIn("syntax error", result.stderr)
 
+    def test_version_commit_installs_pinned_swiftlint_before_tests(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        bump = workflow.split("\n  bump:\n", maxsplit=1)[1].split("\n  produce:\n", maxsplit=1)[0]
+        before_tests = bump.split("- name: Test version commit", maxsplit=1)[0]
+        configuration = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
+        version = configuration.split('swiftlint_version: "', maxsplit=1)[1].split('"', maxsplit=1)[0]
+        self.assertIn(f"Install SwiftLint {version}", before_tests)
+        self.assertIn(f"/releases/download/{version}/portable_swiftlint.zip", before_tests)
+        self.assertIn("| shasum -a 256 --check", before_tests)
+        self.assertIn('echo "${swiftlint_dir}" >> "${GITHUB_PATH}"', before_tests)
+
     def test_dispatch_selects_release_type_and_tags_the_bump_commit(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("release_type:", workflow)
