@@ -1,3 +1,5 @@
+import Foundation
+@preconcurrency import SwiftData
 import Testing
 @testable import Keyameleon
 
@@ -35,8 +37,8 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
     #expect(identity.versionLabel == "v1.2.3")
 }
 
-@Test("About info exposes source and standard Keyameleon folders")
-func aboutInfoExposesSourceAndStandardKeyameleonFolders() {
+@Test("About info exposes the production store folder and source")
+func aboutInfoExposesProductionStoreFolderAndSource() {
     let info = KeyameleonAboutInfo(
         identity: KeyameleonAppIdentity(
             infoDictionary: [
@@ -48,6 +50,10 @@ func aboutInfoExposesSourceAndStandardKeyameleonFolders() {
 
     #expect(info.repositoryURL.absoluteString == "https://github.com/mastro993/Keyameleon")
     #expect(info.identity.versionLabel == "v1.2.3")
-    #expect(info.appDataFolderURL.path.hasSuffix("/Library/Application Support/Keyameleon"))
+    let legacyConfiguration = ModelConfiguration(
+        schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
+        isStoredInMemoryOnly: false
+    )
+    #expect(info.appDataFolderURL == legacyConfiguration.url.deletingLastPathComponent())
     #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
 }
