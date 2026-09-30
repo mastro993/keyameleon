@@ -431,7 +431,10 @@ final class KeyameleonSetupModel {
         }
 
         let removedData =
-            "This removes the saved Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard Designation for \(physicalKeyboard.name)."
+            """
+            This removes the saved Physical Keyboard Name, Keyboard Assignment, and \
+            Manual Physical Keyboard Designation for \(physicalKeyboard.name).
+            """
         let reconnectResult = switch physicalKeyboard.connectionState {
         case .connected:
             "This connected Physical Keyboard reappears as new and unassigned."
@@ -729,8 +732,7 @@ final class KeyameleonSetupModel {
            !excludedKeys.contains(PhysicalKeyboardExclusionKey.key(for: activeID)),
            !connectedIdentityKeys.contains(activeID.rawValue),
            !disconnectedIdentityKeys.contains(activeID.rawValue),
-           let lastKnown = lastKnownPhysicalKeyboards[activeID.rawValue]
-        {
+           let lastKnown = lastKnownPhysicalKeyboards[activeID.rawValue] {
             disconnected.append(lastKnown.asDisconnected().markingActive(true))
         }
 

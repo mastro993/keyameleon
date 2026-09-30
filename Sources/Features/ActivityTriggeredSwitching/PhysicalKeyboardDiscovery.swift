@@ -356,8 +356,7 @@ final class PhysicalKeyboardDiscovery {
         switch change {
         case let .connected(facts):
             if let keyboard = physicalKeyboard(forServiceID: facts.serviceID),
-               keyboard.id.isIdentityBased
-            {
+               keyboard.id.isIdentityBased {
                 publishRecordChange(
                     .connected(physicalKeyboardID: keyboard.id, name: keyboard.name)
                 )
@@ -365,8 +364,7 @@ final class PhysicalKeyboardDiscovery {
         case .disconnected:
             let remainingIDs = Set(catalog.physicalKeyboards.map(\.id))
             for keyboard in previousKeyboards
-                where keyboard.id.isIdentityBased && !remainingIDs.contains(keyboard.id)
-            {
+                where keyboard.id.isIdentityBased && !remainingIDs.contains(keyboard.id) {
                 publishRecordChange(
                     .disconnected(physicalKeyboardID: keyboard.id, name: keyboard.name)
                 )

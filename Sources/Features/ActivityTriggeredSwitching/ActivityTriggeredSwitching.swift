@@ -430,8 +430,7 @@ final class ActivityTriggeredSwitching {
                 wantedKeyboardAssignmentIdentifier = wantedIdentifier
             } else if wantedKeyboardAssignmentIdentifier == wantedIdentifier,
                       verifiedKeyboardAssignmentIdentifier == wantedIdentifier,
-                      currentIdentifier == wantedIdentifier
-            {
+                      currentIdentifier == wantedIdentifier {
                 clearWarning(cause: .selectionFailure)
             } else {
                 wantedKeyboardAssignmentGeneration &+= 1
@@ -461,14 +460,12 @@ final class ActivityTriggeredSwitching {
         observedCurrentInputSourceIdentifier = currentIdentifier
 
         if let verified = verifiedKeyboardAssignmentIdentifier,
-           currentIdentifier != verified
-        {
+           currentIdentifier != verified {
             verifiedKeyboardAssignmentIdentifier = nil
         }
 
         if previousObserved != observedCurrentInputSourceIdentifier
-            || previousVerified != verifiedKeyboardAssignmentIdentifier
-        {
+            || previousVerified != verifiedKeyboardAssignmentIdentifier {
             KeyameleonLog.verbose(
                 .switching,
                 "Observed Input Source is now \(observedCurrentInputSourceIdentifier ?? "none")"
@@ -507,8 +504,7 @@ final class ActivityTriggeredSwitching {
         if let activeID = physicalKeyboardDiscovery.activePhysicalKeyboardID,
            let keyboard = physicalKeyboardDiscovery.physicalKeyboards.first(where: {
                $0.id == activeID
-           })
-        {
+           }) {
             lastActivePhysicalKeyboard = resolver.resolve(keyboard)
         }
         _ = reevaluateUnavailableKeyboardAssignments()
@@ -541,14 +537,12 @@ final class ActivityTriggeredSwitching {
         }
         if let savedName = physicalKeyboardRecordStore
             .record(forIdentityKey: physicalKeyboardID.rawValue)?
-            .name
-        {
+            .name {
             return savedName
         }
         if let catalogName = physicalKeyboardDiscovery.physicalKeyboards
             .first(where: { $0.id == physicalKeyboardID })?
-            .name
-        {
+            .name {
             return catalogName
         }
         return fallback ?? "name unknown"
@@ -822,8 +816,7 @@ final class ActivityTriggeredSwitching {
         if let activePhysicalKeyboardID = physicalKeyboardDiscovery.activePhysicalKeyboardID,
            let connected = physicalKeyboardDiscovery.physicalKeyboards.first(where: {
                $0.id == activePhysicalKeyboardID
-           })
-        {
+           }) {
             let resolved = resolver.resolve(connected)
             lastActivePhysicalKeyboard = resolved
             return resolved
@@ -882,7 +875,7 @@ final class ActivityTriggeredSwitching {
         case .ready:
             actions = [
                 .openSystemSettings,
-                .checkAgain,
+                .checkAgain
             ]
         case .permissionRequired:
             actions = [.requestPermission, .openSystemSettings, .checkAgain]
@@ -898,8 +891,7 @@ final class ActivityTriggeredSwitching {
             actions.insert(.pause)
         }
         if status == .ready,
-           warnings.contains(where: { $0.recoveryAction == .retryNow })
-        {
+           warnings.contains(where: { $0.recoveryAction == .retryNow }) {
             actions.insert(.retryNow)
         }
         return actions
@@ -925,7 +917,7 @@ final class ActivityTriggeredSwitching {
         .sleeping,
         .inactiveSession,
         .secureInput,
-        .protectedDataUnavailable,
+        .protectedDataUnavailable
     ]
 
     private static func unavailableReasons(

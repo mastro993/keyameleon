@@ -81,9 +81,15 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             if let mismatch = outcome.mismatch {
                 let detail: String
                 if let keyboardName = outcome.activePhysicalKeyboard?.name {
-                    detail = "The current Input Source is \(sentence(mismatch.currentName)) \(keyboardName)'s Keyboard Assignment is \(sentence(mismatch.assignedName))"
+                    detail = """
+                    The current Input Source is \(sentence(mismatch.currentName)) \
+                    \(keyboardName)'s Keyboard Assignment is \(sentence(mismatch.assignedName))
+                    """
                 } else {
-                    detail = "The current Input Source is \(sentence(mismatch.currentName)) The Keyboard Assignment is \(sentence(mismatch.assignedName))"
+                    detail = """
+                    The current Input Source is \(sentence(mismatch.currentName)) \
+                    The Keyboard Assignment is \(sentence(mismatch.assignedName))
+                    """
                 }
                 return MenuBarPanelNotice(
                     title: "Input Source differs",

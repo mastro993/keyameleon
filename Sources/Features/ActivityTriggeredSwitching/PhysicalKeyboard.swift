@@ -545,8 +545,7 @@ struct PhysicalKeyboardCatalog: Sendable {
     ) -> PhysicalKeyboard {
         let sortedGroup = group.sorted { $0.serviceID < $1.serviceID }
         let sharedProductName: String? = if let firstName = sortedGroup.first?.name,
-                                            sortedGroup.allSatisfy({ $0.name == firstName })
-        {
+                                            sortedGroup.allSatisfy({ $0.name == firstName }) {
             firstName
         } else {
             nil

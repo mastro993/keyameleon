@@ -12,7 +12,10 @@ struct ManualPhysicalKeyboardDesignationNameSheet: View {
                 .font(.title2)
 
             Text(
-                "Keyameleon can save this external identity group as a Physical Keyboard only after it leaves, returns, and you confirm its name."
+                """
+                Keyameleon can save this external identity group as a Physical Keyboard only after \
+                it leaves, returns, and you confirm its name.
+                """
             )
                 .foregroundStyle(.secondary)
 
