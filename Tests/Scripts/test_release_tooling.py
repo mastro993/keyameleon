@@ -620,8 +620,14 @@ run_tests
         before_tests = bump.split("- name: Test version commit", maxsplit=1)[0]
         configuration = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
         version = configuration.split('swiftlint_version: "', maxsplit=1)[1].split('"', maxsplit=1)[0]
+        ci_workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        checksum_command = next(
+            line.strip() for line in ci_workflow.splitlines()
+            if line.strip().startswith('echo "') and "swiftlint.zip" in line
+        )
         self.assertIn(f"Install SwiftLint {version}", before_tests)
         self.assertIn(f"/releases/download/{version}/portable_swiftlint.zip", before_tests)
+        self.assertIn(checksum_command, before_tests)
         self.assertIn("| shasum -a 256 --check", before_tests)
         self.assertIn('echo "${swiftlint_dir}" >> "${GITHUB_PATH}"', before_tests)
 
