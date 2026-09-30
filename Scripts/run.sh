@@ -115,6 +115,7 @@ kill_leftover_derived_data_keyameleon() {
 run_tests() {
     bash -n \
         Scripts/official-release-notes.sh \
+        Scripts/publish-release-pages.sh \
         Scripts/verify-official-release-tag.sh \
         Scripts/write-release-evidence.sh
     zsh -n Scripts/official-release.sh

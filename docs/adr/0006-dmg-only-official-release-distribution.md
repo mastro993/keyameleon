@@ -6,11 +6,17 @@ Keyameleon publishes one signed, notarized, and stapled disk image named
 remain, but Keyameleon does not attach a ZIP, custom source archive, Sparkle
 appcast, or release evidence to the GitHub Release.
 
-Sparkle publishes `appcast.xml` through GitHub Pages. Release evidence remains
-a workflow artifact and does not appear on the release page. A transient ZIP
-may support notarization, but it is not a release artifact. This keeps the
-public download surface limited to the installer while retaining update and
+Sparkle publishes `appcast.xml` through GitHub Pages. The same branch retains
+each release's evidence at `releases/<tag>/release-evidence.json` indefinitely,
+and the release notes link to it. Evidence does not appear as a GitHub Release
+asset. A transient ZIP may support notarization, but it is not a release
+artifact. This keeps the public download surface limited to the installer while retaining update and
 source-traceability checks outside that surface.
+
+Evidence retention does not depend on Actions artifact expiration. The publisher
+preserves older evidence and permits only byte-identical retries for an existing
+tag. A conflicting record stops publication. It verifies the public DMG hash
+and annotated source tag before one normal push of the feed and evidence.
 
 Keyameleon does not migrate the `v0.1.0` release feed. The release stays
 immutable, and installed `v0.1.0` copies may require a manual installation of a
