@@ -39,12 +39,12 @@ func storeRelocationPreservesSavedKeyboardDataAndLiveWAL() throws {
     let migrated = try migrationTestContainer(at: destinationURL)
     let migratedContext = ModelContext(migrated)
     let records = SwiftDataPhysicalKeyboardRecordStore(modelContext: migratedContext)
-    let saved = try #require(records.record(forIdentityKey: identityKey))
+    let saved = try #require(try records.record(forIdentityKey: identityKey))
     #expect(saved.productName == "Test Keyboard")
     #expect(saved.customName == "Studio")
     #expect(saved.keyboardAssignment == KeyboardAssignment(inputSourceIdentifier: "com.apple.keylayout.Italian"))
     let designations = SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: migratedContext)
-    #expect(designations.designation(forIdentityKey: identityKey) == SavedManualPhysicalKeyboardDesignation(
+    #expect(try designations.designation(forIdentityKey: identityKey) == SavedManualPhysicalKeyboardDesignation(
         identityKey: identityKey,
         productName: "Test Keyboard",
         confirmedName: "Studio",
@@ -82,7 +82,7 @@ func storeRelocationKeepsExistingDestination() throws {
     #expect(try Data(contentsOf: destinationURL) == destinationBytes)
     let reopened = try migrationTestContainer(at: destinationURL)
     let store = SwiftDataPhysicalKeyboardRecordStore(modelContext: ModelContext(reopened))
-    #expect(store.record(forIdentityKey: "keyboard")?.customName == "Current")
+    #expect(try store.record(forIdentityKey: "keyboard")?.customName == "Current")
     #expect(try legacyContext.fetchCount(FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>()) == 1)
 }
 
@@ -107,7 +107,7 @@ func storeRelocationRetriesInterruptedStaging() throws {
 
     let migrated = try migrationTestContainer(at: destinationURL)
     let store = SwiftDataPhysicalKeyboardRecordStore(modelContext: ModelContext(migrated))
-    #expect(store.record(forIdentityKey: "keyboard")?.customName == "Recovered")
+    #expect(try store.record(forIdentityKey: "keyboard")?.customName == "Recovered")
     #expect(!FileManager.default.fileExists(atPath: stagingURL.path))
     #expect(try context.fetchCount(FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>()) == 1)
 }

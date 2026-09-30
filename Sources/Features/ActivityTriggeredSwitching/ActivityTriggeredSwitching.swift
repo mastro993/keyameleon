@@ -128,7 +128,7 @@ final class ActivityTriggeredSwitching {
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
 
         let protectedState = protectedStateProvider.currentProtectedState()
-        let reasons = Self.unavailableReasons(
+        let reasons = SwitchingUnavailableReason.initial(
             protectedState: protectedState,
             eventProtectedDataUnavailable: false
         )
@@ -231,7 +231,7 @@ final class ActivityTriggeredSwitching {
             isPaused: setupStore.isActivityTriggeredSwitchingPaused
         )
         recordStatusChange(from: previousStatus, to: status)
-        outcome = replacingOutcome(status: status)
+        outcome = outcome.replacing(status: status, isPaused: setupStore.isActivityTriggeredSwitchingPaused)
         updateObservation(for: status)
         rebuildOutcome()
     }
@@ -703,12 +703,12 @@ final class ActivityTriggeredSwitching {
             reasons.remove(reason)
         }
 
-        let orderedReasons = Self.unavailableReasonPriority.filter { reasons.contains($0) }
+        let orderedReasons = SwitchingUnavailableReason.priority.filter { reasons.contains($0) }
         guard orderedReasons != outcome.temporarilyUnavailableReasons else {
             return
         }
 
-        outcome = replacingOutcome(reasons: orderedReasons)
+        outcome = outcome.replacing(reasons: orderedReasons, isPaused: setupStore.isActivityTriggeredSwitchingPaused)
     }
 
     private func reconcileProtectedState() {
@@ -725,8 +725,9 @@ final class ActivityTriggeredSwitching {
             reasons.remove(.protectedDataUnavailable)
         }
 
-        outcome = replacingOutcome(
-            reasons: Self.unavailableReasonPriority.filter { reasons.contains($0) }
+        outcome = outcome.replacing(
+            reasons: SwitchingUnavailableReason.priority.filter { reasons.contains($0) },
+            isPaused: setupStore.isActivityTriggeredSwitchingPaused
         )
     }
 
@@ -842,7 +843,10 @@ final class ActivityTriggeredSwitching {
             )
         }
 
-        let availableActions = availableActions(for: outcome.switchingStatus, warnings: warnings)
+        let availableActions = ActivityTriggeredSwitchingAction.available(
+            for: outcome.switchingStatus, warnings: warnings,
+            isPaused: setupStore.isActivityTriggeredSwitchingPaused
+        )
         let newOutcome = ActivityTriggeredSwitchingOutcome(
             switchingStatus: outcome.switchingStatus,
             temporarilyUnavailableReasons: outcome.temporarilyUnavailableReasons,
@@ -920,71 +924,4 @@ final class ActivityTriggeredSwitching {
         inputSources.eligibleInputSources.first { $0.identifier == identifier }?.name
     }
 
-    private func availableActions(
-        for status: SwitchingStatus,
-        warnings: [ActivityTriggeredSwitchingWarning]
-    ) -> Set<ActivityTriggeredSwitchingAction> {
-        var actions: Set<ActivityTriggeredSwitchingAction>
-        switch status {
-        case .ready:
-            actions = [
-                .openSystemSettings,
-                .checkAgain
-            ]
-        case .permissionRequired:
-            actions = [.requestPermission, .openSystemSettings, .checkAgain]
-        case .paused:
-            actions = [.requestPermission, .openSystemSettings, .checkAgain]
-        case .temporarilyUnavailable:
-            actions = []
-        }
-
-        if setupStore.isActivityTriggeredSwitchingPaused {
-            actions.insert(.resume)
-        } else {
-            actions.insert(.pause)
-        }
-        if status == .ready,
-           warnings.contains(where: { $0.recoveryAction == .retryNow }) {
-            actions.insert(.retryNow)
-        }
-        return actions
-    }
-
-    private func replacingOutcome(
-        status: SwitchingStatus? = nil,
-        reasons: [SwitchingUnavailableReason]? = nil
-    ) -> ActivityTriggeredSwitchingOutcome {
-        ActivityTriggeredSwitchingOutcome(
-            switchingStatus: status ?? outcome.switchingStatus,
-            temporarilyUnavailableReasons: reasons ?? outcome.temporarilyUnavailableReasons,
-            activePhysicalKeyboard: outcome.activePhysicalKeyboard,
-            currentKeyboardAssignment: outcome.currentKeyboardAssignment,
-            currentInputSourceName: outcome.currentInputSourceName,
-            mismatch: outcome.mismatch,
-            warnings: outcome.warnings,
-            availableActions: availableActions(for: status ?? outcome.switchingStatus, warnings: outcome.warnings)
-        )
-    }
-
-    private static let unavailableReasonPriority: [SwitchingUnavailableReason] = [
-        .sleeping,
-        .inactiveSession,
-        .secureInput,
-        .protectedDataUnavailable
-    ]
-
-    private static func unavailableReasons(
-        protectedState: ProtectedStateSnapshot,
-        eventProtectedDataUnavailable: Bool
-    ) -> [SwitchingUnavailableReason] {
-        var reasons = Set<SwitchingUnavailableReason>()
-        if protectedState.isSecureInputEnabled {
-            reasons.insert(.secureInput)
-        }
-        if !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable {
-            reasons.insert(.protectedDataUnavailable)
-        }
-        return unavailableReasonPriority.filter { reasons.contains($0) }
-    }
 }
