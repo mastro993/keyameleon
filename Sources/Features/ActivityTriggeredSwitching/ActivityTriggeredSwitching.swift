@@ -211,20 +211,18 @@ final class ActivityTriggeredSwitching {
     }
 
     func checkAgain() {
-        guard persistenceError == nil else {
-            return
-        }
         let previousStatus = outcome.switchingStatus
         reconcileProtectedState()
         let permission = permissionProvider.checkListenPermission()
         lastKnownListenPermission = permission
         inputSources.refresh()
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
-        do {
-            _ = try reevaluateUnavailableKeyboardAssignments()
-        } catch {
-            markPersistenceUnavailable()
-            return
+        if persistenceError == nil {
+            do {
+                _ = try reevaluateUnavailableKeyboardAssignments()
+            } catch {
+                markPersistenceUnavailable()
+            }
         }
 
         let status = SwitchingStatus.resolve(
@@ -963,7 +961,7 @@ final class ActivityTriggeredSwitching {
             currentInputSourceName: outcome.currentInputSourceName,
             mismatch: outcome.mismatch,
             warnings: outcome.warnings,
-            availableActions: outcome.availableActions
+            availableActions: availableActions(for: status ?? outcome.switchingStatus, warnings: outcome.warnings)
         )
     }
 

@@ -327,3 +327,47 @@ private func designationCancellationKeepsUnrelatedRetry() throws {
     #expect(model.persistenceError == nil)
     #expect(try records.record(forIdentityKey: keyboard.id.rawValue)?.customName == "Travel")
 }
+
+@Test("Storage failure keeps permission, pause, and lifecycle controls responsive")
+@MainActor
+private func persistenceFailureKeepsStatusControlsResponsive() {
+    let session = SwiftDataPersistenceSession(openContainer: {
+        throw PersistenceInjectedFailure.unavailable
+    })
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
+        protectedStateProvider: ProtectedStateTestProvider(state: .clear),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
+        physicalKeyboardEventObserver: eventObserver,
+        designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+    )
+    startAndCheck(model)
+    model.beginGuidedSetup()
+    model.requestPermission()
+    let switching = model.activityTriggeredSwitching
+    #expect(switching.persistenceError != nil)
+    #expect(switching.outcome.switchingStatus == .ready)
+    #expect(model.guidedSetupStep == .assignments)
+
+    switching.pause()
+    #expect(switching.outcome.switchingStatus == .paused)
+    #expect(switching.outcome.hasAction(.resume))
+    switching.resume()
+    #expect(switching.outcome.switchingStatus == .ready)
+    #expect(switching.outcome.hasAction(.pause))
+
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 907)))
+    #expect(switching.testingPhysicalKeyboardDiscovery.physicalKeyboards.count == 1)
+    switching.handleLifecycleEvent(.willSleep)
+    #expect(switching.outcome.switchingStatus == .temporarilyUnavailable)
+    #expect(switching.testingPhysicalKeyboardDiscovery.physicalKeyboards.isEmpty)
+    switching.handleLifecycleEvent(.didWake)
+    #expect(switching.outcome.switchingStatus == .ready)
+    #expect(eventObserver.startCount == 0)
+    #expect(switching.persistenceError != nil)
+}
