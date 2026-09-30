@@ -19,7 +19,8 @@ Install SwiftLint **0.65.1** from its
 [official release](https://github.com/realm/SwiftLint/releases/tag/0.65.1).
 The portable macOS archive has SHA-256
 `c1e429b0599cf1b516f369a2d9ec04eaf0e436f3c12b637df8851fa52ff694d0`.
-CI downloads that archive and verifies its checksum.
+CI and the Official Release version-commit job download that archive and verify
+its checksum before running the test command.
 
 Run the source check without an Xcode build:
 
@@ -49,9 +50,9 @@ Cyclomatic complexity keeps the default limits but excludes `switch` cases.
 Exhaustive domain-enum mappings do not increase the count. Conditional branches
 and loops still count. No correctness rule is disabled by this policy.
 
-When updating SwiftLint, update the version in `.swiftlint.yml` and the CI
-download URL and checksum together. Recheck the source baseline before changing
-the pin.
+When updating SwiftLint, update the version in `.swiftlint.yml` and the download
+URLs and checksums in both CI and Release workflows together. Recheck the source
+baseline before changing the pin.
 
 ## Product tests and CI
 
