@@ -43,6 +43,7 @@ struct KeyameleonSettingsView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: setupModel) }
         .frame(minWidth: 720, minHeight: 540)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear(perform: model.refresh)

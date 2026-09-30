@@ -141,12 +141,12 @@ func swiftDataStoreKeepsNamesAndAssignmentsAcrossContainers() throws {
     )
     let identityKey = "identity:macos.keyboard.shared|anchor:serial:keyboard-a"
 
-    firstStore.saveName(
+    try firstStore.saveName(
         identityKey: identityKey,
         productName: "Test Keyboard",
         customName: "Studio"
     )
-    firstStore.saveAssignment(
+    try firstStore.saveAssignment(
         identityKey: identityKey,
         productName: "Test Keyboard",
         assignment: KeyboardAssignment(inputSourceIdentifier: "com.example.us")
@@ -155,7 +155,7 @@ func swiftDataStoreKeepsNamesAndAssignmentsAcrossContainers() throws {
     let secondStore = SwiftDataPhysicalKeyboardRecordStore(
         modelContext: .init(container)
     )
-    let saved = secondStore.record(forIdentityKey: identityKey)
+    let saved = try secondStore.record(forIdentityKey: identityKey)
 
     #expect(saved?.name == "Studio")
     #expect(saved?.keyboardAssignment?.inputSourceIdentifier == "com.example.us")

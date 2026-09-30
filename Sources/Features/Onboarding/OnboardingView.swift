@@ -37,6 +37,7 @@ struct KeyameleonOnboardingView: View {
 
             if model.guidedSetupStep == .assignments {
                 keyboardCheck
+                    .disabled(model.persistenceError != nil || switching.persistenceError != nil)
             } else {
                 permissionStep
             }
@@ -139,7 +140,9 @@ struct KeyameleonOnboardingView: View {
     private var keyboardCheck: some View {
         VStack(spacing: 16) {
             if keyboardRows.rows.isEmpty {
-                Text("Connect a Physical Keyboard to register it with Keyameleon.")
+                Text(model.persistenceError == nil
+                         ? "Connect a Physical Keyboard to register it with Keyameleon."
+                         : "Retry to load saved Physical Keyboards.")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)

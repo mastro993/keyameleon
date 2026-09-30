@@ -45,6 +45,27 @@ enum SwitchingUnavailableReason: Equatable, Hashable, Sendable {
     case inactiveSession
     case secureInput
     case protectedDataUnavailable
+
+    static let priority: [SwitchingUnavailableReason] = [
+        .sleeping,
+        .inactiveSession,
+        .secureInput,
+        .protectedDataUnavailable
+    ]
+
+    static func initial(
+        protectedState: ProtectedStateSnapshot,
+        eventProtectedDataUnavailable: Bool
+    ) -> [SwitchingUnavailableReason] {
+        var reasons = Set<SwitchingUnavailableReason>()
+        if protectedState.isSecureInputEnabled {
+            reasons.insert(.secureInput)
+        }
+        if !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable {
+            reasons.insert(.protectedDataUnavailable)
+        }
+        return priority.filter { reasons.contains($0) }
+    }
 }
 
 enum ListenPermissionState: Equatable, Sendable {

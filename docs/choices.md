@@ -800,3 +800,11 @@ Defaults:
 - `KeyameleonMenuBarPanelView` returns focus to the silent container whenever one of the app's windows becomes key, which is the moment the popover is shown.
 - The popover reuses one content view across shows, so `onAppear` and `onDisappear` do not run per show. The key transition is the only per-show signal the view gets.
 - Keyboard focus order, the silent container, and `focusEffectDisabled(focusedTarget == .container)` stay as shipped in #51.
+
+## 2026-09-30 — Persistence failures preserve saved keyboard records
+
+Physical Keyboard records and Manual Physical Keyboard Designations share one explicit SwiftData transaction. Autosave is disabled. Rename, assignment, forget, replacement, and designation changes publish success only after the complete transaction saves. A failed fetch or save rolls back pending changes; failed writes retain the requested operation for Retry. Built-in identity migration is marked evaluated only after its reads and any transfer succeed.
+
+Input Source selection reads the saved keyboard name before requesting the change, including Retry Now. If that read fails, no selection request or verified assignment is published. The success and failure logs reuse the name already read.
+
+If the saved store cannot open or be read, Keyameleon stays running and shows an unavailable notice with Retry in guided setup, Settings, and the menu panel. The last successfully read keyboard list, assignments, and warnings remain available for display. Permission, pause, and lifecycle status continue to update, including stopping discovery while asleep or locked. Activity-Triggered Switching does not select an Input Source using missing or fabricated saved data. Retry reopens the same store or retries the failed change. Keyameleon never deletes, recreates, or substitutes an in-memory store for unreadable user data.

@@ -50,6 +50,38 @@ enum ActivityTriggeredSwitchingAction: Hashable, Sendable {
     case pause
     case resume
     case retryNow
+
+    static func available(
+        for status: SwitchingStatus,
+        warnings: [ActivityTriggeredSwitchingWarning],
+        isPaused: Bool
+    ) -> Set<ActivityTriggeredSwitchingAction> {
+        var actions: Set<ActivityTriggeredSwitchingAction>
+        switch status {
+        case .ready:
+            actions = [
+                .openSystemSettings,
+                .checkAgain
+            ]
+        case .permissionRequired:
+            actions = [.requestPermission, .openSystemSettings, .checkAgain]
+        case .paused:
+            actions = [.requestPermission, .openSystemSettings, .checkAgain]
+        case .temporarilyUnavailable:
+            actions = []
+        }
+
+        if isPaused {
+            actions.insert(.resume)
+        } else {
+            actions.insert(.pause)
+        }
+        if status == .ready,
+           warnings.contains(where: { $0.recoveryAction == .retryNow }) {
+            actions.insert(.retryNow)
+        }
+        return actions
+    }
 }
 
 /// Immutable product outcome published by Activity-Triggered Switching.
@@ -79,5 +111,24 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
 
     func hasAction(_ action: ActivityTriggeredSwitchingAction) -> Bool {
         availableActions.contains(action)
+    }
+
+    func replacing(
+        status: SwitchingStatus? = nil,
+        reasons: [SwitchingUnavailableReason]? = nil,
+        isPaused: Bool
+    ) -> ActivityTriggeredSwitchingOutcome {
+        ActivityTriggeredSwitchingOutcome(
+            switchingStatus: status ?? switchingStatus,
+            temporarilyUnavailableReasons: reasons ?? temporarilyUnavailableReasons,
+            activePhysicalKeyboard: activePhysicalKeyboard,
+            currentKeyboardAssignment: currentKeyboardAssignment,
+            currentInputSourceName: currentInputSourceName,
+            mismatch: mismatch,
+            warnings: warnings,
+            availableActions: ActivityTriggeredSwitchingAction.available(
+                for: status ?? switchingStatus, warnings: warnings, isPaused: isPaused
+            )
+        )
     }
 }
