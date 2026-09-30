@@ -55,7 +55,10 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
         isStoredInMemoryOnly: false
     )
     let productionConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
-    #expect(productionConfiguration.url == legacyConfiguration.url)
+    let expectedStoreURL = legacyConfiguration.url.deletingLastPathComponent()
+        .appending(path: "Keyameleon/default.store")
+    #expect(productionConfiguration.url == expectedStoreURL)
+    #expect(productionConfiguration.url != legacyConfiguration.url)
     #expect(!productionConfiguration.isStoredInMemoryOnly)
     #expect(info.appDataFolderURL == productionConfiguration.url.deletingLastPathComponent())
     #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
