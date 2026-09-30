@@ -227,8 +227,9 @@ push; it never force-pushes.
 
 ### 7. Check CI before dispatch
 
-`verify` waits up to 45 minutes for **Required CI gate** on the selected
-commit. If CI fails, `verify` fails. If CI never starts, `verify` times out.
+`verify` uses a 45-minute polling deadline for **Required CI gate** on the
+selected commit. API requests and the final 20-second wait can extend elapsed
+runtime. If CI fails, `verify` fails. If CI never starts, `verify` times out.
 
 ### 8. Negative checks (optional, no tag created)
 
