@@ -64,7 +64,7 @@ enum PhysicalKeyboardSchemaV1: VersionedSchema {
     static var models: [any PersistentModel.Type] {
         [
             PhysicalKeyboardRecordModel.self,
-            ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel.self,
+            ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel.self
         ]
     }
 
@@ -120,14 +120,21 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         self.modelContext = modelContext
     }
 
+    nonisolated static func makeConfiguration(
+        inMemory: Bool = false
+    ) -> ModelConfiguration {
+        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        return ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: inMemory
+        )
+    }
+
     static func makeContainer(
         inMemory: Bool = false
     ) throws -> ModelContainer {
         let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
-        let configuration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: inMemory
-        )
+        let configuration = makeConfiguration(inMemory: inMemory)
         return try ModelContainer(
             for: schema,
             migrationPlan: PhysicalKeyboardMigrationPlan.self,

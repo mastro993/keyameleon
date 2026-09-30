@@ -16,7 +16,7 @@ func appIdentityTrimsEmptyBundleStringsAsAbsent() {
         infoDictionary: [
             "CFBundleDisplayName": "  ",
             "CFBundleName": "Fallback",
-            "CFBundleShortVersionString": "\n",
+            "CFBundleShortVersionString": "\n"
         ]
     )
     #expect(identity.name == "Fallback")
@@ -29,7 +29,7 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
         infoDictionary: [
             "CFBundleDisplayName": "Shown",
             "CFBundleName": "Hidden",
-            "CFBundleShortVersionString": "1.2.3",
+            "CFBundleShortVersionString": "1.2.3"
         ]
     )
     #expect(identity.name == "Shown")
@@ -43,7 +43,7 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
         identity: KeyameleonAppIdentity(
             infoDictionary: [
                 "CFBundleDisplayName": "Keyameleon",
-                "CFBundleShortVersionString": "1.2.3",
+                "CFBundleShortVersionString": "1.2.3"
             ]
         )
     )
@@ -54,6 +54,9 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
         schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
         isStoredInMemoryOnly: false
     )
-    #expect(info.appDataFolderURL == legacyConfiguration.url.deletingLastPathComponent())
+    let productionConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
+    #expect(productionConfiguration.url == legacyConfiguration.url)
+    #expect(!productionConfiguration.isStoredInMemoryOnly)
+    #expect(info.appDataFolderURL == productionConfiguration.url.deletingLastPathComponent())
     #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
 }

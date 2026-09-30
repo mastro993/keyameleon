@@ -57,7 +57,8 @@ struct KeyameleonAboutInfo: Equatable, Sendable {
         self.init(
             identity: identity,
             repositoryURL: URL(string: "https://github.com/mastro993/Keyameleon")!,
-            appDataFolderURL: Self.defaultAppDataFolderURL,
+            appDataFolderURL: SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
+                .url.deletingLastPathComponent(),
             logsFolderURL: Self.defaultLogsFolderURL
         )
     }
@@ -72,15 +73,6 @@ struct KeyameleonAboutInfo: Equatable, Sendable {
         self.repositoryURL = repositoryURL
         self.appDataFolderURL = appDataFolderURL
         self.logsFolderURL = logsFolderURL
-    }
-
-    private static var defaultAppDataFolderURL: URL {
-        let fileManager = FileManager.default
-        let applicationSupportDirectory = fileManager
-            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        return applicationSupportDirectory
-            .appendingPathComponent("Keyameleon", isDirectory: true)
     }
 
     private static var defaultLogsFolderURL: URL {

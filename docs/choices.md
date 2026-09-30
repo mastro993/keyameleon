@@ -1,5 +1,18 @@
 # Choices
 
+## 2026-09-30 — About opens the production store folder
+
+- Settings > About derives App Data Folder from the same unnamed SwiftData
+  configuration used by the Physical Keyboard record store. Its Open button
+  opens the parent of the configuration's store URL.
+- The configuration keeps SwiftData's existing default URL and schema. This
+  corrects the displayed folder without moving data or running a migration.
+- To back up Physical Keyboard Names, Keyboard Assignments, and Manual Physical
+  Keyboard Designations, quit Keyameleon, then copy the store and any matching
+  `-wal` and `-shm` sidecars together from App Data Folder. Setup decisions and
+  Physical Keyboard Exclusions remain in UserDefaults; the integrity key remains
+  in Keychain. Copying this folder alone is not a complete application backup.
+
 ## 2026-09-28 — Resume unfinished Guided setup from the menu bar
 
 - While Guided setup is incomplete, the menu-bar action list offers `Continue Guided Setup` in every Switching Status. It stays available even when a higher-priority notice is showing.
