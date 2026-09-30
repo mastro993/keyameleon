@@ -60,6 +60,9 @@ not start live CoreHID observation or the menu-bar status item. Detect them
 with `XCTestConfigurationFilePath` or `XCTestBundlePath`. See
 `docs/adr/0005-hosted-unit-tests-skip-live-surface.md`.
 
+Hosted tests and Xcode previews use in-memory SwiftData storage. Store relocation
+tests use disposable directories and must never migrate the user's real data.
+
 CI uses one stable required check, `Required CI gate`, with two paths:
 
 - Changes outside the paths in CI's `Check whether code changed` step, such as

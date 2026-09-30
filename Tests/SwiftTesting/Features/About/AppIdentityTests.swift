@@ -1,3 +1,5 @@
+import Foundation
+@preconcurrency import SwiftData
 import Testing
 @testable import Keyameleon
 
@@ -14,7 +16,7 @@ func appIdentityTrimsEmptyBundleStringsAsAbsent() {
         infoDictionary: [
             "CFBundleDisplayName": "  ",
             "CFBundleName": "Fallback",
-            "CFBundleShortVersionString": "\n",
+            "CFBundleShortVersionString": "\n"
         ]
     )
     #expect(identity.name == "Fallback")
@@ -27,7 +29,7 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
         infoDictionary: [
             "CFBundleDisplayName": "Shown",
             "CFBundleName": "Hidden",
-            "CFBundleShortVersionString": "1.2.3",
+            "CFBundleShortVersionString": "1.2.3"
         ]
     )
     #expect(identity.name == "Shown")
@@ -35,19 +37,29 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
     #expect(identity.versionLabel == "v1.2.3")
 }
 
-@Test("About info exposes source and standard Keyameleon folders")
-func aboutInfoExposesSourceAndStandardKeyameleonFolders() {
+@Test("About info exposes the production store folder and source")
+func aboutInfoExposesProductionStoreFolderAndSource() {
     let info = KeyameleonAboutInfo(
         identity: KeyameleonAppIdentity(
             infoDictionary: [
                 "CFBundleDisplayName": "Keyameleon",
-                "CFBundleShortVersionString": "1.2.3",
+                "CFBundleShortVersionString": "1.2.3"
             ]
         )
     )
 
     #expect(info.repositoryURL.absoluteString == "https://github.com/mastro993/Keyameleon")
     #expect(info.identity.versionLabel == "v1.2.3")
-    #expect(info.appDataFolderURL.path.hasSuffix("/Library/Application Support/Keyameleon"))
+    let legacyConfiguration = ModelConfiguration(
+        schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
+        isStoredInMemoryOnly: false
+    )
+    let productionConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
+    let expectedStoreURL = legacyConfiguration.url.deletingLastPathComponent()
+        .appending(path: "Keyameleon/default.store")
+    #expect(productionConfiguration.url == expectedStoreURL)
+    #expect(productionConfiguration.url != legacyConfiguration.url)
+    #expect(!productionConfiguration.isStoredInMemoryOnly)
+    #expect(info.appDataFolderURL == productionConfiguration.url.deletingLastPathComponent())
     #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
 }

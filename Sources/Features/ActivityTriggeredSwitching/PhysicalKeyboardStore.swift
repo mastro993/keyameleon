@@ -120,14 +120,29 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         self.modelContext = modelContext
     }
 
+    nonisolated static func makeConfiguration(
+        inMemory: Bool = false
+    ) -> ModelConfiguration {
+        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        let legacyConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+        guard !inMemory else { return legacyConfiguration }
+        let storeURL = legacyConfiguration.url.deletingLastPathComponent()
+            .appending(path: "Keyameleon", directoryHint: .isDirectory)
+            .appending(path: legacyConfiguration.url.lastPathComponent)
+        return ModelConfiguration(schema: schema, url: storeURL)
+    }
+
     static func makeContainer(
         inMemory: Bool = false
     ) throws -> ModelContainer {
         let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
-        let configuration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: inMemory
-        )
+        let configuration = makeConfiguration(inMemory: inMemory)
+        if !inMemory {
+            try PhysicalKeyboardStoreMigration.prepareStore(
+                from: ModelConfiguration(schema: schema).url,
+                to: configuration.url
+            )
+        }
         return try ModelContainer(
             for: schema,
             migrationPlan: PhysicalKeyboardMigrationPlan.self,
