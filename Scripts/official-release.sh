@@ -26,12 +26,12 @@ dist_dir="${PWD}/dist"
 keychain_name="keyameleon-official-release.keychain-db"
 keychain_password="$(openssl rand -base64 32)"
 work_tmpdir=""
-imported_cert=0
+created_keychain=0
 dmg_mount=""
 
 cleanup() {
     set +e
-    if [[ "$imported_cert" -eq 1 ]]; then
+    if [[ "$created_keychain" -eq 1 ]]; then
         security delete-keychain "$keychain_name" 2>/dev/null
     fi
     if [[ -n "$dmg_mount" ]]; then
@@ -95,12 +95,15 @@ printf '%s' "$SPARKLE_PRIVATE_ED_KEY" | python3 "${script_dir}/normalize-sparkle
 printf '%s' "$SPARKLE_PUBLIC_ED_KEY" | python3 "${script_dir}/normalize-sparkle-ed-key.py" \
     "$sparkle_public_key_path"
 chmod 600 "$sparkle_private_key_path"
+swift "${script_dir}/verify-sparkle-ed-keys.swift" \
+    "$sparkle_private_key_path" "$sparkle_public_key_path"
 SPARKLE_PUBLIC_ED_KEY="$(cat "$sparkle_public_key_path")"
 
 cert_path="${work_tmpdir}/developer-id.p12"
 print -n "$APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64" | base64 --decode >"$cert_path"
 
 security create-keychain -p "$keychain_password" "$keychain_name"
+created_keychain=1
 security set-keychain-settings -lut 21600 "$keychain_name"
 security unlock-keychain -p "$keychain_password" "$keychain_name"
 security import "$cert_path" \
@@ -111,7 +114,6 @@ security import "$cert_path" \
     -T /usr/bin/productbuild
 security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain_name"
 security list-keychains -d user -s "$keychain_name" $(security list-keychains -d user | sed -e 's/"//g')
-imported_cert=1
 
 # Resolve Sparkle tools from SwiftPM checkouts after project generation.
 xcodegen generate --spec project.yml
@@ -120,6 +122,12 @@ xcodegen generate --spec project.yml
 info_plist_src="Sources/App/Info.plist"
 info_plist_backup="${work_tmpdir}/Info.plist.bak"
 cp "$info_plist_src" "$info_plist_backup"
+restore_info_plist() {
+    if [[ -f "$info_plist_backup" ]]; then
+        cp "$info_plist_backup" "$info_plist_src"
+    fi
+}
+trap 'restore_info_plist; cleanup' EXIT
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" "$info_plist_src"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" "$info_plist_src" 2>/dev/null \
     || /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string ${version}" "$info_plist_src"
@@ -128,13 +136,6 @@ if /usr/libexec/PlistBuddy -c "Print :SUPublicEDKey" "$info_plist_src" >/dev/nul
 else
     /usr/libexec/PlistBuddy -c "Add :SUPublicEDKey string ${SPARKLE_PUBLIC_ED_KEY}" "$info_plist_src"
 fi
-
-restore_info_plist() {
-    if [[ -f "$info_plist_backup" ]]; then
-        cp "$info_plist_backup" "$info_plist_src"
-    fi
-}
-trap 'restore_info_plist; cleanup' EXIT
 
 xcodebuild archive \
     -project Keyameleon.xcodeproj \

@@ -1,5 +1,20 @@
 # Choices
 
+## 2026-09-30 — Keep Manual Physical Keyboard Designation bound to current evidence
+
+- A saved designation can elevate only an external ambiguous identity group.
+  If later discovery finds a shared or unstable identity, the Physical Keyboard
+  stays unsupported. Saved names, assignments, and designation evidence remain
+  intact and apply again if the group becomes eligible.
+- New designation authentication payloads use a versioned domain and UTF-8 byte
+  lengths for each field. Identity, product name, and confirmed name cannot share
+  an ambiguous separator boundary.
+- Existing authentication tags remain valid when their fields contain no record
+  separator (U+001E). Legacy evidence containing that separator cannot be safely
+  disambiguated and stays unsupported until the user completes designation again.
+  New tags carry a version byte; legacy tags remain unchanged. The stored schema
+  and integrity key do not change.
+
 ## 2026-09-30 — Store Physical Keyboard data in the Keyameleon folder
 
 - The production SwiftData store lives at
@@ -792,7 +807,6 @@ Defaults:
 - Release tag, evidence, signed DMG, and GitHub Release all point to the bump commit. Release notes stop at its parent so the mechanical bump is omitted.
 - This supersedes the 2026-08-14 exact-version input, no-version-commit, and same-SHA-release defaults.
 
-
 ## 2026-09-22 — Menu-bar panel starts each show on the silent container
 
 ### Defaults
@@ -808,3 +822,27 @@ Physical Keyboard records and Manual Physical Keyboard Designations share one ex
 Input Source selection reads the saved keyboard name before requesting the change, including Retry Now. If that read fails, no selection request or verified assignment is published. The success and failure logs reuse the name already read.
 
 If the saved store cannot open or be read, Keyameleon stays running and shows an unavailable notice with Retry in guided setup, Settings, and the menu panel. The last successfully read keyboard list, assignments, and warnings remain available for display. Permission, pause, and lifecycle status continue to update, including stopping discovery while asleep or locked. Activity-Triggered Switching does not select an Input Source using missing or fabricated saved data. Retry reopens the same store or retries the failed change. Keyameleon never deletes, recreates, or substitutes an in-memory store for unreadable user data.
+
+## 2026-09-30 — Lifecycle delivery and Retry Now protected-state checks
+
+Lifecycle notifications run on the main queue and update switching state before
+notification delivery returns. The observer does not queue a second task that
+can deliver an old event to a restarted subscription. Stopping the observer
+removes its registrations and callback.
+
+Retry Now refreshes permission and protected-state evidence before checking
+whether another Input Source request is allowed. If Secure Input becomes enabled
+or protected data becomes unavailable after a failed selection, Retry Now keeps
+the current Input Source and changes Switching Status to Temporarily Unavailable.
+
+Discovery and Activation Activity observation each belong to one subscription.
+Stopping invalidates that subscription before stopping its adapter. A delayed
+callback from an earlier subscription cannot add or remove a Physical Keyboard,
+mark it active, or select an Input Source after observation restarts. Pausing
+replaces only the Activation Activity subscription; discovery remains available
+for Physical Keyboard management.
+
+Excluding a Physical Keyboard cancels its in-progress Manual Physical Keyboard
+Designation, including a failed save waiting for Retry. An unrelated failed
+record edit remains available for Retry. Restoring the excluded Physical
+Keyboard does not revive the canceled designation.

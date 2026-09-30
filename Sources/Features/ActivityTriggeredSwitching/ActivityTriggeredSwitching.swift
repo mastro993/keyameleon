@@ -255,6 +255,7 @@ final class ActivityTriggeredSwitching {
     }
 
     func retryNow() {
+        checkAgain()
         guard persistenceError == nil,
               outcome.hasAction(.retryNow),
               let wanted = wantedKeyboardAssignment,

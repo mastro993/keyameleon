@@ -289,6 +289,56 @@ private func switchingReadFailurePreservesAssignment() throws {
     #expect(selector.current == "com.example.us")
 }
 
+@Test("Excluding a Physical Keyboard cancels its failed designation save")
+@MainActor
+private func exclusionCancelsFailedDesignationRetry() throws {
+    let container = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(inMemory: true)
+    var fails = false
+    let session = SwiftDataPersistenceSession(modelContext: ModelContext(container), save: {
+        if fails { throw PersistenceInjectedFailure.unavailable }
+        try $0.save()
+    })
+    let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
+    let designations = SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = makePersistenceFailureModel(records: records, session: session, discoverer: discoverer)
+    startAndCheck(model)
+    let facts = [UInt32(100), 200].map { productID in
+        PhysicalKeyboardHardwareFacts(
+            serviceID: UInt64(productID),
+            identity: PhysicalKeyboardIdentity(
+                rawValue: "macos.keyboard.ambiguous", isBuiltIn: false, serialNumber: "same-serial"
+            ),
+            name: "Ambiguous Board", transport: .usb, isBuiltIn: false,
+            vendorID: 500, productID: productID, modelNumber: "Model", serialNumber: "same-serial"
+        )
+    }
+    for fact in facts { discoverer.emit(.connected(fact)) }
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.startManualDesignation(for: keyboard.id)
+    for fact in facts { discoverer.emit(.disconnected(serviceID: fact.serviceID)) }
+    for fact in facts { discoverer.emit(.connected(fact)) }
+    try #require(model.manualDesignationPhase == .awaitingNameConfirmation(
+        keyboard.id, productName: keyboard.productName
+    ))
+    fails = true
+    model.confirmManualDesignationName("Desk")
+    try #require(model.persistenceError != nil)
+    #expect(try designations.designation(forIdentityKey: keyboard.id.rawValue) == nil)
+
+    model.excludePhysicalKeyboard(keyboard.id)
+    #expect(model.manualDesignationPhase == .idle)
+    #expect(model.persistenceError == nil)
+    fails = false
+    model.retryPersistenceOperation()
+
+    #expect(try designations.designation(forIdentityKey: keyboard.id.rawValue) == nil)
+    #expect(try records.record(forIdentityKey: keyboard.id.rawValue) == nil)
+    let exclusion = try #require(model.excludedPhysicalKeyboards.first)
+    model.restorePhysicalKeyboard(exclusionKey: exclusion.key)
+    #expect(model.physicalKeyboards.first?.assignmentState == .unsupported(.ambiguousIdentity))
+}
+
 @Test("Canceling designation preserves an unrelated failed rename for Retry")
 @MainActor
 private func designationCancellationKeepsUnrelatedRetry() throws {

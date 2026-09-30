@@ -21,8 +21,8 @@ func everyLevelWritesOneLineWithItsCategoryAndMessage() throws {
     #expect(lines[2].hasSuffix("[warning] [switching] Could not select Input Source"))
     #expect(lines[3].hasSuffix("[error] [setup] Records could not be opened"))
 
-    let year = String(currentTimestamp.prefix(4))
-    #expect(lines[0].hasPrefix(year))
+    let timestamp = try #require(lines[0].split(separator: " ").first)
+    _ = try Date.ISO8601FormatStyle(includingFractionalSeconds: true).parse(String(timestamp))
 }
 
 @Test("Log file rotates at the size limit and keeps the newest rotated files")
@@ -46,21 +46,21 @@ func logFileRotatesAtTheSizeLimitAndKeepsTheNewestRotatedFiles() throws {
     #expect(try logLines(in: directory, fileName: "keyameleon.2.log").last?.hasSuffix("Line 8") == true)
 }
 
-@Test("A message with a line break stays one line")
-func messageWithLineBreakStaysOneLine() throws {
+@Test("A message with a line break stays one line", arguments: ["\n", "\r\n", "\r", "\u{85}", "\u{2028}", "\u{2029}"])
+func messageWithLineBreakStaysOneLine(separator: String) throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
     let writer = KeyameleonLogWriter.file(directory: directory)
 
-    writer.append(.debug, category: .switching, message: "Connected (Travel\r\nKeyboard)")
+    writer.append(.debug, category: .switching, message: "Connected (Travel\(separator)Keyboard)")
 
     let lines = try logLines(in: directory)
     #expect(lines.count == 1)
     #expect(lines[0].hasSuffix("[debug] [switching] Connected (Travel Keyboard)"))
 }
 
-@Test("An oversized record stays inside the file size limit")
-func oversizedRecordStaysInsideTheFileSizeLimit() throws {
+@Test("An oversized record stays inside the file size limit", arguments: ["K", "é", "👩🏽‍💻", "e\u{301}"])
+func oversizedRecordStaysInsideTheFileSizeLimit(character: String) throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
     let writer = KeyameleonLogWriter.file(
@@ -69,7 +69,7 @@ func oversizedRecordStaysInsideTheFileSizeLimit() throws {
         keptRotatedFileCount: 2
     )
 
-    let pastedName = String(repeating: "K", count: 5_000)
+    let pastedName = String(repeating: character, count: 5_000)
     for _ in 1...4 {
         writer.append(.debug, category: .switching, message: "Connected (\(pastedName))")
     }
@@ -83,7 +83,7 @@ func oversizedRecordStaysInsideTheFileSizeLimit() throws {
 
     let lines = try logLines(in: directory)
     #expect(lines.count == 1)
-    #expect(lines[0].contains("[debug] [switching] Connected (KKKK"))
+    #expect(lines[0].contains("[debug] [switching] Connected (\(character)"))
     #expect(lines[0].hasSuffix("…"))
 }
 
@@ -193,6 +193,23 @@ func processWritesNothingUntilAWriterIsInstalled() {
     #expect(captured.contains("[error] [app] Dropped after stop") == false)
 }
 
+@Test("A failed log destination recovers on the next append")
+func logDestinationRecoversAfterFileObstruction() throws {
+    let directory = temporaryLogDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try Data("obstruction".utf8).write(to: directory)
+    let writer = KeyameleonLogWriter.file(directory: directory)
+
+    writer.append(.error, category: .app, message: "Dropped")
+    #expect(try Data(contentsOf: directory) == Data("obstruction".utf8))
+
+    try FileManager.default.removeItem(at: directory)
+    writer.append(.debug, category: .app, message: "Recovered")
+    let lines = try logLines(in: directory)
+    #expect(lines.count == 1)
+    #expect(lines.first?.hasSuffix("[debug] [app] Recovered") == true)
+}
+
 private func temporaryLogDirectory() -> URL {
     FileManager.default.temporaryDirectory.appending(
         path: "KeyameleonLogTests-\(UUID().uuidString)",
@@ -203,8 +220,4 @@ private func temporaryLogDirectory() -> URL {
 private func logLines(in directory: URL, fileName: String = "keyameleon.log") throws -> [String] {
     let contents = try String(contentsOf: directory.appending(path: fileName), encoding: .utf8)
     return contents.split(separator: "\n").map(String.init)
-}
-
-private var currentTimestamp: String {
-    Date().formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .current))
 }

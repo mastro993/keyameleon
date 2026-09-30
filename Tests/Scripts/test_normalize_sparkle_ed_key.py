@@ -42,6 +42,12 @@ class NormalizeSparkleEdKeyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             normalize(short)
 
+    def test_accepts_sparkle_legacy_export_and_rejects_bare_expanded_private_key(self) -> None:
+        legacy = base64.b64encode(bytes(96)).decode("ascii")
+        self.assertEqual(normalize(legacy), legacy)
+        with self.assertRaises(ValueError):
+            normalize(base64.b64encode(bytes(64)).decode("ascii"))
+
     def test_writes_dest_and_exits_on_bad_input(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "key"

@@ -692,7 +692,7 @@ final class KeyameleonSetupModel {
             let .awaitingReturn(id),
             let .awaitingNameConfirmation(id, _):
             if id == physicalKeyboardID {
-                manualDesignationPhase = .idle
+                cancelManualDesignation()
             }
         }
     }

@@ -5,29 +5,42 @@ import Testing
 
 @Test("Permission revocation stops observation and later Input Source requests")
 @MainActor
-func permissionRevocationStopsObservationAndLaterInputSourceRequests() {
+func permissionRevocationStopsObservationAndLaterInputSourceRequests() throws {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .granted)
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
     let model = KeyameleonSetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
+            EligibleInputSource(identifier: "com.example.us", name: "U.S.")
+        ]),
         inputSourceSelector: selector,
         physicalKeyboardEventObserver: eventObserver
     )
 
     startAndCheck(model)
-    #expect(eventObserver.startCount == 1)
+    defer { model.activityTriggeredSwitching.stop() }
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 954)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.us")
+    let lateEvent = try #require(eventObserver.onEvent)
+    eventObserver.emit(PhysicalKeyboardEvent(serviceID: 954, kind: .press))
+    try #require(selector.requestedIdentifiers == ["com.example.us"])
+    selector.current = "com.example.other"
 
     permissionProvider.state = .denied
     startAndCheck(model)
+    lateEvent(PhysicalKeyboardEvent(serviceID: 954, kind: .press))
 
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(eventObserver.stopCount == 1)
-    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
-    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
-    #expect(selector.selectCount == 0)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching == false)
+    #expect(selector.requestedIdentifiers == ["com.example.us"])
+    #expect(selector.current == "com.example.other")
 }
 
 @Test("Sleep and lock stop observation; wake and unlock resume automatically")
@@ -194,7 +207,7 @@ func protectedLifecycleRecoveryKeepsPausedStatusUntilUserResumes() {
 
 @Test("System lifecycle observer forwards public lifecycle notifications and stops cleanly")
 @MainActor
-func systemLifecycleObserverForwardsPublicLifecycleNotificationsAndStopsCleanly() async {
+func systemLifecycleObserverForwardsPublicLifecycleNotificationsAndStopsCleanly() {
     let workspaceCenter = NotificationCenter()
     let applicationCenter = NotificationCenter()
     let observer = SystemKeyameleonLifecycleObserver(
@@ -212,14 +225,21 @@ func systemLifecycleObserverForwardsPublicLifecycleNotificationsAndStopsCleanly(
         name: Notification.Name.NSApplicationProtectedDataWillBecomeUnavailable,
         object: nil
     )
-    await Task.yield()
 
     #expect(events == [.willSleep, .sessionDidBecomeActive, .protectedDataWillBecomeUnavailable])
 
     observer.stop()
     workspaceCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
-    await Task.yield()
     #expect(events.count == 3)
+
+    var restartedEvents: [KeyameleonLifecycleEvent] = []
+    observer.start { event in
+        restartedEvents.append(event)
+    }
+    defer { observer.stop() }
+    workspaceCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+    #expect(events == [.willSleep, .sessionDidBecomeActive, .protectedDataWillBecomeUnavailable])
+    #expect(restartedEvents == [.didWake])
 }
 
 @MainActor
@@ -233,4 +253,48 @@ final class ProtectedStateTestProvider: ProtectedStateProviding {
     func currentProtectedState() -> ProtectedStateSnapshot {
         state
     }
+}
+
+@Test(
+    "Retry Now rechecks protected state before requesting a wanted Keyboard Assignment",
+    arguments: [SwitchingUnavailableReason.secureInput, .protectedDataUnavailable]
+)
+@MainActor
+func retryNowRechecksProtectedState(reason: SwitchingUnavailableReason) throws {
+    let protectedStateProvider = ProtectedStateTestProvider(state: .clear)
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.other", verifySuccess: false)
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        protectedStateProvider: protectedStateProvider,
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
+            EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+            EligibleInputSource(identifier: "com.example.other", name: "Other")
+        ]),
+        inputSourceSelector: selector
+    )
+    startAndCheck(model)
+    defer { model.activityTriggeredSwitching.stop() }
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 903)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.us")
+    model.activityTriggeredSwitching.handleActivationActivity(
+        PhysicalKeyboardActivationActivity(physicalKeyboardID: keyboard.id)
+    )
+    try #require(model.activityTriggeredSwitching.outcome.hasAction(.retryNow))
+    try #require(selector.requestedIdentifiers == ["com.example.us"])
+
+    protectedStateProvider.state = ProtectedStateSnapshot(
+        isSecureInputEnabled: reason == .secureInput,
+        isProtectedDataAvailable: reason != .protectedDataUnavailable
+    )
+    model.activityTriggeredSwitching.retryNow()
+
+    #expect(selector.requestedIdentifiers == ["com.example.us"])
+    #expect(selector.current == "com.example.other")
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .temporarilyUnavailable)
+    #expect(model.activityTriggeredSwitching.outcome.temporarilyUnavailableReasons == [reason])
 }

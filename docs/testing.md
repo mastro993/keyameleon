@@ -82,6 +82,9 @@ require the conditional `Build and test` job: skipped jobs can satisfy a require
 check even when the aggregate gate fails. Repository administrators retain the
 emergency override.
 
+The safety audit fails if a source scan cannot complete, including missing or
+unreadable inputs. A scan error must never count as a clean scan.
+
 Keep these rules as hard failures:
 
 - Keyameleon remains monitor-only and never injects or changes Physical Keyboard Events.

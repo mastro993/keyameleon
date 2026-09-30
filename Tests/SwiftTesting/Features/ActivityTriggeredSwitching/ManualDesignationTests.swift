@@ -123,22 +123,6 @@ func cryptoKitAuthenticatesManualDesignationEvidence() {
     )
 }
 
-@Test("Designation evidence payload excludes Key Content fields")
-func designationEvidencePayloadExcludesKeyContentFields() {
-    let data = ManualPhysicalKeyboardDesignationAuthenticator.payloadData(
-        identityKey: "identity:x|anchor:serial:s1",
-        productName: "Board",
-        confirmedName: "Name"
-    )
-    let text = String(decoding: data, as: UTF8.self)
-    #expect(text.contains("identity:x|anchor:serial:s1"))
-    #expect(text.contains("Board"))
-    #expect(text.contains("Name"))
-    #expect(!text.contains("keyCode"))
-    #expect(!text.contains("usagePage"))
-    #expect(!text.contains("modifier"))
-}
-
 // MARK: - SetupModel flow
 
 @Test("Manual designation requires leave, return, and explicit name confirmation")

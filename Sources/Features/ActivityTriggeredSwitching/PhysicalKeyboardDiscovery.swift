@@ -202,8 +202,8 @@ final class PhysicalKeyboardDiscovery {
     private let discoverer: any PhysicalKeyboardDiscovering
     private let eventObserver: any PhysicalKeyboardEventObserving
     private var catalog = PhysicalKeyboardCatalog()
-    private var discoveryStarted = false
-    private var activityObservationStarted = false
+    private var discoverySessionID: UUID?
+    private var activityObservationSessionID: UUID?
     private var observers: [UUID: @MainActor ([PhysicalKeyboard]) -> Void] = [:]
     private var recordChangeObservers: [
         UUID: @MainActor (PhysicalKeyboardDiscoveryRecordChange) -> Void
@@ -274,25 +274,29 @@ final class PhysicalKeyboardDiscovery {
     }
 
     func start() {
-        guard !discoveryStarted else {
+        guard discoverySessionID == nil else {
             return
         }
 
-        discoveryStarted = true
+        let sessionID = UUID()
+        discoverySessionID = sessionID
         discoverer.start { [weak self] change in
-            self?.apply(change)
+            guard let self, self.discoverySessionID == sessionID else {
+                return
+            }
+            self.apply(change)
         }
         publish()
     }
 
     func stop() {
         stopActivationActivityObservation()
-        guard discoveryStarted else {
+        guard discoverySessionID != nil else {
             return
         }
 
+        discoverySessionID = nil
         discoverer.stop()
-        discoveryStarted = false
         catalog.removeAllServices()
         publish()
     }
@@ -301,25 +305,28 @@ final class PhysicalKeyboardDiscovery {
         onActivationActivity: @escaping @MainActor (PhysicalKeyboardActivationActivity) -> Void
     ) {
         self.onActivationActivity = onActivationActivity
-        guard !activityObservationStarted else {
+        guard activityObservationSessionID == nil else {
             return
         }
 
-        activityObservationStarted = true
+        let sessionID = UUID()
+        activityObservationSessionID = sessionID
         eventObserver.start { [weak self] event in
-            self?.apply(event)
+            guard let self, self.activityObservationSessionID == sessionID else {
+                return
+            }
+            self.apply(event)
         }
     }
 
     func stopActivationActivityObservation() {
-        guard activityObservationStarted else {
-            onActivationActivity = nil
+        onActivationActivity = nil
+        guard activityObservationSessionID != nil else {
             return
         }
 
+        activityObservationSessionID = nil
         eventObserver.stop()
-        activityObservationStarted = false
-        onActivationActivity = nil
     }
 
     func markActive(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
@@ -347,7 +354,7 @@ final class PhysicalKeyboardDiscovery {
     }
 
     private func apply(_ change: PhysicalKeyboardDiscoveryChange) {
-        guard discoveryStarted else {
+        guard discoverySessionID != nil else {
             return
         }
 

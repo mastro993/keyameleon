@@ -100,32 +100,49 @@ enum ManualPhysicalKeyboardDesignationAuthenticator {
             ),
             using: integrityKey
         )
-        return Data(mac)
+        return Data([2]) + Data(mac)
     }
 
     static func isAuthentic(
         _ designation: SavedManualPhysicalKeyboardDesignation,
         integrityKey: SymmetricKey
     ) -> Bool {
-        HMAC<SHA256>.isValidAuthenticationCode(
+        if designation.authenticationTag.count == 33, designation.authenticationTag.first == 2 {
+            return HMAC<SHA256>.isValidAuthenticationCode(
+                designation.authenticationTag.dropFirst(),
+                authenticating: payloadData(
+                    identityKey: designation.identityKey,
+                    productName: designation.productName,
+                    confirmedName: designation.confirmedName
+                ),
+                using: integrityKey
+            )
+        }
+
+        let fields = [designation.identityKey, designation.productName, designation.confirmedName]
+        guard designation.authenticationTag.count == 32, fields.allSatisfy({ !$0.contains("\u{1e}") }) else {
+            return false
+        }
+        return HMAC<SHA256>.isValidAuthenticationCode(
             designation.authenticationTag,
-            authenticating: payloadData(
-                identityKey: designation.identityKey,
-                productName: designation.productName,
-                confirmedName: designation.confirmedName
-            ),
+            authenticating: Data(fields.joined(separator: "\u{1e}").utf8),
             using: integrityKey
         )
     }
 
     /// Payload holds only designation fields. Never includes Key Content.
-    static func payloadData(
+    private static func payloadData(
         identityKey: String,
         productName: String,
         confirmedName: String
     ) -> Data {
         let normalizedName = confirmedName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let payload = "\(identityKey)\u{1e}\(productName)\u{1e}\(normalizedName)"
-        return Data(payload.utf8)
+        var payload = Data("Keyameleon.ManualDesignation.v2:".utf8)
+        for field in [identityKey, productName, normalizedName] {
+            let bytes = Data(field.utf8)
+            payload.append(contentsOf: "\(bytes.count):".utf8)
+            payload.append(bytes)
+        }
+        return payload
     }
 }

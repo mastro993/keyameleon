@@ -348,7 +348,7 @@ final class SetupModelTestInputSourceSelector: InputSourceSelecting {
 
 @MainActor
 final class SetupModelTestPhysicalKeyboardEventObserver: PhysicalKeyboardEventObserving {
-    private var onEvent: (@MainActor (PhysicalKeyboardEvent) -> Void)?
+    private(set) var onEvent: (@MainActor (PhysicalKeyboardEvent) -> Void)?
     private(set) var startCount = 0
     private(set) var stopCount = 0
 
@@ -365,4 +365,43 @@ final class SetupModelTestPhysicalKeyboardEventObserver: PhysicalKeyboardEventOb
     func emit(_ event: PhysicalKeyboardEvent) {
         onEvent?(event)
     }
+}
+
+@Test("Resumed observation rejects Activation Activity from its previous subscription")
+@MainActor
+func resumedObservationRejectsPreviousSubscriptionActivity() throws {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
+            EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+            EligibleInputSource(identifier: "com.example.other", name: "Other")
+        ]),
+        inputSourceSelector: selector,
+        physicalKeyboardEventObserver: eventObserver
+    )
+    startAndCheck(model)
+    defer { model.activityTriggeredSwitching.stop() }
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 952)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.us")
+    let previousCallback = try #require(eventObserver.onEvent)
+    model.activityTriggeredSwitching.pause()
+    model.activityTriggeredSwitching.resume()
+    let event = PhysicalKeyboardEvent(serviceID: 952, kind: .press)
+
+    previousCallback(event)
+    #expect(selector.requestedIdentifiers.isEmpty)
+    #expect(model.activePhysicalKeyboardID == nil)
+    #expect(selector.current == "com.example.other")
+
+    eventObserver.emit(event)
+    #expect(selector.requestedIdentifiers == ["com.example.us"])
+    #expect(model.activePhysicalKeyboardID == keyboard.id)
+    #expect(selector.current == "com.example.us")
 }

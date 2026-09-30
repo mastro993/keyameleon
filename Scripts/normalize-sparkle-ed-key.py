@@ -3,7 +3,7 @@
 
 Accepts generate_keys -x / -p output plus accidental quotes, PEM wrappers,
 and whitespace. Rejects anything that is not a 32-byte seed/public key
-(or 64-byte legacy private) after strict base64 decode.
+(or 96-byte legacy export) after strict base64 decode.
 """
 
 from __future__ import annotations
@@ -35,10 +35,10 @@ def normalize(raw: str) -> str:
         data = base64.b64decode(text, validate=True)
     except Exception as exc:
         raise ValueError("is not valid base64") from exc
-    if len(data) not in (32, 64):
+    if len(data) not in (32, 96):
         raise ValueError(
             f"decoded to {len(data)} bytes; Sparkle EdDSA seed/public is "
-            "32 bytes (or 64-byte legacy private)."
+            "32 bytes (or 96-byte legacy export)."
         )
     return text
 

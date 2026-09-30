@@ -500,7 +500,7 @@ private func makeBuiltInHardwareFacts(
 
 @MainActor
 private final class TestPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
-    private var onChange: (@MainActor (PhysicalKeyboardDiscoveryChange) -> Void)?
+    private(set) var onChange: (@MainActor (PhysicalKeyboardDiscoveryChange) -> Void)?
     private(set) var startCount = 0
     private(set) var stopCount = 0
 
@@ -583,4 +583,31 @@ private final class DiscoveryTestSetupDecisionStore: SetupDecisionStoring {
 @MainActor
 private final class DiscoveryTestSystemSettingsOpener: SystemSettingsOpening {
     func openSystemSettings() {}
+}
+
+@Test("Restarted discovery rejects callbacks from its previous subscription")
+@MainActor
+func restartedDiscoveryRejectsPreviousSubscriptionCallbacks() throws {
+    let discoverer = TestPhysicalKeyboardDiscoverer()
+    let discovery = PhysicalKeyboardDiscovery(
+        discoverer: discoverer,
+        eventObserver: NoOpPhysicalKeyboardEventObserver()
+    )
+    discovery.start()
+    let previousCallback = try #require(discoverer.onChange)
+    discovery.stop()
+    discovery.start()
+    defer { discovery.stop() }
+
+    let facts = makeSetupModelHardwareFacts(serviceID: 951)
+    previousCallback(.connected(facts))
+    #expect(discovery.physicalKeyboards.isEmpty)
+
+    discoverer.emit(.connected(facts))
+    let keyboard = try #require(discovery.physicalKeyboards.first)
+    previousCallback(.disconnected(serviceID: facts.serviceID))
+    #expect(discovery.physicalKeyboards.map(\.id) == [keyboard.id])
+
+    discoverer.emit(.disconnected(serviceID: facts.serviceID))
+    #expect(discovery.physicalKeyboards.isEmpty)
 }

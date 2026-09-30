@@ -12,6 +12,8 @@ audit_sources() {
     if grep -REn "$forbidden_pattern" Sources Tests project.yml; then
         print -u2 "forbidden source surface found"
         return 1
+    else
+        [[ $? -eq 1 ]] || return 1
     fi
 
     local log_pipeline_paths=(
@@ -39,16 +41,22 @@ audit_sources() {
     if grep -REn "PhysicalKeyboardEvent|${key_content_path}" "${log_pipeline_paths[@]}"; then
         print -u2 "prohibited Key Content path found"
         return 1
+    else
+        [[ $? -eq 1 ]] || return 1
     fi
 
     if grep -REn "$key_content_path" "${log_call_paths[@]}"; then
         print -u2 "prohibited Key Content path found at a log call site"
         return 1
+    else
+        [[ $? -eq 1 ]] || return 1
     fi
 
     if grep -REn 'CFArrayGetValueAtIndex' Sources Tests; then
         print -u2 "raw CFArray element access found; bridge the array so its elements stay owned"
         return 1
+    else
+        [[ $? -eq 1 ]] || return 1
     fi
 }
 

@@ -28,6 +28,7 @@ final class PhysicalKeyboardPresentationResolver {
         }
 
         guard
+            ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: keyboard),
             let designation = try designationStore.designation(
                 forIdentityKey: keyboard.id.rawValue
             ),

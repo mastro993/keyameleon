@@ -131,7 +131,7 @@ final class SystemKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
                     return
                 }
 
-                Task { @MainActor in
+                MainActor.assumeIsolated {
                     self.onEvent?(event)
                 }
             }

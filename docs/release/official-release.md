@@ -445,6 +445,10 @@ Artifacts land in `dist/`:
 manual GitHub Release are **not** an Official Release. Only `workflow_dispatch`
 on `main` publishes one.
 
+The artifact producer removes its temporary signing keychain after any failure
+following keychain creation. It restores the original source `Info.plist` even
+when an intermediate version or public-key edit fails.
+
 ## Evidence verification
 
 ```sh
@@ -488,5 +492,10 @@ adds only the evidence record when the current feed already has matching bytes.
 ## Sparkle public key in debug builds
 
 Debug and CI builds may omit `SUPublicEDKey`. Official Release builds inject the
-public key from `SPARKLE_PUBLIC_ED_KEY`. User-facing update checks require an
+public key from `SPARKLE_PUBLIC_ED_KEY`. Before creating a signing keychain or
+editing the source plist, the producer checks that this public key matches the
+private seed using macOS CryptoKit. Legacy 96-byte Sparkle exports must contain
+the same public key in their final 32 bytes; `sign_update` subsequently verifies
+the artifact signature. Bare 64-byte expanded private keys are not Sparkle
+exports and are rejected. User-facing update checks require an
 Official Release binary plus a published `appcast.xml`.
