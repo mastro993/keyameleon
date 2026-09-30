@@ -3,26 +3,26 @@ import Foundation
 
 @MainActor
 protocol PhysicalKeyboardRecordStoring: AnyObject {
-    func record(forIdentityKey identityKey: String) -> SavedPhysicalKeyboardRecord?
-    func allRecords() -> [SavedPhysicalKeyboardRecord]
+    func record(forIdentityKey identityKey: String) throws -> SavedPhysicalKeyboardRecord?
+    func allRecords() throws -> [SavedPhysicalKeyboardRecord]
     func startObservingChanges(onChange: @escaping @MainActor () -> Void)
     func stopObservingChanges()
     func saveName(
         identityKey: String,
         productName: String,
         customName: String?
-    )
+    ) throws
     func saveAssignment(
         identityKey: String,
         productName: String,
         assignment: KeyboardAssignment?
-    )
-    func deleteRecord(identityKey: String)
+    ) throws
+    func deleteRecord(identityKey: String) throws
     func transferRecord(
         fromIdentityKey: String,
         toIdentityKey: String,
         productName: String
-    )
+    ) throws
 }
 
 extension PhysicalKeyboardRecordStoring {
@@ -35,19 +35,19 @@ extension PhysicalKeyboardRecordStoring {
     func migrateSingleOldBuiltInRecord(
         toIdentityKey identityKey: String,
         productName: String
-    ) -> SavedPhysicalKeyboardRecord? {
-        guard record(forIdentityKey: identityKey) == nil else {
+    ) throws -> SavedPhysicalKeyboardRecord? {
+        guard try record(forIdentityKey: identityKey) == nil else {
             return nil
         }
 
-        let oldRecords = allRecords().filter {
+        let oldRecords = try allRecords().filter {
             $0.isBuiltInIdentity && $0.identityKey != identityKey
         }
         guard oldRecords.count == 1, let oldRecord = oldRecords.first else {
             return nil
         }
 
-        transferRecord(
+        try transferRecord(
             fromIdentityKey: oldRecord.identityKey,
             toIdentityKey: identityKey,
             productName: productName
@@ -113,11 +113,15 @@ enum PhysicalKeyboardMigrationPlan: SchemaMigrationPlan {
 
 @MainActor
 final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
-    private let modelContext: ModelContext
+    let session: SwiftDataPersistenceSession
     private var onChange: (@MainActor () -> Void)?
 
     init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+        session = SwiftDataPersistenceSession(modelContext: modelContext)
+    }
+
+    init(session: SwiftDataPersistenceSession) {
+        self.session = session
     }
 
     nonisolated static func makeConfiguration(
@@ -150,8 +154,8 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         )
     }
 
-    func record(forIdentityKey identityKey: String) -> SavedPhysicalKeyboardRecord? {
-        fetchModel(identityKey: identityKey)?.savedRecord
+    func record(forIdentityKey identityKey: String) throws -> SavedPhysicalKeyboardRecord? {
+        try fetchModel(identityKey: identityKey)?.savedRecord
     }
 
     func startObservingChanges(onChange: @escaping @MainActor () -> Void) {
@@ -162,68 +166,71 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         onChange = nil
     }
 
-    func allRecords() -> [SavedPhysicalKeyboardRecord] {
-        do {
-            return try modelContext
-                .fetch(FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>())
-                .map(\.savedRecord)
-        } catch {
-            fatalError("SwiftData fetch failed for Physical Keyboard records: \(error)")
-        }
+    func allRecords() throws -> [SavedPhysicalKeyboardRecord] {
+        try session.fetch(FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>())
+            .map(\.savedRecord)
     }
 
     func saveName(
         identityKey: String,
         productName: String,
         customName: String?
-    ) {
-        let model = upsertModel(identityKey: identityKey, productName: productName)
-        model.customName = customName?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .nilIfEmpty
-        save()
+    ) throws {
+        try session.transaction {
+            let model = try upsertModel(identityKey: identityKey, productName: productName)
+            model.customName = customName?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .nilIfEmpty
+            session.didChange { [weak self] in self?.onChange?() }
+        }
     }
 
     func saveAssignment(
         identityKey: String,
         productName: String,
         assignment: KeyboardAssignment?
-    ) {
-        let model = upsertModel(identityKey: identityKey, productName: productName)
-        model.assignedInputSourceIdentifier = assignment?.inputSourceIdentifier
-        save()
+    ) throws {
+        try session.transaction {
+            let model = try upsertModel(identityKey: identityKey, productName: productName)
+            model.assignedInputSourceIdentifier = assignment?.inputSourceIdentifier
+            session.didChange { [weak self] in self?.onChange?() }
+        }
     }
 
-    func deleteRecord(identityKey: String) {
-        guard let model = fetchModel(identityKey: identityKey) else {
-            return
-        }
+    func deleteRecord(identityKey: String) throws {
+        try session.transaction {
+            guard let model = try fetchModel(identityKey: identityKey) else {
+                return
+            }
 
-        modelContext.delete(model)
-        save()
+            try session.modelContext().delete(model)
+            session.didChange { [weak self] in self?.onChange?() }
+        }
     }
 
     func transferRecord(
         fromIdentityKey: String,
         toIdentityKey: String,
         productName: String
-    ) {
-        guard let source = fetchModel(identityKey: fromIdentityKey) else {
-            return
-        }
+    ) throws {
+        try session.transaction {
+            guard let source = try fetchModel(identityKey: fromIdentityKey) else {
+                return
+            }
 
-        let destination = upsertModel(identityKey: toIdentityKey, productName: productName)
-        destination.customName = source.customName
-        destination.assignedInputSourceIdentifier = source.assignedInputSourceIdentifier
-        modelContext.delete(source)
-        save()
+            let destination = try upsertModel(identityKey: toIdentityKey, productName: productName)
+            destination.customName = source.customName
+            destination.assignedInputSourceIdentifier = source.assignedInputSourceIdentifier
+            try session.modelContext().delete(source)
+            session.didChange { [weak self] in self?.onChange?() }
+        }
     }
 
     private func upsertModel(
         identityKey: String,
         productName: String
-    ) -> PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel {
-        if let existing = fetchModel(identityKey: identityKey) {
+    ) throws -> PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel {
+        if let existing = try fetchModel(identityKey: identityKey) {
             existing.productName = productName
             return existing
         }
@@ -232,36 +239,19 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
             identityKey: identityKey,
             productName: productName
         )
-        modelContext.insert(model)
+        try session.modelContext().insert(model)
         return model
     }
 
     private func fetchModel(
         identityKey: String
-    ) -> PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel? {
+    ) throws -> PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel? {
         var descriptor = FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>(
             predicate: #Predicate { $0.identityKey == identityKey }
         )
         descriptor.fetchLimit = 1
 
-        do {
-            return try modelContext.fetch(descriptor).first
-        } catch {
-            fatalError("SwiftData fetch failed for Physical Keyboard records: \(error)")
-        }
-    }
-
-    private func save() {
-        guard modelContext.hasChanges else {
-            return
-        }
-
-        do {
-            try modelContext.save()
-            onChange?()
-        } catch {
-            fatalError("SwiftData save failed for Physical Keyboard records: \(error)")
-        }
+        return try session.fetch(descriptor).first
     }
 }
 

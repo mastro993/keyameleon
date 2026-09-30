@@ -5,6 +5,7 @@ struct ManualPhysicalKeyboardDesignationNameSheet: View {
     @Binding var nameDraft: String
     let onConfirm: () -> Void
     let onCancel: () -> Void
+    var isRetryRequired = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -28,6 +29,7 @@ struct ManualPhysicalKeyboardDesignationNameSheet: View {
                 text: $nameDraft
             )
             .textFieldStyle(.roundedBorder)
+            .disabled(isRetryRequired)
 
             HStack {
                 Spacer()
@@ -37,7 +39,9 @@ struct ManualPhysicalKeyboardDesignationNameSheet: View {
                     onConfirm()
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(
+                    isRetryRequired || nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                )
             }
         }
         .padding(20)

@@ -68,22 +68,15 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         }
         KeyameleonLog.debug(.app, "Launching Keyameleon \(KeyameleonAppIdentity.current.versionLabel)")
 
-        let modelContainer: ModelContainer
-        do {
-            modelContainer = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(
+        let persistenceSession = SwiftDataPersistenceSession {
+            try SwiftDataPhysicalKeyboardRecordStore.makeContainer(
                 inMemory: isHostedUnitTest || isPreview
             )
-        } catch {
-            KeyameleonLog.error(.app, "Physical Keyboard records could not be opened")
-            fatalError("SwiftData container failed for Physical Keyboard records: \(error)")
         }
-
-        let modelContext = ModelContext(modelContainer)
-
         let composition = KeyameleonProductionFactory.makeLiveComposition(
             setupStore: UserDefaultsSetupDecisionStore(),
-            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(modelContext: modelContext),
-            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: modelContext),
+            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: persistenceSession),
+            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: persistenceSession),
             exclusionStore: UserDefaultsPhysicalKeyboardExclusionStore(),
             integrityKeyProvider: KeychainInstallationIntegrityKeyProvider()
         )
@@ -95,7 +88,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             updateChecker: SparkleUpdateChecker(),
             startsUpdaterOnLaunch: !isHostedUnitTest,
             startsApplicationSurfaceOnLaunch: !isHostedUnitTest,
-            modelContainer: modelContainer,
+            modelContainer: nil,
             singleInstanceLock: singleInstanceLock
         )
     }

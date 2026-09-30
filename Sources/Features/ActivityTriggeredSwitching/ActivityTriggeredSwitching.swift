@@ -1,51 +1,6 @@
 import Foundation
 import Observation
 
-@MainActor
-final class PhysicalKeyboardPresentationResolver {
-    private let recordStore: any PhysicalKeyboardRecordStoring
-    private let designationStore: any ManualPhysicalKeyboardDesignationStoring
-    private let integrityKeyProvider: any InstallationIntegrityKeyProviding
-
-    init(
-        recordStore: any PhysicalKeyboardRecordStoring,
-        designationStore: any ManualPhysicalKeyboardDesignationStoring,
-        integrityKeyProvider: any InstallationIntegrityKeyProviding
-    ) {
-        self.recordStore = recordStore
-        self.designationStore = designationStore
-        self.integrityKeyProvider = integrityKeyProvider
-    }
-
-    func resolve(_ keyboard: PhysicalKeyboard) -> PhysicalKeyboard {
-        guard keyboard.id.isIdentityBased else {
-            return keyboard
-        }
-
-        let savedRecord = recordStore.record(forIdentityKey: keyboard.id.rawValue)
-
-        if keyboard.isAssignable {
-            return keyboard.applying(savedRecord: savedRecord)
-        }
-
-        guard
-            let designation = designationStore.designation(
-                forIdentityKey: keyboard.id.rawValue
-            ),
-            ManualPhysicalKeyboardDesignationAuthenticator.isAuthentic(
-                designation,
-                integrityKey: integrityKeyProvider.integrityKey()
-            )
-        else {
-            return keyboard
-        }
-
-        return keyboard
-            .elevatingWithManualDesignation(confirmedName: designation.confirmedName)
-            .applying(savedRecord: savedRecord)
-    }
-}
-
 /// Deep Activity-Triggered Switching module.
 ///
 /// External callers learn one outcome and seven product operations. Observation,
@@ -55,6 +10,7 @@ final class PhysicalKeyboardPresentationResolver {
 @Observable
 final class ActivityTriggeredSwitching {
     private(set) var outcome: ActivityTriggeredSwitchingOutcome
+    private(set) var persistenceError: String?
 
     private let permissionProvider: any ListenPermissionProviding
     private let protectedStateProvider: any ProtectedStateProviding
@@ -126,9 +82,24 @@ final class ActivityTriggeredSwitching {
             return
         }
 
-        lastActivePhysicalKeyboard = resolver.resolve(keyboard)
+        do {
+            lastActivePhysicalKeyboard = try resolver.resolve(keyboard)
+        } catch {
+            markPersistenceUnavailable()
+            return
+        }
         physicalKeyboardDiscovery.markActive(physicalKeyboardID)
         rebuildOutcome()
+    }
+    func retryPersistenceRead() {
+        do {
+            try resolver.verifyPersistenceRead()
+            persistenceError = nil
+            handleRecordChange()
+            checkAgain()
+        } catch {
+            markPersistenceUnavailable()
+        }
     }
 
     init(
@@ -240,13 +211,21 @@ final class ActivityTriggeredSwitching {
     }
 
     func checkAgain() {
+        guard persistenceError == nil else {
+            return
+        }
         let previousStatus = outcome.switchingStatus
         reconcileProtectedState()
         let permission = permissionProvider.checkListenPermission()
         lastKnownListenPermission = permission
         inputSources.refresh()
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
-        _ = reevaluateUnavailableKeyboardAssignments()
+        do {
+            _ = try reevaluateUnavailableKeyboardAssignments()
+        } catch {
+            markPersistenceUnavailable()
+            return
+        }
 
         let status = SwitchingStatus.resolve(
             listenPermission: permission,
@@ -278,7 +257,8 @@ final class ActivityTriggeredSwitching {
     }
 
     func retryNow() {
-        guard outcome.hasAction(.retryNow),
+        guard persistenceError == nil,
+              outcome.hasAction(.retryNow),
               let wanted = wantedKeyboardAssignment,
               let assignment = KeyboardAssignment(
                   inputSourceIdentifier: wanted.inputSourceIdentifier
@@ -346,10 +326,15 @@ final class ActivityTriggeredSwitching {
             return
         }
 
+        if let keyboard = physicalKeyboardDiscovery.physicalKeyboards.first(where: { $0.id == newID }) {
+            do {
+                lastActivePhysicalKeyboard = try resolver.resolve(keyboard)
+            } catch {
+                markPersistenceUnavailable()
+                return
+            }
+        }
         physicalKeyboardDiscovery.markActive(newID)
-        lastActivePhysicalKeyboard = physicalKeyboardDiscovery.physicalKeyboards.first {
-            $0.id == newID
-        }.map(resolver.resolve)
         rebuildOutcome()
     }
 
@@ -377,7 +362,7 @@ final class ActivityTriggeredSwitching {
 
     /// Internal seam for deterministic module tests.
     func handleActivationActivity(_ activity: PhysicalKeyboardActivationActivity) {
-        guard isStarted, outcome.switchingStatus == .ready else {
+        guard isStarted, persistenceError == nil, outcome.switchingStatus == .ready else {
             return
         }
 
@@ -394,7 +379,13 @@ final class ActivityTriggeredSwitching {
         }
 
         inputSources.refreshCurrentIdentifier()
-        let physicalKeyboard = resolver.resolve(rawKeyboard)
+        let physicalKeyboard: PhysicalKeyboard
+        do {
+            physicalKeyboard = try resolver.resolve(rawKeyboard)
+        } catch {
+            markPersistenceUnavailable()
+            return
+        }
         let activeChanged = physicalKeyboardDiscovery.activePhysicalKeyboardID != physicalKeyboard.id
         lastActivePhysicalKeyboard = physicalKeyboard
         physicalKeyboardDiscovery.markActive(physicalKeyboard.id)
@@ -450,10 +441,9 @@ final class ActivityTriggeredSwitching {
 
     /// Internal seam for deterministic external Input Source changes.
     func handleExternalInputSourceChange() {
-        guard isStarted, outcome.switchingStatus == .ready else {
+        guard isStarted, persistenceError == nil, outcome.switchingStatus == .ready else {
             return
         }
-
         let currentIdentifier = inputSources.currentInputSourceIdentifier
         let previousObserved = observedCurrentInputSourceIdentifier
         let previousVerified = verifiedKeyboardAssignmentIdentifier
@@ -489,7 +479,7 @@ final class ActivityTriggeredSwitching {
             physicalKeyboardDiscovery.stop()
         }
 
-        if status == .ready {
+        if status == .ready, persistenceError == nil {
             physicalKeyboardDiscovery.startActivationActivityObservation { [weak self] activity in
                 self?.handleActivationActivity(activity)
             }
@@ -501,13 +491,26 @@ final class ActivityTriggeredSwitching {
     }
 
     private func handleDiscoveryChange() {
+        guard persistenceError == nil else {
+            return
+        }
         if let activeID = physicalKeyboardDiscovery.activePhysicalKeyboardID,
            let keyboard = physicalKeyboardDiscovery.physicalKeyboards.first(where: {
                $0.id == activeID
            }) {
-            lastActivePhysicalKeyboard = resolver.resolve(keyboard)
+            do {
+                lastActivePhysicalKeyboard = try resolver.resolve(keyboard)
+            } catch {
+                markPersistenceUnavailable()
+                return
+            }
         }
-        _ = reevaluateUnavailableKeyboardAssignments()
+        do {
+            _ = try reevaluateUnavailableKeyboardAssignments()
+        } catch {
+            markPersistenceUnavailable()
+            return
+        }
         rebuildOutcome()
     }
 
@@ -535,10 +538,14 @@ final class ActivityTriggeredSwitching {
         guard let physicalKeyboardID else {
             return fallback ?? "name unknown"
         }
-        if let savedName = physicalKeyboardRecordStore
-            .record(forIdentityKey: physicalKeyboardID.rawValue)?
-            .name {
-            return savedName
+        do {
+            if let savedName = try physicalKeyboardRecordStore
+                .record(forIdentityKey: physicalKeyboardID.rawValue)?
+                .name {
+                return savedName
+            }
+        } catch {
+            markPersistenceUnavailable()
         }
         if let catalogName = physicalKeyboardDiscovery.physicalKeyboards
             .first(where: { $0.id == physicalKeyboardID })?
@@ -549,24 +556,44 @@ final class ActivityTriggeredSwitching {
     }
 
     private func handleInputSourceModuleChange() {
+        guard persistenceError == nil else {
+            return
+        }
         handleExternalInputSourceChange()
-        _ = reevaluateUnavailableKeyboardAssignments()
+        guard persistenceError == nil else {
+            return
+        }
+        do {
+            _ = try reevaluateUnavailableKeyboardAssignments()
+        } catch {
+            markPersistenceUnavailable()
+            return
+        }
         rebuildOutcome()
     }
 
     private func handleRecordChange() {
-        reconcileWantedAssignmentFromRecords()
-        _ = reevaluateUnavailableKeyboardAssignments()
+        guard persistenceError == nil else {
+            return
+        }
+        do {
+            let records = try physicalKeyboardRecordStore.allRecords()
+            reconcileWantedAssignmentFromRecords(records)
+            _ = reevaluateUnavailableKeyboardAssignments(records: records)
+        } catch {
+            markPersistenceUnavailable()
+            return
+        }
         rebuildOutcome()
     }
 
-    private func reconcileWantedAssignmentFromRecords() {
+    private func reconcileWantedAssignmentFromRecords(_ records: [SavedPhysicalKeyboardRecord]) {
         guard let wanted = wantedKeyboardAssignment else {
             return
         }
 
-        let assignment = physicalKeyboardRecordStore
-            .record(forIdentityKey: wanted.physicalKeyboardID.rawValue)?
+        let assignment = records
+            .first(where: { $0.identityKey == wanted.physicalKeyboardID.rawValue })?
             .keyboardAssignment
         guard let assignment else {
             wantedKeyboardAssignment = nil
@@ -606,6 +633,9 @@ final class ActivityTriggeredSwitching {
         _ inputSourceIdentifier: String,
         generation: UInt64
     ) -> Bool {
+        guard persistenceError == nil else {
+            return false
+        }
         let verified = inputSources.selectAndVerifyInputSource(identifier: inputSourceIdentifier)
         guard generation == wantedKeyboardAssignmentGeneration else {
             return false
@@ -634,6 +664,13 @@ final class ActivityTriggeredSwitching {
                 + "\(physicalKeyboardName(wantedKeyboardAssignment?.physicalKeyboardID))"
         )
         return false
+    }
+    private func markPersistenceUnavailable() {
+        guard persistenceError == nil else { return }
+        KeyameleonLog.error(.switching, "Saved Physical Keyboard data could not be read")
+        persistenceError = "Saved Physical Keyboard data is unavailable. Retry to read it again."
+        physicalKeyboardDiscovery.stopActivationActivityObservation()
+        inputSources.stopObservingChanges()
     }
 
     private func isUnavailable(_ assignment: KeyboardAssignment) -> Bool {
@@ -694,7 +731,14 @@ final class ActivityTriggeredSwitching {
     }
 
     @discardableResult
-    private func reevaluateUnavailableKeyboardAssignments() -> Bool {
+    private func reevaluateUnavailableKeyboardAssignments() throws -> Bool {
+        reevaluateUnavailableKeyboardAssignments(records: try physicalKeyboardRecordStore.allRecords())
+    }
+
+    @discardableResult
+    private func reevaluateUnavailableKeyboardAssignments(
+        records: [SavedPhysicalKeyboardRecord]
+    ) -> Bool {
         var changed = false
         let eligibleIdentifiers = Set(inputSources.eligibleInputSources.map(\.identifier))
         let excludedKeys = Set(exclusionStore.allExclusions().map(\.key))
@@ -707,7 +751,7 @@ final class ActivityTriggeredSwitching {
             }
         )
 
-        for record in physicalKeyboardRecordStore.allRecords() {
+        for record in records {
             guard let assignment = record.keyboardAssignment else {
                 continue
             }
@@ -751,7 +795,17 @@ final class ActivityTriggeredSwitching {
     }
 
     private func rebuildOutcome() {
-        let activeKeyboard = activeKeyboardForOutcome()
+        guard persistenceError == nil else { return }
+        let previousLastActivePhysicalKeyboard = lastActivePhysicalKeyboard
+        do {
+            try rebuildOutcomeFromRecords()
+        } catch {
+            lastActivePhysicalKeyboard = previousLastActivePhysicalKeyboard
+            markPersistenceUnavailable()
+        }
+    }
+    private func rebuildOutcomeFromRecords() throws {
+        let activeKeyboard = try activeKeyboardForOutcome()
         let currentIdentifier = observedCurrentInputSourceIdentifier
             ?? inputSources.currentInputSourceIdentifier
         let currentName = currentIdentifier.flatMap(displayName(forInputSourceIdentifier:))
@@ -780,9 +834,9 @@ final class ActivityTriggeredSwitching {
             )
         }()
 
-        let warnings = activeWarnings.map { warning in
+        let warnings = try activeWarnings.map { warning in
             ActivityTriggeredSwitchingWarning(
-                physicalKeyboardName: warningName(for: warning),
+                physicalKeyboardName: try warningName(for: warning),
                 category: warning.category,
                 recoveryAction: warning.recoveryAction
             )
@@ -812,12 +866,12 @@ final class ActivityTriggeredSwitching {
         outcome = newOutcome
     }
 
-    private func activeKeyboardForOutcome() -> PhysicalKeyboard? {
+    private func activeKeyboardForOutcome() throws -> PhysicalKeyboard? {
         if let activePhysicalKeyboardID = physicalKeyboardDiscovery.activePhysicalKeyboardID,
            let connected = physicalKeyboardDiscovery.physicalKeyboards.first(where: {
                $0.id == activePhysicalKeyboardID
            }) {
-            let resolved = resolver.resolve(connected)
+            let resolved = try resolver.resolve(connected)
             lastActivePhysicalKeyboard = resolved
             return resolved
         }
@@ -846,18 +900,18 @@ final class ActivityTriggeredSwitching {
         }
     }
 
-    private func warningName(for warning: SwitchingWarning) -> String? {
+    private func warningName(for warning: SwitchingWarning) throws -> String? {
         guard case let .unavailableKeyboardAssignment(physicalKeyboardID) = warning.cause else {
-            return activeKeyboardForOutcome()?.name
+            return try activeKeyboardForOutcome()?.name
         }
 
         if let keyboard = physicalKeyboardDiscovery.physicalKeyboards.first(where: {
             $0.id == physicalKeyboardID
         }) {
-            return resolver.resolve(keyboard).name
+            return try resolver.resolve(keyboard).name
         }
 
-        return physicalKeyboardRecordStore.record(
+        return try physicalKeyboardRecordStore.record(
             forIdentityKey: physicalKeyboardID.rawValue
         )?.name
     }

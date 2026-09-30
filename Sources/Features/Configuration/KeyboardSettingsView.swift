@@ -20,10 +20,12 @@ struct KeyameleonKeyboardSettingsView: View {
     var body: some View {
         Group {
             if model.physicalKeyboards.isEmpty, model.excludedPhysicalKeyboards.isEmpty {
-                ContentUnavailableView {
-                    Label("No Physical Keyboards", systemImage: "keyboard")
-                } description: {
-                    Text("Connect a Physical Keyboard to register it with Keyameleon.")
+                if model.persistenceError == nil {
+                    ContentUnavailableView {
+                        Label("No Physical Keyboards", systemImage: "keyboard")
+                    } description: {
+                        Text("Connect a Physical Keyboard to register it with Keyameleon.")
+                    }
                 }
             } else {
                 List {
@@ -82,6 +84,7 @@ struct KeyameleonKeyboardSettingsView: View {
                     }
                 }
                 .listStyle(.inset)
+                .disabled(model.persistenceError != nil || model.activityTriggeredSwitching.persistenceError != nil)
             }
         }
         .accessibilityIdentifier("physical-keyboard-configuration")
@@ -204,13 +207,19 @@ struct KeyameleonKeyboardSettingsView: View {
                 nameDraft: $designationNameDraft,
                 onConfirm: {
                     model.confirmManualDesignationName(designationNameDraft)
-                    designationNameDraft = ""
+                    if model.manualDesignationPhase == .idle {
+                        designationNameDraft = ""
+                    }
                 },
                 onCancel: {
                     model.cancelManualDesignation()
                     designationNameDraft = ""
-                }
+                },
+                isRetryRequired: model.persistenceError != nil
             )
+            .safeAreaInset(edge: .top) {
+                PersistenceFailureNotice(model: model)
+            }
             .onAppear {
                 if case let .awaitingNameConfirmation(_, productName) = model.manualDesignationPhase {
                     designationNameDraft = productName

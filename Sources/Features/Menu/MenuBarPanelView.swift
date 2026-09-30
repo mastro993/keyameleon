@@ -50,6 +50,8 @@ struct KeyameleonMenuBarPanelView: View {
             Divider()
                 .opacity(0.22)
 
+            PersistenceFailureNotice(model: setupModel)
+
             if let notice = content.notice {
                 MenuBarPanelNoticeView(
                     notice: notice,
@@ -58,14 +60,17 @@ struct KeyameleonMenuBarPanelView: View {
                 )
             }
 
-            MenuBarAssignmentSection(
-                list: content.assignmentList,
-                emphasis: chrome.assignmentEmphasis,
-                focusedTarget: $focusedTarget
-            )
-            .padding(.horizontal, 12)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
+            if content.assignmentList.emptyTitle == nil
+                || (setupModel.persistenceError == nil && switching.persistenceError == nil) {
+                MenuBarAssignmentSection(
+                    list: content.assignmentList,
+                    emphasis: chrome.assignmentEmphasis,
+                    focusedTarget: $focusedTarget
+                )
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
+                .padding(.bottom, 10)
+            }
 
             Divider()
                 .opacity(0.22)

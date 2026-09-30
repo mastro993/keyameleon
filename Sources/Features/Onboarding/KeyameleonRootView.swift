@@ -35,6 +35,7 @@ struct KeyameleonRootView: View {
                 KeyameleonOnboardingView(model: model, switching: switching)
             }
         }
+        .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: model) }
         .frame(minWidth: 520, minHeight: 520)
     }
 }

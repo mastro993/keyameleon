@@ -3,10 +3,10 @@ import Foundation
 
 @MainActor
 protocol ManualPhysicalKeyboardDesignationStoring: AnyObject {
-    func designation(forIdentityKey identityKey: String) -> SavedManualPhysicalKeyboardDesignation?
-    func allDesignations() -> [SavedManualPhysicalKeyboardDesignation]
-    func save(_ designation: SavedManualPhysicalKeyboardDesignation)
-    func delete(identityKey: String)
+    func designation(forIdentityKey identityKey: String) throws -> SavedManualPhysicalKeyboardDesignation?
+    func allDesignations() throws -> [SavedManualPhysicalKeyboardDesignation]
+    func save(_ designation: SavedManualPhysicalKeyboardDesignation) throws
+    func delete(identityKey: String) throws
 }
 
 @MainActor
@@ -71,60 +71,61 @@ enum ManualPhysicalKeyboardDesignationSchemaV1: VersionedSchema {
 
 @MainActor
 final class SwiftDataManualPhysicalKeyboardDesignationStore: ManualPhysicalKeyboardDesignationStoring {
-    private let modelContext: ModelContext
+    let session: SwiftDataPersistenceSession
 
     init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+        session = SwiftDataPersistenceSession(modelContext: modelContext)
     }
 
-    func designation(forIdentityKey identityKey: String) -> SavedManualPhysicalKeyboardDesignation? {
-        fetchModel(identityKey: identityKey)?.savedDesignation
+    init(session: SwiftDataPersistenceSession) {
+        self.session = session
     }
 
-    func allDesignations() -> [SavedManualPhysicalKeyboardDesignation] {
-        do {
-            return try modelContext
-                .fetch(
-                    FetchDescriptor<
-                        ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel
-                    >()
+    func designation(forIdentityKey identityKey: String) throws -> SavedManualPhysicalKeyboardDesignation? {
+        try fetchModel(identityKey: identityKey)?.savedDesignation
+    }
+
+    func allDesignations() throws -> [SavedManualPhysicalKeyboardDesignation] {
+        try session.fetch(
+            FetchDescriptor<ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel>()
+        )
+            .map(\.savedDesignation)
+    }
+
+    func save(_ designation: SavedManualPhysicalKeyboardDesignation) throws {
+        try session.transaction {
+            if let existing = try fetchModel(identityKey: designation.identityKey) {
+                existing.productName = designation.productName
+                existing.confirmedName = designation.confirmedName
+                existing.authenticationTag = designation.authenticationTag
+            } else {
+                try session.modelContext().insert(
+                    ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel(
+                        identityKey: designation.identityKey,
+                        productName: designation.productName,
+                        confirmedName: designation.confirmedName,
+                        authenticationTag: designation.authenticationTag
+                    )
                 )
-                .map(\.savedDesignation)
-        } catch {
-            fatalError("SwiftData fetch failed for Manual Physical Keyboard Designation: \(error)")
+            }
+            session.didChange()
         }
     }
 
-    func save(_ designation: SavedManualPhysicalKeyboardDesignation) {
-        if let existing = fetchModel(identityKey: designation.identityKey) {
-            existing.productName = designation.productName
-            existing.confirmedName = designation.confirmedName
-            existing.authenticationTag = designation.authenticationTag
-        } else {
-            modelContext.insert(
-                ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel(
-                    identityKey: designation.identityKey,
-                    productName: designation.productName,
-                    confirmedName: designation.confirmedName,
-                    authenticationTag: designation.authenticationTag
-                )
-            )
-        }
-        persist()
-    }
+    func delete(identityKey: String) throws {
+        try session.transaction {
+            guard let model = try fetchModel(identityKey: identityKey) else {
+                return
+            }
 
-    func delete(identityKey: String) {
-        guard let model = fetchModel(identityKey: identityKey) else {
-            return
+            try session.modelContext().delete(model)
+            session.didChange()
         }
-
-        modelContext.delete(model)
-        persist()
     }
 
     private func fetchModel(
         identityKey: String
-    ) -> ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel? {
+    ) throws -> ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel? {
         var descriptor = FetchDescriptor<
             ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel
         >(
@@ -132,22 +133,6 @@ final class SwiftDataManualPhysicalKeyboardDesignationStore: ManualPhysicalKeybo
         )
         descriptor.fetchLimit = 1
 
-        do {
-            return try modelContext.fetch(descriptor).first
-        } catch {
-            fatalError("SwiftData fetch failed for Manual Physical Keyboard Designation: \(error)")
-        }
-    }
-
-    private func persist() {
-        guard modelContext.hasChanges else {
-            return
-        }
-
-        do {
-            try modelContext.save()
-        } catch {
-            fatalError("SwiftData save failed for Manual Physical Keyboard Designation: \(error)")
-        }
+        return try session.fetch(descriptor).first
     }
 }
