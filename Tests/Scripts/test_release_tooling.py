@@ -243,7 +243,7 @@ class ReleaseAppcastTests(unittest.TestCase):
     def test_appcast_rejects_changed_artifact_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             artifact, evidence, appcast = self.make_release(Path(temporary_directory))
-            artifact.write_bytes(b"changed disk image fixture")
+            artifact.write_bytes(b"x" * artifact.stat().st_size)
             self.assertNotEqual(self.verify(artifact, evidence, appcast).returncode, 0)
 
     def test_published_feed_must_match_staged_feed_byte_for_byte(self) -> None:
