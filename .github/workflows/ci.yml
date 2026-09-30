@@ -38,6 +38,8 @@ jobs:
           elif ! git diff --quiet "${BASE_SHA}" "${HEAD_SHA}" -- \
             Sources \
             Resources \
+            LICENSE \
+            THIRD_PARTY_NOTICES.md \
             Keyameleon-icon.icon \
             Scripts \
             Tests/Scripts \

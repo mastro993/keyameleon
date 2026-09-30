@@ -25,6 +25,8 @@ class CIClassificationTests(unittest.TestCase):
             ("Resources/menu_icon.pdf", "true"),
             ("Keyameleon-icon.icon/icon.json", "true"),
             ("Keyameleon-icon.icon/Assets/keycap.png", "true"),
+            ("LICENSE", "true"),
+            ("THIRD_PARTY_NOTICES.md", "true"),
             ("docs/testing.md", "false"),
         )
         for path, required in cases:
@@ -41,7 +43,7 @@ class CIClassificationTests(unittest.TestCase):
 
                     git("init", "--quiet")
                     resource = root / path
-                    resource.parent.mkdir(parents=True)
+                    resource.parent.mkdir(parents=True, exist_ok=True)
                     resource.write_text("before\n", encoding="utf-8")
                     git("add", ".")
                     git("commit", "--quiet", "-m", "Base")
