@@ -588,6 +588,32 @@ class PublishReleasePagesTests(unittest.TestCase):
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_run_tests_rejects_invalid_pages_publisher(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            scripts = Path(temporary_directory) / "Scripts"
+            scripts.mkdir()
+            for name in ("official-release-notes.sh", "verify-official-release-tag.sh",
+                         "write-release-evidence.sh", "official-release.sh"):
+                (scripts / name).write_text("exit 0\n", encoding="utf-8")
+            (scripts / "publish-release-pages.sh").write_text("if\n", encoding="utf-8")
+            command = r'''
+set -e
+source <(sed -n '/^run_tests()/,/^}/p' "$1")
+cd "$2"
+python3() { return 0; }
+xcodebuild() { return 0; }
+kill_leftover_derived_data_keyameleon() { return 0; }
+DERIVED_DATA_PATH="$2/build"
+run_tests
+'''
+            result = subprocess.run(
+                ("zsh", "-c", command, "test", str(ROOT / "Scripts/run.sh"), temporary_directory),
+                capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Scripts/publish-release-pages.sh", result.stderr)
+            self.assertIn("syntax error", result.stderr)
+
     def test_dispatch_selects_release_type_and_tags_the_bump_commit(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("release_type:", workflow)

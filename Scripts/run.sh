@@ -113,11 +113,14 @@ kill_leftover_derived_data_keyameleon() {
 }
 
 run_tests() {
-    bash -n \
+    local script
+    for script in \
         Scripts/official-release-notes.sh \
         Scripts/publish-release-pages.sh \
         Scripts/verify-official-release-tag.sh \
-        Scripts/write-release-evidence.sh
+        Scripts/write-release-evidence.sh; do
+        bash -n "$script" || return $?
+    done
     zsh -n Scripts/official-release.sh
     python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
     kill_leftover_derived_data_keyameleon
