@@ -66,16 +66,13 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         if !isHostedUnitTest, !isPreview {
             KeyameleonLog.start(.file())
         }
-        KeyameleonLog.debug(
-            .app,
-            "Launching Keyameleon \(KeyameleonAppIdentity.current.versionLabel)"
-        )
-
-        let setupStore = UserDefaultsSetupDecisionStore()
+        KeyameleonLog.debug(.app, "Launching Keyameleon \(KeyameleonAppIdentity.current.versionLabel)")
 
         let modelContainer: ModelContainer
         do {
-            modelContainer = try SwiftDataPhysicalKeyboardRecordStore.makeContainer()
+            modelContainer = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(
+                inMemory: isHostedUnitTest || isPreview
+            )
         } catch {
             KeyameleonLog.error(.app, "Physical Keyboard records could not be opened")
             fatalError("SwiftData container failed for Physical Keyboard records: \(error)")
@@ -83,16 +80,10 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
 
         let modelContext = ModelContext(modelContainer)
 
-        let physicalKeyboardRecordStore = SwiftDataPhysicalKeyboardRecordStore(
-            modelContext: modelContext
-        )
-        let designationStore = SwiftDataManualPhysicalKeyboardDesignationStore(
-            modelContext: modelContext
-        )
         let composition = KeyameleonProductionFactory.makeLiveComposition(
-            setupStore: setupStore,
-            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
-            designationStore: designationStore,
+            setupStore: UserDefaultsSetupDecisionStore(),
+            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(modelContext: modelContext),
+            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: modelContext),
             exclusionStore: UserDefaultsPhysicalKeyboardExclusionStore(),
             integrityKeyProvider: KeychainInstallationIntegrityKeyProvider()
         )

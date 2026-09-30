@@ -1,12 +1,21 @@
 # Choices
 
-## 2026-09-30 — About opens the production store folder
+## 2026-09-30 — Store Physical Keyboard data in the Keyameleon folder
 
-- Settings > About derives App Data Folder from the same unnamed SwiftData
-  configuration used by the Physical Keyboard record store. Its Open button
-  opens the parent of the configuration's store URL.
-- The configuration keeps SwiftData's existing default URL and schema. This
-  corrects the displayed folder without moving data or running a migration.
+- The production SwiftData store lives at
+  `~/Library/Application Support/Keyameleon/default.store`. Settings > About
+  derives App Data Folder from that same configuration and opens its parent.
+- Before opening the new store, copy the legacy `Application Support/default.store`
+  with SQLite's backup API. The snapshot includes committed WAL transactions and
+  preserves names, assignments, designations, authentication tags, and store metadata.
+  The current schema has no external-storage attributes.
+- Copy into `.store-migration` inside the destination folder, close the standalone
+  database, then publish it with a same-volume move. A failed or interrupted copy
+  is retried on the next launch. Keep the legacy store and its sidecars untouched.
+  An existing destination always wins; never replace it with stale legacy data.
+- Migration failures stop container creation rather than opening an empty store.
+  Hosted tests and Xcode previews use an in-memory container; migration tests use
+  disposable directories.
 - To back up Physical Keyboard Names, Keyboard Assignments, and Manual Physical
   Keyboard Designations, quit Keyameleon, then copy the store and any matching
   `-wal` and `-shm` sidecars together from App Data Folder. Setup decisions and
