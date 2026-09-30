@@ -40,6 +40,7 @@
 		37C869248005FB1AA4AAF94C /* HIDStreamRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3841004C81EB551B7007F30 /* HIDStreamRecoveryTests.swift */; };
 		39C7507AE31DAD3D51E365B3 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA7DF2C1F3093153C905889 /* InputSource.swift */; };
 		3AA7C66BB6A5489DD03D9A7D /* HIDStreamRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AAF2655E81E6DB349BE7EB /* HIDStreamRecovery.swift */; };
+		3DF0E009493C3C4D438D1E8B /* PersistenceRecoveryControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9EBCFDF3FCEFD50044D6C0 /* PersistenceRecoveryControlTests.swift */; };
 		3FCC0C2040726064934932F7 /* GeneralSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03B481045B62F2980AD7C6B /* GeneralSettingsModel.swift */; };
 		4144E7EF83996656F8F4A67E /* InputSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85AC3C63FAF9FF0CD68A07E0 /* InputSources.swift */; };
 		4367448567D5B04726C2B59F /* KeyameleonLogCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11732A28540429CEF805D4A /* KeyameleonLogCategory.swift */; };
@@ -169,6 +170,7 @@
 		292B87F6B6EB98598837DB1B /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
 		2B175759F1BE920DB617F59E /* MenuFirstTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuFirstTests.swift; sourceTree = "<group>"; };
 		2C1C87E02B69C76DB6AA44B4 /* ExclusionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExclusionTests.swift; sourceTree = "<group>"; };
+		2C9EBCFDF3FCEFD50044D6C0 /* PersistenceRecoveryControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceRecoveryControlTests.swift; sourceTree = "<group>"; };
 		2EBBE2F8099D138DBCFAC869 /* SettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSection.swift; sourceTree = "<group>"; };
 		31B1A81B1FF64DA2C31377B4 /* AboutFolderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutFolderRow.swift; sourceTree = "<group>"; };
 		337ED7456362DDDFDE630664 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
@@ -442,6 +444,7 @@
 				34CCDD31AB22CC0C28426FAD /* ManualDesignationTests.swift */,
 				2B175759F1BE920DB617F59E /* MenuFirstTests.swift */,
 				6BB31B6E6278E24C87786EE6 /* PersistenceFailureTests.swift */,
+				2C9EBCFDF3FCEFD50044D6C0 /* PersistenceRecoveryControlTests.swift */,
 				4379944012611689E842ACB4 /* PhysicalKeyboardStoreMigrationTests.swift */,
 				B374C67570AA786A07343B93 /* ProtectedLifecycleTests.swift */,
 				AB31A84BB22B2667D173FA24 /* RecoveryTests.swift */,
@@ -875,6 +878,7 @@
 				A52EB657C3E0B0D1E861FBD2 /* OnboardingKeyboardExclusionModelTests.swift in Sources */,
 				02C49CA1280831D18973B719 /* OnboardingPhysicalKeyboardRowsTests.swift in Sources */,
 				0097DF755D7D4B54E33C0961 /* PersistenceFailureTests.swift in Sources */,
+				3DF0E009493C3C4D438D1E8B /* PersistenceRecoveryControlTests.swift in Sources */,
 				08C259E20BB933C07C414487 /* PhysicalKeyboardStoreMigrationTests.swift in Sources */,
 				EDE350FFD06EB36F769AA047 /* ProtectedLifecycleTests.swift in Sources */,
 				545EFDC6FEA23FD31F3533EF /* RecoveryTests.swift in Sources */,

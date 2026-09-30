@@ -634,6 +634,8 @@ final class ActivityTriggeredSwitching {
         guard persistenceError == nil else {
             return false
         }
+        let keyboardName = physicalKeyboardName(wantedKeyboardAssignment?.physicalKeyboardID)
+        guard persistenceError == nil else { return false }
         let verified = inputSources.selectAndVerifyInputSource(identifier: inputSourceIdentifier)
         guard generation == wantedKeyboardAssignmentGeneration else {
             return false
@@ -646,7 +648,7 @@ final class ActivityTriggeredSwitching {
             KeyameleonLog.debug(
                 .switching,
                 "Selected Input Source \(inputSourceIdentifier) for "
-                    + "\(physicalKeyboardName(wantedKeyboardAssignment?.physicalKeyboardID))"
+                    + "\(keyboardName)"
             )
             return true
         }
@@ -659,7 +661,7 @@ final class ActivityTriggeredSwitching {
         KeyameleonLog.warning(
             .switching,
             "Could not select Input Source \(inputSourceIdentifier) for "
-                + "\(physicalKeyboardName(wantedKeyboardAssignment?.physicalKeyboardID))"
+                + "\(keyboardName)"
         )
         return false
     }
