@@ -603,3 +603,8 @@
 - Model: merge connected catalog + saved disconnected; active ID; forget/replace; no Input Source request on disconnect.
 - UI: connection/active labels; Replace picker + confirm; Forget confirm.
 - Follow-on: #5 wires Activation Activity into event observer and real selection.
+
+## 2026-10-01 License
+
+- Change the project license from `GPL-3.0-only` to `MIT`, including contribution
+  terms, About, release evidence, bundled-license checks, and release documentation.

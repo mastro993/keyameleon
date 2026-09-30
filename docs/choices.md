@@ -808,3 +808,9 @@ Physical Keyboard records and Manual Physical Keyboard Designations share one ex
 Input Source selection reads the saved keyboard name before requesting the change, including Retry Now. If that read fails, no selection request or verified assignment is published. The success and failure logs reuse the name already read.
 
 If the saved store cannot open or be read, Keyameleon stays running and shows an unavailable notice with Retry in guided setup, Settings, and the menu panel. The last successfully read keyboard list, assignments, and warnings remain available for display. Permission, pause, and lifecycle status continue to update, including stopping discovery while asleep or locked. Activity-Triggered Switching does not select an Input Source using missing or fabricated saved data. Retry reopens the same store or retries the failed change. Keyameleon never deletes, recreates, or substitutes an in-memory store for unreadable user data.
+
+## 2026-10-01 License
+
+Keyameleon uses the MIT license. `KeyameleonReleasePolicy`, release evidence,
+and About display the SPDX identifier `MIT`. Every build bundles the complete
+MIT text from `LICENSE`. Third-party licenses remain unchanged.

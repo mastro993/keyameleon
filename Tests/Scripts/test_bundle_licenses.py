@@ -41,7 +41,7 @@ class BundleLicensesTests(unittest.TestCase):
             "Sparkle-LICENSE.txt": artifact / "LICENSE",
         }
         self.texts = {
-            "LICENSE.txt": b"GPL license fixture\n",
+            "LICENSE.txt": b"MIT license fixture\n",
             "THIRD_PARTY_NOTICES.md": b"Third-party index fixture\n",
             "Sparkle-LICENSE.txt": b"Sparkle MIT fixture\r\nExternal component license fixture\r\n",
         }

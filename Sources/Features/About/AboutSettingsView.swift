@@ -48,12 +48,12 @@ struct KeyameleonAboutView: View {
 
                 LabeledContent("License") {
                     VStack(alignment: .trailing) {
-                        Text("GPL-3.0-only")
+                        Text("MIT")
                             .foregroundStyle(.secondary)
                         KeyameleonLicensesButton()
                     }
                 }
-                .help("Keyameleon is distributed under GPL-3.0-only.")
+                .help("Keyameleon is distributed under MIT.")
 
                 LabeledContent("Updates") {
                     Button("Check for Updates…", action: model.checkForUpdates)

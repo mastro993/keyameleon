@@ -54,4 +54,4 @@ Changes land on `main` through pull requests only, and [CI](.github/workflows/ci
 
 ## License
 
-[GPL-3.0-only](LICENSE). Third-party notices: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+[MIT](LICENSE). Third-party notices: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
