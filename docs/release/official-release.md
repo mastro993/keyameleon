@@ -164,23 +164,48 @@ from the working tree (`trash`, not git). Keep offline backups.
 
 ### 5. Tag ruleset
 
-Apply this change after the workflow pull request merges into `main` (step 7).
-The older workflow pushes tags with `GITHUB_TOKEN`, which cannot use the
-deploy-key bypass.
+PR #133 is merged into `main`. The release workflow pushes tags with
+`RELEASE_DEPLOY_KEY`.
 
 Settings → Rules → Rulesets → `Official Release tags`:
 
 - Name: `Official Release tags`
 - Enforcement: Active
 - Target tags: `v[0-9]*` (GitHub glob; includes valid Official Release tags)
-- Rules: Restrict creations, Restrict updates, Restrict deletions
+- Rules: Restrict creations, Restrict updates, Restrict deletions, Block force pushes
 - Bypass actor: **Deploy keys**, bypass mode **Always**
+
+Check the live ruleset without changing it:
+
+```sh
+gh api repos/mastro993/Keyameleon/rulesets/20859991 \
+  --jq '{name, enforcement, conditions, rules, bypass_actors}'
+```
+
+Expect `name: "Official Release tags"`, `enforcement: "active"`, include
+`["refs/tags/v[0-9]*"]`, no exclusions, rules `creation`, `update`, `deletion`,
+`non_fast_forward`, and one `DeployKey` bypass with null ID and `always` mode.
 
 GitHub rulesets use globs, not regular expressions. This glob also matches
 some invalid version names. `Scripts/verify-official-release-tag.sh` checks the
 exact `vMAJOR.MINOR.PATCH` format before the workflow creates a tag. Humans
-cannot create tags that match the ruleset. The workflow pushes with
+without bypass cannot create tags that match the ruleset. The workflow pushes with
 `RELEASE_DEPLOY_KEY`; `GITHUB_TOKEN` cannot bypass this ruleset.
+
+On 2026-09-30, an existing-account push of a disposable, invalid-SemVer tag
+matching the glob (`v0issue123-create-probe-20260930`) was rejected with
+`GH013` and `Cannot create ref due to creations being restricted.` No tag was
+created. This proves creation is blocked for that account. It does not prove
+that updates or deletions are blocked, or that the release deploy key can
+bypass the ruleset.
+
+To finish verification, use the existing release deploy key from the
+maintainer's secure storage, or a separately authorized verification workflow
+in the `official-release` environment. Environment secrets cannot be read back.
+Create, update, and delete only a disposable invalid-SemVer tag matching the
+glob. Check that an ordinary account cannot update or delete it, and that it
+is absent afterward. Do not use a valid version tag or dispatch an Official
+Release for these checks.
 
 ### 6. Release deploy key and main branch ruleset
 
@@ -200,12 +225,11 @@ the protected release environment. Both `bump` and `publish` use it for their
 pushes. The bump job runs the full test suite before its normal fast-forward
 push; it never force-pushes.
 
-### 7. Land this workflow on `main`
+### 7. Check CI before dispatch
 
-1. Merge the pull request (squash is the only allowed merge method).
-2. `verify` waits up to 45 minutes for **Required CI gate** on that SHA.
-   You may dispatch as soon as the merge commit is on `main`.
-   If CI fails, `verify` fails. If CI never starts, `verify` times out.
+`verify` uses a 45-minute polling deadline for **Required CI gate** on the
+selected commit. API requests and the final 20-second wait can extend elapsed
+runtime. If CI fails, `verify` fails. If CI never starts, `verify` times out.
 
 ### 8. Negative checks (optional, no tag created)
 
