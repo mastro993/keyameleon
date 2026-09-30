@@ -56,6 +56,10 @@ audit_all() {
     audit_sources
 }
 
+lint_sources() {
+    swiftlint lint --strict --quiet --no-cache --config .swiftlint.yml
+}
+
 # Xcode treats BuildLocationStyle=UseTargetSettings as legacy locations.
 # Swift packages refuse to resolve: "Could not resolve package dependencies:
 # Packages are not supported when using legacy build locations".
@@ -215,6 +219,9 @@ audit_all
 case "${1:-test}" in
     audit)
         ;;
+    lint)
+        lint_sources
+        ;;
     generate)
         generate_project
         ;;
@@ -223,6 +230,7 @@ case "${1:-test}" in
         build_app
         ;;
     test)
+        lint_sources
         generate_project
         run_tests
         ;;
@@ -236,7 +244,7 @@ case "${1:-test}" in
         exec "${0:A:h}/verify-official-release-tag.sh" "$@"
         ;;
     *)
-        print -u2 'usage: run.sh audit|generate|build|test|open|release-tag'
+        print -u2 'usage: run.sh audit|lint|generate|build|test|open|release-tag'
         exit 64
         ;;
 esac

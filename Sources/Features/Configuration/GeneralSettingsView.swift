@@ -71,7 +71,10 @@ private struct KeyameleonGeneralSettingsPane: View {
                     if model.launchAtLoginError != nil {
                         Divider()
                         Text(
-                            "Could not change Launch at Login. Open System Settings → General → Login Items if macOS requires approval."
+                            """
+                            Could not change Launch at Login. Open System Settings → General → \
+                            Login Items if macOS requires approval.
+                            """
                         )
                         .font(.callout)
                         .foregroundStyle(.red)

@@ -49,8 +49,7 @@ final class KeyameleonLogFile: Sendable {
                 return
             }
             if let openedDescriptor = state.descriptor,
-               !descriptorMatchesActiveFile(openedDescriptor)
-            {
+               !descriptorMatchesActiveFile(openedDescriptor) {
                 close(&state)
                 guard openIfNeeded(&state) != nil else {
                     return

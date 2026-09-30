@@ -124,8 +124,7 @@ enum KeyameleonPreviewFixtures {
                    return true
                }
                return false
-           })
-        {
+           }) {
             model.startManualDesignation(for: keyboard.id)
             for serviceID: UInt64 in [40, 41] {
                 discoverer.emit(.disconnected(serviceID: serviceID))
@@ -387,8 +386,7 @@ enum KeyameleonPreviewFixtures {
         }
 
         if state == .mixedAssignments,
-           let desk = model.physicalKeyboards.first(where: { $0.productName == "HHKB Professional" })
-        {
+           let desk = model.physicalKeyboards.first(where: { $0.productName == "HHKB Professional" }) {
             model.setKeyboardAssignment(
                 desk.id,
                 inputSourceIdentifier: "com.apple.keylayout.Missing"

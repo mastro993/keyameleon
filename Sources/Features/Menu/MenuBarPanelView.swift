@@ -136,7 +136,6 @@ struct KeyameleonMenuBarPanelView: View {
         )
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
     func perform(_ action: MenuBarPanelContent.Action) {
         if action.closesPanel {
             actions.closePanel()
