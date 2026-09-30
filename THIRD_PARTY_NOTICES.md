@@ -11,38 +11,17 @@ distributed with or linked into Keyameleon Official Release artifacts.
 - License: MIT (and embedded external licenses for bsdiff/bspatch and other components
   as shipped by the Sparkle project)
 
-```
-Copyright (c) 2006-2013 Andy Matuschak.
-Copyright (c) 2009-2013 Elgato Systems GmbH.
-Copyright (c) 2011-2014 Kornel Lesiński.
-Copyright (c) 2015-2017 Mayur Pawashe.
-Copyright (c) 2014 C.W. Betts.
-Copyright (c) 2014 Petroules Corporation.
-Copyright (c) 2014 Big Nerd Ranch.
-All rights reserved.
+The complete upstream `LICENSE` from the resolved Sparkle binary distribution
+is copied unchanged into `Contents/Resources/Licenses/Sparkle-LICENSE.txt` in
+Keyameleon.app. It includes Sparkle's MIT license and its embedded external
+licenses. The build checks the binary distribution version against
+`Package.resolved` before copying the notices; release verification checks the
+embedded framework version too.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-Sparkle may bundle additional third-party code under separate licenses. The
-authoritative texts ship inside the Sparkle distribution used to build
-Keyameleon. Operators must preserve those notices when redistributing binaries.
+Choose **Licenses and Notices** in either About screen to read these texts
+offline, alongside Keyameleon's GPL license and this index. The repository's
+`LICENSE` and this file are the sources for `LICENSE.txt` and
+`THIRD_PARTY_NOTICES.md` in the same bundled folder.
 
 ## Apple system frameworks
 

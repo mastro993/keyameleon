@@ -47,8 +47,11 @@ struct KeyameleonAboutView: View {
                 )
 
                 LabeledContent("License") {
-                    Text("GPL-3.0-only")
-                        .foregroundStyle(.secondary)
+                    VStack(alignment: .trailing) {
+                        Text("GPL-3.0-only")
+                            .foregroundStyle(.secondary)
+                        KeyameleonLicensesButton()
+                    }
                 }
                 .help("Keyameleon is distributed under GPL-3.0-only.")
 

@@ -71,6 +71,13 @@ targets:
         SUAutomaticallyUpdate: false
         SUAllowsAutomaticUpdates: false
         SUEnableSystemProfiling: false
+    postBuildScripts:
+      - name: Bundle licenses and notices
+        script: |
+          python3 "${SRCROOT}/Scripts/bundle-licenses.py" \
+            --app "${TARGET_BUILD_DIR}/${WRAPPER_NAME}" \
+            --build-dir "${BUILD_DIR}" --copy
+        basedOnDependencyAnalysis: false
     dependencies:
       - package: Sparkle
         product: Sparkle

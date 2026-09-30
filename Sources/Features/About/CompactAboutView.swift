@@ -35,6 +35,8 @@ struct KeyameleonCompactAboutView: View {
                 .disabled(!model.canCheckForUpdates)
                 .padding(.top)
 
+            KeyameleonLicensesButton()
+
             Spacer(minLength: 0)
 
             Text("Made with ❤️ by [@fedemas](https://x.com/fedemas)")

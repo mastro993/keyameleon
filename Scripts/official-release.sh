@@ -27,11 +27,19 @@ keychain_name="keyameleon-official-release.keychain-db"
 keychain_password="$(openssl rand -base64 32)"
 work_tmpdir=""
 imported_cert=0
+dmg_mount=""
 
 cleanup() {
     set +e
     if [[ "$imported_cert" -eq 1 ]]; then
         security delete-keychain "$keychain_name" 2>/dev/null
+    fi
+    if [[ -n "$dmg_mount" ]]; then
+        if ! hdiutil detach "$dmg_mount"; then
+            print -u2 "Could not detach ${dmg_mount}; preserving ${work_tmpdir}"
+            return 1
+        fi
+        dmg_mount=""
     fi
     if [[ -n "$work_tmpdir" && -d "$work_tmpdir" ]]; then
         rm -rf "$work_tmpdir"
@@ -149,6 +157,9 @@ if [[ ! -d "$app_path" ]]; then
     exit 1
 fi
 
+package_root="${derived_data}/DerivedData/SourcePackages"
+python3 "${script_dir}/bundle-licenses.py" --app "$app_path" --package-root "$package_root"
+
 # Re-sign with hardened runtime + secure timestamp explicitly.
 codesign \
     --force \
@@ -208,6 +219,15 @@ hdiutil create \
     -ov \
     -format UDZO \
     "$dmg_path" >/dev/null
+
+dmg_mount="${work_tmpdir}/dmg-mounted"
+mkdir -p "$dmg_mount"
+hdiutil attach "$dmg_path" -readonly -nobrowse -mountpoint "$dmg_mount" >/dev/null
+python3 "${script_dir}/bundle-licenses.py" \
+    --app "${dmg_mount}/Keyameleon.app" --package-root "$package_root"
+codesign --verify --deep --strict --verbose=2 "${dmg_mount}/Keyameleon.app"
+hdiutil detach "$dmg_mount"
+dmg_mount=""
 
 # A disk image has its own code signature. Sign it after creation and before
 # notarization so the stapled ticket belongs to the exact public bytes.

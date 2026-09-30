@@ -69,7 +69,8 @@ CI uses one stable required check, `Required CI gate`, with two paths:
 - Changes outside the paths in CI's `Check whether code changed` step, such as
   documentation-only changes, do not run tests or use a macOS runner.
 - Build-affecting changes include app source, bundled resources under `Resources`
-  and `Keyameleon-icon.icon` (including modifications and deletions), tests,
+  and `Keyameleon-icon.icon`, bundled legal texts from `LICENSE` and
+  `THIRD_PARTY_NOTICES.md` (including modifications and deletions), tests,
   project and package configuration, `.swiftlint.yml`, `Scripts`,
   `.github/workflows/ci.yml`, and `.github/workflows/release.yml`. These changes
   run SwiftLint, the complete macOS product tests, and the safety audit.

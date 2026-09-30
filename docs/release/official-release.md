@@ -23,6 +23,37 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 - SPDX: `GPL-3.0-only` (`LICENSE`)
 - Third-party: `THIRD_PARTY_NOTICES.md`
 
+Every build bundles `Contents/Resources/Licenses/` inside Keyameleon.app:
+`LICENSE.txt` from the repository's `LICENSE`, `THIRD_PARTY_NOTICES.md` from the
+repository index, and `Sparkle-LICENSE.txt` from the resolved Sparkle binary
+artifact's complete `LICENSE`, including its external component licenses.
+**Licenses and Notices** in both About screens opens these texts offline.
+
+The Xcode build runs `Scripts/bundle-licenses.py --copy --build-dir "$BUILD_DIR"`
+before code signing. It finds the nearest ancestor containing the resolved
+Sparkle artifact under `SourcePackages`, supporting both normal and archive
+build directories; it fails if no such artifact exists.
+The script checks the resolved binary artifact version against
+`Package.resolved`; Xcode embeds the framework after this phase. Missing or
+empty sources and artifact version mismatches fail the build. No legal text is maintained as a duplicate
+in the repository.
+
+`Scripts/official-release.sh` runs the same verifier without `--copy` before
+its explicit app signing and against the app in the produced DMG, mounted
+read-only before DMG signing. Verification also checks the embedded Sparkle
+framework version against `Package.resolved`. Missing or changed bundled texts fail packaging;
+the verifier never repairs a signed app. The DMG contains the app and the
+Applications shortcut. Existing signing, notarization, stapling, and Sparkle
+signature checks still apply.
+
+To verify an app against the source checkout and packages used to build it:
+
+```sh
+python3 Scripts/bundle-licenses.py \
+  --app /path/to/Keyameleon.app \
+  --package-root /path/to/DerivedData/SourcePackages
+```
+
 ## Start an Official Release
 
 1. Ensure the intended commit is on `main` and CI is green for that commit.
