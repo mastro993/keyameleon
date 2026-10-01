@@ -9,7 +9,6 @@ if [[ -z "$tag" ]]; then
     exit 64
 fi
 
-# Keep in lockstep with KeyameleonReleasePolicy.semanticVersion(fromOfficialReleaseTag:).
 if [[ ! "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
     echo "not an Official Release tag: ${tag}" >&2
     echo "expected: vMAJOR.MINOR.PATCH (Semantic Versioning core only)" >&2

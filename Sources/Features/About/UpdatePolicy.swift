@@ -20,16 +20,4 @@ enum KeyameleonUpdatePolicy {
     /// Official Release appcast published on the Keyameleon GitHub Pages site.
     static let feedURLString =
         "https://mastro993.github.io/keyameleon/appcast.xml"
-
-    static func shouldCheckForUpdates(
-        lastCheckDate: Date?,
-        now: Date = Date(),
-        minimumInterval: TimeInterval = minimumCheckInterval
-    ) -> Bool {
-        guard let lastCheckDate else {
-            return true
-        }
-
-        return now.timeIntervalSince(lastCheckDate) >= minimumInterval
-    }
 }

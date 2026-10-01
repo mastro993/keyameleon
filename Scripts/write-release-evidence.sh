@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Writes release-evidence.json binding the Official Release DMG SHA-256 to its source tag.
-# Field names match KeyameleonReleaseEvidence Codable keys.
 set -euo pipefail
 
 usage() {

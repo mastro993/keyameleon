@@ -45,10 +45,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
         [footer.about.title] + footer.actions.map(\.title)
     }
 
-    var panelWidth: CGFloat {
-        Self.panelWidth
-    }
-
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
