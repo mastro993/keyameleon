@@ -12,6 +12,7 @@ struct KeyameleonActivityTriggeredSwitchingComposition {
     let setupStore: any SetupDecisionStoring
     let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
     let designationStore: any ManualPhysicalKeyboardDesignationStoring
+    let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     let exclusionStore: any PhysicalKeyboardExclusionStoring
     let integrityKeyProvider: any InstallationIntegrityKeyProviding
 }
@@ -65,6 +66,23 @@ enum KeyameleonProductionFactory {
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider()
     ) -> KeyameleonActivityTriggeredSwitchingComposition {
+        let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
+        if let records = physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore,
+           let designations = designationStore as? SwiftDataManualPhysicalKeyboardDesignationStore {
+            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(
+                records: records,
+                designations: designations
+            )
+        } else if let records = physicalKeyboardRecordStore as? InMemoryPhysicalKeyboardRecordStore,
+                  let designations = designationStore as? InMemoryManualPhysicalKeyboardDesignationStore {
+            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(
+                records: records,
+                designations: designations
+            )
+        } else {
+            preconditionFailure("Saved Physical Keyboard changes require matching record and designation stores")
+        }
+
         let physicalKeyboardDiscovery = PhysicalKeyboardDiscovery(
             discoverer: physicalKeyboardDiscoverer,
             eventObserver: physicalKeyboardEventObserver
@@ -93,6 +111,7 @@ enum KeyameleonProductionFactory {
             setupStore: setupStore,
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
+            savedPhysicalKeyboardChanges: savedPhysicalKeyboardChanges,
             exclusionStore: exclusionStore,
             integrityKeyProvider: integrityKeyProvider
         )

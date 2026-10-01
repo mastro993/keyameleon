@@ -178,15 +178,18 @@ private func makePersistenceFailureModel(
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: records,
-        designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session),
-        persistenceSession: session
+        designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )
 }
 
 @Test("Compound forget rolls back records and designation together before successful retry")
 @MainActor
 private func compoundForgetRollsBackBothStores() throws {
-    let container = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(inMemory: true)
+    let folder = URL.temporaryDirectory.appending(path: "KeyameleonForget-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    let url = folder.appending(path: "records.store")
+    let container = try makePersistenceFailureContainer(at: url)
     var fails = false
     let session = SwiftDataPersistenceSession(modelContext: ModelContext(container), save: {
         if fails { throw PersistenceInjectedFailure.unavailable }
@@ -194,28 +197,43 @@ private func compoundForgetRollsBackBothStores() throws {
     })
     let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
     let designations = SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
-    try records.saveName(identityKey: "old", productName: "Keyboard", customName: "Studio")
+    let identityKey = "identity:old"
+    try records.saveName(identityKey: identityKey, productName: "Keyboard", customName: "Studio")
     let designation = SavedManualPhysicalKeyboardDesignation(
-        identityKey: "old", productName: "Keyboard", confirmedName: "Studio", authenticationTag: Data([1, 2, 3])
+        identityKey: identityKey, productName: "Keyboard", confirmedName: "Studio", authenticationTag: Data([1, 2, 3])
     )
     try designations.save(designation)
-    let forget = {
-        try session.transaction {
-            try records.deleteRecord(identityKey: "old")
-            try designations.delete(identityKey: "old")
-        }
-    }
+    let model = makePersistenceFailureModel(records: records, session: session)
+    let keyboard = try #require(model.physicalKeyboards.first)
+    var changes = 0
+    records.startObservingChanges { changes += 1 }
+
     fails = true
-    #expect(throws: PersistenceInjectedFailure.self) { try forget() }
-    let readerContext = ModelContext(container)
+    model.forgetPhysicalKeyboard(keyboard.id)
+    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(model.physicalKeyboards.map(\.name) == ["Studio"])
+    #expect(changes == 0)
+
+    model.setPhysicalKeyboardName(keyboard.id, customName: "Must not replace pending forget")
+    model.retryPersistenceOperation()
+    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(changes == 0)
+    let readerContext = ModelContext(try makePersistenceFailureContainer(at: url))
     let recordReader = SwiftDataPhysicalKeyboardRecordStore(modelContext: readerContext)
     let designationReader = SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: readerContext)
-    #expect(try recordReader.record(forIdentityKey: "old")?.customName == "Studio")
-    #expect(try designationReader.designation(forIdentityKey: "old") == designation)
+    #expect(try recordReader.record(forIdentityKey: identityKey)?.customName == "Studio")
+    #expect(try designationReader.designation(forIdentityKey: identityKey) == designation)
+
     fails = false
-    try forget()
-    #expect(try records.record(forIdentityKey: "old") == nil)
-    #expect(try designations.designation(forIdentityKey: "old") == nil)
+    model.retryPersistenceOperation()
+    #expect(model.persistenceError == nil)
+    #expect(model.physicalKeyboards.isEmpty)
+    #expect(changes == 1)
+    let retriedContext = ModelContext(try makePersistenceFailureContainer(at: url))
+    #expect(try SwiftDataPhysicalKeyboardRecordStore(modelContext: retriedContext).allRecords().isEmpty == true)
+    #expect(try SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: retriedContext).allDesignations().isEmpty == true)
+    model.retryPersistenceOperation()
+    #expect(changes == 1)
 }
 
 @Test("Fetch failure propagates instead of inventing missing records or designations")

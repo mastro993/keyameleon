@@ -805,6 +805,18 @@ Defaults:
 
 Physical Keyboard records and Manual Physical Keyboard Designations share one explicit SwiftData transaction. Autosave is disabled. Rename, assignment, forget, replacement, and designation changes publish success only after the complete transaction saves. A failed fetch or save rolls back pending changes; failed writes retain the requested operation for Retry. Built-in identity migration is marked evaluated only after its reads and any transfer succeed.
 
+`SavedPhysicalKeyboardChanges` owns those five saved changes, their transaction,
+and one pending change for exact Retry. Its interface accepts typed domain values
+and returns the committed change only after save and synchronous record
+notifications finish. A failed change blocks later saved changes until Retry
+succeeds or a pending Manual Physical Keyboard Designation is canceled.
+The module uses the existing record and designation adapters with one shared
+SwiftData session; tests and previews can use the concrete in-memory pair.
+`KeyameleonSetupModel` keeps eligibility checks, designation evidence, and display
+and switching effects. First attempts and Retry use the same completion path.
+Saved reads and Activity-Triggered Switching read recovery remain with their
+existing modules.
+
 Input Source selection reads the saved keyboard name before requesting the change, including Retry Now. If that read fails, no selection request or verified assignment is published. The success and failure logs reuse the name already read.
 
 If the saved store cannot open or be read, Keyameleon stays running and shows an unavailable notice with Retry in guided setup, Settings, and the menu panel. The last successfully read keyboard list, assignments, and warnings remain available for display. Permission, pause, and lifecycle status continue to update, including stopping discovery while asleep or locked. Activity-Triggered Switching does not select an Input Source using missing or fabricated saved data. Retry reopens the same store or retries the failed change. Keyameleon never deletes, recreates, or substitutes an in-memory store for unreadable user data.
