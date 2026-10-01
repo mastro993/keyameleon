@@ -603,8 +603,8 @@ Sparkle gentle reminders.
 ## 2026-08-10 — Issue #16 Official Release artifacts
 
 ### Seams under test
-- `KeyameleonReleasePolicy` — Official Release tag shape (`vMAJOR.MINOR.PATCH`), artifact names, `GPL-3.0-only`, Supported Release = latest only.
-- `KeyameleonReleaseEvidence` — JSON binding artifact SHA-256 + source tag/commit; reject bad tag/hash.
+- `Scripts/verify-official-release-tag.sh` validates the Official Release tag shape (`vMAJOR.MINOR.PATCH`).
+- `Scripts/write-release-evidence.sh` writes JSON that binds the artifact SHA-256 to its source tag and commit.
 
 ### Defaults
 - Tag-only Official Release workflow (`v[0-9]+.[0-9]+.[0-9]+`); no branch push release.
@@ -765,7 +765,7 @@ Defaults:
 - Each implementation owns its user-visible copy and private formatters. Duplicate copy remains local when presentation owners happen to share text.
 - Domain and model interfaces expose typed facts or domain data. Physical Keyboard Names, Input Source names, persisted codes, and Diagnostic Bundle exclusion labels remain domain-owned.
 - `SwitchingStatus.rawValue` values stay unchanged because Diagnostic Data persists them.
-- Runtime application identity comes from the application bundle. Published product and artifact identity remains deterministic in `KeyameleonReleasePolicy`.
+- Runtime application identity comes from the application bundle. Release scripts determine published product and artifact identity.
 - UI tests keep independent expected literals. Production accessibility identifiers and launch arguments remain unchanged.
 - Earlier choices that named `KeyameleonAppMetadata` are superseded for ownership only; their external values and behavior remain unchanged.
 
@@ -823,6 +823,17 @@ If the saved store cannot open or be read, Keyameleon stays running and shows an
 
 ## 2026-10-01 License
 
-Keyameleon uses the MIT license. `KeyameleonReleasePolicy`, release evidence,
-and About display the SPDX identifier `MIT`. Every build bundles the complete
-MIT text from `LICENSE`. Third-party licenses remain unchanged.
+Keyameleon uses the MIT license. Release evidence and About display the SPDX
+identifier `MIT`. Every build bundles the complete MIT text from `LICENSE`.
+Third-party licenses remain unchanged.
+
+## 2026-10-01 Release and update policy ownership
+
+Release scripts own Official Release tag validation and evidence generation.
+Script tests exercise the commands used by the release workflow, including
+strict tag syntax, artifact naming, the emitted SHA-256, and invalid inputs.
+The app has no separate release-evidence model or tag parser.
+
+Sparkle owns update scheduling through the shipped Info.plist configuration.
+`KeyameleonUpdatePolicy` retains the configuration values used by the updater
+and checked against the app bundle. It does not calculate when a check is due.

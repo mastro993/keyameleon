@@ -52,10 +52,6 @@ audit_sources() {
     fi
 }
 
-audit_all() {
-    audit_sources
-}
-
 lint_sources() {
     swiftlint lint --strict --quiet --no-cache --config .swiftlint.yml
 }
@@ -218,7 +214,7 @@ open_development_app() {
     return 1
 }
 
-audit_all
+audit_sources
 
 case "${1:-test}" in
     audit)

@@ -303,10 +303,6 @@ final class KeyameleonSetupModel {
         activityTriggeredSwitching.checkAgain()
     }
 
-    func finishWithoutAssignments() {
-        completeSetup()
-    }
-
     func completeSetup() {
         stopPermissionWait()
         isWaitingForListenPermission = false

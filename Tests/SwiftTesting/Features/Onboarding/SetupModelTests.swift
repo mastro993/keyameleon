@@ -131,9 +131,9 @@ func continueToAssignmentsAdvancesStepWithoutCompletingSetup() {
     #expect(permissionProvider.requestCount == 0)
 }
 
-@Test("Finish Without Assignments completes setup and skips further steps")
+@Test("Completing setup without Keyboard Assignments records completion")
 @MainActor
-func finishWithoutAssignmentsCompletesSetupAndSkipsFurtherSteps() {
+func completingSetupWithoutAssignmentsRecordsCompletion() {
     let setupStore = SetupModelTestSetupDecisionStore()
     let model = KeyameleonSetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
@@ -142,7 +142,7 @@ func finishWithoutAssignmentsCompletesSetupAndSkipsFurtherSteps() {
     )
 
     model.continueToAssignments()
-    model.finishWithoutAssignments()
+    model.completeSetup()
 
     #expect(setupStore.hasCompletedGuidedSetup)
     #expect(model.isSetupComplete)

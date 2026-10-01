@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import base64
 import fnmatch
+import hashlib
 import json
 import os
 import subprocess
@@ -16,6 +17,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
 VERIFY_APPCAST_SCRIPT = ROOT / "Scripts" / "verify-release-appcast.py"
 PUBLISH_ASSET_SCRIPT = ROOT / "Scripts" / "publish-official-release-asset.sh"
 PUBLISH_PAGES_SCRIPT = ROOT / "Scripts" / "publish-release-pages.sh"
+VERIFY_TAG_SCRIPT = ROOT / "Scripts" / "verify-official-release-tag.sh"
 
 
 def run(*args: str, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -145,6 +147,30 @@ printf '%s' "$payload" | jq -r "$filter"
             self.assertNotIn("- Release Tester", notes)
 
 
+class OfficialReleaseTagTests(unittest.TestCase):
+    def test_tags_require_strict_semantic_versioning_cores(self) -> None:
+        for tag, version in (
+            ("v0.1.0", "0.1.0"), ("v1.2.3", "1.2.3"), ("v10.20.30", "10.20.30"),
+            ("1.2.3", None), ("v1.2", None), ("v1.2.3-beta.1", None),
+            ("v1.2.3+build.1", None), ("release-1.2.3", None),
+            ("v01.2.3", None), ("v1.02.3", None), ("v1.2.03", None), ("", None),
+        ):
+            with self.subTest(tag=tag):
+                result = subprocess.run(
+                    (str(VERIFY_TAG_SCRIPT), tag),
+                    cwd=ROOT,
+                    check=False,
+                    text=True,
+                    capture_output=True,
+                )
+                if version is not None:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout, f"{version}\n")
+                else:
+                    self.assertEqual(result.returncode, 1 if tag else 64)
+                    self.assertEqual(result.stdout, "")
+
+
 class ReleaseEvidenceTests(unittest.TestCase):
     def test_evidence_binds_the_dmg_and_pages_feed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -167,13 +193,43 @@ class ReleaseEvidenceTests(unittest.TestCase):
             )
 
             evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            self.assertEqual(evidence["product"], "Keyameleon")
             self.assertEqual(evidence["licenseSPDXIdentifier"], "MIT")
+            self.assertEqual(evidence["tag"], "v1.2.3")
+            self.assertEqual(evidence["semanticVersion"], "1.2.3")
+            self.assertEqual(evidence["gitCommit"], "abc123")
             self.assertEqual(evidence["artifactFileName"], "Keyameleon-1.2.3.dmg")
+            self.assertEqual(evidence["artifactSHA256"], hashlib.sha256(disk_image.read_bytes()).hexdigest())
+            self.assertEqual(evidence["appcastFileName"], "appcast.xml")
             self.assertEqual(
                 evidence["feedURLString"],
                 "https://mastro993.github.io/keyameleon/appcast.xml",
             )
             self.assertNotIn("sourceArchiveFileName", evidence)
+
+    def test_invalid_release_inputs_do_not_write_evidence(self) -> None:
+        for tag, commit, filename, error in (
+            ("1.2.3", "abc123", "Keyameleon-1.2.3.dmg", "not an Official Release tag"),
+            ("v1.2.3", "", "Keyameleon-1.2.3.dmg", "usage: write-release-evidence.sh"),
+            ("v1.2.3", "abc123", "Keyameleon-1.2.4.dmg", "artifact must be named"),
+        ):
+            with self.subTest(tag=tag, commit=commit, filename=filename), \
+                    tempfile.TemporaryDirectory() as temporary_directory:
+                directory = Path(temporary_directory)
+                artifact = directory / filename
+                artifact.write_bytes(b"disk image fixture")
+                evidence = directory / "release-evidence.json"
+                result = subprocess.run(
+                    (str(EVIDENCE_SCRIPT), "--tag", tag, "--commit", commit,
+                     "--artifact", str(artifact), "--output", str(evidence)),
+                    cwd=ROOT,
+                    check=False,
+                    text=True,
+                    capture_output=True,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(error, result.stderr)
+                self.assertFalse(evidence.exists())
 
 
 class ReleaseAppcastTests(unittest.TestCase):
