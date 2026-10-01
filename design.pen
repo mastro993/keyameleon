@@ -1,0 +1,1421 @@
+{
+  "version": "2.20",
+  "children": [
+    {
+      "type": "frame",
+      "id": "L9Tpp",
+      "x": 3042,
+      "y": -1218,
+      "name": "Keyameleon / Menu bar / Light",
+      "theme": {
+        "mode": "light"
+      },
+      "reusable": true,
+      "clip": true,
+      "width": 320,
+      "height": 382,
+      "fill": "#f6f7f7",
+      "cornerRadius": 20,
+      "stroke": "#ffffff",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "padding": [
+        0,
+        11,
+        6,
+        11
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "s0WIS",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 49,
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            6
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "GEV6b",
+              "name": "App name",
+              "fill": "#080909",
+              "content": "Keyameleon",
+              "fontFamily": "SF Pro",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "rectangle",
+              "id": "noanF",
+              "name": "SF Symbol · info.circle.fill",
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "design-assets/InformationCircle-light.png",
+                "mode": "contain"
+              },
+              "width": 18,
+              "height": 18
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WO0FV",
+          "name": "Keyboards",
+          "width": "fill_container",
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            11,
+            0
+          ],
+          "children": [
+            {
+              "id": "f4G6yA",
+              "type": "ref",
+              "ref": "DhSlx",
+              "name": "Keyboard item · Built-in",
+              "width": "fill_container",
+              "height": 62
+            },
+            {
+              "id": "b1U2r6",
+              "type": "ref",
+              "ref": "xdhm3",
+              "name": "Keyboard item · Active",
+              "width": "fill_container",
+              "height": 62
+            },
+            {
+              "id": "cySF6",
+              "type": "ref",
+              "ref": "Vvjkf",
+              "name": "Keyboard item · Disconnected",
+              "width": "fill_container",
+              "height": 62
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X5aLLw",
+          "name": "Actions",
+          "width": "fill_container",
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "padding": [
+            8,
+            6,
+            5,
+            6
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "am6TW",
+              "name": "Pause Switching",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 11,
+              "padding": [
+                0,
+                5
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "vgwuI",
+                  "name": "SF Symbol · pause.fill",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Pause-light.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "text",
+                  "id": "S3VHMB",
+                  "name": "Action label",
+                  "fill": "#080909",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pause Switching",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gP4Ui",
+              "name": "Settings",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 11,
+              "padding": [
+                0,
+                5
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "TRoFq",
+                  "name": "SF Symbol · gearshape.fill",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Settings01-light.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "text",
+                  "id": "Aje2z",
+                  "name": "Action label",
+                  "fill": "#080909",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Settings",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 13
+                },
+                {
+                  "type": "text",
+                  "id": "OVz9M",
+                  "name": "Keyboard shortcut",
+                  "fill": "#565959",
+                  "content": "⌘,",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 12
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "PTQoJ",
+          "name": "Quit action",
+          "width": "fill_container",
+          "padding": [
+            0,
+            6
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "LhJyR",
+              "name": "Quit Keyameleon",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 11,
+              "padding": [
+                0,
+                5
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "WdM6i",
+                  "name": "SF Symbol · rectangle.portrait.and.arrow.right.fill",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Logout01-light.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "text",
+                  "id": "qlron",
+                  "name": "Action label",
+                  "fill": "#080909",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Quit Keyameleon",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 13
+                },
+                {
+                  "type": "text",
+                  "id": "z4ZGEt",
+                  "name": "Keyboard shortcut",
+                  "fill": "#565959",
+                  "content": "⌘Q",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 12
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "WIU7y",
+      "x": 3428.0625,
+      "y": -1218.078125,
+      "name": "Keyameleon / Menu bar / Dark",
+      "theme": {
+        "mode": "dark"
+      },
+      "reusable": true,
+      "clip": true,
+      "width": 320,
+      "height": 382,
+      "fill": "#232323cc",
+      "cornerRadius": 20,
+      "stroke": "#606060",
+      "strokeWidth": 1,
+      "effect": {
+        "type": "background_blur",
+        "radius": 10
+      },
+      "layout": "vertical",
+      "padding": [
+        0,
+        11,
+        6,
+        11
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "SwImn",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 49,
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            6
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "ZzOMu",
+              "name": "App name",
+              "fill": "#f1f1f3",
+              "content": "Keyameleon",
+              "fontFamily": "SF Pro",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "rectangle",
+              "id": "R8np6Q",
+              "name": "SF Symbol · info.circle.fill",
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "design-assets/InformationCircle-dark.png",
+                "mode": "contain"
+              },
+              "width": 18,
+              "height": 18
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "aSmoS",
+          "name": "Keyboards",
+          "width": "fill_container",
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            11,
+            0
+          ],
+          "children": [
+            {
+              "id": "pu7la",
+              "type": "ref",
+              "ref": "ncWbU",
+              "name": "Keyboard item · Built-in",
+              "width": "fill_container",
+              "height": 62
+            },
+            {
+              "id": "ZzUFD",
+              "type": "ref",
+              "ref": "npvgt",
+              "name": "Keyboard item · Active",
+              "width": "fill_container",
+              "height": 62
+            },
+            {
+              "id": "Q5a2GN",
+              "type": "ref",
+              "ref": "SbH6D",
+              "name": "Keyboard item · Disconnected",
+              "width": "fill_container",
+              "height": 62
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ds5YE",
+          "name": "Actions",
+          "width": "fill_container",
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "padding": [
+            8,
+            6,
+            5,
+            6
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "i3IoC",
+              "name": "Pause Switching",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 11,
+              "padding": [
+                0,
+                5
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "N3shWs",
+                  "name": "SF Symbol · pause.fill",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Pause-dark.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "text",
+                  "id": "AR1GN",
+                  "name": "Action label",
+                  "fill": "#f1f1f3",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pause Switching",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Q7ECr",
+              "name": "Settings",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 11,
+              "padding": [
+                0,
+                5
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "fq0df",
+                  "name": "SF Symbol · gearshape.fill",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Settings01-dark.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "text",
+                  "id": "SSoOp",
+                  "name": "Action label",
+                  "fill": "#f1f1f3",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Settings",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 13
+                },
+                {
+                  "type": "text",
+                  "id": "trVuN",
+                  "name": "Keyboard shortcut",
+                  "fill": "#bdbdc2",
+                  "content": "⌘,",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 12
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "w5Cwhk",
+          "name": "Quit action",
+          "width": "fill_container",
+          "padding": [
+            0,
+            6
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "X1tA31",
+              "name": "Quit Keyameleon",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 11,
+              "padding": [
+                0,
+                5
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "RZkps",
+                  "name": "SF Symbol · rectangle.portrait.and.arrow.right.fill",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Logout01-dark.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "text",
+                  "id": "YOl3u",
+                  "name": "Action label",
+                  "fill": "#f1f1f3",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Quit Keyameleon",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 13
+                },
+                {
+                  "type": "text",
+                  "id": "otHJN",
+                  "name": "Keyboard shortcut",
+                  "fill": "#bdbdc2",
+                  "content": "⌘Q",
+                  "fontFamily": "SF Pro",
+                  "fontSize": 12
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "T8fUZh",
+      "x": 3880,
+      "y": -1218,
+      "name": "Frame 1",
+      "width": 2768,
+      "height": 1557,
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "Rf7r2",
+          "x": 0,
+          "y": 0,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "design-assets/Screenshot%202026-10-01%20alle%2014.44.29.png",
+            "mode": "cover"
+          },
+          "width": 2768,
+          "height": 1557
+        },
+        {
+          "id": "wz6ME",
+          "type": "ref",
+          "ref": "WIU7y",
+          "x": 2087,
+          "y": 41,
+          "fill": "#232323bf"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "DLD7T",
+      "x": 3880,
+      "y": 424,
+      "name": "Frame 2",
+      "width": 2768,
+      "height": 1557,
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "E7FCnn",
+          "x": 0,
+          "y": 0,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "design-assets/Screenshot%202026-10-01%20alle%2014.44.29.png",
+            "mode": "cover"
+          },
+          "width": 2768,
+          "height": 1557
+        },
+        {
+          "id": "IArmv",
+          "type": "ref",
+          "ref": "L9Tpp",
+          "x": 2115,
+          "y": 47,
+          "fill": "#f6f7f7bf",
+          "effect": {
+            "type": "background_blur",
+            "radius": 10
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "HEdxv",
+      "x": 3042,
+      "y": -1564,
+      "name": "Keyboard item · Component variants",
+      "width": 692,
+      "gap": 20,
+      "children": [
+        {
+          "type": "frame",
+          "id": "nKQjK",
+          "name": "Light variants",
+          "width": 336,
+          "fill": "#f6f7f7",
+          "cornerRadius": 16,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 19,
+          "children": [
+            {
+              "type": "frame",
+              "id": "DhSlx",
+              "name": "Keyboard item / Light / Built-in",
+              "theme": {
+                "mode": "light"
+              },
+              "reusable": true,
+              "width": "fill_container",
+              "height": 62,
+              "cornerRadius": 12,
+              "gap": 14,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "vkR7Z",
+                  "name": "SF Symbol · keyboard",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Keyboard-light.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "y1MXq6",
+                  "name": "Keyboard details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ZRdRV",
+                      "name": "Keyboard name",
+                      "fill": "#080909",
+                      "content": "MacBook Keyboard",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 13.5,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nkMRQ",
+                      "name": "Connection status",
+                      "fill": "#565959",
+                      "content": "Built-in",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sdRYG",
+                  "name": "Layout badge IT",
+                  "width": 28,
+                  "height": 24,
+                  "cornerRadius": 6,
+                  "stroke": "#c6c8c8",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FIDnW",
+                      "name": "Layout code",
+                      "fill": "#565959",
+                      "content": "IT",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xdhm3",
+              "name": "Keyboard item / Light / Active",
+              "theme": {
+                "mode": "light"
+              },
+              "reusable": true,
+              "width": "fill_container",
+              "height": 62,
+              "fill": "#d4e3fa",
+              "cornerRadius": 12,
+              "stroke": "#007aff",
+              "strokeWidth": 1,
+              "gap": 14,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "j6i9x7",
+                  "name": "SF Symbol · keyboard",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Keyboard-blue.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "t3LNF",
+                  "name": "Keyboard details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h0Hjgv",
+                      "name": "Keyboard name",
+                      "fill": "#080909",
+                      "content": "Office Keyboard",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 13.5,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ZjWcL",
+                      "name": "Connection status",
+                      "fill": "#565959",
+                      "content": "Keychron K2 - Active",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PlZUF",
+                  "name": "Layout badge US",
+                  "width": 28,
+                  "height": 24,
+                  "cornerRadius": 6,
+                  "stroke": "#c6c8c8",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "cQZcU",
+                      "name": "Layout code",
+                      "fill": "#565959",
+                      "content": "US",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Vvjkf",
+              "name": "Keyboard item / Light / Disconnected",
+              "theme": {
+                "mode": "light"
+              },
+              "reusable": true,
+              "width": "fill_container",
+              "height": 62,
+              "cornerRadius": 12,
+              "gap": 14,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "W8vapW",
+                  "name": "SF Symbol · keyboard",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Keyboard-muted-light.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "v1fhV",
+                  "name": "Keyboard details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ZUY25",
+                      "name": "Keyboard name",
+                      "fill": "#7e8080",
+                      "content": "Travel Keyboard",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 13.5,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dT9Z5",
+                      "name": "Connection status",
+                      "fill": "#999c9d",
+                      "content": "HHKB Professional - Disconnected",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "p28fG",
+                  "name": "Layout badge DE",
+                  "width": 28,
+                  "height": 24,
+                  "cornerRadius": 6,
+                  "stroke": "#dcdfdf",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "z3alz",
+                      "name": "Layout code",
+                      "fill": "#999c9d",
+                      "content": "DE",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "RRh3v",
+          "name": "Dark variants",
+          "width": 336,
+          "fill": "#232323",
+          "cornerRadius": 16,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 19,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ncWbU",
+              "name": "Keyboard item / Dark / Built-in",
+              "theme": {
+                "mode": "dark"
+              },
+              "reusable": true,
+              "width": "fill_container",
+              "height": 62,
+              "cornerRadius": 12,
+              "gap": 14,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "oGjBs",
+                  "name": "SF Symbol · keyboard",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Keyboard-dark.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "A3IvN5",
+                  "name": "Keyboard details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rr6e5",
+                      "name": "Keyboard name",
+                      "fill": "#f1f1f3",
+                      "content": "MacBook Keyboard",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 13.5,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ImFOs",
+                      "name": "Connection status",
+                      "fill": "#bdbdc2",
+                      "content": "Built-in",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "fMmgh",
+                  "name": "Layout badge IT",
+                  "width": 28,
+                  "height": 24,
+                  "cornerRadius": 6,
+                  "stroke": "#626266",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "k9ZVW",
+                      "name": "Layout code",
+                      "fill": "#bdbdc2",
+                      "content": "IT",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "npvgt",
+              "name": "Keyboard item / Dark / Active",
+              "theme": {
+                "mode": "dark"
+              },
+              "reusable": true,
+              "width": "fill_container",
+              "height": 62,
+              "fill": "#243d5d",
+              "cornerRadius": 12,
+              "stroke": "#007aff",
+              "strokeWidth": 1,
+              "gap": 14,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "V0okv4",
+                  "name": "SF Symbol · keyboard",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Keyboard-blue.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "cMUOL",
+                  "name": "Keyboard details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ycfTI",
+                      "name": "Keyboard name",
+                      "fill": "#f1f1f3",
+                      "content": "Office Keyboard",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 13.5,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "m308Eg",
+                      "name": "Connection status",
+                      "fill": "#bdbdc2",
+                      "content": "Keychron K2 - Active",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "u2YdA",
+                  "name": "Layout badge US",
+                  "width": 28,
+                  "height": 24,
+                  "cornerRadius": 6,
+                  "stroke": "#626266",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tZ7Tf",
+                      "name": "Layout code",
+                      "fill": "#bdbdc2",
+                      "content": "US",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SbH6D",
+              "name": "Keyboard item / Dark / Disconnected",
+              "theme": {
+                "mode": "dark"
+              },
+              "reusable": true,
+              "width": "fill_container",
+              "height": 62,
+              "cornerRadius": 12,
+              "gap": 14,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "S2t9w",
+                  "name": "SF Symbol · keyboard",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "design-assets/Keyboard-muted-dark.png",
+                    "mode": "contain"
+                  },
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "o4saQw",
+                  "name": "Keyboard details",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "g9a1Su",
+                      "name": "Keyboard name",
+                      "fill": "#99999d",
+                      "content": "Travel Keyboard",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 13.5,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "H8XMY",
+                      "name": "Connection status",
+                      "fill": "#79797d",
+                      "content": "HHKB Professional - Disconnected",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TQb9S",
+                  "name": "Layout badge DE",
+                  "width": 28,
+                  "height": 24,
+                  "cornerRadius": 6,
+                  "stroke": "#414144",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SuDpI",
+                      "name": "Layout code",
+                      "fill": "#79797d",
+                      "content": "DE",
+                      "fontFamily": "SF Pro",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "h3mEIW",
+      "type": "ref",
+      "ref": "WIU7y",
+      "x": 3428,
+      "y": -240
+    },
+    {
+      "id": "dikCg",
+      "type": "ref",
+      "ref": "L9Tpp",
+      "name": "Keyameleon / Menu bar / Light · Paused",
+      "x": 3042,
+      "y": -756,
+      "descendants": {
+        "GEV6b": {
+          "type": "frame",
+          "id": "U0smk",
+          "name": "Title",
+          "gap": 4,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Tsbbd",
+              "name": "App name",
+              "fill": "#080909",
+              "content": "Keyameleon",
+              "fontFamily": "SF Pro",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "j4o8CT",
+              "name": "Paused note",
+              "opacity": 0.55,
+              "fill": "#080909",
+              "content": "(Paused)",
+              "fontFamily": "SF Pro",
+              "fontSize": 14,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        "am6TW": {
+          "name": "Resume Switching"
+        },
+        "vgwuI": {
+          "name": "SF Symbol · play.fill",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "design-assets/Resume-light.png",
+            "mode": "contain"
+          }
+        },
+        "S3VHMB": {
+          "content": "Resume Switching"
+        }
+      }
+    },
+    {
+      "id": "a4Lhh5",
+      "type": "ref",
+      "ref": "WIU7y",
+      "name": "Keyameleon / Menu bar / Dark · Paused",
+      "x": 3442,
+      "y": -756,
+      "descendants": {
+        "ZzOMu": {
+          "type": "frame",
+          "id": "LOYKC",
+          "name": "Title",
+          "gap": 4,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Hesum",
+              "name": "App name",
+              "fill": "#f1f1f3",
+              "content": "Keyameleon",
+              "fontFamily": "SF Pro",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "ZK4dc",
+              "name": "Paused note",
+              "opacity": 0.55,
+              "fill": "#f1f1f3",
+              "content": "(Paused)",
+              "fontFamily": "SF Pro",
+              "fontSize": 14,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        "i3IoC": {
+          "name": "Resume Switching"
+        },
+        "N3shWs": {
+          "name": "SF Symbol · play.fill",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "design-assets/Resume-dark.png",
+            "mode": "contain"
+          }
+        },
+        "AR1GN": {
+          "content": "Resume Switching"
+        }
+      }
+    }
+  ],
+  "themes": {
+    "mode": [
+      "light",
+      "dark"
+    ]
+  },
+  "variables": {
+    "divider": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#a6aaaa66",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#78787c66",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    }
+  },
+  "fileToken": "bd679dd2-580d-4944-953f-d2e24a908f77",
+  "fonts": [
+    {
+      "name": "SF Compact",
+      "url": "design-assets/SF-Compact-Italic.ttf",
+      "style": "italic",
+      "weight": [
+        1,
+        1000
+      ],
+      "axes": [
+        {
+          "tag": "opsz",
+          "start": 19,
+          "end": 19
+        },
+        {
+          "tag": "wght",
+          "start": 1,
+          "end": 1000
+        }
+      ]
+    },
+    {
+      "name": "SF Compact",
+      "url": "design-assets/SF-Compact.ttf",
+      "weight": [
+        1,
+        1000
+      ],
+      "axes": [
+        {
+          "tag": "opsz",
+          "start": 19,
+          "end": 20
+        },
+        {
+          "tag": "wght",
+          "start": 1,
+          "end": 1000
+        }
+      ]
+    },
+    {
+      "name": "SF Pro",
+      "url": "design-assets/SF-Pro.ttf",
+      "weight": [
+        1,
+        1000
+      ],
+      "axes": [
+        {
+          "tag": "opsz",
+          "start": 17,
+          "end": 28
+        },
+        {
+          "tag": "wght",
+          "start": 1,
+          "end": 1000
+        }
+      ]
+    },
+    {
+      "name": "SF Pro",
+      "url": "design-assets/SF-Pro-Italic.ttf",
+      "style": "italic",
+      "weight": [
+        1,
+        1000
+      ],
+      "axes": [
+        {
+          "tag": "opsz",
+          "start": 17,
+          "end": 28
+        },
+        {
+          "tag": "wght",
+          "start": 1,
+          "end": 1000
+        }
+      ]
+    }
+  ]
+}
