@@ -61,8 +61,16 @@ not start live CoreHID observation or the menu-bar status item. Detect them
 with `XCTestConfigurationFilePath` or `XCTestBundlePath`. See
 `docs/adr/0005-hosted-unit-tests-skip-live-surface.md`.
 
-Hosted tests and Xcode previews use in-memory SwiftData storage. Store relocation
-tests use disposable directories and must never migrate the user's real data.
+Hosted app startup and Xcode previews use in-memory SwiftData storage. Store
+relocation and persistence failure tests use disposable directories and must
+never migrate or modify the user's real data.
+
+Saved Physical Keyboard changes are tested through the
+`SavedPhysicalKeyboardChanges` interface with the real SwiftData adapters. The
+tests cover rollback across both stores, exact Retry, blocked competing changes,
+and notifications after commit for rename, assignment, replacement, forget, and
+designation. Model tests cover the displayed failure, opening recovery, and
+designation cancellation without canceling an unrelated pending change.
 
 CI uses one stable required check, `Required CI gate`, with two paths:
 

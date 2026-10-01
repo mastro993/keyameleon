@@ -111,13 +111,7 @@ final class KeyameleonSetupModel {
     private(set) var isWaitingForListenPermission = false
 
     private(set) var persistenceError: String?
-    private enum PersistenceChangeKind {
-        case keyboardRecord
-        case manualDesignation
-    }
-
-    private var pendingPersistenceRetry: (kind: PersistenceChangeKind, retry: () -> Void)?
-    private let persistenceSession: SwiftDataPersistenceSession?
+    private let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     private var savedIdentityKeys: Set<String> = []
 
     var onGuidedSetupCompleted: (() -> Void)?
@@ -148,10 +142,9 @@ final class KeyameleonSetupModel {
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
         exclusionStore: any PhysicalKeyboardExclusionStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding,
-        persistenceSession: SwiftDataPersistenceSession? = nil
+        savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     ) {
-        self.persistenceSession = persistenceSession
-            ?? (physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore)?.session
+        self.savedPhysicalKeyboardChanges = savedPhysicalKeyboardChanges
         self.activityTriggeredSwitching = activityTriggeredSwitching
         self.setupStore = setupStore
         self.systemSettingsOpener = systemSettingsOpener
@@ -190,7 +183,7 @@ final class KeyameleonSetupModel {
         eligibleInputSources = inputSources.eligibleInputSources
     }
 
-    /// Compatibility composition initializer for focused adapter tests.
+    /// Composition initializer for focused adapter tests.
     /// Production composition uses the concrete module initializer above.
     convenience init(
         permissionProvider: any ListenPermissionProviding,
@@ -212,8 +205,7 @@ final class KeyameleonSetupModel {
         exclusionStore: any PhysicalKeyboardExclusionStoring =
             InMemoryPhysicalKeyboardExclusionStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
-            InMemoryInstallationIntegrityKeyProvider(),
-        persistenceSession: SwiftDataPersistenceSession? = nil
+            InMemoryInstallationIntegrityKeyProvider()
     ) {
         let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
@@ -239,7 +231,7 @@ final class KeyameleonSetupModel {
             designationStore: composition.designationStore,
             exclusionStore: composition.exclusionStore,
             integrityKeyProvider: composition.integrityKeyProvider,
-            persistenceSession: persistenceSession
+            savedPhysicalKeyboardChanges: composition.savedPhysicalKeyboardChanges
         )
     }
 
@@ -348,16 +340,9 @@ final class KeyameleonSetupModel {
             return
         }
 
-        performPersistenceChange(operation: { [physicalKeyboardRecordStore] in
-            try physicalKeyboardRecordStore.saveName(
-                identityKey: physicalKeyboard.id.rawValue,
-                productName: physicalKeyboard.productName,
-                customName: customName
-            )
-        }, onSuccess: { [weak self] in
-            guard let self else { return }
-            publishPhysicalKeyboards()
-        })
+        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(
+            .rename(keyboard: physicalKeyboard, customName: customName)
+        ))
     }
 
     func setKeyboardAssignment(
@@ -372,22 +357,9 @@ final class KeyameleonSetupModel {
         }
 
         let assignment = inputSourceIdentifier.flatMap(KeyboardAssignment.init)
-        performPersistenceChange(operation: { [physicalKeyboardRecordStore] in
-            try physicalKeyboardRecordStore.saveAssignment(
-                identityKey: physicalKeyboard.id.rawValue,
-                productName: physicalKeyboard.productName,
-                assignment: assignment
-            )
-        }, onSuccess: { [weak self] in
-            guard let self else { return }
-            KeyameleonLog.debug(
-                .setup,
-                assignment == nil
-                    ? "Keyboard Assignment removed for \(physicalKeyboard.name)"
-                    : "Keyboard Assignment saved for \(physicalKeyboard.name)"
-            )
-            publishPhysicalKeyboards()
-        })
+        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(
+            .assign(keyboard: physicalKeyboard, assignment: assignment)
+        ))
     }
 
     func canForgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
@@ -429,26 +401,9 @@ final class KeyameleonSetupModel {
             return
         }
 
-        performPersistenceChange(operation: { [physicalKeyboardRecordStore, designationStore] in
-            try physicalKeyboardRecordStore.transferRecord(
-                fromIdentityKey: disconnectedID.rawValue,
-                toIdentityKey: connectedID.rawValue,
-                productName: connected.productName
-            )
-            try designationStore.delete(identityKey: disconnectedID.rawValue)
-        }, onSuccess: { [weak self] in
-            guard let self else { return }
-            KeyameleonLog.debug(
-                .setup,
-                "Moved the saved Physical Keyboard record to \(disconnected.name)"
-            )
-            lastKnownPhysicalKeyboards.removeValue(forKey: disconnectedID.rawValue)
-            activityTriggeredSwitching.replaceActivePhysicalKeyboard(
-                from: disconnectedID,
-                to: connectedID
-            )
-            publishPhysicalKeyboards()
-        })
+        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(
+            .replace(old: disconnected, new: connected)
+        ))
     }
 
     func forgetConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
@@ -488,29 +443,15 @@ final class KeyameleonSetupModel {
     }
 
     func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
-        guard physicalKeyboards.contains(where: { $0.id == physicalKeyboardID }),
+        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
               physicalKeyboardID.isIdentityBased
         else {
             return
         }
 
-        let forgottenName = physicalKeyboards
-            .first { $0.id == physicalKeyboardID }?
-            .name ?? "name unknown"
-        performPersistenceChange(operation: { [physicalKeyboardRecordStore, designationStore] in
-            try physicalKeyboardRecordStore.deleteRecord(identityKey: physicalKeyboardID.rawValue)
-            try designationStore.delete(identityKey: physicalKeyboardID.rawValue)
-        }, onSuccess: { [weak self] in
-            guard let self else { return }
-            KeyameleonLog.debug(.setup, "Forgot Physical Keyboard (\(forgottenName))")
-            lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
-            cancelManualDesignationIfMatching(physicalKeyboardID)
-            activityTriggeredSwitching.forgetPhysicalKeyboard(physicalKeyboardID)
-            publishPhysicalKeyboards()
-        })
+        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(.forget(keyboard: physicalKeyboard)))
     }
 
-    /// True for every listed device a person can exclude.
     func canExcludePhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
         exclusionKey(for: physicalKeyboardID) != nil
     }
@@ -600,8 +541,7 @@ final class KeyameleonSetupModel {
     }
 
     func cancelManualDesignation() {
-        if pendingPersistenceRetry?.kind == .manualDesignation {
-            pendingPersistenceRetry = nil
+        if savedPhysicalKeyboardChanges.cancelPendingDesignation() {
             persistenceError = nil
         }
         manualDesignationPhase = .idle
@@ -625,27 +565,13 @@ final class KeyameleonSetupModel {
             confirmedName: confirmedName,
             integrityKey: integrityKeyProvider.integrityKey()
         )
-        performPersistenceChange(
-            kind: .manualDesignation,
-            operation: { [physicalKeyboardRecordStore, designationStore] in
-            try designationStore.save(
-                SavedManualPhysicalKeyboardDesignation(
-                    identityKey: recordID.rawValue,
-                    productName: productName,
-                    confirmedName: confirmedName,
-                    authenticationTag: tag
-                )
-            )
-            try physicalKeyboardRecordStore.saveName(
-                identityKey: recordID.rawValue,
-                productName: productName,
-                customName: confirmedName
-            )
-        }, onSuccess: { [weak self] in
-            guard let self else { return }
-            manualDesignationPhase = .idle
-            publishPhysicalKeyboards()
-        })
+        let designation = SavedManualPhysicalKeyboardDesignation(
+            identityKey: recordID.rawValue,
+            productName: productName,
+            confirmedName: confirmedName,
+            authenticationTag: tag
+        )
+        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(.designate(designation)))
     }
 
     func manualDesignationStatusText() -> String? {
@@ -740,9 +666,9 @@ final class KeyameleonSetupModel {
     private func publishPhysicalKeyboards() {
         do {
             try readPhysicalKeyboards()
-            if pendingPersistenceRetry == nil { persistenceError = nil }
+            if !savedPhysicalKeyboardChanges.hasPendingChange { persistenceError = nil }
         } catch {
-            if pendingPersistenceRetry == nil {
+            if !savedPhysicalKeyboardChanges.hasPendingChange {
                 persistenceError = "Saved Physical Keyboards are unavailable. "
                     + "Check available disk space and access to your user Library, then retry."
             }
@@ -826,36 +752,47 @@ final class KeyameleonSetupModel {
     }
 
     func retryPersistenceOperation() {
-        persistenceSession?.retryOpening()
-        if let retry = pendingPersistenceRetry {
-            pendingPersistenceRetry = nil
-            retry.retry()
-        } else {
+        let result = savedPhysicalKeyboardChanges.retry()
+        if case .nothingPending = result {
             publishPhysicalKeyboards()
+        } else {
+            finishSavedPhysicalKeyboardChange(result)
         }
         activityTriggeredSwitching.retryPersistenceRead()
     }
 
-    private func performPersistenceChange(
-        kind: PersistenceChangeKind = .keyboardRecord,
-        operation: @escaping () throws -> Void,
-        onSuccess: @escaping () -> Void
-    ) {
-        guard pendingPersistenceRetry == nil else { return }
-        do {
-            if let persistenceSession {
-                try persistenceSession.transaction(operation)
-            } else {
-                try operation()
-            }
+    private func finishSavedPhysicalKeyboardChange(_ result: SavedPhysicalKeyboardChangeResult) {
+        switch result {
+        case let .committed(change):
             persistenceError = nil
-            onSuccess()
-        } catch {
-            pendingPersistenceRetry = (kind, { [weak self] in
-                self?.performPersistenceChange(kind: kind, operation: operation, onSuccess: onSuccess)
-            })
+            switch change {
+            case .rename:
+                break
+            case let .assign(keyboard, assignment):
+                KeyameleonLog.debug(
+                    .setup,
+                    assignment == nil
+                        ? "Keyboard Assignment removed for \(keyboard.name)"
+                        : "Keyboard Assignment saved for \(keyboard.name)"
+                )
+            case let .replace(old, new):
+                KeyameleonLog.debug(.setup, "Moved the saved Physical Keyboard record to \(old.name)")
+                lastKnownPhysicalKeyboards.removeValue(forKey: old.id.rawValue)
+                activityTriggeredSwitching.replaceActivePhysicalKeyboard(from: old.id, to: new.id)
+            case let .forget(keyboard):
+                KeyameleonLog.debug(.setup, "Forgot Physical Keyboard (\(keyboard.name))")
+                lastKnownPhysicalKeyboards.removeValue(forKey: keyboard.id.rawValue)
+                cancelManualDesignationIfMatching(keyboard.id)
+                activityTriggeredSwitching.forgetPhysicalKeyboard(keyboard.id)
+            case .designate:
+                manualDesignationPhase = .idle
+            }
+            publishPhysicalKeyboards()
+        case .failed:
             persistenceError = "Your change was not saved. Previous saved records are unchanged. "
                 + "Check available disk space and access to your user Library, then retry."
+        case .blocked, .nothingPending:
+            break
         }
     }
 

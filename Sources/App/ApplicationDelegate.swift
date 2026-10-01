@@ -120,7 +120,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
             designationStore: composition.designationStore,
             exclusionStore: composition.exclusionStore,
-            integrityKeyProvider: composition.integrityKeyProvider
+            integrityKeyProvider: composition.integrityKeyProvider,
+            savedPhysicalKeyboardChanges: composition.savedPhysicalKeyboardChanges
         )
         generalSettingsModel = KeyameleonGeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
