@@ -167,6 +167,7 @@ class ReleaseEvidenceTests(unittest.TestCase):
             )
 
             evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            self.assertEqual(evidence["licenseSPDXIdentifier"], "MIT")
             self.assertEqual(evidence["artifactFileName"], "Keyameleon-1.2.3.dmg")
             self.assertEqual(
                 evidence["feedURLString"],

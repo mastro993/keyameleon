@@ -20,7 +20,7 @@ The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 
 ## License
 
-- SPDX: `GPL-3.0-only` (`LICENSE`)
+- SPDX: `MIT` (`LICENSE`)
 - Third-party: `THIRD_PARTY_NOTICES.md`
 
 Every build bundles `Contents/Resources/Licenses/` inside Keyameleon.app:

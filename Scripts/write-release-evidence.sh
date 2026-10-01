@@ -80,7 +80,7 @@ import sys
 
 evidence = {
     "product": "Keyameleon",
-    "licenseSPDXIdentifier": "GPL-3.0-only",
+    "licenseSPDXIdentifier": "MIT",
     "tag": tag,
     "semanticVersion": version,
     "gitCommit": commit,

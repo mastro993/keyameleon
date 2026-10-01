@@ -1,6 +1,6 @@
 # Third-party notices
 
-Keyameleon is licensed under `GPL-3.0-only`. This file lists third-party software
+Keyameleon is licensed under `MIT`. This file lists third-party software
 distributed with or linked into Keyameleon Official Release artifacts.
 
 ## Sparkle
@@ -19,7 +19,7 @@ licenses. The build checks the binary distribution version against
 embedded framework version too.
 
 Choose **Licenses and Notices** in either About screen to read these texts
-offline, alongside Keyameleon's GPL license and this index. The repository's
+offline, alongside Keyameleon's MIT license and this index. The repository's
 `LICENSE` and this file are the sources for `LICENSE.txt` and
 `THIRD_PARTY_NOTICES.md` in the same bundled folder.
 

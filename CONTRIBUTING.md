@@ -2,7 +2,7 @@
 
 ## License
 
-Keyameleon is `GPL-3.0-only`. By contributing, you agree your contribution is
+Keyameleon is `MIT`. By contributing, you agree your contribution is
 licensed under the same terms. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
 License obligations are tracked by those two files; CI does not run a separate
 license scanner.

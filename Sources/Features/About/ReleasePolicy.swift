@@ -3,7 +3,7 @@ import Foundation
 /// Product rules for Official Release tags, evidence, and Supported Release boundary.
 enum KeyameleonReleasePolicy {
     /// SPDX identifier for V1 distribution.
-    static let licenseSPDXIdentifier = "GPL-3.0-only"
+    static let licenseSPDXIdentifier = "MIT"
 
     /// Only the latest Official Release receives maintenance.
     static let supportedReleaseIsLatestOnly = true

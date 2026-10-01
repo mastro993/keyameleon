@@ -34,9 +34,9 @@ func releaseArtifactNamesUseProductAndVersion() {
     #expect(KeyameleonReleasePolicy.evidenceFileName == "release-evidence.json")
 }
 
-@Test("Release policy records GPL-3.0-only and latest-only Supported Release")
+@Test("Release policy records MIT and latest-only Supported Release")
 func releasePolicyRecordsLicenseAndSupportedBoundary() {
-    #expect(KeyameleonReleasePolicy.licenseSPDXIdentifier == "GPL-3.0-only")
+    #expect(KeyameleonReleasePolicy.licenseSPDXIdentifier == "MIT")
     #expect(KeyameleonReleasePolicy.supportedReleaseIsLatestOnly)
 }
 
@@ -53,7 +53,7 @@ func releaseEvidenceBindsArtifactHashToTag() throws {
     )
 
     #expect(evidence.product == "Keyameleon")
-    #expect(evidence.licenseSPDXIdentifier == "GPL-3.0-only")
+    #expect(evidence.licenseSPDXIdentifier == "MIT")
     #expect(evidence.tag == "v1.4.0")
     #expect(evidence.semanticVersion == "1.4.0")
     #expect(evidence.gitCommit == "abc123def456")
