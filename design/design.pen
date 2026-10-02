@@ -2,6 +2,30 @@
   "version": "2.20",
   "children": [
     {
+      "type": "rectangle",
+      "id": "Rf7r2",
+      "x": 4575,
+      "y": -3993,
+      "name": "Desktop",
+      "reusable": true,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "design-assets/Screenshot%202026-10-01%20alle%2014.44.29.png",
+        "mode": "cover",
+        "transform": [
+          2.241296,
+          0,
+          0,
+          1.998716,
+          -1.241296,
+          0
+        ]
+      },
+      "width": 1235.0000000000005,
+      "height": 778.9999999999994
+    },
+    {
       "type": "frame",
       "id": "L9Tpp",
       "x": 3042,
@@ -14,10 +38,14 @@
       "clip": true,
       "width": 320,
       "height": 382,
-      "fill": "#f6f7f7",
+      "fill": "#f6f7f7cc",
       "cornerRadius": 20,
       "stroke": "#ffffff",
       "strokeWidth": 1,
+      "effect": {
+        "type": "background_blur",
+        "radius": 10
+      },
       "layout": "vertical",
       "padding": [
         0,
@@ -578,71 +606,26 @@
       "type": "frame",
       "id": "T8fUZh",
       "x": 3834,
-      "y": -1564,
+      "y": -704,
       "name": "Frame 1",
-      "width": 2768,
-      "height": 1557,
+      "width": 1234,
+      "height": 777,
       "layout": "none",
       "children": [
         {
-          "type": "rectangle",
-          "id": "Rf7r2",
+          "id": "OfFCn",
+          "type": "ref",
+          "ref": "Rf7r2",
           "x": 0,
-          "y": 0,
-          "fill": {
-            "type": "image",
-            "enabled": true,
-            "url": "design-assets/Screenshot%202026-10-01%20alle%2014.44.29.png",
-            "mode": "cover"
-          },
-          "width": 2768,
-          "height": 1557
+          "y": 0
         },
         {
           "id": "wz6ME",
           "type": "ref",
           "ref": "WIU7y",
-          "x": 2087,
-          "y": 41,
+          "x": 618,
+          "y": 49,
           "fill": "#232323bf"
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "DLD7T",
-      "x": 3834,
-      "y": 142,
-      "name": "Frame 2",
-      "width": 2768,
-      "height": 1557,
-      "layout": "none",
-      "children": [
-        {
-          "type": "rectangle",
-          "id": "E7FCnn",
-          "x": 0,
-          "y": 0,
-          "fill": {
-            "type": "image",
-            "enabled": true,
-            "url": "design-assets/Screenshot%202026-10-01%20alle%2014.44.29.png",
-            "mode": "cover"
-          },
-          "width": 2768,
-          "height": 1557
-        },
-        {
-          "id": "IArmv",
-          "type": "ref",
-          "ref": "L9Tpp",
-          "x": 2115,
-          "y": 47,
-          "fill": "#f6f7f7bf",
-          "effect": {
-            "type": "background_blur",
-            "radius": 10
-          }
         }
       ]
     },
@@ -731,23 +714,29 @@
                   "type": "frame",
                   "id": "sdRYG",
                   "name": "Layout badge IT",
-                  "width": 30,
-                  "height": 20,
+                  "context": "Badge that shows the keyboard local (IT, US, ED, etch)",
+                  "width": 24,
+                  "height": 16,
                   "cornerRadius": 6,
                   "stroke": "#565959",
                   "strokeWidth": 1,
-                  "justifyContent": "center",
-                  "alignItems": "center",
+                  "layout": "none",
                   "children": [
                     {
                       "type": "text",
                       "id": "FIDnW",
+                      "x": 0,
+                      "y": 0,
                       "name": "Layout code",
                       "fill": "#565959",
+                      "textGrowth": "fixed-width-height",
+                      "width": 24,
+                      "height": 16,
                       "content": "IT",
+                      "textAlign": "center",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11,
-                      "fontWeight": "500"
+                      "fontSize": 13.5,
+                      "fontWeight": "600"
                     }
                   ]
                 }
@@ -819,25 +808,30 @@
                 },
                 {
                   "type": "frame",
-                  "id": "PlZUF",
-                  "name": "Layout badge US",
-                  "width": 30,
-                  "height": 20,
+                  "id": "R1cyc",
+                  "name": "Layout badge IT",
+                  "context": "Badge that shows the keyboard local (IT, US, ED, etch)",
+                  "width": 24,
+                  "height": 16,
                   "cornerRadius": 6,
                   "stroke": "#565959",
                   "strokeWidth": 1,
-                  "justifyContent": "center",
-                  "alignItems": "center",
+                  "layout": "none",
                   "children": [
                     {
                       "type": "text",
-                      "id": "cQZcU",
+                      "id": "GwgU1",
+                      "x": 0,
+                      "y": 0,
                       "name": "Layout code",
                       "fill": "#565959",
+                      "textGrowth": "fixed-width",
+                      "width": 24,
                       "content": "US",
+                      "textAlign": "center",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11,
-                      "fontWeight": "500"
+                      "fontSize": 13.5,
+                      "fontWeight": "600"
                     }
                   ]
                 }
@@ -908,8 +902,8 @@
                   "type": "frame",
                   "id": "p28fG",
                   "name": "Layout badge DE",
-                  "width": 30,
-                  "height": 20,
+                  "width": 24,
+                  "height": 16,
                   "cornerRadius": 6,
                   "stroke": "#999c9d",
                   "strokeWidth": 1,
@@ -921,9 +915,12 @@
                       "id": "z3alz",
                       "name": "Layout code",
                       "fill": "#999c9d",
+                      "textGrowth": "fixed-width",
+                      "width": 24,
                       "content": "DE",
+                      "textAlign": "center",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11,
+                      "fontSize": 12.5,
                       "fontWeight": "500"
                     }
                   ]
@@ -1320,6 +1317,2449 @@
           "content": "Resume Switching"
         }
       }
+    },
+    {
+      "type": "frame",
+      "id": "qRvxP",
+      "x": 3042,
+      "y": 1708,
+      "name": "Onboarding / Sidebar",
+      "reusable": true,
+      "clip": true,
+      "width": 295,
+      "height": 750,
+      "fill": [
+        {
+          "type": "image",
+          "enabled": true,
+          "url": "generated.webp",
+          "mode": "cover",
+          "transform": [
+            4.661017,
+            0,
+            0,
+            1,
+            -1.525424,
+            0
+          ]
+        },
+        "#0000002E"
+      ],
+      "layout": "vertical",
+      "padding": [
+        52,
+        34,
+        34,
+        34
+      ],
+      "justifyContent": "space_between",
+      "children": [
+        {
+          "type": "frame",
+          "id": "zqJ0r",
+          "name": "Wordmark",
+          "width": "fill_container",
+          "gap": 10,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "zMoHD",
+              "name": "Keyboard Icon",
+              "width": 22,
+              "height": 16,
+              "icon": "keyboard",
+              "library": "lucide",
+              "fill": "$text-on-sidebar"
+            },
+            {
+              "type": "text",
+              "id": "JH3dy",
+              "name": "Wordmark Text",
+              "fill": "$text-on-sidebar",
+              "content": "Keyameleon",
+              "fontFamily": "$font-sans",
+              "fontSize": 17,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nMnVI",
+          "name": "Sidebar Middle",
+          "width": "fill_container",
+          "height": 422,
+          "layout": "vertical",
+          "gap": 28,
+          "children": [
+            {
+              "type": "text",
+              "id": "smkMc",
+              "name": "Sidebar Headline",
+              "fill": "$text-on-sidebar",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "The right layout. On every keyboard.",
+              "lineHeight": 1.15,
+              "fontFamily": "$font-sans",
+              "fontSize": 27,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "frame",
+              "id": "y6Zc25",
+              "name": "Artwork Slot",
+              "width": "fill_container",
+              "height": 150,
+              "layout": "none"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "HDEba",
+          "name": "Sidebar Footer",
+          "fill": "$text-on-sidebar-muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "What you type is never saved, logged, or sent anywhere.",
+          "lineHeight": 1.45,
+          "fontFamily": "$font-sans",
+          "fontSize": 15,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "ellipse",
+          "id": "q8WLXt",
+          "layoutPosition": "absolute",
+          "x": 14,
+          "y": 13,
+          "name": "Traffic Light 1",
+          "fill": "#FF5F57",
+          "width": 12,
+          "height": 12
+        },
+        {
+          "type": "ellipse",
+          "id": "lBdEJ",
+          "layoutPosition": "absolute",
+          "x": 33,
+          "y": 13,
+          "name": "Traffic Light 2",
+          "fill": "#FEBC2E",
+          "width": 12,
+          "height": 12
+        },
+        {
+          "type": "ellipse",
+          "id": "ug4ac",
+          "layoutPosition": "absolute",
+          "x": 52,
+          "y": 13,
+          "name": "Traffic Light 3",
+          "fill": "#28C840",
+          "width": 12,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "UioMC",
+      "x": 3042,
+      "y": 2571,
+      "name": "Onboarding / 1 Permissions",
+      "clip": true,
+      "width": 1000,
+      "height": 750,
+      "fill": "$bg-window",
+      "cornerRadius": 16,
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "upyFn",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "c88Zza",
+              "type": "ref",
+              "ref": "qRvxP",
+              "name": "Sidebar",
+              "descendants": {
+                "y6Zc25": {
+                  "layout": "none",
+                  "width": 227,
+                  "height": 150,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ulGz5",
+                      "x": 41,
+                      "y": 2,
+                      "name": "App Icon",
+                      "width": 145,
+                      "height": 145,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 33,
+                      "stroke": "#E5E7EB",
+                      "strokeWidth": 1,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "nxUvG",
+                          "x": 30,
+                          "y": 30,
+                          "name": "Shield",
+                          "width": 84,
+                          "height": 84,
+                          "icon": "shield-fill",
+                          "library": "phosphor",
+                          "fill": "$accent"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "hOvte",
+                          "x": 55,
+                          "y": 55,
+                          "name": "Lock",
+                          "width": 34,
+                          "height": 34,
+                          "icon": "lock-fill",
+                          "library": "phosphor",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "aCJa7",
+              "name": "Panel",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$bg-window",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TVgBn",
+                  "name": "Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 28,
+                  "padding": [
+                    34,
+                    37,
+                    24,
+                    37
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "BWneL",
+                      "name": "Stepper",
+                      "width": "fill_container",
+                      "gap": 34,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hEQKW",
+                          "name": "Step 1",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "bULZx",
+                              "name": "Step Circle",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$accent",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "icFjf",
+                                  "name": "Step Number",
+                                  "fill": "#FFFFFF",
+                                  "content": "1",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "aLtXo",
+                              "name": "Step Label",
+                              "fill": "$text-primary",
+                              "content": "Permissions",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "ltF62",
+                          "name": "Connector 1",
+                          "fill": "$border",
+                          "width": 44,
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "l6DK9",
+                          "name": "Step 2",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "QLGk9",
+                              "name": "Step Circle",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$surface-chip",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "jLIzN",
+                                  "name": "Step Number",
+                                  "fill": "$text-secondary",
+                                  "content": "2",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "KwFI0",
+                              "name": "Step Label",
+                              "fill": "$text-secondary",
+                              "content": "Keyboards",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "E1WWc7",
+                          "name": "Connector 2",
+                          "fill": "$border",
+                          "width": 44,
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "NxJ2Z",
+                          "name": "Step 3",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "rgTKU",
+                              "name": "Step Circle",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$surface-chip",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "U997Dv",
+                                  "name": "Step Number",
+                                  "fill": "$text-secondary",
+                                  "content": "3",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "bivl0",
+                              "name": "Step Label",
+                              "fill": "$text-secondary",
+                              "content": "Ready",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Z7ptH7",
+                      "name": "Headline",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Let Keyameleon recognise your keyboards.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 32,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yOw0P",
+                      "name": "Paragraph",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Input Monitoring lets Keyameleon detect keyboard activity and select the assigned Input Source.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 19,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Njmjs",
+                      "name": "Requirement Card",
+                      "width": "fill_container",
+                      "fill": "$surface",
+                      "cornerRadius": 16,
+                      "stroke": "$border",
+                      "strokeWidth": 1,
+                      "gap": 20,
+                      "padding": [
+                        22,
+                        24
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "XgdpX",
+                          "name": "Shield Icon",
+                          "width": 40,
+                          "height": 40,
+                          "icon": "shield-fill",
+                          "library": "phosphor",
+                          "fill": "$accent"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "V0LH6c",
+                          "name": "Card Text",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Bj6Wg",
+                              "name": "Card Title",
+                              "fill": "$text-primary",
+                              "content": "Input Monitoring",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GzNAU",
+                              "name": "Card Subtitle",
+                              "fill": "$text-secondary",
+                              "content": "Required for automatic switching",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "BvNoN",
+                          "name": "Spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "H0ZGL",
+                          "name": "Chip",
+                          "fill": "$surface-chip",
+                          "cornerRadius": 999,
+                          "padding": [
+                            8,
+                            14
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "YhHdE",
+                              "name": "Chip Text",
+                              "fill": "$text-secondary",
+                              "content": "Required",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EjzLK",
+                      "name": "Steps List",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "PzFCZ",
+                          "name": "List Row 1",
+                          "width": "fill_container",
+                          "gap": 14,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "P4wER",
+                              "name": "Row Number",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$surface-chip",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "HXkog",
+                                  "name": "Number",
+                                  "fill": "$text-secondary",
+                                  "content": "1",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "Yz3EP",
+                              "name": "Row Text",
+                              "fill": "$text-primary",
+                              "content": "Open the macOS permission prompt.",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 17,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "epeF9",
+                          "name": "List Row 2",
+                          "width": "fill_container",
+                          "gap": 14,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "ROtzf",
+                              "name": "Row Number",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$surface-chip",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "N0hXy1",
+                                  "name": "Number",
+                                  "fill": "$text-secondary",
+                                  "content": "2",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "Q9Ty1p",
+                              "name": "Row Text",
+                              "fill": "$text-primary",
+                              "content": "Enable Keyameleon in Input Monitoring.",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 17,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "q9EPcA",
+                          "name": "List Row 3",
+                          "width": "fill_container",
+                          "gap": 14,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "r9hR5g",
+                              "name": "Row Number",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$surface-chip",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "iI3uU",
+                                  "name": "Number",
+                                  "fill": "$text-secondary",
+                                  "content": "3",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "gBpXi",
+                              "name": "Row Text",
+                              "fill": "$text-primary",
+                              "content": "Return here. Setup continues automatically.",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 17,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "f3oCq",
+                      "name": "Note",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Access can be changed later in System Settings.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 17,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "C5eT6",
+                  "name": "Footer Bar",
+                  "width": "fill_container",
+                  "fill": "$bg-window",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "rGzW8",
+                      "name": "Divider",
+                      "fill": "$border",
+                      "width": "fill_container",
+                      "height": 1
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AqZdz",
+                      "name": "Footer",
+                      "width": "fill_container",
+                      "padding": [
+                        16,
+                        37,
+                        18,
+                        37
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "EsTke",
+                          "name": "Footer Note",
+                          "fill": "$text-secondary",
+                          "content": "macOS will ask for permission.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 17,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "OUUgs",
+                          "type": "ref",
+                          "ref": "eWypo",
+                          "name": "Allow Input Monitoring",
+                          "descendants": {
+                            "p35zrj": {
+                              "content": "Allow Input Monitoring"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zq0o4",
+      "x": 4132,
+      "y": 2571,
+      "name": "Onboarding / 2 Keyboards",
+      "clip": true,
+      "width": 1000,
+      "height": 750,
+      "fill": "$bg-window",
+      "cornerRadius": 16,
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "g8e5UL",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "WvSwu",
+              "type": "ref",
+              "ref": "qRvxP",
+              "name": "Sidebar",
+              "descendants": {
+                "smkMc": {
+                  "content": "Give each keyboard its own layout."
+                },
+                "y6Zc25": {
+                  "type": "frame",
+                  "id": "Czt8t",
+                  "name": "Artwork Slot",
+                  "width": "fill_container",
+                  "height": 165,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rCFCj",
+                      "x": 8,
+                      "y": 28,
+                      "name": "Key Card IT",
+                      "rotation": -8,
+                      "width": 112,
+                      "height": 118,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 22,
+                      "stroke": "#E5E7EB",
+                      "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0F172A1F",
+                        "offset": {
+                          "x": 0,
+                          "y": 6
+                        },
+                        "blur": 16
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": [
+                        22,
+                        0,
+                        0,
+                        0
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jpXfW",
+                          "name": "Key Code",
+                          "fill": "$text-primary",
+                          "content": "IT",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 34,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "BlTiw",
+                          "name": "Key Icon",
+                          "width": 34,
+                          "height": 22,
+                          "icon": "keyboard",
+                          "library": "lucide",
+                          "fill": "$text-secondary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "F0TVEj",
+                      "x": 92,
+                      "y": 34,
+                      "name": "Key Card US",
+                      "rotation": 7,
+                      "width": 118,
+                      "height": 122,
+                      "fill": "$accent",
+                      "cornerRadius": 22,
+                      "stroke": "#0A7CFF00",
+                      "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0F172A1F",
+                        "offset": {
+                          "x": 0,
+                          "y": 6
+                        },
+                        "blur": 16
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": [
+                        22,
+                        0,
+                        0,
+                        0
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "wiExP",
+                          "name": "Key Code",
+                          "fill": "#FFFFFF",
+                          "content": "US",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 36,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "JcvhP",
+                          "name": "Key Icon",
+                          "width": 36,
+                          "height": 24,
+                          "icon": "keyboard",
+                          "library": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "HDEba": {
+                  "content": "Assignments stay on this Mac. Change them any time in Settings."
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "GB7Me",
+              "name": "Panel",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$bg-window",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YFXfV",
+                  "name": "Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": [
+                    34,
+                    37,
+                    24,
+                    37
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "D1CXvs",
+                      "name": "Stepper",
+                      "width": "fill_container",
+                      "gap": 34,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "LI8LF",
+                          "name": "Permissions Step",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "UBxKI",
+                              "name": "Step 1 Circle",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$accent",
+                              "cornerRadius": 13,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ZHm1Y",
+                                  "name": "Step Number",
+                                  "fill": "#FFFFFF",
+                                  "content": "1",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "w5B0nO",
+                              "name": "Step Label",
+                              "fill": "$text-secondary",
+                              "content": "Permissions",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "uFKvs",
+                          "name": "Connector 1",
+                          "fill": "$border",
+                          "width": 44,
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "gsjJv",
+                          "name": "Keyboards Step",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "qlzEz",
+                              "name": "Step 2 Circle",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$accent",
+                              "cornerRadius": 13,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "N3OkZ",
+                                  "name": "Step Number",
+                                  "fill": "#FFFFFF",
+                                  "content": "2",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "jC0Gi",
+                              "name": "Step Label",
+                              "fill": "$text-primary",
+                              "content": "Keyboards",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "rWBJK",
+                          "name": "Connector 2",
+                          "fill": "$border",
+                          "width": 44,
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fvp3N",
+                          "name": "Ready Step",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "wCbVF",
+                              "name": "Step 3 Circle",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$surface-chip",
+                              "cornerRadius": 13,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "OqPRZ",
+                                  "name": "Step Number",
+                                  "fill": "$text-secondary",
+                                  "content": "3",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "F9jlt",
+                              "name": "Step Label",
+                              "fill": "$text-secondary",
+                              "content": "Ready",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "mXb6o",
+                      "name": "Headline",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "An Input Source for every keyboard.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 32,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "M17uD",
+                      "name": "Paragraph",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Connect the keyboards you use with this Mac. You can finish assigning them later in Settings.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 19,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "NLzED",
+                      "name": "Column Header",
+                      "width": "fill_container",
+                      "padding": [
+                        0,
+                        22
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "aVxQ8",
+                          "name": "Header Physical",
+                          "fill": "$text-secondary",
+                          "content": "Physical Keyboard",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 15,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eAuLh",
+                          "name": "Header Right",
+                          "width": 176,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "TOhjt",
+                              "name": "Header Input Source",
+                              "fill": "$text-secondary",
+                              "content": "Input Source",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Frc4Y",
+                      "name": "Keyboard Assignments",
+                      "clip": true,
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 16,
+                      "stroke": "$border",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "AUlUU",
+                          "name": "MacBook Keyboard",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "padding": [
+                            18,
+                            22
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "b9t5L3",
+                              "name": "Keyboard Icon",
+                              "width": 24,
+                              "height": 24,
+                              "icon": "keyboard",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "exh4l",
+                              "name": "Labels",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "v8CAox",
+                                  "name": "Keyboard Name",
+                                  "fill": "$text-primary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "MacBook Keyboard",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "IMP45",
+                                  "name": "Keyboard Subtitle",
+                                  "fill": "$text-secondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Built-in",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "OTLcf",
+                              "name": "Input Source Select",
+                              "width": 176,
+                              "height": 38,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 10,
+                              "stroke": "#D1D5DB",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Io6QS",
+                                  "name": "Select Value",
+                                  "fill": "$text-primary",
+                                  "content": "Italian",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 16,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "PF9yo",
+                                  "name": "Select Chevron",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "chevrons-up-down",
+                                  "library": "lucide",
+                                  "fill": "$text-secondary"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "y0IOx",
+                          "name": "Hairline 1",
+                          "width": "fill_container",
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            22
+                          ],
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "id": "naH7t",
+                              "name": "Line",
+                              "fill": "$border",
+                              "width": "fill_container",
+                              "height": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "kCvIZ",
+                          "name": "Office Keyboard",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "padding": [
+                            18,
+                            22
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "JTKrt",
+                              "name": "Keyboard Icon",
+                              "width": 24,
+                              "height": 24,
+                              "icon": "keyboard",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "q7RlXK",
+                              "name": "Labels",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ytOXY",
+                                  "name": "Keyboard Name",
+                                  "fill": "$text-primary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Office Keyboard",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "VrYz0",
+                                  "name": "Keyboard Subtitle",
+                                  "fill": "$text-secondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Keychron K2 - Connected",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "rbugu",
+                              "name": "Input Source Select",
+                              "width": 176,
+                              "height": 38,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 10,
+                              "stroke": "#D1D5DB",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "EA9Y1",
+                                  "name": "Select Value",
+                                  "fill": "$text-primary",
+                                  "content": "U.S.",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 16,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "VZEE3",
+                                  "name": "Select Chevron",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "chevrons-up-down",
+                                  "library": "lucide",
+                                  "fill": "$text-secondary"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "I4pXpW",
+                          "name": "Hairline 2",
+                          "width": "fill_container",
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            22
+                          ],
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "id": "JHJ4Q",
+                              "name": "Line",
+                              "fill": "$border",
+                              "width": "fill_container",
+                              "height": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "BThEz",
+                          "name": "Travel Keyboard",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "padding": [
+                            18,
+                            22
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "kViyq",
+                              "name": "Keyboard Icon",
+                              "width": 24,
+                              "height": 24,
+                              "icon": "keyboard",
+                              "library": "lucide",
+                              "fill": "$text-muted"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "gkPvq",
+                              "name": "Labels",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "p8Pyx4",
+                                  "name": "Keyboard Name",
+                                  "fill": "$text-muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Travel Keyboard",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ADbiQ",
+                                  "name": "Keyboard Subtitle",
+                                  "fill": "$text-muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "HHKB Professional - Disconnected",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "KmGkY",
+                              "name": "Input Source Select",
+                              "width": 176,
+                              "height": 38,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 10,
+                              "stroke": "#D1D5DB",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "zysd9",
+                                  "name": "Select Value",
+                                  "fill": "$text-muted",
+                                  "content": "German",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 16,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "h8For",
+                                  "name": "Select Chevron",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "chevrons-up-down",
+                                  "library": "lucide",
+                                  "fill": "$text-secondary"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "DaNNh",
+                      "name": "Note",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Switching follows keyboard activity. Initial key presses may still use the previous Input Source.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 17,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "b9CE8",
+                  "name": "Footer Bar",
+                  "width": "fill_container",
+                  "fill": "$bg-window",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "Qjcnf",
+                      "name": "Divider",
+                      "fill": "$border",
+                      "width": "fill_container",
+                      "height": 1
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Lu1Jw",
+                      "name": "Footer",
+                      "width": "fill_container",
+                      "padding": [
+                        16,
+                        37,
+                        18,
+                        37
+                      ],
+                      "justifyContent": "end",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "n9aZhQ",
+                          "name": "Right Group",
+                          "gap": 28,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "Krasf",
+                              "type": "ref",
+                              "ref": "VPgvx",
+                              "name": "Set Up Later",
+                              "descendants": {
+                                "HBndS": {
+                                  "content": "Set Up Later"
+                                }
+                              }
+                            },
+                            {
+                              "id": "M4bJWP",
+                              "type": "ref",
+                              "ref": "eWypo",
+                              "name": "Continue",
+                              "descendants": {
+                                "p35zrj": {
+                                  "content": "Continue"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "DwT8D",
+      "x": 5222,
+      "y": 2571,
+      "name": "Onboarding / 3 Ready",
+      "clip": true,
+      "width": 1000,
+      "height": 750,
+      "fill": "$bg-window",
+      "cornerRadius": 16,
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "nTj7R",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "T8cEy",
+              "type": "ref",
+              "ref": "qRvxP",
+              "name": "Sidebar",
+              "descendants": {
+                "smkMc": {
+                  "content": "Less switching. More typing."
+                },
+                "y6Zc25": {
+                  "type": "frame",
+                  "id": "W39kEK",
+                  "name": "Artwork Slot",
+                  "width": 227,
+                  "height": 165,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "YsvQG",
+                      "x": 33,
+                      "y": 2,
+                      "name": "Check Halo",
+                      "fill": "$success-soft",
+                      "width": 161,
+                      "height": 161
+                    },
+                    {
+                      "type": "ellipse",
+                      "id": "BQiBc",
+                      "x": 57,
+                      "y": 26,
+                      "name": "Check Disc",
+                      "fill": "$success",
+                      "width": 113,
+                      "height": 113
+                    },
+                    {
+                      "type": "icon",
+                      "id": "G3Vzs1",
+                      "x": 89,
+                      "y": 58,
+                      "name": "Check Mark",
+                      "width": 49,
+                      "height": 49,
+                      "icon": "check",
+                      "library": "lucide",
+                      "weight": 600,
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                },
+                "HDEba": {
+                  "content": "Your assignments are saved. Keyameleon works from the menu bar."
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "nJvzb",
+              "name": "Panel",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$bg-window",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "C7tA37",
+                  "name": "Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": [
+                    34,
+                    37,
+                    24,
+                    37
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "UVJks",
+                      "name": "Stepper",
+                      "width": "fill_container",
+                      "gap": 34,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "bmbse",
+                          "name": "Step 1",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "W6CG1",
+                              "name": "Dot",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$accent",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Iseio",
+                                  "name": "Step Number",
+                                  "fill": "$text-secondary",
+                                  "content": "1",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "GyGl3",
+                              "name": "Step Label",
+                              "fill": "$text-secondary",
+                              "content": "Permissions",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "vVH2w",
+                          "name": "Connector",
+                          "fill": "$border",
+                          "width": 44,
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QwZeP",
+                          "name": "Step 2",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "bUr62",
+                              "name": "Dot",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$accent",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "FR3Wr",
+                                  "name": "Step Number",
+                                  "fill": "#FFFFFF",
+                                  "content": "2",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "kgzKx",
+                              "name": "Step Label",
+                              "fill": "$text-secondary",
+                              "content": "Keyboards",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "O0fiK",
+                          "name": "Connector",
+                          "fill": "$border",
+                          "width": 44,
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cZlX3",
+                          "name": "Step 3",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "fgrXH",
+                              "name": "Dot",
+                              "width": 26,
+                              "height": 26,
+                              "fill": "$accent",
+                              "cornerRadius": 999,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "H1pGT7",
+                                  "name": "Step Number",
+                                  "fill": "#FFFFFF",
+                                  "content": "3",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "m9dJp",
+                              "name": "Step Label",
+                              "fill": "$text-primary",
+                              "content": "Ready",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "x6WHUI",
+                      "name": "Headline",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "You’re ready to switch.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 32,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Imvzx",
+                      "name": "Paragraph",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Start typing on a keyboard. Keyameleon selects its assigned Input Source after it detects activity.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 19,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "TpKR3",
+                      "name": "Saved Row",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "co0bd",
+                          "name": "Saved Check",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "circle-check",
+                          "library": "lucide",
+                          "fill": "$success-text"
+                        },
+                        {
+                          "type": "text",
+                          "id": "V0sPD1",
+                          "name": "Saved Text",
+                          "fill": "$success-text",
+                          "content": "3 Keyboard Assignments saved",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 17,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "uGS7x",
+                      "name": "Menu Bar Preview",
+                      "clip": true,
+                      "width": "fill_container",
+                      "fill": "$preview-bg",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        18,
+                        22
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "i5pEF",
+                          "name": "Menu Bar",
+                          "width": "fill_container",
+                          "gap": 28,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "MUfNd",
+                              "name": "Input Source Icon",
+                              "width": 34,
+                              "height": 26,
+                              "fill": "#DCE2EC",
+                              "cornerRadius": 6,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "GvGZb",
+                                  "name": "Keyboard Glyph",
+                                  "width": 20,
+                                  "height": 14,
+                                  "icon": "keyboard",
+                                  "library": "lucide",
+                                  "fill": "$text-primary"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "EuyG5",
+                              "name": "Source Code",
+                              "fill": "$text-primary",
+                              "content": "US",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 17,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "B0wz4",
+                              "name": "Clock",
+                              "fill": "$text-primary",
+                              "content": "9:41",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 17,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "r9e6b",
+                          "name": "Popover Row",
+                          "width": "fill_container",
+                          "justifyContent": "end",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "xIIUc",
+                              "name": "Popover",
+                              "width": 321,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 14,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#0F172A1F",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 8
+                                },
+                                "blur": 24
+                              },
+                              "layout": "vertical",
+                              "gap": 8,
+                              "padding": [
+                                16,
+                                14
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "RmWyg",
+                                  "name": "Popover Title",
+                                  "fill": "$text-primary",
+                                  "content": "Keyameleon",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "rectangle",
+                                  "id": "sjWm6",
+                                  "name": "Popover Divider",
+                                  "fill": "$border",
+                                  "width": "fill_container",
+                                  "height": 1
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "BJZ1O",
+                                  "name": "Keyboard Rows",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "Bz5lt",
+                                      "name": "MacBook Keyboard",
+                                      "width": "fill_container",
+                                      "cornerRadius": 8,
+                                      "gap": 12,
+                                      "padding": [
+                                        8,
+                                        10
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "icon",
+                                          "id": "xXU4V",
+                                          "name": "Keyboard Glyph",
+                                          "width": 22,
+                                          "height": 16,
+                                          "icon": "keyboard",
+                                          "library": "lucide",
+                                          "fill": "$text-secondary"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "PiKPV",
+                                          "name": "Info",
+                                          "width": "fill_container",
+                                          "layout": "vertical",
+                                          "gap": 2,
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "l1IND",
+                                              "name": "NameMacBook Keyboard",
+                                              "fill": "$text-primary",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "MacBook Keyboard",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 16,
+                                              "fontWeight": "600"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "cBly2",
+                                              "name": "Sub",
+                                              "fill": "$text-secondary",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "Built-in",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "ZC5tD",
+                                          "name": "Code",
+                                          "fill": "$text-primary",
+                                          "content": "IT",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 15,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "ADV0A",
+                                      "name": "Office Keyboard",
+                                      "width": "fill_container",
+                                      "fill": "$accent-soft",
+                                      "cornerRadius": 8,
+                                      "gap": 12,
+                                      "padding": [
+                                        8,
+                                        10
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "icon",
+                                          "id": "hEdQa",
+                                          "name": "Keyboard Glyph",
+                                          "width": 22,
+                                          "height": 16,
+                                          "icon": "keyboard",
+                                          "library": "lucide",
+                                          "fill": "$accent"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "Jwmq8",
+                                          "name": "Info",
+                                          "width": "fill_container",
+                                          "layout": "vertical",
+                                          "gap": 2,
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "KebSc",
+                                              "name": "NameOffice Keyboard",
+                                              "fill": "$text-primary",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "Office Keyboard",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 16,
+                                              "fontWeight": "600"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "db6cR",
+                                              "name": "Sub",
+                                              "fill": "$text-secondary",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "Keychron K2 - Active",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "p9tRR",
+                                          "name": "Code",
+                                          "fill": "$accent",
+                                          "content": "US",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 15,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "l78KKr",
+                                      "name": "Travel Keyboard",
+                                      "width": "fill_container",
+                                      "cornerRadius": 8,
+                                      "gap": 12,
+                                      "padding": [
+                                        8,
+                                        10
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "icon",
+                                          "id": "YGCK8",
+                                          "name": "Keyboard Glyph",
+                                          "width": 22,
+                                          "height": 16,
+                                          "icon": "keyboard",
+                                          "library": "lucide",
+                                          "fill": "$text-muted"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "P8BJRS",
+                                          "name": "Info",
+                                          "width": "fill_container",
+                                          "layout": "vertical",
+                                          "gap": 2,
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "zmL65",
+                                              "name": "NameTravel Keyboard",
+                                              "fill": "$text-muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "Travel Keyboard",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 16,
+                                              "fontWeight": "600"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "fJ1Q4",
+                                              "name": "Sub",
+                                              "fill": "$text-muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "HHKB Professional - Disconnected",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "nOhiw",
+                                          "name": "Code",
+                                          "fill": "$text-muted",
+                                          "content": "DE",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 15,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "P89Zt3",
+                      "name": "Menu Bar Hint",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Find Keyameleon in your menu bar.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 19,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "J0X97",
+                  "name": "Footer Bar",
+                  "width": "fill_container",
+                  "fill": "$bg-window",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "kwCf5",
+                      "name": "Divider",
+                      "fill": "$border",
+                      "width": "fill_container",
+                      "height": 1
+                    },
+                    {
+                      "type": "frame",
+                      "id": "lshzE",
+                      "name": "Footer",
+                      "width": "fill_container",
+                      "padding": [
+                        16,
+                        37,
+                        18,
+                        37
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "pQqWh",
+                          "type": "ref",
+                          "ref": "VAg13",
+                          "name": "Back",
+                          "descendants": {
+                            "qWRrZ": {
+                              "content": "Back"
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "i3svmS",
+                          "name": "Right Group",
+                          "gap": 28,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "oyXDt",
+                              "type": "ref",
+                              "ref": "VPgvx",
+                              "name": "Open Settings",
+                              "descendants": {
+                                "HBndS": {
+                                  "content": "Open Settings"
+                                }
+                              }
+                            },
+                            {
+                              "id": "vpu2S",
+                              "type": "ref",
+                              "ref": "eWypo",
+                              "name": "Finish",
+                              "descendants": {
+                                "p35zrj": {
+                                  "content": "Finish"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zTMzG",
+      "x": 3834,
+      "y": -1564,
+      "name": "Frame 1",
+      "width": 1234,
+      "height": 777,
+      "layout": "none",
+      "children": [
+        {
+          "id": "OBQ3f",
+          "type": "ref",
+          "ref": "Rf7r2",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "id": "tXhs5",
+          "type": "ref",
+          "ref": "L9Tpp",
+          "x": 618,
+          "y": 53
+        }
+      ]
+    },
+    {
+      "id": "lUrg7",
+      "type": "ref",
+      "ref": "L9Tpp",
+      "x": 6262,
+      "y": -3993
+    },
+    {
+      "type": "frame",
+      "id": "IVnvK",
+      "x": 6622,
+      "y": -3993,
+      "name": "Layout badge IT",
+      "context": "Badge that shows the keyboard local (IT, US, ED, etch)",
+      "width": 26,
+      "height": 18,
+      "cornerRadius": 6,
+      "stroke": "#565959",
+      "strokeWidth": 1,
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "FWsg3",
+          "x": 7,
+          "y": 1,
+          "name": "Layout code",
+          "fill": "#565959",
+          "content": "IT",
+          "fontFamily": "SF Pro",
+          "fontSize": 14,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "eWypo",
+      "x": 3042,
+      "y": 3441,
+      "name": "Onboarding / Button / Primary",
+      "reusable": true,
+      "fill": "$accent",
+      "cornerRadius": 10,
+      "padding": [
+        12,
+        24
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "p35zrj",
+          "name": "Label",
+          "fill": "$text-on-accent",
+          "content": "Continue",
+          "fontFamily": "$font-sans",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VAg13",
+      "x": 3262,
+      "y": 3441,
+      "name": "Onboarding / Button / Secondary",
+      "reusable": true,
+      "fill": "$bg-window",
+      "cornerRadius": 10,
+      "stroke": "$button-border",
+      "strokeWidth": 1,
+      "padding": [
+        12,
+        24
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "qWRrZ",
+          "name": "Label",
+          "fill": "$text-primary",
+          "content": "Back",
+          "fontFamily": "$font-sans",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VPgvx",
+      "x": 3502,
+      "y": 3441,
+      "name": "Onboarding / Button / Text",
+      "reusable": true,
+      "padding": [
+        12,
+        6
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "HBndS",
+          "name": "Label",
+          "fill": "$accent",
+          "content": "Set Up Later",
+          "fontFamily": "$font-sans",
+          "fontSize": 17,
+          "fontWeight": "600"
+        }
+      ]
     }
   ],
   "themes": {
@@ -1345,6 +3785,86 @@
           }
         }
       ]
+    },
+    "bg-window": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "bg-titlebar": {
+      "type": "color",
+      "value": "#F5F5F5"
+    },
+    "sidebar-bg": {
+      "type": "color",
+      "value": "#9CA1A7"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#111827"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#6B7280"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#9CA3AF"
+    },
+    "text-on-sidebar": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-on-sidebar-muted": {
+      "type": "color",
+      "value": "#E9EAEC"
+    },
+    "border": {
+      "type": "color",
+      "value": "#E5E7EB"
+    },
+    "surface": {
+      "type": "color",
+      "value": "#F7F8FA"
+    },
+    "surface-chip": {
+      "type": "color",
+      "value": "#E8EAEE"
+    },
+    "accent": {
+      "type": "color",
+      "value": "#0A7CFF"
+    },
+    "accent-soft": {
+      "type": "color",
+      "value": "#EAF1FE"
+    },
+    "preview-bg": {
+      "type": "color",
+      "value": "#EDF1F8"
+    },
+    "success": {
+      "type": "color",
+      "value": "#34A853"
+    },
+    "success-soft": {
+      "type": "color",
+      "value": "#E6F4EA"
+    },
+    "success-text": {
+      "type": "color",
+      "value": "#1A7F37"
+    },
+    "font-sans": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "text-on-accent": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "button-border": {
+      "type": "color",
+      "value": "#D1D5DB"
     }
   },
   "fileToken": "bd679dd2-580d-4944-953f-d2e24a908f77",
