@@ -2890,14 +2890,14 @@
                       "fill": {
                         "type": "image",
                         "enabled": true,
-                        "url": "$desktop-wallpaper",
+                        "url": "desktop_light%20(1).png",
                         "mode": "cover",
                         "transform": [
-                          2.3961965134706813,
+                          1.12414,
                           0,
                           0,
-                          2.9939024390243905,
-                          -1.3961965134706813,
+                          1.621949,
+                          -0.12414,
                           0
                         ]
                       },
@@ -2909,8 +2909,8 @@
                           "type": "ref",
                           "ref": "L9Tpp",
                           "name": "Actual Keyameleon menu bar · Light",
-                          "x": 289,
-                          "y": 40,
+                          "x": 279,
+                          "y": 45,
                           "height": 382,
                           "width": 320,
                           "theme": {},
@@ -2929,8 +2929,8 @@
                         {
                           "type": "frame",
                           "id": "nrbd5",
-                          "x": 346,
-                          "y": 2,
+                          "x": 326,
+                          "y": 3,
                           "name": "Keyameleon · Selected menu-bar item",
                           "width": 32,
                           "height": 30,
@@ -3673,6 +3673,22 @@
           "width": "fill_container",
           "height": "fill_container",
           "descendants": {
+            "uGS7x": {
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "desktop_dark%20(2).png",
+                "mode": "cover",
+                "transform": [
+                  1.1417,
+                  0,
+                  0,
+                  1.647286,
+                  -0.1417,
+                  0
+                ]
+              }
+            },
             "U5i2oh": {
               "theme": {}
             },
