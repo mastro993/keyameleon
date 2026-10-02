@@ -90,7 +90,12 @@
               "ref": "DhSlx",
               "name": "Keyboard item · Built-in",
               "width": "fill_container",
-              "height": 62
+              "height": 62,
+              "descendants": {
+                "vkR7Z": {
+                  "name": "SF Symbol · keyboard"
+                }
+              }
             },
             {
               "id": "b1U2r6",
@@ -162,7 +167,8 @@
                   "width": "fill_container",
                   "content": "Pause Switching",
                   "fontFamily": "SF Pro",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -201,7 +207,8 @@
                   "width": "fill_container",
                   "content": "Settings",
                   "fontFamily": "SF Pro",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
@@ -210,7 +217,8 @@
                   "fill": "#565959",
                   "content": "⌘,",
                   "fontFamily": "SF Pro",
-                  "fontSize": 12
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -261,7 +269,8 @@
                   "width": "fill_container",
                   "content": "Quit Keyameleon",
                   "fontFamily": "SF Pro",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
@@ -270,7 +279,8 @@
                   "fill": "#565959",
                   "content": "⌘Q",
                   "fontFamily": "SF Pro",
-                  "fontSize": 12
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -281,8 +291,8 @@
     {
       "type": "frame",
       "id": "WIU7y",
-      "x": 3428.0625,
-      "y": -1218.078125,
+      "x": 3414,
+      "y": -1218,
       "name": "Keyameleon / Menu bar / Dark",
       "theme": {
         "mode": "dark"
@@ -443,7 +453,8 @@
                   "width": "fill_container",
                   "content": "Pause Switching",
                   "fontFamily": "SF Pro",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -482,7 +493,8 @@
                   "width": "fill_container",
                   "content": "Settings",
                   "fontFamily": "SF Pro",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
@@ -491,7 +503,8 @@
                   "fill": "#bdbdc2",
                   "content": "⌘,",
                   "fontFamily": "SF Pro",
-                  "fontSize": 12
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -542,7 +555,8 @@
                   "width": "fill_container",
                   "content": "Quit Keyameleon",
                   "fontFamily": "SF Pro",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
@@ -551,7 +565,8 @@
                   "fill": "#bdbdc2",
                   "content": "⌘Q",
                   "fontFamily": "SF Pro",
-                  "fontSize": 12
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -562,8 +577,8 @@
     {
       "type": "frame",
       "id": "T8fUZh",
-      "x": 3880,
-      "y": -1218,
+      "x": 3834,
+      "y": -1564,
       "name": "Frame 1",
       "width": 2768,
       "height": 1557,
@@ -596,8 +611,8 @@
     {
       "type": "frame",
       "id": "DLD7T",
-      "x": 3880,
-      "y": 424,
+      "x": 3834,
+      "y": 142,
       "name": "Frame 2",
       "width": 2768,
       "height": 1557,
@@ -707,7 +722,8 @@
                       "fill": "#565959",
                       "content": "Built-in",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -715,10 +731,10 @@
                   "type": "frame",
                   "id": "sdRYG",
                   "name": "Layout badge IT",
-                  "width": 28,
-                  "height": 24,
+                  "width": 30,
+                  "height": 20,
                   "cornerRadius": 6,
-                  "stroke": "#c6c8c8",
+                  "stroke": "#565959",
                   "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -796,7 +812,8 @@
                       "fill": "#565959",
                       "content": "Keychron K2 - Active",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -804,10 +821,10 @@
                   "type": "frame",
                   "id": "PlZUF",
                   "name": "Layout badge US",
-                  "width": 28,
-                  "height": 24,
+                  "width": 30,
+                  "height": 20,
                   "cornerRadius": 6,
-                  "stroke": "#c6c8c8",
+                  "stroke": "#565959",
                   "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -882,7 +899,8 @@
                       "fill": "#999c9d",
                       "content": "HHKB Professional - Disconnected",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -890,10 +908,10 @@
                   "type": "frame",
                   "id": "p28fG",
                   "name": "Layout badge DE",
-                  "width": 28,
-                  "height": 24,
+                  "width": 30,
+                  "height": 20,
                   "cornerRadius": 6,
-                  "stroke": "#dcdfdf",
+                  "stroke": "#999c9d",
                   "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -981,7 +999,8 @@
                       "fill": "#bdbdc2",
                       "content": "Built-in",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -989,10 +1008,10 @@
                   "type": "frame",
                   "id": "fMmgh",
                   "name": "Layout badge IT",
-                  "width": 28,
-                  "height": 24,
+                  "width": 30,
+                  "height": 20,
                   "cornerRadius": 6,
-                  "stroke": "#626266",
+                  "stroke": "#bdbdc2",
                   "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -1070,7 +1089,8 @@
                       "fill": "#bdbdc2",
                       "content": "Keychron K2 - Active",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -1078,10 +1098,10 @@
                   "type": "frame",
                   "id": "u2YdA",
                   "name": "Layout badge US",
-                  "width": 28,
-                  "height": 24,
+                  "width": 30,
+                  "height": 20,
                   "cornerRadius": 6,
-                  "stroke": "#626266",
+                  "stroke": "#bdbdc2",
                   "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -1156,7 +1176,8 @@
                       "fill": "#79797d",
                       "content": "HHKB Professional - Disconnected",
                       "fontFamily": "SF Pro",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -1164,10 +1185,10 @@
                   "type": "frame",
                   "id": "TQb9S",
                   "name": "Layout badge DE",
-                  "width": 28,
-                  "height": 24,
+                  "width": 30,
+                  "height": 20,
                   "cornerRadius": 6,
-                  "stroke": "#414144",
+                  "stroke": "#79797d",
                   "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -1189,13 +1210,6 @@
           ]
         }
       ]
-    },
-    {
-      "id": "h3mEIW",
-      "type": "ref",
-      "ref": "WIU7y",
-      "x": 3428,
-      "y": -240
     },
     {
       "id": "dikCg",
@@ -1257,7 +1271,7 @@
       "type": "ref",
       "ref": "WIU7y",
       "name": "Keyameleon / Menu bar / Dark · Paused",
-      "x": 3442,
+      "x": 3414,
       "y": -756,
       "descendants": {
         "ZzOMu": {
