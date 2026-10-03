@@ -5,8 +5,13 @@ import Foundation
 
 enum KeyameleonPreviewSetupState: Equatable {
     case permissionRequired
+    case permissionWaiting
     case assignmentsEmpty
     case assignmentsPopulated
+    case readyEmpty
+    case readyPopulated
+    case readyPaused
+    case persistenceFailure
     case mixedAssignments
     case manyAssignments
     case excludedDevices
@@ -67,10 +72,10 @@ enum KeyameleonPreviewFixtures {
     static func setup(
         _ state: KeyameleonPreviewSetupState
     ) -> KeyameleonPreviewSetupFixture {
-        let requiresPermission = state == .permissionRequired
+        let requiresPermission = state == .permissionRequired || state == .permissionWaiting
         let isCompleted = state == .completed
-        let isPaused = state == .paused
-        let step: GuidedSetupStep = requiresPermission ? .permission : .assignments
+        let isPaused = state == .paused || state == .readyPaused
+        let step = guidedStep(for: state)
         let setupStore = PreviewSetupDecisionStore(
             hasStartedGuidedSetup: !isCompleted,
             hasCompletedGuidedSetup: isCompleted,
@@ -78,11 +83,13 @@ enum KeyameleonPreviewFixtures {
             isPaused: isPaused
         )
         let permissionProvider = PreviewListenPermissionProvider(
-            state: requiresPermission ? .denied : .granted
+            state: requiresPermission ? .denied : .granted,
+            grantsOnRequest: state != .permissionWaiting
         )
         let discoverer = PreviewPhysicalKeyboardDiscoverer()
-        let recordStore = InMemoryPhysicalKeyboardRecordStore()
-        seedDisconnectedRecord(into: recordStore, state: state)
+        let inMemoryRecordStore = InMemoryPhysicalKeyboardRecordStore()
+        seedDisconnectedRecord(into: inMemoryRecordStore, state: state)
+        let (recordStore, designationStore) = persistenceStores(for: state, seededRecords: inMemoryRecordStore)
 
         let model = KeyameleonSetupModel(
             permissionProvider: permissionProvider,
@@ -95,15 +102,19 @@ enum KeyameleonPreviewFixtures {
             physicalKeyboardRecordStore: recordStore,
             physicalKeyboardEventObserver: NoOpPhysicalKeyboardEventObserver(),
             inputSourceChangeObserver: NoOpInputSourceChangeObserver(),
-            designationStore: InMemoryManualPhysicalKeyboardDesignationStore(),
+            designationStore: designationStore,
             integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(
                 key: SymmetricKey(data: Data(repeating: 42, count: 32))
             )
         )
         let switching = model.activityTriggeredSwitching
         switching.start()
+        if state == .permissionWaiting {
+            model.requestPermission()
+        }
 
-        guard !requiresPermission, state != .assignmentsEmpty, !isCompleted else {
+        guard !requiresPermission, state != .assignmentsEmpty, state != .readyEmpty,
+              state != .persistenceFailure, !isCompleted else {
             return KeyameleonPreviewSetupFixture(model: model, switching: switching)
         }
 
@@ -134,13 +145,35 @@ enum KeyameleonPreviewFixtures {
             }
         }
 
-        if state == .assignmentsPopulated || state == .mixedAssignments || state == .paused {
+        if [.assignmentsPopulated, .readyPopulated, .readyPaused, .mixedAssignments, .paused].contains(state) {
             if let active = model.physicalKeyboards.first {
                 switching.markActiveForTesting(active.id)
             }
         }
 
         return KeyameleonPreviewSetupFixture(model: model, switching: switching)
+    }
+
+    private static func persistenceStores(
+        for state: KeyameleonPreviewSetupState,
+        seededRecords: InMemoryPhysicalKeyboardRecordStore
+    ) -> (any PhysicalKeyboardRecordStoring, any ManualPhysicalKeyboardDesignationStoring) {
+        guard state == .persistenceFailure else {
+            return (seededRecords, InMemoryManualPhysicalKeyboardDesignationStore())
+        }
+        let session = SwiftDataPersistenceSession(openContainer: { throw CocoaError(.fileReadNoPermission) })
+        return (
+            SwiftDataPhysicalKeyboardRecordStore(session: session),
+            SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+        )
+    }
+
+    private static func guidedStep(for state: KeyameleonPreviewSetupState) -> GuidedSetupStep {
+        switch state {
+        case .permissionRequired, .permissionWaiting: .permission
+        case .readyEmpty, .readyPopulated, .readyPaused: .ready
+        default: .assignments
+        }
     }
 
     static func panelActions() -> MenuBarPanelActions {
@@ -288,7 +321,7 @@ enum KeyameleonPreviewFixtures {
                     vendorID: 101
                 )
             ]
-        case .assignmentsPopulated, .paused:
+        case .assignmentsPopulated, .readyPopulated, .readyPaused, .paused:
             return [
                 makeFacts(
                     serviceID: 10,
@@ -349,7 +382,7 @@ enum KeyameleonPreviewFixtures {
                     vendorID: 200
                 )
             ]
-        case .permissionRequired, .assignmentsEmpty, .completed:
+        case .permissionRequired, .permissionWaiting, .assignmentsEmpty, .readyEmpty, .persistenceFailure, .completed:
             return []
         }
     }
@@ -462,9 +495,11 @@ final class PreviewUpdateChecker: UpdateChecking {
 @MainActor
 final class PreviewListenPermissionProvider: ListenPermissionProviding {
     private(set) var state: ListenPermissionState
+    private let grantsOnRequest: Bool
 
-    init(state: ListenPermissionState) {
+    init(state: ListenPermissionState, grantsOnRequest: Bool = true) {
         self.state = state
+        self.grantsOnRequest = grantsOnRequest
     }
 
     func checkListenPermission() -> ListenPermissionState {
@@ -472,8 +507,10 @@ final class PreviewListenPermissionProvider: ListenPermissionProviding {
     }
 
     func requestListenPermission() -> Bool {
-        state = .granted
-        return true
+        if grantsOnRequest {
+            state = .granted
+        }
+        return grantsOnRequest
     }
 }
 
@@ -521,7 +558,7 @@ final class PreviewSetupDecisionStore: SetupDecisionStoring {
     func markGuidedSetupCompleted() {
         hasStartedGuidedSetup = true
         hasCompletedGuidedSetup = true
-        guidedSetupStep = .assignments
+        guidedSetupStep = .ready
     }
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {

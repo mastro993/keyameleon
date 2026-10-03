@@ -3,7 +3,6 @@ import AppKit
 extension KeyameleonApplicationDelegate {
     @objc
     func openKeyameleon(_ sender: Any?) {
-        setupModel.beginGuidedSetup()
         closeMenuBarPanel()
         NSApp.activate(ignoringOtherApps: true)
 
@@ -18,9 +17,11 @@ extension KeyameleonApplicationDelegate {
         windowController?.window?.orderFrontRegardless()
     }
 
-    func presentSettingsAfterGuidedSetup() {
-        openSettings(nil)
+    func finishGuidedSetup(destination: GuidedSetupCompletionDestination) {
         windowController?.close()
+        if destination == .settings {
+            openSettings(nil)
+        }
     }
 
     @objc

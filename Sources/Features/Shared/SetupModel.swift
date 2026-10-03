@@ -4,6 +4,7 @@ import Observation
 enum GuidedSetupStep: String, Equatable, Sendable {
     case permission
     case assignments
+    case ready
 }
 
 @MainActor
@@ -81,7 +82,7 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
     func markGuidedSetupCompleted() {
         defaults.set(true, forKey: Key.hasStartedGuidedSetup)
         defaults.set(true, forKey: Key.hasCompletedGuidedSetup)
-        defaults.set(GuidedSetupStep.assignments.rawValue, forKey: Key.guidedSetupStep)
+        defaults.set(GuidedSetupStep.ready.rawValue, forKey: Key.guidedSetupStep)
     }
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
@@ -114,7 +115,7 @@ final class KeyameleonSetupModel {
     private let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     private var savedIdentityKeys: Set<String> = []
 
-    var onGuidedSetupCompleted: (() -> Void)?
+    var onGuidedSetupCompleted: ((GuidedSetupCompletionDestination) -> Void)?
 
     let activityTriggeredSwitching: ActivityTriggeredSwitching
 
@@ -161,7 +162,7 @@ final class KeyameleonSetupModel {
         )
         isSetupComplete = setupStore.hasCompletedGuidedSetup
         hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
-        guidedSetupStep = setupStore.guidedSetupStep
+        guidedSetupStep = setupStore.hasCompletedGuidedSetup ? .ready : setupStore.guidedSetupStep
 
         applyExclusionKeysToDiscovery()
         discoveryObserverID = physicalKeyboardDiscovery.observeChanges { [weak self] _ in
@@ -267,13 +268,19 @@ final class KeyameleonSetupModel {
     }
 
     func beginGuidedSetup() {
+        guard !isSetupComplete else { return }
         if !hasStartedGuidedSetup {
             setupStore.markGuidedSetupStarted()
             hasStartedGuidedSetup = true
             guidedSetupStep = setupStore.guidedSetupStep
         }
+        activityTriggeredSwitching.checkAgain()
         startPermissionWaitIfNeeded()
         advanceIfPermissionGranted()
+    }
+
+    func endGuidedSetupPresentation() {
+        stopPermissionWait()
     }
 
     func requestPermission() {
@@ -295,6 +302,8 @@ final class KeyameleonSetupModel {
     }
 
     func continueToAssignments() {
+        guard !isSetupComplete, guidedSetupStep == .permission,
+              activityTriggeredSwitching.outcome.switchingStatus != .permissionRequired else { return }
         stopPermissionWait()
         isWaitingForListenPermission = false
         setupStore.markGuidedSetupStep(.assignments)
@@ -303,22 +312,32 @@ final class KeyameleonSetupModel {
         activityTriggeredSwitching.checkAgain()
     }
 
-    func completeSetup() {
+    func continueToReady() {
+        guard !isSetupComplete, guidedSetupStep == .assignments,
+              persistenceError == nil, activityTriggeredSwitching.persistenceError == nil else { return }
+        setupStore.markGuidedSetupStep(.ready)
+        guidedSetupStep = .ready
+    }
+
+    func returnToAssignments() {
+        guard !isSetupComplete, guidedSetupStep == .ready else { return }
+        setupStore.markGuidedSetupStep(.assignments)
+        guidedSetupStep = .assignments
+    }
+
+    func completeSetup(destination: GuidedSetupCompletionDestination) {
+        guard !isSetupComplete, guidedSetupStep == .ready,
+              persistenceError == nil, activityTriggeredSwitching.persistenceError == nil else { return }
         stopPermissionWait()
         isWaitingForListenPermission = false
-        if !hasStartedGuidedSetup {
-            setupStore.markGuidedSetupStarted()
-            hasStartedGuidedSetup = true
-        }
-        if guidedSetupStep != .assignments {
-            setupStore.markGuidedSetupStep(.assignments)
-            guidedSetupStep = .assignments
-        }
-        if !isSetupComplete {
-            setupStore.markGuidedSetupCompleted()
-            isSetupComplete = true
-            onGuidedSetupCompleted?()
-        }
+        setupStore.markGuidedSetupCompleted()
+        isSetupComplete = true
+        onGuidedSetupCompleted?(destination)
+    }
+
+    func checkPermissionAgain() {
+        activityTriggeredSwitching.checkAgain()
+        advanceIfPermissionGranted()
     }
 
     func openSystemSettings() {

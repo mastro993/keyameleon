@@ -99,3 +99,9 @@ Keep these rules as hard failures:
 Do not add repeated suites, fixed event counts, participant quotas, qualification
 evidence files, endurance runs, or performance thresholds without a real product
 failure that needs them. Official Release artifact evidence remains separate.
+
+### Guided setup
+
+Run `./Scripts/run.sh test` after changes to setup state, assignment controls, or window lifecycle. Verify that an incomplete Permissions window responds to a permission grant without a second request, that closing it stops waiting, and that reopening resumes the saved step. At Keyboards, assign an Input Source, use Back from Ready, and check that the assignment remains. Both Continue and Set Up Later should reach Ready with zero assignments. Finish should close the window while the menu bar app stays available; Open Settings should close it and show Settings. When switching is paused, permission is revoked, or switching is unavailable, Ready should show the corresponding warning.
+
+Use the named previews in `Sources/Features/Onboarding/OnboardingView.swift` to compare the three stages in light and dark appearances, including empty assignments, unavailable sources, exclusions, permission recovery, and persistence failures. Check the 840 × 640 previews: long content must scroll while the footer remains reachable. The fixture stores are isolated from saved user data. A live Input Monitoring grant still needs a manual check in System Settings.

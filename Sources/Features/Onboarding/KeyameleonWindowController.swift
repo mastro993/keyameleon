@@ -2,14 +2,16 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class KeyameleonWindowController: NSWindowController {
+final class KeyameleonWindowController: NSWindowController, NSWindowDelegate {
+    private let model: KeyameleonSetupModel
     init(
         model: KeyameleonSetupModel,
         switching: ActivityTriggeredSwitching
     ) {
+        self.model = model
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 640),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            contentRect: NSRect(x: 0, y: 0, width: 1000, height: 750),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -17,7 +19,10 @@ final class KeyameleonWindowController: NSWindowController {
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.main-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 520, height: 520)
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.minSize = NSSize(width: 840, height: 640)
         window.contentView = NSHostingView(
             rootView: KeyameleonRootView(
                 model: model,
@@ -26,6 +31,7 @@ final class KeyameleonWindowController: NSWindowController {
         )
 
         super.init(window: window)
+        window.delegate = self
     }
 
     @available(*, unavailable)
@@ -39,7 +45,12 @@ final class KeyameleonWindowController: NSWindowController {
         }
 
         window.center()
+        model.beginGuidedSetup()
         super.showWindow(sender)
         window.makeKeyAndOrderFront(sender)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        model.endGuidedSetupPresentation()
     }
 }
