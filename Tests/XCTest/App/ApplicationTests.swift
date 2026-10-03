@@ -259,7 +259,8 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
         XCTAssertNil(delegate.settingsWindowController)
 
-        delegate.setupModel.completeSetup()
+        delegate.setupModel.continueToReady()
+        delegate.setupModel.completeSetup(destination: .settings)
 
         let settingsWindow = try XCTUnwrap(delegate.settingsWindowController?.window)
         XCTAssertTrue(settingsWindow.isVisible)
@@ -270,10 +271,32 @@ final class KeyameleonApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testFinishingGuidedSetupLeavesOnlyMenuBarRunning() {
+        let delegate = makeApplicationTestDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .granted),
+            setupStore: ApplicationTestSetupDecisionStore(
+                hasCompletedGuidedSetup: false, guidedSetupStep: .ready
+            )
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
+        delegate.setupModel.completeSetup(destination: .menuBar)
+        XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
+        XCTAssertNil(delegate.settingsWindowController)
+        XCTAssertNotNil(delegate.menuBarStatusItem)
+        XCTAssertTrue(delegate.setupModel.isSetupComplete)
+    }
+
+    @MainActor
     func testMenuActionContinuesClosedGuidedSetupAtSavedStep() throws {
         for (step, permission) in [
             (GuidedSetupStep.permission, ListenPermissionState.denied),
-            (.assignments, .granted)
+            (.assignments, .granted),
+            (.ready, .granted)
         ] {
             let setupStore = ApplicationTestSetupDecisionStore(
                 hasStartedGuidedSetup: true,

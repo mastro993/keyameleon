@@ -14,7 +14,7 @@ Keyameleon is a macOS menu bar app that keeps the Input Source aligned with the 
 - **Keyboard Assignments**: one saved Input Source per Physical Keyboard
 - **Activity-Triggered Switching**: after you press a key, Keyameleon selects and verifies that keyboard's Input Source
 - **Menu bar panel**: every keyboard with its assignment, the Active Physical Keyboard, and Switching Status, with no Dock icon
-- **Guided setup**: Input Monitoring, keyboard names, and layout assignments in one walkthrough
+- **Guided setup**: Input Monitoring, Keyboard Assignments, and a Ready handoff in one walkthrough
 - **Pause and resume**: stops observation and Input Source requests until you resume
 - **Launch at Login**: optional
 - **User-approved updates**: Keyameleon checks for updates once a day at most and installs one only when you approve it
@@ -29,7 +29,7 @@ Keyameleon is monitor-only: it observes Physical Keyboard Events through CoreHID
 
 ## Install
 
-Download the DMG from the [latest release](https://github.com/mastro993/Keyameleon/releases/latest), open it, and drag Keyameleon into Applications. The app lives in the menu bar: closing its window does not quit it, and you quit from the menu bar. On first launch, Guided setup asks for Input Monitoring and assigns an Input Source to each Physical Keyboard. To run your own build instead, see [Development setup](#development-setup).
+Download the DMG from the [latest release](https://github.com/mastro993/Keyameleon/releases/latest), open it, and drag Keyameleon into Applications. The app lives in the menu bar: closing its window does not quit it, and you quit from the menu bar. On first launch, Guided setup asks for Input Monitoring, lets you assign Input Sources to Physical Keyboards, and ends on a Ready screen. You can finish without assignments and add them later in Settings. If Input Monitoring is already granted, setup advances automatically. Closing the setup window saves your place; the menu bar keeps running. To run your own build instead, see [Development setup](#development-setup).
 
 ## Development setup
 

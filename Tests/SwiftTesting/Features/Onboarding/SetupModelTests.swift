@@ -110,9 +110,9 @@ func checkAgainRefreshesPermissionWithoutRequestingIt() {
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
 }
 
-@Test("Continue to Assignments advances step without completing setup")
+@Test("Permissions cannot advance while access is denied")
 @MainActor
-func continueToAssignmentsAdvancesStepWithoutCompletingSetup() {
+func permissionCannotBeSkippedWithoutAccess() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .denied)
     let setupStore = SetupModelTestSetupDecisionStore()
     let model = KeyameleonSetupModel(
@@ -125,8 +125,8 @@ func continueToAssignmentsAdvancesStepWithoutCompletingSetup() {
     model.continueToAssignments()
 
     #expect(setupStore.hasStartedGuidedSetup)
-    #expect(setupStore.guidedSetupStep == .assignments)
-    #expect(model.guidedSetupStep == .assignments)
+    #expect(setupStore.guidedSetupStep == .permission)
+    #expect(model.guidedSetupStep == .permission)
     #expect(!model.isSetupComplete)
     #expect(permissionProvider.requestCount == 0)
 }
@@ -141,12 +141,13 @@ func completingSetupWithoutAssignmentsRecordsCompletion() {
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
     )
 
-    model.continueToAssignments()
-    model.completeSetup()
+    model.beginGuidedSetup()
+    model.continueToReady()
+    model.completeSetup(destination: .menuBar)
 
     #expect(setupStore.hasCompletedGuidedSetup)
     #expect(model.isSetupComplete)
-    #expect(model.guidedSetupStep == .assignments)
+    #expect(model.guidedSetupStep == .ready)
 }
 
 @Test("Begin Guided setup advances past permission when listen permission is already granted")
@@ -215,13 +216,14 @@ func completingSetupNotifiesOnce() {
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
     )
-    model.onGuidedSetupCompleted = {
+    model.onGuidedSetupCompleted = { _ in
         completionCount += 1
     }
 
-    model.continueToAssignments()
-    model.completeSetup()
-    model.completeSetup()
+    model.beginGuidedSetup()
+    model.continueToReady()
+    model.completeSetup(destination: .menuBar)
+    model.completeSetup(destination: .settings)
 
     #expect(model.isSetupComplete)
     #expect(completionCount == 1)
@@ -330,7 +332,7 @@ final class SetupModelTestSetupDecisionStore: SetupDecisionStoring {
 
     func markGuidedSetupStarted() {
         hasStartedGuidedSetup = true
-        if guidedSetupStep != .assignments {
+        if guidedSetupStep == .permission {
             guidedSetupStep = .permission
         }
     }
@@ -343,7 +345,7 @@ final class SetupModelTestSetupDecisionStore: SetupDecisionStoring {
     func markGuidedSetupCompleted() {
         hasStartedGuidedSetup = true
         hasCompletedGuidedSetup = true
-        guidedSetupStep = .assignments
+        guidedSetupStep = .ready
     }
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
@@ -392,4 +394,96 @@ final class SetupModelTestInputSourceProvider: InputSourceProviding {
     func eligibleInputSources() -> [EligibleInputSource] {
         inputSources
     }
+}
+
+@Test("Ready persists across a real UserDefaults store and completed state takes precedence")
+@MainActor
+func readyPersistsAcrossUserDefaultsStore() throws {
+    let name = "KeyameleonSetupTests.\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: name))
+    defer { defaults.removePersistentDomain(forName: name) }
+    let firstStore = UserDefaultsSetupDecisionStore(defaults: defaults)
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: firstStore,
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+    model.beginGuidedSetup()
+    model.continueToReady()
+    #expect(UserDefaultsSetupDecisionStore(defaults: defaults).guidedSetupStep == .ready)
+
+    let resumed = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
+        setupStore: UserDefaultsSetupDecisionStore(defaults: defaults),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+    resumed.beginGuidedSetup()
+    #expect(resumed.guidedSetupStep == .ready)
+    #expect(!resumed.isSetupComplete)
+    resumed.completeSetup(destination: .menuBar)
+    defaults.set(GuidedSetupStep.permission.rawValue, forKey: "keyameleon.guidedSetup.step")
+    let historical = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
+        setupStore: UserDefaultsSetupDecisionStore(defaults: defaults),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+    #expect(historical.isSetupComplete)
+    #expect(historical.guidedSetupStep == .ready)
+}
+
+@Test("Back retains saved Keyboard Assignment and completion destination is delivered once")
+@MainActor
+func readyBackKeepsAssignmentsAndCompletesOnce() {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
+            EligibleInputSource(identifier: "com.example.us", name: "U.S.")
+        ]),
+        physicalKeyboardRecordStore: recordStore
+    )
+    startAndCheck(model)
+    model.beginGuidedSetup()
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 50)))
+    guard let keyboard = model.physicalKeyboards.first else {
+        Issue.record("Missing discovered keyboard")
+        return
+    }
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.us")
+    model.continueToReady()
+    model.returnToAssignments()
+    #expect(model.physicalKeyboards.first?.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
+    model.continueToReady()
+    var destinations: [GuidedSetupCompletionDestination] = []
+    model.onGuidedSetupCompleted = { destinations.append($0) }
+    model.completeSetup(destination: .settings)
+    model.completeSetup(destination: .menuBar)
+    #expect(destinations == [.settings])
+    #expect(model.isSetupComplete)
+}
+
+@Test("Closing permission presentation stops checks until reopening")
+@MainActor
+func closingPermissionPresentationStopsPolling() async throws {
+    let permission = SetupModelTestListenPermissionProvider(
+        state: .denied, stateAfterRequest: .denied
+    )
+    let model = KeyameleonSetupModel(
+        permissionProvider: permission,
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+    )
+    model.beginGuidedSetup()
+    model.requestPermission()
+    model.endGuidedSetupPresentation()
+    let countAfterClose = permission.checkCount
+    try await Task.sleep(for: .milliseconds(1_100))
+    #expect(permission.checkCount == countAfterClose)
+    permission.state = .granted
+    model.beginGuidedSetup()
+    #expect(model.guidedSetupStep == .assignments)
 }

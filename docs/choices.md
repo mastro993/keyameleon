@@ -837,3 +837,9 @@ The app has no separate release-evidence model or tag parser.
 Sparkle owns update scheduling through the shipped Info.plist configuration.
 `KeyameleonUpdatePolicy` retains the configuration values used by the updater
 and checked against the app bundle. It does not calculate when a check is due.
+
+## 2026-10-03 — Guided setup finishes from Ready
+
+Guided setup has three saved stages: Permissions, Keyboards, and Ready. Input Monitoring is checked when the window opens; a granted permission advances Permissions automatically. An unsuccessful explicit permission request leaves recovery controls to open System Settings or check again. Closing the window stops permission polling, and reopening resumes the saved stage.
+
+The Keyboards stage saves each assignment and exclusion immediately. Continue and Set Up Later both reach Ready, even with no assignments. Back returns to Keyboards without discarding changes. Ready reports the saved assignment count and current switching status, including paused, unavailable, and missing permission conditions. Finish closes setup and leaves Keyameleon in the menu bar. Open Settings closes setup before opening Settings. Completion is persisted before either action and handled once. This replaces the older setup completion behavior that opened Settings directly from the assignment stage.

@@ -129,8 +129,8 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         )
 
         super.init()
-        setupModel.onGuidedSetupCompleted = { [weak self] in
-            self?.presentSettingsAfterGuidedSetup()
+        setupModel.onGuidedSetupCompleted = { [weak self] destination in
+            self?.finishGuidedSetup(destination: destination)
         }
         observePresentationChanges()
     }
