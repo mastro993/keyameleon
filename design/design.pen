@@ -2253,44 +2253,60 @@
                             },
                             {
                               "type": "frame",
-                              "id": "OTLcf",
-                              "name": "Control / Input source picker",
-                              "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
-                              "reusable": true,
-                              "width": 176,
-                              "height": 28,
-                              "fill": "$bg-window",
-                              "cornerRadius": "$radius-6",
-                              "stroke": "$button-border",
-                              "strokeWidth": "$stroke-1",
-                              "padding": [
-                                "$space-0",
-                                "$space-9"
-                              ],
-                              "justifyContent": "space_between",
+                              "id": "ePgPF",
+                              "name": "Built-in layout / Aligned controls",
+                              "gap": 8,
                               "alignItems": "center",
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "Io6QS",
-                                  "name": "Select Value",
-                                  "fill": "$text-primary",
-                                  "content": "Italian",
-                                  "lineHeight": "$leading-body",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": "$type-body",
-                                  "fontWeight": "$weight-regular"
+                                  "type": "frame",
+                                  "id": "OTLcf",
+                                  "name": "Control / Input source picker",
+                                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                                  "reusable": true,
+                                  "width": 176,
+                                  "height": 28,
+                                  "fill": "$bg-window",
+                                  "cornerRadius": "$radius-6",
+                                  "stroke": "$button-border",
+                                  "strokeWidth": "$stroke-1",
+                                  "padding": [
+                                    "$space-0",
+                                    "$space-9"
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Io6QS",
+                                      "name": "Select Value",
+                                      "fill": "$text-primary",
+                                      "content": "Italian",
+                                      "lineHeight": "$leading-body",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": "$type-body",
+                                      "fontWeight": "$weight-regular"
+                                    },
+                                    {
+                                      "type": "icon",
+                                      "id": "PF9yo",
+                                      "name": "Select Chevron",
+                                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-12, height=$size-12",
+                                      "width": 12,
+                                      "height": 12,
+                                      "icon": "chevrons-up-down",
+                                      "library": "lucide",
+                                      "fill": "$text-secondary"
+                                    }
+                                  ]
                                 },
                                 {
-                                  "type": "icon",
-                                  "id": "PF9yo",
-                                  "name": "Select Chevron",
-                                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-12, height=$size-12",
-                                  "width": 12,
-                                  "height": 12,
-                                  "icon": "chevrons-up-down",
-                                  "library": "lucide",
-                                  "fill": "$text-secondary"
+                                  "type": "frame",
+                                  "id": "L75yp",
+                                  "name": "Menu column spacer / Built-in has no actions",
+                                  "width": 28,
+                                  "height": 28
                                 }
                               ]
                             }
@@ -2356,63 +2372,6 @@
                                       "fontFamily": "$font-sans",
                                       "fontSize": "$type-body",
                                       "fontWeight": "$weight-medium"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "Xp1ZS",
-                                      "name": "Device actions",
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "qt1fo",
-                                          "name": "Rename keyboard",
-                                          "context": "Button. Accessibility label and tooltip: Rename keyboard. Opens keyboard-name editing. Available even when keyboard is excluded.",
-                                          "width": 20,
-                                          "height": 16,
-                                          "fill": "$transparent",
-                                          "cornerRadius": "$radius-6",
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "icon",
-                                              "id": "YV685",
-                                              "name": "Rename / Pencil",
-                                              "width": 10,
-                                              "height": 10,
-                                              "icon": "pencil",
-                                              "library": "lucide",
-                                              "fill": "$text-secondary"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "frame",
-                                          "id": "X5yNuc",
-                                          "name": "Include keyboard / Toggle on",
-                                          "context": "Inclusion toggle: on. Accessibility label: Include keyboard; checked: true. Tooltip: Not a keyboard? Turn off. Turning off retains the row and assignment, dims labels, disables the input-source picker, and excludes the device from input-source switching. Toggle remains interactive.",
-                                          "width": 20,
-                                          "height": 16,
-                                          "fill": "$transparent",
-                                          "cornerRadius": "$radius-6",
-                                          "stroke": "$transparent",
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "icon",
-                                              "id": "LZRyM",
-                                              "name": "Inclusion / Eye",
-                                              "width": 10,
-                                              "height": 10,
-                                              "icon": "eye",
-                                              "library": "lucide",
-                                              "fill": "$text-secondary"
-                                            }
-                                          ]
-                                        }
-                                      ]
                                     }
                                   ]
                                 },
@@ -2432,17 +2391,59 @@
                               ]
                             },
                             {
-                              "id": "p3PilG",
-                              "type": "ref",
-                              "ref": "OTLcf",
-                              "name": "Input source / U.S.",
-                              "width": 176,
-                              "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
-                              "descendants": {
-                                "Io6QS": {
-                                  "content": "U.S."
+                              "type": "frame",
+                              "id": "r13zbp",
+                              "name": "Layout picker and keyboard menu",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "p3PilG",
+                                  "type": "ref",
+                                  "ref": "OTLcf",
+                                  "name": "Input source / U.S.",
+                                  "width": 176,
+                                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                                  "descendants": {
+                                    "Io6QS": {
+                                      "content": "U.S."
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "r50cbH",
+                                  "name": "More keyboard actions",
+                                  "context": "Button. Accessibility label: More keyboard actions. Opens context menu aligned to trailing edge below button. Remains enabled for hidden keyboards.",
+                                  "width": 28,
+                                  "height": 28,
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "taCy8",
+                                      "name": "More / Ellipsis",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "ellipsis",
+                                      "library": "lucide",
+                                      "fill": "$text-secondary"
+                                    },
+                                    {
+                                      "id": "MuaUN",
+                                      "type": "ref",
+                                      "ref": "h3PbgF",
+                                      "name": "Context menu / Closed",
+                                      "enabled": false,
+                                      "layoutPosition": "absolute",
+                                      "x": -164,
+                                      "y": 32
+                                    }
+                                  ]
                                 }
-                              }
+                              ]
                             }
                           ]
                         },
@@ -2473,7 +2474,7 @@
                           "type": "frame",
                           "id": "BThEz",
                           "name": "Travel Keyboard / Excluded",
-                          "context": "Excluded state, independent of connection status. Labels and picker are dimmed; inclusion toggle remains enabled.",
+                          "context": "Hidden keyboard: labels and layout picker dimmed, saved assignment retained. More actions menu remains enabled; Unhide restores inclusion.",
                           "width": "fill_container",
                           "gap": "$space-16",
                           "padding": [
@@ -2507,64 +2508,6 @@
                                       "fontFamily": "$font-sans",
                                       "fontSize": "$type-body",
                                       "fontWeight": "$weight-medium"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "u4M0q5",
-                                      "name": "Device actions",
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "A8W6t",
-                                          "name": "Rename keyboard",
-                                          "context": "Button. Accessibility label and tooltip: Rename keyboard. Opens keyboard-name editing. Available even when keyboard is excluded.",
-                                          "width": 20,
-                                          "height": 16,
-                                          "fill": "$transparent",
-                                          "cornerRadius": "$radius-6",
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "icon",
-                                              "id": "M0JBjr",
-                                              "name": "Rename / Pencil",
-                                              "width": 10,
-                                              "height": 10,
-                                              "icon": "pencil",
-                                              "library": "lucide",
-                                              "fill": "$text-secondary"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "frame",
-                                          "id": "q9stp",
-                                          "name": "Include keyboard / Toggle off",
-                                          "context": "Inclusion toggle: off. Accessibility label: Include keyboard; checked: false. Tooltip: Include keyboard. Remains interactive while row is excluded. Turning on restores the saved assignment, enables the input-source picker, and includes the device in input-source switching.",
-                                          "width": 20,
-                                          "height": 16,
-                                          "fill": "$transparent",
-                                          "cornerRadius": "$radius-6",
-                                          "stroke": "$transparent",
-                                          "strokeWidth": "$stroke-1",
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "icon",
-                                              "id": "y4ZSWC",
-                                              "name": "Inclusion / Eye off",
-                                              "width": 10,
-                                              "height": 10,
-                                              "icon": "eye-off",
-                                              "library": "lucide",
-                                              "fill": "$text-secondary"
-                                            }
-                                          ]
-                                        }
-                                      ]
                                     }
                                   ]
                                 },
@@ -2584,18 +2527,60 @@
                               ]
                             },
                             {
-                              "id": "lQ7WO",
-                              "type": "ref",
-                              "ref": "OTLcf",
-                              "name": "Input source / German",
-                              "width": 176,
-                              "context": "Disabled input-source picker while excluded; retain German assignment for re-inclusion.",
-                              "opacity": 0.4,
-                              "descendants": {
-                                "Io6QS": {
-                                  "content": "German"
+                              "type": "frame",
+                              "id": "zroMk",
+                              "name": "Layout picker and keyboard menu",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "lQ7WO",
+                                  "type": "ref",
+                                  "ref": "OTLcf",
+                                  "name": "Input source / German",
+                                  "width": 176,
+                                  "context": "Disabled input-source picker while excluded; retain German assignment for re-inclusion.",
+                                  "opacity": 0.4,
+                                  "descendants": {
+                                    "Io6QS": {
+                                      "content": "German"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "UJFuG",
+                                  "name": "More keyboard actions",
+                                  "context": "Button. Accessibility label: More keyboard actions. Opens context menu aligned to trailing edge below button. Remains enabled for hidden keyboards.",
+                                  "width": 28,
+                                  "height": 28,
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "XqMQS",
+                                      "name": "More / Ellipsis",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "ellipsis",
+                                      "library": "lucide",
+                                      "fill": "$text-secondary"
+                                    },
+                                    {
+                                      "id": "fblfw",
+                                      "type": "ref",
+                                      "ref": "mZtbv",
+                                      "name": "Context menu / Closed",
+                                      "enabled": false,
+                                      "layoutPosition": "absolute",
+                                      "x": -164,
+                                      "y": 32
+                                    }
+                                  ]
                                 }
-                              }
+                              ]
                             }
                           ]
                         }
@@ -3463,30 +3448,7 @@
                   "name": "Keyboards content",
                   "width": "fill_container",
                   "height": "fill_container",
-                  "theme": {},
-                  "descendants": {
-                    "jojRX": {
-                      "theme": {}
-                    },
-                    "jojRX/eanmQ": {
-                      "enabled": false
-                    },
-                    "qKFLK": {
-                      "theme": {}
-                    },
-                    "qKFLK/vfS1J": {
-                      "enabled": false
-                    },
-                    "qKFLK/ZjWcL": {
-                      "content": "Keychron K2 "
-                    },
-                    "H1Cmpb": {
-                      "theme": {}
-                    },
-                    "H1Cmpb/T6Vbw": {
-                      "enabled": false
-                    }
-                  }
+                  "theme": {}
                 }
               ]
             }
@@ -4579,213 +4541,356 @@
             },
             {
               "type": "frame",
-              "id": "u20Mxf",
+              "id": "BPtiK",
               "name": "Saved keyboards",
+              "clip": true,
               "width": "fill_container",
+              "fill": "$bg-window",
+              "cornerRadius": "$radius-16",
+              "stroke": "$border",
+              "strokeWidth": "$stroke-1",
               "layout": "vertical",
-              "gap": "$space-10",
               "children": [
                 {
                   "type": "frame",
-                  "id": "SE4Rz",
-                  "name": "MacBook Keyboard / Assignment",
-                  "context": "Sizing reference (editor stores numeric dimensions): height=$size-78",
+                  "id": "GLI1D",
+                  "name": "MacBook Keyboard",
                   "width": "fill_container",
-                  "height": 78,
-                  "fill": "$settings-surface",
-                  "cornerRadius": "$radius-10",
-                  "stroke": "$border",
-                  "strokeWidth": "$stroke-1",
-                  "gap": "$space-10",
+                  "gap": "$space-16",
                   "padding": [
-                    "$space-0",
-                    "$space-12",
-                    "$space-0",
-                    "$space-0"
+                    "$space-18",
+                    "$space-22"
                   ],
                   "alignItems": "center",
                   "children": [
                     {
-                      "id": "jojRX",
-                      "type": "ref",
-                      "ref": "DhSlx",
-                      "name": "MacBook Keyboard / Identity",
+                      "type": "frame",
+                      "id": "TjwfT",
+                      "name": "Labels",
                       "width": "fill_container",
-                      "fill": "$transparent",
-                      "strokeWidth": "$stroke-0",
-                      "theme": {},
-                      "context": "Sizing reference (editor stores numeric dimensions): height=$size-62",
-                      "descendants": {
-                        "ZRdRV": {
-                          "fill": "$text-primary"
+                      "layout": "vertical",
+                      "gap": "$space-3",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UIJxt",
+                          "name": "Keyboard Name",
+                          "fill": "$text-primary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "MacBook Keyboard",
+                          "lineHeight": "$leading-body",
+                          "fontFamily": "$font-sans",
+                          "fontSize": "$type-body",
+                          "fontWeight": "$weight-medium"
                         },
-                        "nkMRQ": {
-                          "fill": "$text-secondary"
-                        },
-                        "sdRYG": {
-                          "enabled": false
+                        {
+                          "type": "text",
+                          "id": "P6Is87",
+                          "name": "Keyboard Subtitle",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Built-in",
+                          "lineHeight": "$leading-subheadline",
+                          "fontFamily": "$font-sans",
+                          "fontSize": "$type-subheadline",
+                          "fontWeight": "$weight-regular"
                         }
-                      }
+                      ]
                     },
                     {
-                      "id": "rvc3z",
-                      "type": "ref",
-                      "ref": "OTLcf",
-                      "name": "Input source / Italian",
-                      "width": 104,
-                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-104, height=$size-28",
-                      "descendants": {
-                        "Io6QS": {
-                          "content": "Italian"
+                      "type": "frame",
+                      "id": "wIA12",
+                      "name": "Built-in layout / Aligned controls",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "VF7l0",
+                          "type": "ref",
+                          "ref": "OTLcf"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fI92u",
+                          "name": "Menu column spacer / Built-in has no actions",
+                          "width": 28,
+                          "height": 28
                         }
-                      }
-                    },
-                    {
-                      "type": "icon",
-                      "id": "oYDmR",
-                      "name": "MacBook Keyboard / More actions",
-                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-20, height=$size-20",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "ellipsis",
-                      "library": "lucide",
-                      "fill": "$text-secondary"
+                      ]
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "T50UCJ",
-                  "name": "Office Keyboard / Assignment",
-                  "context": "Sizing reference (editor stores numeric dimensions): height=$size-78",
+                  "id": "jK7lF",
+                  "name": "Hairline 1",
                   "width": "fill_container",
-                  "height": 78,
-                  "fill": "$settings-surface",
-                  "cornerRadius": "$radius-10",
-                  "stroke": "$border",
-                  "strokeWidth": "$stroke-1",
-                  "gap": "$space-10",
                   "padding": [
                     "$space-0",
-                    "$space-12",
                     "$space-0",
-                    "$space-0"
+                    "$space-0",
+                    "$space-22"
                   ],
-                  "alignItems": "center",
                   "children": [
                     {
-                      "id": "qKFLK",
-                      "type": "ref",
-                      "ref": "xdhm3",
-                      "name": "Office Keyboard / Identity",
+                      "type": "rectangle",
+                      "id": "pKRGd",
+                      "name": "Line",
+                      "context": "Sizing reference (editor stores numeric dimensions): height=$size-1",
+                      "fill": "$border",
                       "width": "fill_container",
-                      "fill": "$transparent",
-                      "strokeWidth": "$stroke-0",
-                      "theme": {},
-                      "context": "Sizing reference (editor stores numeric dimensions): height=$size-62",
-                      "descendants": {
-                        "h0Hjgv": {
-                          "fill": "$text-primary"
-                        },
-                        "ZjWcL": {
-                          "fill": "$text-secondary"
-                        },
-                        "R1cyc": {
-                          "enabled": false
-                        }
-                      }
-                    },
-                    {
-                      "id": "jwj8O",
-                      "type": "ref",
-                      "ref": "OTLcf",
-                      "name": "Input source / U.S.",
-                      "width": 104,
-                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-104, height=$size-28",
-                      "descendants": {
-                        "Io6QS": {
-                          "content": "U.S."
-                        }
-                      }
-                    },
-                    {
-                      "type": "icon",
-                      "id": "syjGG",
-                      "name": "Office Keyboard / More actions",
-                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-20, height=$size-20",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "ellipsis",
-                      "library": "lucide",
-                      "fill": "$text-secondary"
+                      "height": 1
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "ppZ00",
-                  "name": "Travel Keyboard / Assignment",
-                  "context": "Sizing reference (editor stores numeric dimensions): height=$size-78",
+                  "id": "y0rhV",
+                  "name": "Office Keyboard",
                   "width": "fill_container",
-                  "height": 78,
-                  "fill": "$settings-surface",
-                  "cornerRadius": "$radius-10",
-                  "stroke": "$border",
-                  "strokeWidth": "$stroke-1",
-                  "gap": "$space-10",
+                  "gap": "$space-16",
                   "padding": [
-                    "$space-0",
-                    "$space-12",
-                    "$space-0",
-                    "$space-0"
+                    "$space-18",
+                    "$space-22"
                   ],
                   "alignItems": "center",
                   "children": [
                     {
-                      "id": "H1Cmpb",
-                      "type": "ref",
-                      "ref": "Vvjkf",
-                      "name": "Travel Keyboard / Identity",
+                      "type": "frame",
+                      "id": "c0X6Z",
+                      "name": "Labels",
                       "width": "fill_container",
-                      "fill": "$transparent",
-                      "strokeWidth": "$stroke-0",
-                      "theme": {},
-                      "context": "Sizing reference (editor stores numeric dimensions): height=$size-62",
-                      "descendants": {
-                        "ZUY25": {
-                          "fill": "$text-primary"
+                      "layout": "vertical",
+                      "gap": "$space-3",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "N9rahA",
+                          "name": "Keyboard name and actions",
+                          "gap": 4,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C0NY5e",
+                              "name": "Keyboard Name",
+                              "fill": "$text-primary",
+                              "content": "Office Keyboard",
+                              "lineHeight": "$leading-body",
+                              "fontFamily": "$font-sans",
+                              "fontSize": "$type-body",
+                              "fontWeight": "$weight-medium"
+                            }
+                          ]
                         },
-                        "dT9Z5": {
-                          "fill": "$text-secondary"
-                        },
-                        "p28fG": {
-                          "enabled": false
+                        {
+                          "type": "text",
+                          "id": "fWKfL",
+                          "name": "Keyboard Subtitle",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Keychron K2",
+                          "lineHeight": "$leading-subheadline",
+                          "fontFamily": "$font-sans",
+                          "fontSize": "$type-subheadline",
+                          "fontWeight": "$weight-regular"
                         }
-                      }
+                      ]
                     },
                     {
-                      "id": "kaa3k",
-                      "type": "ref",
-                      "ref": "OTLcf",
-                      "name": "Input source / German",
-                      "width": 104,
-                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-104, height=$size-28",
-                      "descendants": {
-                        "Io6QS": {
-                          "content": "German"
+                      "type": "frame",
+                      "id": "jSYok",
+                      "name": "Layout picker and keyboard menu",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "jAnYn",
+                          "type": "ref",
+                          "ref": "OTLcf",
+                          "name": "Input source / U.S.",
+                          "width": 176,
+                          "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                          "descendants": {
+                            "Io6QS": {
+                              "content": "U.S."
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "u7sCGJ",
+                          "name": "More keyboard actions",
+                          "context": "Button. Accessibility label: More keyboard actions. Opens context menu aligned to trailing edge below button. Remains enabled for hidden keyboards.",
+                          "width": 28,
+                          "height": 28,
+                          "cornerRadius": 6,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "hoTCp",
+                              "name": "More / Ellipsis",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "ellipsis",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            },
+                            {
+                              "id": "fIJzf",
+                              "type": "ref",
+                              "ref": "h3PbgF",
+                              "name": "Context menu / Closed",
+                              "enabled": false,
+                              "layoutPosition": "absolute",
+                              "x": -164,
+                              "y": 32
+                            }
+                          ]
                         }
-                      }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "r6ip9",
+                  "name": "Hairline 2",
+                  "width": "fill_container",
+                  "padding": [
+                    "$space-0",
+                    "$space-0",
+                    "$space-0",
+                    "$space-22"
+                  ],
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "XOrrg",
+                      "name": "Line",
+                      "context": "Sizing reference (editor stores numeric dimensions): height=$size-1",
+                      "fill": "$border",
+                      "width": "fill_container",
+                      "height": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "twqqp",
+                  "name": "Travel Keyboard / Excluded",
+                  "context": "Hidden keyboard: labels and layout picker dimmed, saved assignment retained. More actions menu remains enabled; Unhide restores inclusion.",
+                  "width": "fill_container",
+                  "gap": "$space-16",
+                  "padding": [
+                    "$space-18",
+                    "$space-22"
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "JNLrz",
+                      "name": "Labels",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": "$space-3",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YePxN",
+                          "name": "Keyboard name and actions",
+                          "gap": 4,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "H2QWpn",
+                              "name": "Keyboard Name",
+                              "fill": "$text-muted",
+                              "content": "Travel Keyboard",
+                              "lineHeight": "$leading-body",
+                              "fontFamily": "$font-sans",
+                              "fontSize": "$type-body",
+                              "fontWeight": "$weight-medium"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "J3WjJt",
+                          "name": "Keyboard Subtitle",
+                          "fill": "$text-muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "HHKB Professional",
+                          "lineHeight": "$leading-subheadline",
+                          "fontFamily": "$font-sans",
+                          "fontSize": "$type-subheadline",
+                          "fontWeight": "$weight-regular"
+                        }
+                      ]
                     },
                     {
-                      "type": "icon",
-                      "id": "E0dp8g",
-                      "name": "Travel Keyboard / More actions",
-                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-20, height=$size-20",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "ellipsis",
-                      "library": "lucide",
-                      "fill": "$text-secondary"
+                      "type": "frame",
+                      "id": "I6Tdax",
+                      "name": "Layout picker and keyboard menu",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "yy3Dm",
+                          "type": "ref",
+                          "ref": "OTLcf",
+                          "name": "Input source / German",
+                          "width": 176,
+                          "context": "Disabled input-source picker while excluded; retain German assignment for re-inclusion.",
+                          "opacity": 0.4,
+                          "descendants": {
+                            "Io6QS": {
+                              "content": "German"
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "h4Kgj",
+                          "name": "More keyboard actions",
+                          "context": "Button. Accessibility label: More keyboard actions. Opens context menu aligned to trailing edge below button. Remains enabled for hidden keyboards.",
+                          "width": 28,
+                          "height": 28,
+                          "cornerRadius": 6,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "e2FzUi",
+                              "name": "More / Ellipsis",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "ellipsis",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            },
+                            {
+                              "id": "o7wLc4",
+                              "type": "ref",
+                              "ref": "mZtbv",
+                              "name": "Context menu / Closed",
+                              "enabled": false,
+                              "layoutPosition": "absolute",
+                              "x": -164,
+                              "y": 32
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
@@ -5552,15 +5657,6 @@
             },
             "QzudY": {
               "theme": {}
-            },
-            "QzudY/jojRX": {
-              "theme": {}
-            },
-            "QzudY/qKFLK": {
-              "theme": {}
-            },
-            "QzudY/H1Cmpb": {
-              "theme": {}
             }
           }
         }
@@ -5966,6 +6062,334 @@
               "fill": "$text-primary",
               "width": 11.911999702453613,
               "height": 16.145999908447266
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YWgYJ",
+          "x": 13,
+          "y": 260,
+          "name": "eye.svg",
+          "reusable": true,
+          "clip": true,
+          "width": 26.681,
+          "height": 16.75,
+          "layout": "none",
+          "children": [
+            {
+              "type": "path",
+              "id": "jkjdp",
+              "x": 0,
+              "y": 0.011999130249023438,
+              "geometry": "M13.341 16.738c7.89 0 13.34-6.382 13.34-8.369 0-1.997-5.46-8.369-13.34-8.369-7.778 0-13.341 6.372-13.341 8.37 0 1.986 5.553 8.368 13.341 8.368m0-1.546c-6.425 0-11.633-5.445-11.633-6.823 0-1.162 5.208-6.827 11.633-6.827 6.414 0 11.622 5.665 11.622 6.827 0 1.378-5.208 6.823-11.622 6.823m0-1.365c1.45356 0.00026 2.84768-0.57697 3.87559-1.6047 1.02792-1.02773 1.60541-2.42174 1.60541-3.8753 0.00026-1.45356-0.57697-2.84768-1.6047-3.87559-1.02773-1.02792-2.42174-1.60541-3.8753-1.60541-1.45356-0.00027-2.84768 0.57697-3.87559 1.6047-1.02792 1.02773-1.60541 2.42174-1.60541 3.8753-0.00027 1.45356 0.57697 2.84768 1.6047 3.87559 1.02773 1.02792 2.42174 1.60541 3.8753 1.60541m0-3.654c-1 0-1.816-0.816-1.816-1.816 0-1 0.816-1.817 1.816-1.817 1.01 0 1.815 0.816 1.815 1.817 0 1.001-0.806 1.816-1.815 1.816",
+              "fill": "#000000d9",
+              "width": 26.680999755859375,
+              "height": 16.738000869750977
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HJ1wf",
+          "x": 52,
+          "y": 258,
+          "name": "eye.slash.svg",
+          "reusable": true,
+          "clip": true,
+          "width": 26.681,
+          "height": 20.949,
+          "layout": "none",
+          "children": [
+            {
+              "type": "path",
+              "id": "YSmxW",
+              "x": 0,
+              "y": 1.3387986421585083,
+              "geometry": "M6.093 4.6232c-2.675 1.708-4.385 3.853-4.385 4.519 0 1.377 5.208 6.823 11.633 6.823 1.243 0 2.44-0.205 3.56-0.548l1.267 1.265c-1.54986 0.54994-3.18247 0.83033-4.827 0.829-7.788 0-13.341-6.382-13.341-8.37 0-1.147 1.836-3.737 4.879-5.73l1.214 1.212z m20.588 4.519c0 1.11-1.701 3.592-4.58 5.565l-1.194-1.193c2.485-1.632 4.055-3.616 4.055-4.372 0-1.162-5.207-6.827-11.62-6.827-1.07674 0.00234-2.14771 0.15721-3.181 0.46l-1.284-1.284c1.44045-0.47488 2.94729-0.71758 4.464-0.719 7.88 0 13.34 6.371 13.34 8.369m-11.087 4.97c-0.70712 0.32294-1.47563 0.4894-2.253 0.488-3.02652 0-5.48-2.45348-5.48-5.48 0-0.802 0.172-1.563 0.485-2.247l7.248 7.239z m3.228-4.993c0 0.687-0.127 1.345-0.363 1.948l-7.07-7.064c0.62186-0.24357 1.28415-0.36741 1.952-0.365 1.45373-0.00027 2.848 0.57711 3.87595 1.60506 1.02794 1.02794 1.60532 2.42221 1.60505 3.87594m2.154 8.479c0.294 0.296 0.756 0.317 1.06 0 0.32-0.328 0.297-0.767 0-1.061l-16.319-16.315c-0.29647-0.29494-0.77553-0.29494-1.072 0-0.28651 0.2968-0.28651 0.7672 0 1.064l16.331 16.312z",
+              "fill": "#000000d9",
+              "width": 26.680999755859375,
+              "height": 17.827144503593445
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gqzzC",
+          "x": 18,
+          "y": 300,
+          "name": "pencil.svg",
+          "reusable": true,
+          "clip": true,
+          "width": 15.565,
+          "height": 15.515,
+          "layout": "none",
+          "children": [
+            {
+              "type": "path",
+              "id": "Vw5zh",
+              "x": 0.008415969088673592,
+              "y": 0.05602565407752991,
+              "geometry": "M2.65758 14.57398l10.654-10.64301-1.713-1.713-10.652 10.638-0.925 2.173c-0.096 0.228 0.145 0.498 0.392 0.415l2.244-0.87z m11.514-11.47901l0.984-0.971c0.506-0.505 0.537-1.038 0.078-1.486l-0.326-0.324c-0.444-0.454-0.979-0.407-1.47999 0.085l-0.99 0.969 1.73399 1.727z",
+              "fill": "#000000d9",
+              "width": 15.557613579556346,
+              "height": 15.459325641393661
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Z5DtMS",
+      "x": 10271,
+      "y": 1503,
+      "name": "Keyboard actions / Context menus",
+      "width": 440,
+      "gap": 24,
+      "padding": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "h3PbgF",
+          "name": "Keyboard menu / Visible",
+          "context": "Menu for included keyboard. Hide excludes from switching, retains row and assignment, and disables picker.",
+          "reusable": true,
+          "width": 192,
+          "fill": "$bg-window",
+          "cornerRadius": 8,
+          "stroke": "$border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "padding": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "OB4oF",
+              "name": "Rename… / Menu item",
+              "width": "fill_container",
+              "height": 28,
+              "gap": 8,
+              "padding": [
+                0,
+                8
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "iJtjb",
+                  "name": "Rename… / Icon slot",
+                  "width": 20,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "i8Ln5",
+                      "type": "ref",
+                      "ref": "gqzzC",
+                      "name": "Rename… / SF Symbol",
+                      "width": 10,
+                      "height": 9.967876646321876,
+                      "descendants": {
+                        "Vw5zh": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 10,
+                          "height": 9.96,
+                          "fill": "$text-secondary"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "iNnoP",
+                  "name": "Rename… / Label",
+                  "fill": "$text-primary",
+                  "content": "Rename…",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CZTQY",
+              "name": "Hide / Menu item",
+              "width": "fill_container",
+              "height": 28,
+              "gap": 8,
+              "padding": [
+                0,
+                8
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "sGWvS",
+                  "name": "Hide / Icon slot",
+                  "width": 20,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "Ygfeb",
+                      "type": "ref",
+                      "ref": "HJ1wf",
+                      "name": "Hide / SF Symbol",
+                      "width": 17.141663989720527,
+                      "height": 13.459042724060392,
+                      "descendants": {
+                        "YSmxW": {
+                          "x": 0,
+                          "y": 0.8601340457169986,
+                          "width": 17.141663832868215,
+                          "height": 11.453353359199129,
+                          "fill": "$text-secondary"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "Eup61",
+                  "name": "Hide / Label",
+                  "fill": "$text-primary",
+                  "content": "Hide",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mZtbv",
+          "name": "Keyboard menu / Hidden",
+          "context": "Menu for excluded keyboard. Unhide restores saved assignment and enables picker.",
+          "reusable": true,
+          "width": 192,
+          "fill": "$bg-window",
+          "cornerRadius": 8,
+          "stroke": "$border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "padding": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "a95fM",
+              "name": "Rename… / Menu item",
+              "width": "fill_container",
+              "height": 28,
+              "gap": 8,
+              "padding": [
+                0,
+                8
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "gR3CK",
+                  "name": "Rename… / Icon slot",
+                  "width": 20,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "MYKO3",
+                      "type": "ref",
+                      "ref": "gqzzC",
+                      "name": "Rename… / SF Symbol",
+                      "width": 10,
+                      "height": 9.967876646321876,
+                      "descendants": {
+                        "Vw5zh": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 10,
+                          "height": 9.96,
+                          "fill": "$text-secondary"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "dvrZF",
+                  "name": "Rename… / Label",
+                  "fill": "$text-primary",
+                  "content": "Rename…",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cAHDN",
+              "name": "Unhide / Menu item",
+              "width": "fill_container",
+              "height": 28,
+              "gap": 8,
+              "padding": [
+                0,
+                8
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Q62w9I",
+                  "name": "Unhide / Icon slot",
+                  "width": 20,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "v8umTq",
+                      "type": "ref",
+                      "ref": "YWgYJ",
+                      "name": "Unhide / SF Symbol",
+                      "width": 17.141663989720527,
+                      "height": 10.76132348217154,
+                      "descendants": {
+                        "jkjdp": {
+                          "x": 0,
+                          "y": 0.007709046096385118,
+                          "width": 17.141663832868215,
+                          "height": 10.753614436075154,
+                          "fill": "$text-secondary"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "KSk9Z",
+                  "name": "Unhide / Label",
+                  "fill": "$text-primary",
+                  "content": "Unhide",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "normal"
+                }
+              ]
             }
           ]
         }
