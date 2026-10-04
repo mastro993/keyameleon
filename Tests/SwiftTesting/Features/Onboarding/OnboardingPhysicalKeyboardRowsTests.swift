@@ -25,22 +25,22 @@ func onboardingSubtitleUsesOriginalNameOnlyAfterRename() {
     let hidden = OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(saved))
     #expect(OnboardingPhysicalKeyboardRow(physicalKeyboard: unrenamed.applying(savedRecord: saved), exclusionKey: nil)
         .subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Connected")
-    #expect(hidden.subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected")
-    #expect(hidden.subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Disconnected")
+    #expect(hidden.subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
+    #expect(hidden.subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Disconnected (Ignored)")
     #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .missing)
-        .subtitle(connectedExcludedKeys: [exclusion.key]) == "Connected")
+        .subtitle(connectedExcludedKeys: [exclusion.key]) == "Connected (Ignored)")
     #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .ambiguous)
-        .subtitle(connectedExcludedKeys: []) == "Disconnected")
+        .subtitle(connectedExcludedKeys: []) == "Disconnected (Ignored)")
     let blankName = SavedPhysicalKeyboardRecord(
         identityKey: saved.identityKey, productName: saved.productName, customName: "  "
     )
     #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(blankName))
-        .subtitle(connectedExcludedKeys: []) == "Disconnected")
+        .subtitle(connectedExcludedKeys: []) == "Disconnected (Ignored)")
     let sameName = SavedPhysicalKeyboardRecord(
         identityKey: saved.identityKey, productName: saved.productName, customName: saved.productName
     )
     #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(sameName))
-        .subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected")
+        .subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
 }
 
 @Test("Excluding and restoring preserves onboarding row identity and order")

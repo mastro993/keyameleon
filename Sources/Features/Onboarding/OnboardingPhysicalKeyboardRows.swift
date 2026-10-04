@@ -34,7 +34,10 @@ struct OnboardingPhysicalKeyboardRow: Identifiable, Equatable {
             }
             isConnected = connectedExcludedKeys.contains(exclusion.key)
         }
-        let status = isConnected ? "Connected" : "Disconnected"
+        var status = isConnected ? "Connected" : "Disconnected"
+        if case .excluded = state {
+            status += " (Ignored)"
+        }
         return productName.map { "\($0) - \(status)" } ?? status
     }
 

@@ -4,25 +4,26 @@
 
 - The Keyboards step uses a short explanation above an unheaded list. An
   external keyboard has a trailing actions menu after its native Input Source
-  picker: Rename… when its identity is safe, then Hide. Hidden rows offer
-  Rename… for an exact saved record and Unhide. Missing or ambiguous saved
-  records offer only Unhide. The built-in keyboard reserves the menu space
-  without offering actions. Settings keeps its existing confirmation path.
-- Hidden rows retain their position, name, product, and disabled saved Input
+  picker: Rename… when its identity is safe, then Ignore. Ignored rows offer
+  Rename… for an exact saved record and Stop ignoring. Missing or ambiguous
+  saved records offer only Stop ignoring. The built-in keyboard reserves the
+  menu space without offering actions. Settings keeps its existing confirmation path.
+- Ignored rows retain their position, name, product, and disabled saved Input
   Source. Rename uses the existing saved-record transaction and leaves the
   exclusion and assignment intact. The model checks the exact record and
   exclusion again when saving; a failed persistence operation retains its
   retry command. The row collection matches an anchored record first, then
   a unique exclusion group. Multiple matches without an anchor remain
   ambiguous.
-- A keyboard subtitle shows `Connected` or `Disconnected`. It prefixes the
-  original product name and ` - ` only when a custom name exists. Hidden rows
-  use the current hardware connection state even though they stay outside the
-  switching catalog; missing or ambiguous saved records show status alone.
+- An included keyboard subtitle shows `Connected` or `Disconnected`. It prefixes
+  the original product name and ` - ` only when a custom name exists. Ignored
+  rows append ` (Ignored)` to that connection status while using current hardware
+  connection state outside the switching catalog; missing or ambiguous saved
+  records show the status without a product prefix.
   Unsupported details remain available on the trailing `Unsupported` text.
 - The three onboarding stages use semantic macOS type styles, and the Ready
   illustration uses the updated light and dark Pencil artwork.
-- This supersedes the onboarding control and hidden assignment details in the
+- This supersedes the onboarding control and ignored assignment details in the
   2026-09-27 entry below.
 
 ## 2026-09-30 — Store Physical Keyboard data in the Keyameleon folder

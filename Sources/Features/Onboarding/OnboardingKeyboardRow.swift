@@ -57,7 +57,7 @@ struct OnboardingKeyboardRow: View {
                                     presentRename(for: keyboard)
                                 }
                             }
-                            Button("Hide", systemImage: "eye.slash") {
+                            Button("Ignore", systemImage: "eye.slash") {
                                 onExclude(keyboard.id)
                             }
                         } label: {
@@ -121,7 +121,7 @@ struct OnboardingKeyboardRow: View {
                                 presentRename(for: .restored(from: record))
                             }
                         }
-                        Button("Unhide", systemImage: "eye") {
+                        Button("Stop ignoring", systemImage: "eye") {
                             onIncludeAgain(exclusion.key)
                         }
                     } label: {

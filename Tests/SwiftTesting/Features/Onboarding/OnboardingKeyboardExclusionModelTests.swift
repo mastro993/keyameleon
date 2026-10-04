@@ -23,12 +23,15 @@ func hiddenSubtitlesFollowConnectionChanges() throws {
         exclusionKeyFor: model.exclusionKey(for:)
     )
     let row = try #require(rows.rows.first)
-    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys) == "Test Keyboard - Connected")
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys)
+        == "Test Keyboard - Connected (Ignored)")
 
     discoverer.emit(.disconnected(serviceID: facts.serviceID))
-    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys) == "Test Keyboard - Disconnected")
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys)
+        == "Test Keyboard - Disconnected (Ignored)")
     discoverer.emit(.connected(facts))
-    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys) == "Test Keyboard - Connected")
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys)
+        == "Test Keyboard - Connected (Ignored)")
     #expect(model.physicalKeyboards.isEmpty)
     #expect(model.savedPhysicalKeyboardRecords == records)
     #expect(model.excludedPhysicalKeyboards == exclusions)
@@ -65,13 +68,20 @@ func reopeningExcludedAssignedKeyboardRetainsItsSource() throws {
         savedRecords: reopened.savedPhysicalKeyboardRecords,
         exclusionKeyFor: reopened.exclusionKey(for:)
     )
-    #expect(rows.rows.first?.state == .excluded(
+    let excludedRow = try #require(rows.rows.first)
+    #expect(excludedRow.state == .excluded(
         SavedPhysicalKeyboardExclusion(key: exclusionKey, name: keyboard.name), .matched(saved)
     ))
+    #expect(excludedRow.subtitle(connectedExcludedKeys: [])
+        == "Disconnected (Ignored)")
 
     reopened.restorePhysicalKeyboard(exclusionKey: exclusionKey)
     #expect(reopened.physicalKeyboards.first?.keyboardAssignment?.inputSourceIdentifier
         == "com.example.german")
+    let restoredRow = OnboardingPhysicalKeyboardRow(
+        physicalKeyboard: try #require(reopened.physicalKeyboards.first), exclusionKey: nil
+    )
+    #expect(restoredRow.subtitle(connectedExcludedKeys: []) == "Disconnected")
 }
 
 @Test("Restoring an excluded saved keyboard returns it disconnected with its assignment")
