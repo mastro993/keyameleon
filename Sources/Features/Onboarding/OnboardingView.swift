@@ -22,7 +22,7 @@ struct KeyameleonOnboardingView: View {
             OnboardingSidebar(step: model.guidedSetupStep, hasAssignments: includedAssignmentCount > 0)
             VStack(spacing: 0) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: model.guidedSetupStep == .assignments ? 20 : 28) {
+                    VStack(alignment: .leading, spacing: contentSpacing) {
                         PersistenceFailureNotice(model: model)
                         OnboardingProgress(step: model.guidedSetupStep)
                         Group {
@@ -72,6 +72,14 @@ struct KeyameleonOnboardingView: View {
         model.physicalKeyboards.filter { keyboard in
             keyboard.isAssignable && keyboard.keyboardAssignment != nil
         }.count
+    }
+
+    private var contentSpacing: CGFloat {
+        switch model.guidedSetupStep {
+        case .assignments: 20
+        case .permission: 28
+        case .ready: 16
+        }
     }
 
     private func reconcileKeyboardRows() {

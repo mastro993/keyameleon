@@ -13,14 +13,15 @@ struct OnboardingAssignmentsStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("An Input Source for every keyboard.")
-                .font(.largeTitle)
+                .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
             Text("Connect the keyboards you use with this Mac. "
                  + "Turn off devices that aren’t keyboards. "
                  + "They stay in the list, so you can turn them back on any time.")
-                .font(.title2)
-                .lineSpacing(5)
+                .font(.body)
+                .lineSpacing(2)
+                .padding(.vertical, 1)
                 .foregroundStyle(OnboardingPalette.secondary)
             VStack(spacing: 0) {
                 if rows.isEmpty {
@@ -49,8 +50,7 @@ struct OnboardingAssignmentsStep: View {
             .background(OnboardingPalette.background, in: .rect(cornerRadius: 16))
             .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(OnboardingPalette.border) }
             Text(Self.switchingNote)
-                .font(.title2)
-                .lineSpacing(5)
+                .font(.callout)
                 .foregroundStyle(OnboardingPalette.muted)
         }
     }

@@ -5,12 +5,21 @@ struct OnboardingProgress: View {
     let step: GuidedSetupStep
 
     var body: some View {
-        HStack(spacing: 12) {
-            OnboardingProgressStage(number: 1, title: "Permissions", stage: .permission, current: step)
-            OnboardingProgressConnector()
-            OnboardingProgressStage(number: 2, title: "Keyboards", stage: .assignments, current: step)
-            OnboardingProgressConnector()
-            OnboardingProgressStage(number: 3, title: "Ready", stage: .ready, current: step)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 34) {
+                OnboardingProgressStage(number: 1, title: "Permissions", stage: .permission, current: step)
+                OnboardingProgressConnector(width: 44)
+                OnboardingProgressStage(number: 2, title: "Keyboards", stage: .assignments, current: step)
+                OnboardingProgressConnector(width: 44)
+                OnboardingProgressStage(number: 3, title: "Ready", stage: .ready, current: step)
+            }
+            HStack(spacing: 12) {
+                OnboardingProgressStage(number: 1, title: "Permissions", stage: .permission, current: step)
+                OnboardingProgressConnector(width: 8)
+                OnboardingProgressStage(number: 2, title: "Keyboards", stage: .assignments, current: step)
+                OnboardingProgressConnector(width: 8)
+                OnboardingProgressStage(number: 3, title: "Ready", stage: .ready, current: step)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Setup progress: \(step.label)")

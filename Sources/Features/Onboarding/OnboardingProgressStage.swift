@@ -9,15 +9,14 @@ struct OnboardingProgressStage: View {
 
     var body: some View {
         let active = stage.order <= current.order
-        HStack(spacing: 9) {
+        HStack(spacing: 10) {
             Text(number, format: .number)
-                .font(.title3)
-                .bold()
+                .font(.body.weight(.semibold))
                 .frame(width: 26, height: 26)
                 .background(active ? OnboardingPalette.accent : OnboardingPalette.chip, in: .circle)
                 .foregroundStyle(active ? .white : OnboardingPalette.muted)
             Text(title)
-                .font(stage == current ? .title3.bold() : .title3)
+                .font(stage == current ? .body.weight(.semibold) : .body)
                 .foregroundStyle(stage == current ? OnboardingPalette.primary : OnboardingPalette.muted)
         }
     }

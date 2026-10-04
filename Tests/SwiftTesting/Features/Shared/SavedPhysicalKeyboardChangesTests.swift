@@ -11,7 +11,10 @@ private enum SavedChangeTestFailure: Error {
     case unavailable
 }
 
-@Test("Saved changes retry the captured command and publish only committed records", arguments: SavedChangeTestCase.allCases)
+@Test(
+    "Saved changes retry the captured command and publish only committed records",
+    arguments: SavedChangeTestCase.allCases
+)
 @MainActor
 private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
     let folder = URL.temporaryDirectory.appending(path: "SavedChanges-\(UUID().uuidString)")
@@ -131,6 +134,47 @@ private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
     #expect(changes.retry() == .nothingPending)
     #expect(notifications == 1)
     #expect(saveAttempts == 4)
+}
+
+@Test("Hidden rename failure keeps assignment and command retryable")
+@MainActor
+private func hiddenRenameRetriesWithoutChangingAssignment() throws {
+    let folder = URL.temporaryDirectory.appending(path: "HiddenRename-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    let container = try makeSavedChangeTestContainer(at: folder.appending(path: "records.store"))
+    let context = ModelContext(container)
+    var fails = false
+    let session = SwiftDataPersistenceSession(modelContext: context, save: {
+        if fails { throw SavedChangeTestFailure.unavailable }
+        try $0.save()
+    })
+    let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
+    let designations = SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+    let identityKey = "identity:macos.keyboard.saved|anchor:serial:keyboard-a"
+    let assignment = KeyboardAssignment(inputSourceIdentifier: "com.example.german")
+    try records.saveAssignment(
+        identityKey: identityKey, productName: "Test Keyboard", assignment: assignment
+    )
+    let saved = try #require(try records.record(forIdentityKey: identityKey))
+    let changes = SavedPhysicalKeyboardChanges(records: records, designations: designations)
+    let rename = SavedPhysicalKeyboardChange.rename(
+        keyboard: .restored(from: saved), customName: "Travel"
+    )
+
+    fails = true
+    #expect(changes.perform(rename) == .failed)
+    #expect(changes.hasPendingChange)
+    #expect(try records.record(forIdentityKey: identityKey) == saved)
+    #expect(changes.perform(.rename(keyboard: .restored(from: saved), customName: "Other")) == .blocked)
+    #expect(try records.record(forIdentityKey: identityKey) == saved)
+
+    fails = false
+    #expect(changes.retry() == .committed(rename))
+    let renamed = try #require(try records.record(forIdentityKey: identityKey))
+    #expect(renamed.name == "Travel")
+    #expect(renamed.keyboardAssignment == assignment)
+    #expect(changes.hasPendingChange == false)
 }
 
 @MainActor

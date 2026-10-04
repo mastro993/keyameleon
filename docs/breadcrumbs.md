@@ -2,15 +2,17 @@
 
 ## 2026-10-04 — Guided setup keyboard alignment
 
-- The Keyboards step now has the Pencil paragraph, no table header, inset
-  dividers, and an inline eye control with checked accessibility semantics.
-  Exclusion and restoration happen directly in onboarding.
-- Excluded saved keyboards show their retained assignment in a disabled native
-  picker. Reopened lists recover it from the model's successful saved-record
-  snapshot; ambiguous record groups show an unavailable assignment.
-- The light and dark Keyboards previews contain built-in MacBook, Office
-  assigned U.S., and excluded Travel assigned German. Existing many-device,
-  unsupported, and persistence previews remain available.
+- The Keyboards step keeps the Pencil paragraph, unheaded list, and inset
+  dividers. A trailing ellipsis menu offers Rename… and Hide for eligible
+  external keyboards, or Rename… and Unhide for an exact hidden saved record.
+  Missing or ambiguous hidden records only offer Unhide. The built-in row
+  keeps a blank menu slot so its Input Source picker stays aligned.
+- Hidden saved keyboards show their retained assignment in a disabled native
+  picker. Rename preserves that assignment and exclusion, and the saved name
+  appears on the row after a successful write. An unsuccessful read keeps
+  the previous snapshot.
+- Onboarding uses semantic type styles across the sidebar, steps, rows, and
+  footer. The Ready step uses the updated light and dark menu artwork.
 
 ## 2026-09-28 — Closed Guided setup can resume from the menu bar
 

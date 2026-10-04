@@ -6,15 +6,14 @@ struct OnboardingPermissionInstruction: View {
     let message: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 14) {
             Text(number, format: .number)
-                .font(.title3)
-                .bold()
+                .font(.body.weight(.semibold))
                 .foregroundStyle(OnboardingPalette.muted)
-                .frame(width: 25, height: 25)
+                .frame(width: 22, height: 22)
                 .background(OnboardingPalette.chip, in: .circle)
             Text(message)
-                .font(.title2)
+                .font(.body)
                 .foregroundStyle(OnboardingPalette.primary)
                 .padding(.top, 3)
         }

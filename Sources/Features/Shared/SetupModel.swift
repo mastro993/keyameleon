@@ -349,11 +349,28 @@ final class KeyameleonSetupModel {
         _ physicalKeyboardID: PhysicalKeyboardRecordID,
         customName: String?
     ) {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
-              physicalKeyboard.isAssignable,
-              physicalKeyboard.id.isIdentityBased
-        else {
+        guard persistenceError == nil,
+              activityTriggeredSwitching.persistenceError == nil,
+              physicalKeyboardID.isIdentityBased else {
             return
+        }
+
+        let physicalKeyboard: PhysicalKeyboard
+        if let liveKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }) {
+            guard liveKeyboard.isAssignable else { return }
+            physicalKeyboard = liveKeyboard
+        } else {
+            let records = savedPhysicalKeyboardRecords.filter { $0.recordID == physicalKeyboardID }
+            guard records.count == 1,
+                  let record = records.first,
+                  !record.isBuiltInIdentity,
+                  excludedPhysicalKeyboards.contains(where: {
+                      $0.key == PhysicalKeyboardExclusionKey.key(for: physicalKeyboardID)
+                  })
+            else {
+                return
+            }
+            physicalKeyboard = .restored(from: record)
         }
 
         finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(

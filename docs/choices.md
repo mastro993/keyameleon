@@ -2,16 +2,21 @@
 
 ## 2026-10-04 — Guided setup keyboard rows match the Pencil design
 
-- The Keyboards step uses a short explanation above an unheaded list. Each
-  excludable row has a direct eye control before its native Input Source picker;
-  the control toggles exclusion immediately and exposes a checked accessibility
-  state. The built-in keyboard has no exclusion control. Settings keeps its
-  existing confirmation path.
-- Excluded rows retain their position and show the saved name, product, and
-  disabled saved Input Source. The model publishes saved records after a
-  successful read; the row collection matches an anchored record first, then
+- The Keyboards step uses a short explanation above an unheaded list. An
+  external keyboard has a trailing actions menu after its native Input Source
+  picker: Rename… when its identity is safe, then Hide. Hidden rows offer
+  Rename… for an exact saved record and Unhide. Missing or ambiguous saved
+  records offer only Unhide. The built-in keyboard reserves the menu space
+  without offering actions. Settings keeps its existing confirmation path.
+- Hidden rows retain their position, name, product, and disabled saved Input
+  Source. Rename uses the existing saved-record transaction and leaves the
+  exclusion and assignment intact. The model checks the exact record and
+  exclusion again when saving; a failed persistence operation retains its
+  retry command. The row collection matches an anchored record first, then
   a unique exclusion group. Multiple matches without an anchor remain
-  ambiguous. An unsuccessful read keeps the previous snapshot.
+  ambiguous.
+- The three onboarding stages use semantic macOS type styles, and the Ready
+  illustration uses the updated light and dark Pencil artwork.
 - This supersedes the onboarding control and hidden assignment details in the
   2026-09-27 entry below.
 

@@ -9,19 +9,18 @@ struct OnboardingSidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
+            HStack(spacing: 10) {
                 Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 27, height: 27)
+                    .frame(width: 28, height: 28)
                 Text("Keyameleon")
-                    .font(.title2)
-                    .bold()
+                    .font(.title2.weight(.semibold))
             }
             .padding(.top, 52)
 
             Text(headline)
-                .padding(.top, 85)
+                .padding(.top, 92)
                 .font(.largeTitle)
                 .bold()
                 .fixedSize(horizontal: false, vertical: true)
@@ -32,7 +31,7 @@ struct OnboardingSidebar: View {
                 .padding(.top, 28)
             Spacer(minLength: 35)
             Text(footer)
-                .font(.title3)
+                .font(.callout)
                 .foregroundStyle(.white.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 30)

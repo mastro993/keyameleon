@@ -6,16 +6,21 @@ struct OnboardingReadyStep: View {
     let switchingStatus: SwitchingStatus
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("You’re ready to switch.")
-                .font(.largeTitle)
+                .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
             Text("Start typing on a keyboard. Keyameleon selects its assigned Input Source after it detects activity.")
-                .font(.title2)
+                .font(.body)
+                .lineSpacing(2)
+                .padding(.vertical, 1)
                 .foregroundStyle(OnboardingPalette.secondary)
             HStack(spacing: 10) {
                 Image(systemName: assignmentCount > 0 ? "checkmark.circle.fill" : "info.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                     .foregroundStyle(assignmentCount > 0
                         ? OnboardingPalette.success : OnboardingPalette.muted)
                 Text(assignmentCount == 0
@@ -24,9 +29,7 @@ struct OnboardingReadyStep: View {
                     .foregroundStyle(assignmentCount > 0
                         ? OnboardingPalette.successText : OnboardingPalette.secondary)
             }
-            .font(.title2)
-            .bold()
-            .padding(.vertical, 8)
+            .font(.body.weight(.semibold))
             if switchingStatus != .ready {
                 Text(warning)
                     .font(.callout)
@@ -39,12 +42,11 @@ struct OnboardingReadyStep: View {
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: 631)
-                .frame(height: 360, alignment: .top)
+                .frame(height: 439, alignment: .top)
                 .clipped()
                 .accessibilityLabel("Illustration showing Keyameleon in the menu bar")
             Text("Find Keyameleon in your menu bar.")
-                .font(.title2)
-                .bold()
+                .font(.body.weight(.semibold))
                 .foregroundStyle(OnboardingPalette.primary)
         }
     }

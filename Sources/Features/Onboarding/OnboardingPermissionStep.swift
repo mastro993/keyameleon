@@ -3,45 +3,47 @@ import SwiftUI
 @MainActor
 struct OnboardingPermissionStep: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 28) {
             Text("Let Keyameleon recognise your keyboards.")
-                .font(.largeTitle)
+                .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
             Text("Input Monitoring lets Keyameleon detect keyboard activity and select the assigned Input Source.")
-                .font(.title2)
+                .font(.body)
+                .lineSpacing(2)
+                .padding(.vertical, 1)
                 .foregroundStyle(OnboardingPalette.secondary)
-            HStack(spacing: 16) {
+            HStack(spacing: 20) {
                 Image(systemName: "shield.fill")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 28, height: 34)
                     .foregroundStyle(OnboardingPalette.accent)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Input Monitoring").font(.title2).bold()
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Input Monitoring").font(.body).bold()
                     Text("Required for automatic switching")
-                        .font(.title3)
+                        .font(.callout)
                         .foregroundStyle(OnboardingPalette.secondary)
                 }
                 Spacer()
                 Text("Required")
-                    .font(.title3)
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(OnboardingPalette.secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
                     .background(OnboardingPalette.chip, in: .capsule)
             }
-            .padding(20)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 22)
             .background(OnboardingPalette.surface, in: .rect(cornerRadius: 16))
             .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(OnboardingPalette.border) }
-            VStack(alignment: .leading, spacing: 17) {
+            VStack(alignment: .leading, spacing: 16) {
                 OnboardingPermissionInstruction(number: 1, message: "Open the macOS permission prompt.")
                 OnboardingPermissionInstruction(number: 2, message: "Enable Keyameleon in Input Monitoring.")
                 OnboardingPermissionInstruction(number: 3, message: "Return here. Setup continues automatically.")
             }
-            .padding(.top, 12)
             Text("Access can be changed later in System Settings.")
-                .font(.title2)
+                .font(.callout)
                 .foregroundStyle(OnboardingPalette.muted)
         }
     }

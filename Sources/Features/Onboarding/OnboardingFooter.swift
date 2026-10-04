@@ -5,13 +5,13 @@ struct OnboardingFooter: View {
     let model: KeyameleonSetupModel
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 28) {
             switch model.guidedSetupStep {
             case .permission:
                 Text(model.isWaitingForListenPermission
                     ? "Waiting for Input Monitoring permission."
                     : "macOS will ask for permission.")
-                    .font(.title3)
+                    .font(.callout)
                     .foregroundStyle(OnboardingPalette.secondary)
                 Spacer()
                 if model.isWaitingForListenPermission {
@@ -47,6 +47,7 @@ struct OnboardingFooter: View {
                     .keyboardShortcut(.defaultAction)
             }
         }
+        .font(.body.weight(.semibold))
         .controlSize(.large)
         .buttonBorderShape(.roundedRectangle(radius: 6))
         .padding(.horizontal, 37)
