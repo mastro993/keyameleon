@@ -8,6 +8,7 @@ enum KeyameleonPreviewSetupState: Equatable {
     case permissionWaiting
     case assignmentsEmpty
     case assignmentsPopulated
+    case pencilAssignments
     case readyEmpty
     case readyPopulated
     case readyPaused
@@ -124,6 +125,8 @@ enum KeyameleonPreviewFixtures {
         }
         configureAssignments(for: model, state: state)
 
+        excludePencilTravelIfNeeded(from: model, state: state)
+
         if state == .excludedDevices,
            let pointer = model.physicalKeyboards.first(where: { !$0.isAssignable }) {
             model.excludePhysicalKeyboard(pointer.id)
@@ -152,6 +155,18 @@ enum KeyameleonPreviewFixtures {
         }
 
         return KeyameleonPreviewSetupFixture(model: model, switching: switching)
+    }
+
+    private static func excludePencilTravelIfNeeded(
+        from model: KeyameleonSetupModel,
+        state: KeyameleonPreviewSetupState
+    ) {
+        guard state == .pencilAssignments,
+              let travel = model.physicalKeyboards.first(where: { $0.productName == "HHKB Professional" })
+        else {
+            return
+        }
+        model.excludePhysicalKeyboard(travel.id)
     }
 
     private static func persistenceStores(
@@ -336,6 +351,28 @@ enum KeyameleonPreviewFixtures {
                     name: "HHKB Professional"
                 )
             ]
+        case .pencilAssignments:
+            return [
+                PhysicalKeyboardHardwareFacts(
+                    serviceID: 8,
+                    identity: PhysicalKeyboardIdentity(
+                        rawValue: "preview.macbook", isBuiltIn: true, serialNumber: nil
+                    ),
+                    name: "MacBook Keyboard",
+                    transport: .usb,
+                    isBuiltIn: true,
+                    vendorID: 500,
+                    productID: 100,
+                    modelNumber: "MacBook",
+                    serialNumber: nil
+                ),
+                makeFacts(
+                    serviceID: 10, identity: "preview.travel", serial: "travel", name: "Keychron K2"
+                ),
+                makeFacts(
+                    serviceID: 11, identity: "preview.desk", serial: "desk", name: "HHKB Professional"
+                )
+            ]
         case .manyAssignments:
             return (1...6).map { index in
                 makeFacts(
@@ -394,18 +431,29 @@ enum KeyameleonPreviewFixtures {
         for keyboard in model.physicalKeyboards where keyboard.isAssignable {
             switch keyboard.productName {
             case "Keychron K2":
-                model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
+                model.setPhysicalKeyboardName(
+                    keyboard.id, customName: state == .pencilAssignments ? "Office Keyboard" : "Travel"
+                )
                 model.setKeyboardAssignment(
                     keyboard.id,
-                    inputSourceIdentifier: "com.apple.keylayout.Italian"
+                    inputSourceIdentifier: state == .pencilAssignments
+                        ? "com.apple.keylayout.US" : "com.apple.keylayout.Italian"
                 )
             case "HHKB Professional":
-                if state == .assignmentsPopulated || state == .paused {
+                if state == .pencilAssignments {
+                    model.setPhysicalKeyboardName(keyboard.id, customName: "Travel Keyboard")
+                }
+                if state == .assignmentsPopulated || state == .paused || state == .pencilAssignments {
                     model.setKeyboardAssignment(
                         keyboard.id,
-                        inputSourceIdentifier: "com.apple.keylayout.US"
+                        inputSourceIdentifier: state == .pencilAssignments
+                            ? "com.apple.keylayout.German" : "com.apple.keylayout.US"
                     )
                 }
+            case "MacBook Keyboard":
+                model.setKeyboardAssignment(
+                    keyboard.id, inputSourceIdentifier: "com.apple.keylayout.Italian"
+                )
             case "Unidentifiable Keyboard":
                 break
             case let name where state == .manyAssignments && name.hasPrefix("Board "):

@@ -1,5 +1,20 @@
 # Choices
 
+## 2026-10-04 — Guided setup keyboard rows match the Pencil design
+
+- The Keyboards step uses a short explanation above an unheaded list. Each
+  excludable row has a direct eye control before its native Input Source picker;
+  the control toggles exclusion immediately and exposes a checked accessibility
+  state. The built-in keyboard has no exclusion control. Settings keeps its
+  existing confirmation path.
+- Excluded rows retain their position and show the saved name, product, and
+  disabled saved Input Source. The model publishes saved records after a
+  successful read; the row collection matches an anchored record first, then
+  a unique exclusion group. Multiple matches without an anchor remain
+  ambiguous. An unsuccessful read keeps the previous snapshot.
+- This supersedes the onboarding control and hidden assignment details in the
+  2026-09-27 entry below.
+
 ## 2026-09-30 — Store Physical Keyboard data in the Keyameleon folder
 
 - The production SwiftData store lives at

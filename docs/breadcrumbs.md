@@ -1,5 +1,17 @@
 # Breadcrumbs
 
+## 2026-10-04 — Guided setup keyboard alignment
+
+- The Keyboards step now has the Pencil paragraph, no table header, inset
+  dividers, and an inline eye control with checked accessibility semantics.
+  Exclusion and restoration happen directly in onboarding.
+- Excluded saved keyboards show their retained assignment in a disabled native
+  picker. Reopened lists recover it from the model's successful saved-record
+  snapshot; ambiguous record groups show an unavailable assignment.
+- The light and dark Keyboards previews contain built-in MacBook, Office
+  assigned U.S., and excluded Travel assigned German. Existing many-device,
+  unsupported, and persistence previews remain available.
+
 ## 2026-09-28 — Closed Guided setup can resume from the menu bar
 
 - Issue #119: closing Guided setup left no path back from the menu-bar app.

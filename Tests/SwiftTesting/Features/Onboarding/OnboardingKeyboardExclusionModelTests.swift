@@ -1,6 +1,46 @@
 import Testing
 @testable import Keyameleon
 
+@Test("Reopening an excluded assigned keyboard retains its saved Input Source")
+@MainActor
+func reopeningExcludedAssignedKeyboardRetainsItsSource() throws {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let exclusionStore = InMemoryPhysicalKeyboardExclusionStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = makeOnboardingExclusionModel(
+        discoverer: discoverer, recordStore: recordStore, exclusionStore: exclusionStore
+    )
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 600)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    let exclusionKey = try #require(model.exclusionKey(for: keyboard.id))
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.german")
+    model.excludePhysicalKeyboard(keyboard.id)
+
+    let reopened = makeOnboardingExclusionModel(
+        discoverer: SetupModelTestPhysicalKeyboardDiscoverer(),
+        recordStore: recordStore,
+        exclusionStore: exclusionStore
+    )
+    startAndCheck(reopened)
+    #expect(reopened.physicalKeyboards.isEmpty)
+    let saved = try #require(reopened.savedPhysicalKeyboardRecords.first)
+    #expect(saved.keyboardAssignment?.inputSourceIdentifier == "com.example.german")
+    let rows = OnboardingPhysicalKeyboardRows(
+        physicalKeyboards: reopened.physicalKeyboards,
+        exclusions: reopened.excludedPhysicalKeyboards,
+        savedRecords: reopened.savedPhysicalKeyboardRecords,
+        exclusionKeyFor: reopened.exclusionKey(for:)
+    )
+    #expect(rows.rows.first?.state == .excluded(
+        SavedPhysicalKeyboardExclusion(key: exclusionKey, name: keyboard.name), .matched(saved)
+    ))
+
+    reopened.restorePhysicalKeyboard(exclusionKey: exclusionKey)
+    #expect(reopened.physicalKeyboards.first?.keyboardAssignment?.inputSourceIdentifier
+        == "com.example.german")
+}
+
 @Test("Restoring an excluded saved keyboard returns it disconnected with its assignment")
 @MainActor
 func restoringExcludedSavedKeyboardReturnsItDisconnectedWithItsAssignment() {

@@ -107,6 +107,7 @@ final class KeyameleonSetupModel {
     private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
     private(set) var excludedPhysicalKeyboards: [SavedPhysicalKeyboardExclusion] = []
+    private(set) var savedPhysicalKeyboardRecords: [SavedPhysicalKeyboardRecord] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     private(set) var isWaitingForListenPermission = false
@@ -733,6 +734,7 @@ final class KeyameleonSetupModel {
 
         lastKnownPhysicalKeyboards = knownKeyboards
         savedIdentityKeys = Set(savedRecords.map(\.identityKey))
+        savedPhysicalKeyboardRecords = savedRecords
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
             connected + disconnected
         )

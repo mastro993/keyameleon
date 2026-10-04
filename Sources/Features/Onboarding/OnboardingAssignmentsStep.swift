@@ -16,19 +16,12 @@ struct OnboardingAssignmentsStep: View {
                 .font(.largeTitle)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
-            Text("Connect the keyboards you use with this Mac. You can finish assigning them later in Settings.")
+            Text("Connect the keyboards you use with this Mac. "
+                 + "Turn off devices that aren’t keyboards. "
+                 + "They stay in the list, so you can turn them back on any time.")
                 .font(.title2)
+                .lineSpacing(5)
                 .foregroundStyle(OnboardingPalette.secondary)
-            HStack {
-                Text("Physical Keyboard")
-                Spacer()
-                Text("Input Source")
-                    .frame(width: 176, alignment: .leading)
-            }
-            .font(.title3)
-            .foregroundStyle(OnboardingPalette.muted)
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
             VStack(spacing: 0) {
                 if rows.isEmpty {
                     Text(model.persistenceError == nil
@@ -48,6 +41,7 @@ struct OnboardingAssignmentsStep: View {
                     .overlay(alignment: .top) {
                         if row.id != rows.first?.id {
                             OnboardingPalette.border.frame(height: 1)
+                                .padding(.leading, 22)
                         }
                     }
                 }
@@ -56,6 +50,7 @@ struct OnboardingAssignmentsStep: View {
             .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(OnboardingPalette.border) }
             Text(Self.switchingNote)
                 .font(.title2)
+                .lineSpacing(5)
                 .foregroundStyle(OnboardingPalette.muted)
         }
     }
@@ -69,6 +64,7 @@ struct OnboardingAssignmentsStep: View {
         rows: OnboardingPhysicalKeyboardRows(
             physicalKeyboards: fixture.model.physicalKeyboards,
             exclusions: fixture.model.excludedPhysicalKeyboards,
+            savedRecords: fixture.model.savedPhysicalKeyboardRecords,
             exclusionKeyFor: fixture.model.exclusionKey(for:)
         ).rows,
         onExclude: { _ in },

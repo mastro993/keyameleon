@@ -33,6 +33,7 @@
 		2C7BC2E27A434F49F0D45F59 /* MenuBarAssignmentPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E27BD2B35874DAC97B53B75 /* MenuBarAssignmentPill.swift */; };
 		2D0F8BBA760A76D6FD0B64D3 /* BundledLicensesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC5B2E24B41A9F42C628DFC /* BundledLicensesTests.swift */; };
 		2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9163A19B113812EA758F0681 /* ProductionFactory.swift */; };
+		31A0CB0EF25A80DD16B04E59 /* OnboardingKeyboardInclusionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF970CB588DC1725ED896FE /* OnboardingKeyboardInclusionButton.swift */; };
 		34EFF25115723D444C623637 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F3881EDB96F08B18FD0F617B /* Sparkle */; };
 		35E9CFDD030E21B10BA02FBF /* MenuBarPanelAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77232F12327C5871ACA91EE6 /* MenuBarPanelAccessibilityTests.swift */; };
 		3656B61C1A628539095079AB /* ApplicationDelegate+Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97EE05448C4987184E170FA /* ApplicationDelegate+Configuration.swift */; };
@@ -283,6 +284,7 @@
 		C55319DA787B1E90EC188DF9 /* KeyboardSettingsRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSettingsRowTests.swift; sourceTree = "<group>"; };
 		C97EE05448C4987184E170FA /* ApplicationDelegate+Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ApplicationDelegate+Configuration.swift"; sourceTree = "<group>"; };
 		C9FF997105D8312C69E066A5 /* PhysicalKeyboardEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardEvent.swift; sourceTree = "<group>"; };
+		CBF970CB588DC1725ED896FE /* OnboardingKeyboardInclusionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingKeyboardInclusionButton.swift; sourceTree = "<group>"; };
 		D0739A75E0073123D6CB9E6F /* OnboardingPhysicalKeyboardRowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPhysicalKeyboardRowsTests.swift; sourceTree = "<group>"; };
 		D1E005BC7B367BC78C0690C6 /* KeyameleonSwiftTesting.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyameleonSwiftTesting.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D662B3DF032B3DCED0E0DE6C /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
@@ -412,6 +414,7 @@
 				D9EE6843CDDA7440ECB2C0C8 /* KeyameleonWindowController.swift */,
 				A23E5E6B2A101A067C3AEB64 /* OnboardingAssignmentsStep.swift */,
 				EB41806C94395EEFC901CD59 /* OnboardingFooter.swift */,
+				CBF970CB588DC1725ED896FE /* OnboardingKeyboardInclusionButton.swift */,
 				88ACF693605EED06053C66FE /* OnboardingKeyboardRow.swift */,
 				61D279E97FB8E4A619EDD50A /* OnboardingPalette.swift */,
 				94D3664B8618E759E31B898C /* OnboardingPermissionInstruction.swift */,
@@ -889,6 +892,7 @@
 				4CDF5DC52582BF9C61F200A7 /* MenuBarPanelView.swift in Sources */,
 				F52E6B319034807417D43CA8 /* OnboardingAssignmentsStep.swift in Sources */,
 				67F10D78A351DCC02818607D /* OnboardingFooter.swift in Sources */,
+				31A0CB0EF25A80DD16B04E59 /* OnboardingKeyboardInclusionButton.swift in Sources */,
 				B41211D98FDFB1D23F76A8FB /* OnboardingKeyboardRow.swift in Sources */,
 				ED4B06C4A898BE4D516A3A97 /* OnboardingPalette.swift in Sources */,
 				B74E5475E741BC42CA83E8B1 /* OnboardingPermissionInstruction.swift in Sources */,

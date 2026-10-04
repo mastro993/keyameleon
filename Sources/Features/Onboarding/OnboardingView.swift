@@ -5,7 +5,6 @@ struct KeyameleonOnboardingView: View {
     private let model: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
     @State private var keyboardRows: OnboardingPhysicalKeyboardRows
-    @State private var excludeCandidateID: PhysicalKeyboardRecordID?
 
     init(model: KeyameleonSetupModel, switching: ActivityTriggeredSwitching) {
         self.model = model
@@ -13,6 +12,7 @@ struct KeyameleonOnboardingView: View {
         _keyboardRows = State(initialValue: OnboardingPhysicalKeyboardRows(
             physicalKeyboards: model.physicalKeyboards,
             exclusions: model.excludedPhysicalKeyboards,
+            savedRecords: model.savedPhysicalKeyboardRecords,
             exclusionKeyFor: model.exclusionKey(for:)
         ))
     }
@@ -22,7 +22,7 @@ struct KeyameleonOnboardingView: View {
             OnboardingSidebar(step: model.guidedSetupStep, hasAssignments: includedAssignmentCount > 0)
             VStack(spacing: 0) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 28) {
+                    VStack(alignment: .leading, spacing: model.guidedSetupStep == .assignments ? 20 : 28) {
                         PersistenceFailureNotice(model: model)
                         OnboardingProgress(step: model.guidedSetupStep)
                         Group {
@@ -33,7 +33,10 @@ struct KeyameleonOnboardingView: View {
                             OnboardingAssignmentsStep(
                                 model: model,
                                 rows: keyboardRows.rows,
-                                onExclude: { excludeCandidateID = $0 },
+                                onExclude: { id in
+                                    model.excludePhysicalKeyboard(id)
+                                    reconcileKeyboardRows()
+                                },
                                 onIncludeAgain: { key in
                                     model.restorePhysicalKeyboard(exclusionKey: key)
                                     reconcileKeyboardRows()
@@ -60,29 +63,9 @@ struct KeyameleonOnboardingView: View {
         .frame(minWidth: 840, minHeight: 640)
         .ignoresSafeArea(edges: .top)
         .accessibilityIdentifier("guided-setup")
-        .confirmationDialog(
-            "Not a Physical Keyboard?",
-            isPresented: Binding(
-                get: { excludeCandidateID != nil },
-                set: { if !$0 { excludeCandidateID = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Exclude") {
-                if let excludeCandidateID {
-                    model.excludePhysicalKeyboard(excludeCandidateID)
-                    reconcileKeyboardRows()
-                }
-                excludeCandidateID = nil
-            }
-            Button("Cancel", role: .cancel) { excludeCandidateID = nil }
-        } message: {
-            if let excludeCandidateID {
-                Text(model.exclusionConfirmationMessage(for: excludeCandidateID))
-            }
-        }
         .onChange(of: model.physicalKeyboards) { _, _ in reconcileKeyboardRows() }
         .onChange(of: model.excludedPhysicalKeyboards) { _, _ in reconcileKeyboardRows() }
+        .onChange(of: model.savedPhysicalKeyboardRecords) { _, _ in reconcileKeyboardRows() }
     }
 
     private var includedAssignmentCount: Int {
@@ -95,6 +78,7 @@ struct KeyameleonOnboardingView: View {
         keyboardRows.reconcile(
             physicalKeyboards: model.physicalKeyboards,
             exclusions: model.excludedPhysicalKeyboards,
+            savedRecords: model.savedPhysicalKeyboardRecords,
             exclusionKeyFor: model.exclusionKey(for:)
         )
     }
@@ -115,12 +99,19 @@ struct KeyameleonOnboardingView: View {
 }
 
 #Preview("Keyboards light") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    let fixture = KeyameleonPreviewFixtures.setup(.pencilAssignments)
     KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 
 #Preview("Keyboards dark") {
+    let fixture = KeyameleonPreviewFixtures.setup(.pencilAssignments)
+    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+        .frame(width: 1000, height: 750)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Keyboards mixed and unsupported") {
     let fixture = KeyameleonPreviewFixtures.setup(.mixedAssignments)
     KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)

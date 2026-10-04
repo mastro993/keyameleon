@@ -20,59 +20,101 @@ struct OnboardingKeyboardRow: View {
                         .font(.title3)
                         .foregroundStyle(OnboardingPalette.muted)
                 }
-                .contextMenu {
-                    if model.canExcludePhysicalKeyboard(keyboard.id) {
-                        Button("Not a Keyboard") { onExclude(keyboard.id) }
-                            .accessibilityIdentifier("not-a-keyboard")
-                            .disabled(model.persistenceError != nil
-                                || model.activityTriggeredSwitching.persistenceError != nil)
-                    }
-                }
                 Spacer(minLength: 0)
-                if keyboard.isAssignable {
-                    Picker("Input Source for \(keyboard.name)", selection: Binding(
-                        get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
-                        set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
-                    )) {
-                        Text("No Input Source assigned").tag(nil as String?)
-                        if let identifier = keyboard.keyboardAssignment?.inputSourceIdentifier,
-                           !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
-                            Text("Unavailable Input Source").tag(Optional(identifier)).disabled(true)
-                        }
-                        ForEach(model.eligibleInputSources) { source in
-                            Text(source.name).tag(Optional(source.identifier))
-                        }
+                HStack(spacing: 8) {
+                    if model.canExcludePhysicalKeyboard(keyboard.id) {
+                        OnboardingKeyboardInclusionButton(
+                            isIncluded: true, isDisabled: hasPersistenceError
+                        ) { onExclude(keyboard.id) }
                     }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .frame(width: 176)
-                    .disabled(model.eligibleInputSources.isEmpty || model.persistenceError != nil
-                        || model.activityTriggeredSwitching.persistenceError != nil)
-                } else {
-                    Text("Unsupported")
-                        .foregroundStyle(OnboardingPalette.secondary)
-                        .frame(width: 176, alignment: .leading)
+                    if keyboard.isAssignable {
+                        Picker("Input Source for \(keyboard.name)", selection: Binding(
+                            get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
+                            set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
+                        )) {
+                            Text("No Input Source assigned").tag(nil as String?)
+                            if let identifier = keyboard.keyboardAssignment?.inputSourceIdentifier,
+                               !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
+                                Text("Unavailable Input Source").tag(Optional(identifier)).disabled(true)
+                            }
+                            ForEach(model.eligibleInputSources) { source in
+                                Text(source.name).tag(Optional(source.identifier))
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 176)
+                        .disabled(model.eligibleInputSources.isEmpty || hasPersistenceError)
+                    } else {
+                        Text("Unsupported")
+                            .foregroundStyle(OnboardingPalette.secondary)
+                            .frame(width: 176, alignment: .leading)
+                    }
                 }
-            case let .excluded(exclusion):
+                .fixedSize(horizontal: true, vertical: false)
+            case let .excluded(exclusion, savedRecord):
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(exclusion.name)
+                    Text(excludedName(exclusion, savedRecord: savedRecord))
                         .font(.title2)
                         .bold()
-                        .foregroundStyle(OnboardingPalette.primary)
-                    Text("Excluded from switching")
+                        .foregroundStyle(OnboardingPalette.muted)
+                    Text(excludedSubtitle(savedRecord))
                         .font(.title3)
                         .foregroundStyle(OnboardingPalette.muted)
                 }
                 Spacer(minLength: 0)
-                Button("Include Again") { onIncludeAgain(exclusion.key) }
-                    .disabled(model.persistenceError != nil
-                        || model.activityTriggeredSwitching.persistenceError != nil)
-                    .accessibilityIdentifier("include-excluded-device-again")
+                HStack(spacing: 8) {
+                    OnboardingKeyboardInclusionButton(
+                        isIncluded: false, isDisabled: hasPersistenceError
+                    ) { onIncludeAgain(exclusion.key) }
+                    switch savedRecord {
+                    case let .matched(record):
+                        Picker(
+                            "Input Source for \(record.name)",
+                            selection: .constant(record.keyboardAssignment?.inputSourceIdentifier)
+                        ) {
+                            Text("No Input Source assigned").tag(nil as String?)
+                            if let identifier = record.keyboardAssignment?.inputSourceIdentifier,
+                               !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
+                                Text("Unavailable Input Source").tag(Optional(identifier))
+                            }
+                            ForEach(model.eligibleInputSources) { source in
+                                Text(source.name).tag(Optional(source.identifier))
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 176)
+                        .disabled(true)
+                    case .missing, .ambiguous:
+                        Text("Assignment unavailable")
+                            .foregroundStyle(OnboardingPalette.muted)
+                            .frame(width: 176, alignment: .leading)
+                    }
+                }
+                .fixedSize(horizontal: true, vertical: false)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 15)
+        .padding(.horizontal, 22)
+        .padding(.vertical, 18)
         .accessibilityElement(children: .contain)
+    }
+
+    private var hasPersistenceError: Bool {
+        model.persistenceError != nil || model.activityTriggeredSwitching.persistenceError != nil
+    }
+
+    private func excludedName(
+        _ exclusion: SavedPhysicalKeyboardExclusion,
+        savedRecord: OnboardingPhysicalKeyboardRow.SavedRecordSelection
+    ) -> String {
+        if case let .matched(record) = savedRecord { return record.name }
+        return exclusion.name
+    }
+
+    private func excludedSubtitle(_ savedRecord: OnboardingPhysicalKeyboardRow.SavedRecordSelection) -> String {
+        if case let .matched(record) = savedRecord { return "\(record.productName) · Excluded" }
+        return "Excluded"
     }
 
     private func subtitle(for keyboard: PhysicalKeyboard) -> String {
