@@ -2136,55 +2136,11 @@
                       "fill": "$text-secondary",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "Connect the keyboards you use with this Mac. You can finish assigning them later in Settings.",
+                      "content": "Connect the keyboards you use with this Mac. Turn off devices that aren’t keyboards. They stay in the list, so you can turn them back on any time.",
                       "lineHeight": "$leading-1_45",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-title-2",
                       "fontWeight": "$weight-regular"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "NLzED",
-                      "name": "Column Header",
-                      "width": "fill_container",
-                      "padding": [
-                        "$space-0",
-                        "$space-22"
-                      ],
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "aVxQ8",
-                          "name": "Header Physical",
-                          "fill": "$text-secondary",
-                          "content": "Physical Keyboard",
-                          "fontFamily": "$font-sans",
-                          "fontSize": "$type-title-3",
-                          "fontWeight": "$weight-medium"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "eAuLh",
-                          "name": "Header Right",
-                          "context": "Sizing reference (editor stores numeric dimensions): width=$size-176",
-                          "width": 176,
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "TOhjt",
-                              "name": "Header Input Source",
-                              "fill": "$text-secondary",
-                              "content": "Input Source",
-                              "fontFamily": "$font-sans",
-                              "fontSize": "$type-title-3",
-                              "fontWeight": "$weight-medium"
-                            }
-                          ]
-                        }
-                      ]
                     },
                     {
                       "type": "frame",
@@ -2358,17 +2314,51 @@
                               ]
                             },
                             {
-                              "id": "p3PilG",
-                              "type": "ref",
-                              "ref": "OTLcf",
-                              "name": "Input source / U.S.",
-                              "width": 176,
-                              "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
-                              "descendants": {
-                                "Io6QS": {
-                                  "content": "U.S."
+                              "type": "frame",
+                              "id": "Xp1ZS",
+                              "name": "Device actions",
+                              "gap": "$space-8",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "X5yNuc",
+                                  "name": "Include keyboard / Toggle on",
+                                  "context": "Inclusion toggle: on. Accessibility label: Include keyboard; checked: true. Tooltip: Not a keyboard? Turn off. Turning off retains the row and assignment, dims labels, disables the input-source picker, and excludes the device from input-source switching. Toggle remains interactive.",
+                                  "width": 28,
+                                  "height": 28,
+                                  "fill": "$transparent",
+                                  "cornerRadius": "$radius-6",
+                                  "stroke": "$transparent",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "LZRyM",
+                                      "name": "Inclusion / Eye",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "eye",
+                                      "library": "lucide",
+                                      "fill": "$text-secondary"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "p3PilG",
+                                  "type": "ref",
+                                  "ref": "OTLcf",
+                                  "name": "Input source / U.S.",
+                                  "width": 176,
+                                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                                  "descendants": {
+                                    "Io6QS": {
+                                      "content": "U.S."
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           ]
                         },
@@ -2398,7 +2388,8 @@
                         {
                           "type": "frame",
                           "id": "BThEz",
-                          "name": "Travel Keyboard",
+                          "name": "Travel Keyboard / Excluded",
+                          "context": "Excluded state, independent of connection status. Labels and picker are dimmed; inclusion toggle remains enabled.",
                           "width": "fill_container",
                           "gap": "$space-16",
                           "padding": [
@@ -2434,7 +2425,7 @@
                                   "fill": "$text-muted",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "HHKB Professional - Disconnected",
+                                  "content": "HHKB Professional · Excluded",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-title-3",
                                   "fontWeight": "$weight-regular"
@@ -2442,17 +2433,53 @@
                               ]
                             },
                             {
-                              "id": "lQ7WO",
-                              "type": "ref",
-                              "ref": "OTLcf",
-                              "name": "Input source / German",
-                              "width": 176,
-                              "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
-                              "descendants": {
-                                "Io6QS": {
-                                  "content": "German"
+                              "type": "frame",
+                              "id": "u4M0q5",
+                              "name": "Device actions",
+                              "gap": "$space-8",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "q9stp",
+                                  "name": "Include keyboard / Toggle off",
+                                  "context": "Inclusion toggle: off. Accessibility label: Include keyboard; checked: false. Tooltip: Include keyboard. Remains interactive while row is excluded. Turning on restores the saved assignment, enables the input-source picker, and includes the device in input-source switching.",
+                                  "width": 28,
+                                  "height": 28,
+                                  "fill": "$transparent",
+                                  "cornerRadius": "$radius-6",
+                                  "stroke": "$transparent",
+                                  "strokeWidth": "$stroke-1",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "y4ZSWC",
+                                      "name": "Inclusion / Eye off",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "eye-off",
+                                      "library": "lucide",
+                                      "fill": "$text-secondary"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "lQ7WO",
+                                  "type": "ref",
+                                  "ref": "OTLcf",
+                                  "name": "Input source / German",
+                                  "width": 176,
+                                  "context": "Disabled input-source picker while excluded; retain German assignment for re-inclusion.",
+                                  "opacity": 0.4,
+                                  "descendants": {
+                                    "Io6QS": {
+                                      "content": "German"
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           ]
                         }
@@ -3052,7 +3079,6 @@
       "y": 2135,
       "name": "Settings / General",
       "context": "Sizing reference (editor stores numeric dimensions): width=$settings-width, height=$settings-height",
-      "theme": {},
       "reusable": true,
       "clip": true,
       "width": 840,
@@ -3188,7 +3214,6 @@
       "y": 2135,
       "name": "Settings / Keyboards",
       "context": "Sizing reference (editor stores numeric dimensions): width=$settings-width, height=$settings-height",
-      "theme": {},
       "reusable": true,
       "clip": true,
       "width": 840,
@@ -3347,7 +3372,6 @@
       "y": 2135,
       "name": "Settings / About",
       "context": "Sizing reference (editor stores numeric dimensions): width=$settings-width, height=$settings-height",
-      "theme": {},
       "reusable": true,
       "clip": true,
       "width": 840,
