@@ -77,9 +77,10 @@
               "name": "App name",
               "fill": "$menu-text",
               "content": "Keyameleon",
+              "lineHeight": "$leading-body",
               "fontFamily": "$font-sans",
-              "fontSize": "$type-subheading",
-              "fontWeight": "$weight-semibold"
+              "fontSize": "$type-headline",
+              "fontWeight": "$weight-bold"
             },
             {
               "id": "p6yun",
@@ -223,6 +224,7 @@
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Pause Switching",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-body",
                   "fontWeight": "$weight-regular"
@@ -243,6 +245,7 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "⌘",
+                      "lineHeight": "$leading-callout",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
@@ -256,6 +259,7 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "P",
+                      "lineHeight": "$leading-callout",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
@@ -320,6 +324,7 @@
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Settings",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-body",
                   "fontWeight": "$weight-regular"
@@ -340,6 +345,7 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "⌘",
+                      "lineHeight": "$leading-callout",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
@@ -353,6 +359,7 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": ",",
+                      "lineHeight": "$leading-callout",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
@@ -416,6 +423,7 @@
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Quit Keyameleon",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-body",
                   "fontWeight": "$weight-regular"
@@ -436,6 +444,7 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "⌘",
+                      "lineHeight": "$leading-callout",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
@@ -449,6 +458,7 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Q",
+                      "lineHeight": "$leading-callout",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
@@ -476,6 +486,10 @@
       },
       "context": "Sizing reference (editor stores numeric dimensions): width=$menu-width, height=$menu-height",
       "descendants": {
+        "GEV6b": {
+          "fontSize": "$type-headline",
+          "lineHeight": "$leading-body"
+        },
         "WO0FV": {
           "padding": [
             "$space-8",
@@ -536,6 +550,10 @@
           "name": "Menu bar / Dark context",
           "context": "Sizing reference (editor stores numeric dimensions): width=$menu-width, height=$menu-height",
           "descendants": {
+            "GEV6b": {
+              "fontSize": "$type-headline",
+              "lineHeight": "$leading-body"
+            },
             "f4G6yA": {
               "theme": {}
             },
@@ -622,6 +640,7 @@
                       "name": "Keyboard name",
                       "fill": "$menu-text",
                       "content": "MacBook Keyboard",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
                       "fontWeight": "$weight-medium"
@@ -632,8 +651,9 @@
                       "name": "Connection status",
                       "fill": "$menu-secondary",
                       "content": "Built-in",
+                      "lineHeight": "$leading-subheadline",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-caption",
+                      "fontSize": "$type-subheadline",
                       "fontWeight": "$weight-regular"
                     }
                   ]
@@ -662,10 +682,11 @@
                       "width": 24,
                       "height": 16,
                       "content": "IT",
+                      "lineHeight": "$leading-body",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
-                      "fontWeight": "$weight-semibold"
+                      "fontWeight": "$weight-medium"
                     }
                   ]
                 }
@@ -722,6 +743,7 @@
                       "name": "Keyboard name",
                       "fill": "$menu-text",
                       "content": "Office Keyboard",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
                       "fontWeight": "$weight-medium"
@@ -732,8 +754,9 @@
                       "name": "Connection status",
                       "fill": "$menu-secondary",
                       "content": "Keychron K2 - Active",
+                      "lineHeight": "$leading-subheadline",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-caption",
+                      "fontSize": "$type-subheadline",
                       "fontWeight": "$weight-regular"
                     }
                   ]
@@ -761,10 +784,11 @@
                       "textGrowth": "fixed-width",
                       "width": 24,
                       "content": "US",
+                      "lineHeight": "$leading-body",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
-                      "fontWeight": "$weight-semibold"
+                      "fontWeight": "$weight-medium"
                     }
                   ]
                 }
@@ -824,6 +848,7 @@
                       "name": "Keyboard name",
                       "fill": "$menu-muted",
                       "content": "Travel Keyboard",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
                       "fontWeight": "$weight-medium"
@@ -834,8 +859,9 @@
                       "name": "Connection status",
                       "fill": "$menu-muted-secondary",
                       "content": "HHKB Professional - Disconnected",
+                      "lineHeight": "$leading-subheadline",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-caption",
+                      "fontSize": "$type-subheadline",
                       "fontWeight": "$weight-regular"
                     }
                   ]
@@ -862,9 +888,10 @@
                       "textGrowth": "fixed-width",
                       "width": 24,
                       "content": "DE",
+                      "lineHeight": "$leading-body",
                       "textAlign": "center",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-callout",
+                      "fontSize": "$type-body",
                       "fontWeight": "$weight-medium"
                     }
                   ]
@@ -959,20 +986,21 @@
               "name": "App name",
               "fill": "$menu-text",
               "content": "Keyameleon",
+              "lineHeight": "$leading-body",
               "fontFamily": "$font-sans",
-              "fontSize": "$type-subheading",
-              "fontWeight": "$weight-semibold"
+              "fontSize": "$type-headline",
+              "fontWeight": "$weight-bold"
             },
             {
               "type": "text",
               "id": "j4o8CT",
               "name": "Paused note",
-              "opacity": "$opacity-muted",
-              "fill": "$menu-text",
+              "fill": "$menu-secondary",
               "content": "(Paused)",
+              "lineHeight": "$leading-body",
               "fontFamily": "$font-sans",
-              "fontSize": "$type-subheading",
-              "fontWeight": "$weight-semibold"
+              "fontSize": "$type-body",
+              "fontWeight": "$weight-regular"
             }
           ]
         },
@@ -1048,20 +1076,21 @@
               "name": "App name",
               "fill": "$menu-text",
               "content": "Keyameleon",
+              "lineHeight": "$leading-body",
               "fontFamily": "$font-sans",
-              "fontSize": "$type-subheading",
-              "fontWeight": "$weight-semibold"
+              "fontSize": "$type-headline",
+              "fontWeight": "$weight-bold"
             },
             {
               "type": "text",
               "id": "nHtow",
               "name": "Paused note",
-              "opacity": "$opacity-muted",
-              "fill": "$menu-text",
+              "fill": "$menu-secondary",
               "content": "(Paused)",
+              "lineHeight": "$leading-body",
               "fontFamily": "$font-sans",
-              "fontSize": "$type-subheading",
-              "fontWeight": "$weight-semibold"
+              "fontSize": "$type-body",
+              "fontWeight": "$weight-regular"
             }
           ]
         },
@@ -1185,6 +1214,7 @@
               "name": "Wordmark Text",
               "fill": "$text-on-sidebar",
               "content": "Keyameleon",
+              "lineHeight": "$leading-title-2",
               "fontFamily": "$font-sans",
               "fontSize": "$type-title-2",
               "fontWeight": "$weight-semibold"
@@ -1209,7 +1239,7 @@
               "textGrowth": "fixed-width",
               "width": "fill_container",
               "content": "The right layout. On every keyboard.",
-              "lineHeight": "$leading-1_15",
+              "lineHeight": "$leading-large-title",
               "fontFamily": "$font-sans",
               "fontSize": "$type-large-title",
               "fontWeight": "$weight-bold"
@@ -1234,9 +1264,9 @@
           "textGrowth": "fixed-width",
           "width": "fill_container",
           "content": "What you type is never saved, logged, or sent anywhere.",
-          "lineHeight": "$leading-1_45",
+          "lineHeight": "$leading-callout",
           "fontFamily": "$font-sans",
-          "fontSize": "$type-title-3",
+          "fontSize": "$type-callout",
           "fontWeight": "$weight-regular"
         },
         {
@@ -1413,8 +1443,9 @@
                                   "name": "Step Number",
                                   "fill": "$text-on-accent",
                                   "content": "1",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-subheading",
+                                  "fontSize": "$type-body",
                                   "fontWeight": "$weight-semibold"
                                 }
                               ]
@@ -1425,8 +1456,9 @@
                               "name": "Step Label",
                               "fill": "$text-primary",
                               "content": "Permissions",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-onboarding-label",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-semibold"
                             }
                           ]
@@ -1465,8 +1497,9 @@
                                   "name": "Step Number",
                                   "fill": "$text-secondary",
                                   "content": "2",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-subheading",
+                                  "fontSize": "$type-body",
                                   "fontWeight": "$weight-semibold"
                                 }
                               ]
@@ -1477,8 +1510,9 @@
                               "name": "Step Label",
                               "fill": "$text-secondary",
                               "content": "Keyboards",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-onboarding-label",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -1517,8 +1551,9 @@
                                   "name": "Step Number",
                                   "fill": "$text-secondary",
                                   "content": "3",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-subheading",
+                                  "fontSize": "$type-body",
                                   "fontWeight": "$weight-semibold"
                                 }
                               ]
@@ -1529,8 +1564,9 @@
                               "name": "Step Label",
                               "fill": "$text-secondary",
                               "content": "Ready",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-onboarding-label",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -1545,9 +1581,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Let Keyameleon recognise your keyboards.",
-                      "lineHeight": "$leading-1_15",
+                      "lineHeight": "$leading-title-1",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-large-title",
+                      "fontSize": "$type-title-1",
                       "fontWeight": "$weight-bold"
                     },
                     {
@@ -1558,9 +1594,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Input Monitoring lets Keyameleon detect keyboard activity and select the assigned Input Source.",
-                      "lineHeight": "$leading-1_45",
+                      "lineHeight": "$leading-body-loose",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-title-2",
+                      "fontSize": "$type-body",
                       "fontWeight": "$weight-regular"
                     },
                     {
@@ -1614,9 +1650,10 @@
                               "name": "Card Title",
                               "fill": "$text-primary",
                               "content": "Input Monitoring",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-section-title",
-                              "fontWeight": "$weight-semibold"
+                              "fontSize": "$type-headline",
+                              "fontWeight": "$weight-bold"
                             },
                             {
                               "type": "text",
@@ -1624,8 +1661,9 @@
                               "name": "Card Subtitle",
                               "fill": "$text-secondary",
                               "content": "Required for automatic switching",
+                              "lineHeight": "$leading-callout",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-onboarding-label",
+                              "fontSize": "$type-callout",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -1655,8 +1693,9 @@
                               "name": "Chip Text",
                               "fill": "$text-secondary",
                               "content": "Required",
+                              "lineHeight": "$leading-subheadline",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-title-3",
+                              "fontSize": "$type-subheadline",
                               "fontWeight": "$weight-medium"
                             }
                           ]
@@ -1697,6 +1736,7 @@
                                   "name": "Number",
                                   "fill": "$text-secondary",
                                   "content": "1",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-body",
                                   "fontWeight": "$weight-semibold"
@@ -1709,8 +1749,9 @@
                               "name": "Row Text",
                               "fill": "$text-primary",
                               "content": "Open the macOS permission prompt.",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-title-2",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -1741,6 +1782,7 @@
                                   "name": "Number",
                                   "fill": "$text-secondary",
                                   "content": "2",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-body",
                                   "fontWeight": "$weight-semibold"
@@ -1753,8 +1795,9 @@
                               "name": "Row Text",
                               "fill": "$text-primary",
                               "content": "Enable Keyameleon in Input Monitoring.",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-title-2",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -1785,6 +1828,7 @@
                                   "name": "Number",
                                   "fill": "$text-secondary",
                                   "content": "3",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-body",
                                   "fontWeight": "$weight-semibold"
@@ -1797,8 +1841,9 @@
                               "name": "Row Text",
                               "fill": "$text-primary",
                               "content": "Return here. Setup continues automatically.",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-title-2",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -1813,8 +1858,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Access can be changed later in System Settings.",
+                      "lineHeight": "$leading-callout",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-title-2",
+                      "fontSize": "$type-callout",
                       "fontWeight": "$weight-regular"
                     }
                   ]
@@ -1856,8 +1902,9 @@
                           "name": "Footer Note",
                           "fill": "$text-secondary",
                           "content": "macOS will ask for permission.",
+                          "lineHeight": "$leading-callout",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-title-2",
+                          "fontSize": "$type-callout",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -1962,6 +2009,7 @@
                           "name": "Key Code",
                           "fill": "$text-primary",
                           "content": "IT",
+                          "lineHeight": "$leading-artwork",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-artwork-label",
                           "fontWeight": "$weight-bold"
@@ -2032,6 +2080,7 @@
                           "name": "Key Code",
                           "fill": "$text-on-accent",
                           "content": "US",
+                          "lineHeight": "$leading-artwork",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-artwork-label",
                           "fontWeight": "$weight-bold"
@@ -2124,9 +2173,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "An Input Source for every keyboard.",
-                      "lineHeight": "$leading-1_15",
+                      "lineHeight": "$leading-title-1",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-large-title",
+                      "fontSize": "$type-title-1",
                       "fontWeight": "$weight-bold"
                     },
                     {
@@ -2137,9 +2186,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Connect the keyboards you use with this Mac. Turn off devices that aren’t keyboards. They stay in the list, so you can turn them back on any time.",
-                      "lineHeight": "$leading-1_45",
+                      "lineHeight": "$leading-body-loose",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-title-2",
+                      "fontSize": "$type-body",
                       "fontWeight": "$weight-regular"
                     },
                     {
@@ -2182,9 +2231,10 @@
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
                                   "content": "MacBook Keyboard",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-title-2",
-                                  "fontWeight": "$weight-semibold"
+                                  "fontSize": "$type-body",
+                                  "fontWeight": "$weight-medium"
                                 },
                                 {
                                   "type": "text",
@@ -2194,8 +2244,9 @@
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
                                   "content": "Built-in",
+                                  "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-title-3",
+                                  "fontSize": "$type-subheadline",
                                   "fontWeight": "$weight-regular"
                                 }
                               ]
@@ -2225,6 +2276,7 @@
                                   "name": "Select Value",
                                   "fill": "$text-primary",
                                   "content": "Italian",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-body",
                                   "fontWeight": "$weight-regular"
@@ -2288,16 +2340,81 @@
                               "gap": "$space-3",
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "ytOXY",
-                                  "name": "Keyboard Name",
-                                  "fill": "$text-primary",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Office Keyboard",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": "$type-title-2",
-                                  "fontWeight": "$weight-semibold"
+                                  "type": "frame",
+                                  "id": "Bsg7T",
+                                  "name": "Keyboard name and actions",
+                                  "gap": 4,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "ytOXY",
+                                      "name": "Keyboard Name",
+                                      "fill": "$text-primary",
+                                      "content": "Office Keyboard",
+                                      "lineHeight": "$leading-body",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": "$type-body",
+                                      "fontWeight": "$weight-medium"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "Xp1ZS",
+                                      "name": "Device actions",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "frame",
+                                          "id": "qt1fo",
+                                          "name": "Rename keyboard",
+                                          "context": "Button. Accessibility label and tooltip: Rename keyboard. Opens keyboard-name editing. Available even when keyboard is excluded.",
+                                          "width": 20,
+                                          "height": 16,
+                                          "fill": "$transparent",
+                                          "cornerRadius": "$radius-6",
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "icon",
+                                              "id": "YV685",
+                                              "name": "Rename / Pencil",
+                                              "width": 10,
+                                              "height": 10,
+                                              "icon": "pencil",
+                                              "library": "lucide",
+                                              "fill": "$text-secondary"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "X5yNuc",
+                                          "name": "Include keyboard / Toggle on",
+                                          "context": "Inclusion toggle: on. Accessibility label: Include keyboard; checked: true. Tooltip: Not a keyboard? Turn off. Turning off retains the row and assignment, dims labels, disables the input-source picker, and excludes the device from input-source switching. Toggle remains interactive.",
+                                          "width": 20,
+                                          "height": 16,
+                                          "fill": "$transparent",
+                                          "cornerRadius": "$radius-6",
+                                          "stroke": "$transparent",
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "icon",
+                                              "id": "LZRyM",
+                                              "name": "Inclusion / Eye",
+                                              "width": 10,
+                                              "height": 10,
+                                              "icon": "eye",
+                                              "library": "lucide",
+                                              "fill": "$text-secondary"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 },
                                 {
                                   "type": "text",
@@ -2306,59 +2423,26 @@
                                   "fill": "$text-secondary",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "Keychron K2 - Connected",
+                                  "content": "Keychron K2",
+                                  "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-title-3",
+                                  "fontSize": "$type-subheadline",
                                   "fontWeight": "$weight-regular"
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "Xp1ZS",
-                              "name": "Device actions",
-                              "gap": "$space-8",
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "X5yNuc",
-                                  "name": "Include keyboard / Toggle on",
-                                  "context": "Inclusion toggle: on. Accessibility label: Include keyboard; checked: true. Tooltip: Not a keyboard? Turn off. Turning off retains the row and assignment, dims labels, disables the input-source picker, and excludes the device from input-source switching. Toggle remains interactive.",
-                                  "width": 28,
-                                  "height": 28,
-                                  "fill": "$transparent",
-                                  "cornerRadius": "$radius-6",
-                                  "stroke": "$transparent",
-                                  "justifyContent": "center",
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "LZRyM",
-                                      "name": "Inclusion / Eye",
-                                      "width": 16,
-                                      "height": 16,
-                                      "icon": "eye",
-                                      "library": "lucide",
-                                      "fill": "$text-secondary"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "id": "p3PilG",
-                                  "type": "ref",
-                                  "ref": "OTLcf",
-                                  "name": "Input source / U.S.",
-                                  "width": 176,
-                                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
-                                  "descendants": {
-                                    "Io6QS": {
-                                      "content": "U.S."
-                                    }
-                                  }
+                              "id": "p3PilG",
+                              "type": "ref",
+                              "ref": "OTLcf",
+                              "name": "Input source / U.S.",
+                              "width": 176,
+                              "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                              "descendants": {
+                                "Io6QS": {
+                                  "content": "U.S."
                                 }
-                              ]
+                              }
                             }
                           ]
                         },
@@ -2407,16 +2491,82 @@
                               "gap": "$space-3",
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "p8Pyx4",
-                                  "name": "Keyboard Name",
-                                  "fill": "$text-muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Travel Keyboard",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": "$type-title-2",
-                                  "fontWeight": "$weight-semibold"
+                                  "type": "frame",
+                                  "id": "Zk4Ru",
+                                  "name": "Keyboard name and actions",
+                                  "gap": 4,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "p8Pyx4",
+                                      "name": "Keyboard Name",
+                                      "fill": "$text-muted",
+                                      "content": "Travel Keyboard",
+                                      "lineHeight": "$leading-body",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": "$type-body",
+                                      "fontWeight": "$weight-medium"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "u4M0q5",
+                                      "name": "Device actions",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "frame",
+                                          "id": "A8W6t",
+                                          "name": "Rename keyboard",
+                                          "context": "Button. Accessibility label and tooltip: Rename keyboard. Opens keyboard-name editing. Available even when keyboard is excluded.",
+                                          "width": 20,
+                                          "height": 16,
+                                          "fill": "$transparent",
+                                          "cornerRadius": "$radius-6",
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "icon",
+                                              "id": "M0JBjr",
+                                              "name": "Rename / Pencil",
+                                              "width": 10,
+                                              "height": 10,
+                                              "icon": "pencil",
+                                              "library": "lucide",
+                                              "fill": "$text-secondary"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "q9stp",
+                                          "name": "Include keyboard / Toggle off",
+                                          "context": "Inclusion toggle: off. Accessibility label: Include keyboard; checked: false. Tooltip: Include keyboard. Remains interactive while row is excluded. Turning on restores the saved assignment, enables the input-source picker, and includes the device in input-source switching.",
+                                          "width": 20,
+                                          "height": 16,
+                                          "fill": "$transparent",
+                                          "cornerRadius": "$radius-6",
+                                          "stroke": "$transparent",
+                                          "strokeWidth": "$stroke-1",
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "icon",
+                                              "id": "y4ZSWC",
+                                              "name": "Inclusion / Eye off",
+                                              "width": 10,
+                                              "height": 10,
+                                              "icon": "eye-off",
+                                              "library": "lucide",
+                                              "fill": "$text-secondary"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 },
                                 {
                                   "type": "text",
@@ -2425,61 +2575,27 @@
                                   "fill": "$text-muted",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "HHKB Professional · Excluded",
+                                  "content": "HHKB Professional",
+                                  "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-title-3",
+                                  "fontSize": "$type-subheadline",
                                   "fontWeight": "$weight-regular"
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "u4M0q5",
-                              "name": "Device actions",
-                              "gap": "$space-8",
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "q9stp",
-                                  "name": "Include keyboard / Toggle off",
-                                  "context": "Inclusion toggle: off. Accessibility label: Include keyboard; checked: false. Tooltip: Include keyboard. Remains interactive while row is excluded. Turning on restores the saved assignment, enables the input-source picker, and includes the device in input-source switching.",
-                                  "width": 28,
-                                  "height": 28,
-                                  "fill": "$transparent",
-                                  "cornerRadius": "$radius-6",
-                                  "stroke": "$transparent",
-                                  "strokeWidth": "$stroke-1",
-                                  "justifyContent": "center",
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "y4ZSWC",
-                                      "name": "Inclusion / Eye off",
-                                      "width": 16,
-                                      "height": 16,
-                                      "icon": "eye-off",
-                                      "library": "lucide",
-                                      "fill": "$text-secondary"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "id": "lQ7WO",
-                                  "type": "ref",
-                                  "ref": "OTLcf",
-                                  "name": "Input source / German",
-                                  "width": 176,
-                                  "context": "Disabled input-source picker while excluded; retain German assignment for re-inclusion.",
-                                  "opacity": 0.4,
-                                  "descendants": {
-                                    "Io6QS": {
-                                      "content": "German"
-                                    }
-                                  }
+                              "id": "lQ7WO",
+                              "type": "ref",
+                              "ref": "OTLcf",
+                              "name": "Input source / German",
+                              "width": 176,
+                              "context": "Disabled input-source picker while excluded; retain German assignment for re-inclusion.",
+                              "opacity": 0.4,
+                              "descendants": {
+                                "Io6QS": {
+                                  "content": "German"
                                 }
-                              ]
+                              }
                             }
                           ]
                         }
@@ -2493,9 +2609,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Switching follows keyboard activity. Initial key presses may still use the previous Input Source.",
-                      "lineHeight": "$leading-1_4",
+                      "lineHeight": "$leading-callout",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-title-2",
+                      "fontSize": "$type-callout",
                       "fontWeight": "$weight-regular"
                     }
                   ]
@@ -2671,7 +2787,7 @@
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
-                  "gap": "$space-20",
+                  "gap": "$space-16",
                   "padding": [
                     "$space-34",
                     "$space-37",
@@ -2716,9 +2832,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "You’re ready to switch.",
-                      "lineHeight": "$leading-1_15",
+                      "lineHeight": "$leading-title-1",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-large-title",
+                      "fontSize": "$type-title-1",
                       "fontWeight": "$weight-bold"
                     },
                     {
@@ -2729,9 +2845,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Start typing on a keyboard. Keyameleon selects its assigned Input Source after it detects activity.",
-                      "lineHeight": "$leading-1_45",
+                      "lineHeight": "$leading-body-loose",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-title-2",
+                      "fontSize": "$type-body",
                       "fontWeight": "$weight-regular"
                     },
                     {
@@ -2758,8 +2874,9 @@
                           "name": "Saved Text",
                           "fill": "$success-text",
                           "content": "3 Keyboard Assignments saved",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-title-2",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-semibold"
                         }
                       ]
@@ -2771,7 +2888,7 @@
                       "context": "Sizing reference (editor stores numeric dimensions): height=$ready-preview-height",
                       "clip": true,
                       "width": "fill_container",
-                      "height": 360,
+                      "height": 439,
                       "fill": {
                         "type": "image",
                         "enabled": true,
@@ -2801,6 +2918,10 @@
                           "theme": {},
                           "context": "Sizing reference (editor stores numeric dimensions): width=$menu-width, height=$menu-height",
                           "descendants": {
+                            "GEV6b": {
+                              "fontSize": "$type-headline",
+                              "lineHeight": "$leading-body"
+                            },
                             "f4G6yA": {
                               "theme": {}
                             },
@@ -2815,8 +2936,8 @@
                         {
                           "type": "frame",
                           "id": "nrbd5",
-                          "x": 237,
-                          "y": 8,
+                          "x": 226,
+                          "y": 14,
                           "name": "Keyameleon · Selected menu-bar item",
                           "context": "Sizing reference (editor stores numeric dimensions): width=$size-32, height=$size-30",
                           "width": 32,
@@ -2852,8 +2973,9 @@
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Find Keyameleon in your menu bar.",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-title-2",
+                      "fontSize": "$type-body",
                       "fontWeight": "$weight-semibold"
                     }
                   ]
@@ -2974,6 +3096,10 @@
           "name": "Menu bar / Light context",
           "context": "Sizing reference (editor stores numeric dimensions): width=$menu-width, height=$menu-height",
           "descendants": {
+            "GEV6b": {
+              "fontSize": "$type-headline",
+              "lineHeight": "$leading-body"
+            },
             "f4G6yA": {
               "theme": {}
             },
@@ -3009,6 +3135,7 @@
           "name": "Label",
           "fill": "$text-on-accent",
           "content": "Continue",
+          "lineHeight": "$leading-body",
           "fontFamily": "$font-sans",
           "fontSize": "$type-body",
           "fontWeight": "$weight-semibold"
@@ -3039,6 +3166,7 @@
           "name": "Label",
           "fill": "$text-primary",
           "content": "Back",
+          "lineHeight": "$leading-body",
           "fontFamily": "$font-sans",
           "fontSize": "$type-body",
           "fontWeight": "$weight-semibold"
@@ -3066,6 +3194,7 @@
           "name": "Label",
           "fill": "$accent",
           "content": "Set Up Later",
+          "lineHeight": "$leading-body",
           "fontFamily": "$font-sans",
           "fontSize": "$type-body",
           "fontWeight": "$weight-semibold"
@@ -3582,7 +3711,8 @@
             },
             "jpXfW": {
               "fontSize": "$type-artwork-label",
-              "fontWeight": "$weight-bold"
+              "fontWeight": "$weight-bold",
+              "lineHeight": "$leading-artwork"
             },
             "F0TVEj": {
               "stroke": "$transparent",
@@ -3610,7 +3740,8 @@
             "wiExP": {
               "fill": "$text-on-accent",
               "fontSize": "$type-artwork-label",
-              "fontWeight": "$weight-bold"
+              "fontWeight": "$weight-bold",
+              "lineHeight": "$leading-artwork"
             },
             "bCa2t/T0hkh": {
               "fill": "$text-on-accent"
@@ -3678,6 +3809,10 @@
             "U5i2oh": {
               "theme": {}
             },
+            "U5i2oh/GEV6b": {
+              "fontSize": "$type-headline",
+              "lineHeight": "$leading-body"
+            },
             "U5i2oh/f4G6yA": {
               "theme": {}
             },
@@ -3739,6 +3874,7 @@
               "name": "Window title",
               "fill": "$text-secondary",
               "content": "About Keyameleon",
+              "lineHeight": "$leading-body",
               "fontFamily": "$font-sans",
               "fontSize": "$type-body",
               "fontWeight": "$weight-semibold"
@@ -3809,9 +3945,10 @@
                       "name": "Keyameleon name",
                       "fill": "$text-primary",
                       "content": "Keyameleon",
+                      "lineHeight": "$leading-title-2",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-title-2",
-                      "fontWeight": "$weight-semibold"
+                      "fontWeight": "$weight-bold"
                     },
                     {
                       "type": "text",
@@ -3819,6 +3956,7 @@
                       "name": "Version",
                       "fill": "$text-secondary",
                       "content": "v0.4.6",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
                       "fontWeight": "$weight-regular"
@@ -3846,6 +3984,7 @@
                   "name": "Check for Updates label",
                   "fill": "$text-primary",
                   "content": "Check for Updates…",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-body",
                   "fontWeight": "$weight-regular"
@@ -3881,6 +4020,7 @@
                   "name": "Made with love",
                   "fill": "$text-secondary",
                   "content": "Made with ❤️ by",
+                  "lineHeight": "$leading-callout",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-callout",
                   "fontWeight": "$weight-regular"
@@ -3892,6 +4032,7 @@
                   "context": "Opens https://x.com/fedemas",
                   "fill": "$accent",
                   "content": "@fedemas",
+                  "lineHeight": "$leading-callout",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-callout",
                   "fontWeight": "$weight-regular"
@@ -4073,6 +4214,7 @@
                       "name": "Keyameleon",
                       "fill": "$text-secondary",
                       "content": "Keyameleon",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-body",
                       "fontWeight": "$weight-semibold"
@@ -4124,6 +4266,7 @@
                           "name": "General label",
                           "fill": "$text-on-accent",
                           "content": "General",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-body",
                           "fontWeight": "$weight-medium"
@@ -4163,6 +4306,7 @@
                           "name": "Keyboards label",
                           "fill": "$text-primary",
                           "content": "Keyboards",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
@@ -4202,6 +4346,7 @@
                           "name": "About label",
                           "fill": "$text-primary",
                           "content": "About",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
@@ -4275,9 +4420,10 @@
                   "name": "App section title",
                   "fill": "$text-primary",
                   "content": "App",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
-                  "fontSize": "$type-body",
-                  "fontWeight": "$weight-semibold"
+                  "fontSize": "$type-headline",
+                  "fontWeight": "$weight-bold"
                 },
                 {
                   "type": "frame",
@@ -4306,6 +4452,7 @@
                           "name": "Launch at login label",
                           "fill": "$text-primary",
                           "content": "Launch at login",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-body",
                           "fontWeight": "$weight-medium"
@@ -4318,7 +4465,7 @@
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
                           "content": "Start Keyameleon automatically when you log in.",
-                          "lineHeight": "$leading-1_4",
+                          "lineHeight": "$leading-callout",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-callout",
                           "fontWeight": "$weight-regular"
@@ -4369,7 +4516,7 @@
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Keyameleon runs quietly in your menu bar.",
-                  "lineHeight": "$leading-1_4",
+                  "lineHeight": "$leading-callout",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-callout",
                   "fontWeight": "$weight-regular"
@@ -4410,9 +4557,10 @@
                   "name": "Assignment section title",
                   "fill": "$text-primary",
                   "content": "Keyboard layouts",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
-                  "fontSize": "$type-body",
-                  "fontWeight": "$weight-semibold"
+                  "fontSize": "$type-headline",
+                  "fontWeight": "$weight-bold"
                 },
                 {
                   "type": "text",
@@ -4422,7 +4570,7 @@
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Choose a layout for each keyboard. Keyameleon switches when you type.",
-                  "lineHeight": "$leading-1_45",
+                  "lineHeight": "$leading-callout",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-callout",
                   "fontWeight": "$weight-regular"
@@ -4651,7 +4799,7 @@
               "textGrowth": "fixed-width",
               "width": "fill_container",
               "content": "New keyboards appear here when connected. Disconnected keyboards keep their saved layout.",
-              "lineHeight": "$leading-1_45",
+              "lineHeight": "$leading-callout",
               "fontFamily": "$font-sans",
               "fontSize": "$type-callout",
               "fontWeight": "$weight-regular"
@@ -4720,9 +4868,10 @@
                       "name": "Keyameleon name",
                       "fill": "$text-primary",
                       "content": "Keyameleon",
+                      "lineHeight": "$leading-title-2",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-section-title",
-                      "fontWeight": "$weight-semibold"
+                      "fontSize": "$type-title-2",
+                      "fontWeight": "$weight-bold"
                     },
                     {
                       "type": "text",
@@ -4730,6 +4879,7 @@
                       "name": "Keyameleon purpose",
                       "fill": "$text-secondary",
                       "content": "The right layout. On every keyboard.",
+                      "lineHeight": "$leading-callout",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
                       "fontWeight": "$weight-regular"
@@ -4752,9 +4902,10 @@
                   "name": "Information heading",
                   "fill": "$text-primary",
                   "content": "Information",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
-                  "fontSize": "$type-body",
-                  "fontWeight": "$weight-semibold"
+                  "fontSize": "$type-headline",
+                  "fontWeight": "$weight-bold"
                 },
                 {
                   "type": "frame",
@@ -4791,8 +4942,9 @@
                           "name": "Version label",
                           "fill": "$text-primary",
                           "content": "Version",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -4808,8 +4960,9 @@
                               "name": "Version value",
                               "fill": "$text-secondary",
                               "content": "0.4.6 (1)",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-callout",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -4836,8 +4989,9 @@
                           "name": "Source code label",
                           "fill": "$text-primary",
                           "content": "Source code",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -4853,8 +5007,9 @@
                               "name": "Source code value",
                               "fill": "$accent",
                               "content": "View on GitHub",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-callout",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             },
                             {
@@ -4894,8 +5049,9 @@
                           "name": "App data folder label",
                           "fill": "$text-primary",
                           "content": "App data folder",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -4929,8 +5085,9 @@
                                   "name": "App data folder path",
                                   "fill": "$text-primary",
                                   "content": "~/Library/Application Support/Keyameleon",
+                                  "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-caption",
+                                  "fontSize": "$type-subheadline",
                                   "fontWeight": "$weight-regular"
                                 }
                               ]
@@ -4948,8 +5105,9 @@
                                   "name": "App data folder value",
                                   "fill": "$accent",
                                   "content": "Open in Finder",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-callout",
+                                  "fontSize": "$type-body",
                                   "fontWeight": "$weight-regular"
                                 },
                                 {
@@ -4991,8 +5149,9 @@
                           "name": "Logs folder label",
                           "fill": "$text-primary",
                           "content": "Logs folder",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -5026,8 +5185,9 @@
                                   "name": "Logs folder path",
                                   "fill": "$text-primary",
                                   "content": "~/Library/Logs/Keyameleon",
+                                  "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-caption",
+                                  "fontSize": "$type-subheadline",
                                   "fontWeight": "$weight-regular"
                                 }
                               ]
@@ -5045,8 +5205,9 @@
                                   "name": "Logs folder value",
                                   "fill": "$accent",
                                   "content": "Open in Finder",
+                                  "lineHeight": "$leading-body",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": "$type-callout",
+                                  "fontSize": "$type-body",
                                   "fontWeight": "$weight-regular"
                                 },
                                 {
@@ -5086,8 +5247,9 @@
                           "name": "License label",
                           "fill": "$text-primary",
                           "content": "License",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -5103,8 +5265,9 @@
                               "name": "License value",
                               "fill": "$accent",
                               "content": "MIT · View license",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-callout",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             },
                             {
@@ -5139,8 +5302,9 @@
                           "name": "Updates label",
                           "fill": "$text-primary",
                           "content": "Updates",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -5156,8 +5320,9 @@
                               "name": "Updates value",
                               "fill": "$accent",
                               "content": "Check for Updates…",
+                              "lineHeight": "$leading-body",
                               "fontFamily": "$font-sans",
-                              "fontSize": "$type-callout",
+                              "fontSize": "$type-body",
                               "fontWeight": "$weight-regular"
                             }
                           ]
@@ -5182,9 +5347,10 @@
                   "name": "Acknowledgements heading",
                   "fill": "$text-primary",
                   "content": "Acknowledgements",
+                  "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
-                  "fontSize": "$type-body",
-                  "fontWeight": "$weight-semibold"
+                  "fontSize": "$type-headline",
+                  "fontWeight": "$weight-bold"
                 },
                 {
                   "type": "frame",
@@ -5210,8 +5376,9 @@
                       "name": "Library / Sparkle",
                       "fill": "$text-primary",
                       "content": "Sparkle",
+                      "lineHeight": "$leading-body",
                       "fontFamily": "$font-sans",
-                      "fontSize": "$type-callout",
+                      "fontSize": "$type-body",
                       "fontWeight": "$weight-regular"
                     },
                     {
@@ -5228,8 +5395,9 @@
                           "name": "View full License label",
                           "fill": "$accent",
                           "content": "View full License",
+                          "lineHeight": "$leading-body",
                           "fontFamily": "$font-sans",
-                          "fontSize": "$type-callout",
+                          "fontSize": "$type-body",
                           "fontWeight": "$weight-regular"
                         },
                         {
@@ -5272,6 +5440,7 @@
                       "name": "Made with love",
                       "fill": "$text-secondary",
                       "content": "Made with ❤️ by",
+                      "lineHeight": "$leading-callout",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
                       "fontWeight": "$weight-regular"
@@ -5283,6 +5452,7 @@
                       "context": "Opens https://twitter.com/fedemas",
                       "fill": "$accent",
                       "content": "@fedemas",
+                      "lineHeight": "$leading-callout",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
                       "fontWeight": "$weight-regular"
@@ -6678,7 +6848,7 @@
     },
     "ready-preview-height": {
       "type": "number",
-      "value": 427
+      "value": 439
     },
     "radius-5": {
       "type": "number",
@@ -6879,6 +7049,54 @@
     "type-artwork-label": {
       "type": "number",
       "value": 34
+    },
+    "type-title-1": {
+      "type": "number",
+      "value": 22
+    },
+    "type-headline": {
+      "type": "number",
+      "value": 13
+    },
+    "type-subheadline": {
+      "type": "number",
+      "value": 11
+    },
+    "leading-large-title": {
+      "type": "number",
+      "value": 1.2307692307692308
+    },
+    "leading-title-1": {
+      "type": "number",
+      "value": 1.1818181818181819
+    },
+    "leading-title-2": {
+      "type": "number",
+      "value": 1.2941176470588236
+    },
+    "leading-title-3": {
+      "type": "number",
+      "value": 1.3333333333333333
+    },
+    "leading-body": {
+      "type": "number",
+      "value": 1.2307692307692308
+    },
+    "leading-body-loose": {
+      "type": "number",
+      "value": 1.3846153846153846
+    },
+    "leading-callout": {
+      "type": "number",
+      "value": 1.25
+    },
+    "leading-subheadline": {
+      "type": "number",
+      "value": 1.2727272727272727
+    },
+    "leading-artwork": {
+      "type": "number",
+      "value": 1.2058823529411764
     }
   },
   "fileToken": "bd679dd2-580d-4944-953f-d2e24a908f77",
