@@ -15,6 +15,11 @@
   retry command. The row collection matches an anchored record first, then
   a unique exclusion group. Multiple matches without an anchor remain
   ambiguous.
+- A keyboard subtitle shows `Connected` or `Disconnected`. It prefixes the
+  original product name and ` - ` only when a custom name exists. Hidden rows
+  use the current hardware connection state even though they stay outside the
+  switching catalog; missing or ambiguous saved records show status alone.
+  Unsupported details remain available on the trailing `Unsupported` text.
 - The three onboarding stages use semantic macOS type styles, and the Ready
   illustration uses the updated light and dark Pencil artwork.
 - This supersedes the onboarding control and hidden assignment details in the

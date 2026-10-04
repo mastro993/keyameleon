@@ -19,6 +19,25 @@ struct OnboardingPhysicalKeyboardRow: Identifiable, Equatable {
     var exclusionKey: String?
     var state: State
 
+    func subtitle(connectedExcludedKeys: Set<String>) -> String {
+        let productName: String?
+        let isConnected: Bool
+        switch state {
+        case let .included(keyboard):
+            productName = keyboard.customName == nil ? nil : keyboard.productName
+            isConnected = keyboard.connectionState == .connected
+        case let .excluded(exclusion, savedRecord):
+            if case let .matched(record) = savedRecord, record.customName != nil {
+                productName = record.productName
+            } else {
+                productName = nil
+            }
+            isConnected = connectedExcludedKeys.contains(exclusion.key)
+        }
+        let status = isConnected ? "Connected" : "Disconnected"
+        return productName.map { "\($0) - \(status)" } ?? status
+    }
+
     var physicalKeyboardID: PhysicalKeyboardRecordID? {
         if case let .keyboard(id) = id {
             return id

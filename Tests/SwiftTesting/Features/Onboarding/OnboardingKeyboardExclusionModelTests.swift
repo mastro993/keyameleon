@@ -3,6 +3,37 @@ import SwiftData
 import Testing
 @testable import Keyameleon
 
+@Test("Hidden subtitles follow connection changes while row records stay unchanged")
+@MainActor
+func hiddenSubtitlesFollowConnectionChanges() throws {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = makeOnboardingExclusionModel(discoverer: discoverer)
+    startAndCheck(model)
+    let facts = makeSetupModelHardwareFacts(serviceID: 603)
+    discoverer.emit(.connected(facts))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.setPhysicalKeyboardName(keyboard.id, customName: "Desk Keyboard")
+    model.excludePhysicalKeyboard(keyboard.id)
+    let records = model.savedPhysicalKeyboardRecords
+    let exclusions = model.excludedPhysicalKeyboards
+    let rows = OnboardingPhysicalKeyboardRows(
+        physicalKeyboards: model.physicalKeyboards,
+        exclusions: exclusions,
+        savedRecords: records,
+        exclusionKeyFor: model.exclusionKey(for:)
+    )
+    let row = try #require(rows.rows.first)
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys) == "Test Keyboard - Connected")
+
+    discoverer.emit(.disconnected(serviceID: facts.serviceID))
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys) == "Test Keyboard - Disconnected")
+    discoverer.emit(.connected(facts))
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys) == "Test Keyboard - Connected")
+    #expect(model.physicalKeyboards.isEmpty)
+    #expect(model.savedPhysicalKeyboardRecords == records)
+    #expect(model.excludedPhysicalKeyboards == exclusions)
+}
+
 @Test("Reopening an excluded assigned keyboard retains its saved Input Source")
 @MainActor
 func reopeningExcludedAssignedKeyboardRetainsItsSource() throws {

@@ -426,6 +426,11 @@ struct PhysicalKeyboardCatalog: Sendable {
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
     private var excludedKeys: Set<String> = []
 
+    var connectedExcludedKeys: Set<String> {
+        Set(services.values.compactMap(PhysicalKeyboardExclusionKey.key(for:)))
+            .intersection(excludedKeys)
+    }
+
     mutating func apply(_ change: PhysicalKeyboardDiscoveryChange) {
         switch change {
         case let .connected(facts):

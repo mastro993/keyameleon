@@ -2,6 +2,35 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
+@Test("Hidden connection snapshot advances when saved-record reads fail")
+@MainActor
+func hiddenConnectionUpdatesDespiteSavedRecordReadFailure() throws {
+    let facts = makeSetupModelHardwareFacts(serviceID: 503)
+    let key = try #require(PhysicalKeyboardExclusionKey.key(for: facts))
+    let exclusions = InMemoryPhysicalKeyboardExclusionStore()
+    exclusions.exclude(SavedPhysicalKeyboardExclusion(key: key, name: "Test Keyboard"))
+    let session = SwiftDataPersistenceSession(openContainer: {
+        throw CocoaError(.fileReadNoPermission)
+    })
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        protectedStateProvider: ProtectedStateTestProvider(state: .clear),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
+        designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session),
+        exclusionStore: exclusions
+    )
+    model.activityTriggeredSwitching.start()
+    discoverer.emit(.connected(facts))
+    #expect(model.persistenceError != nil)
+    #expect(model.connectedExcludedKeyboardKeys == [key])
+    discoverer.emit(.disconnected(serviceID: facts.serviceID))
+    #expect(model.connectedExcludedKeyboardKeys.isEmpty)
+}
+
 @Test("First launch checks listen permission without requesting it")
 @MainActor
 func firstLaunchChecksListenPermissionWithoutRequestingIt() {

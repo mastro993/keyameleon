@@ -125,7 +125,7 @@ enum KeyameleonPreviewFixtures {
         }
         configureAssignments(for: model, state: state)
 
-        excludePencilTravelIfNeeded(from: model, state: state)
+        excludePencilTravelIfNeeded(from: model, discoverer: discoverer, state: state)
 
         if state == .excludedDevices,
            let pointer = model.physicalKeyboards.first(where: { !$0.isAssignable }) {
@@ -159,6 +159,7 @@ enum KeyameleonPreviewFixtures {
 
     private static func excludePencilTravelIfNeeded(
         from model: KeyameleonSetupModel,
+        discoverer: PreviewPhysicalKeyboardDiscoverer,
         state: KeyameleonPreviewSetupState
     ) {
         guard state == .pencilAssignments,
@@ -167,6 +168,7 @@ enum KeyameleonPreviewFixtures {
             return
         }
         model.excludePhysicalKeyboard(travel.id)
+        discoverer.emit(.disconnected(serviceID: 11))
     }
 
     private static func persistenceStores(
@@ -371,6 +373,9 @@ enum KeyameleonPreviewFixtures {
                 ),
                 makeFacts(
                     serviceID: 11, identity: "preview.desk", serial: "desk", name: "HHKB Professional"
+                ),
+                makeFacts(
+                    serviceID: 12, identity: "preview.magic", serial: "magic", name: "Magic Keyboard"
                 )
             ]
         case .manyAssignments:
@@ -453,6 +458,10 @@ enum KeyameleonPreviewFixtures {
             case "MacBook Keyboard":
                 model.setKeyboardAssignment(
                     keyboard.id, inputSourceIdentifier: "com.apple.keylayout.Italian"
+                )
+            case "Magic Keyboard":
+                model.setKeyboardAssignment(
+                    keyboard.id, inputSourceIdentifier: "com.apple.keylayout.US"
                 )
             case "Unidentifiable Keyboard":
                 break

@@ -18,7 +18,7 @@ struct OnboardingKeyboardRow: View {
                     Text(keyboard.name)
                         .font(.body.weight(.medium))
                         .foregroundStyle(OnboardingPalette.primary)
-                    Text(subtitle(for: keyboard))
+                    Text(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys))
                         .font(.subheadline)
                         .foregroundStyle(OnboardingPalette.muted)
                 }
@@ -47,6 +47,8 @@ struct OnboardingKeyboardRow: View {
                             .font(.subheadline)
                             .foregroundStyle(OnboardingPalette.secondary)
                             .frame(width: 176, alignment: .leading)
+                            .help(unsupportedReason(for: keyboard))
+                            .accessibilityValue(unsupportedReason(for: keyboard))
                     }
                     if model.canExcludePhysicalKeyboard(keyboard.id) {
                         Menu {
@@ -80,7 +82,7 @@ struct OnboardingKeyboardRow: View {
                     Text(excludedName(exclusion, savedRecord: savedRecord))
                         .font(.body.weight(.medium))
                         .foregroundStyle(OnboardingPalette.muted)
-                    Text(excludedSubtitle(savedRecord))
+                    Text(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys))
                         .font(.subheadline)
                         .foregroundStyle(OnboardingPalette.muted)
                 }
@@ -170,24 +172,14 @@ struct OnboardingKeyboardRow: View {
         return exclusion.name
     }
 
-    private func excludedSubtitle(_ savedRecord: OnboardingPhysicalKeyboardRow.SavedRecordSelection) -> String {
-        if case let .matched(record) = savedRecord { return record.productName }
-        return "Hidden"
-    }
-
-    private func subtitle(for keyboard: PhysicalKeyboard) -> String {
-        if case let .unsupported(reason) = keyboard.assignmentState {
-            let detail = switch reason {
-            case .missingIdentity: "Identity unavailable"
-            case .unstableIdentity: "Identity unstable"
-            case .sharedIdentity: "Identity shared"
-            case .ambiguousIdentity: "Identity ambiguous"
-            }
-            return "Unsupported · \(detail)"
+    private func unsupportedReason(for keyboard: PhysicalKeyboard) -> String {
+        guard case let .unsupported(reason) = keyboard.assignmentState else { return "Unsupported" }
+        return switch reason {
+        case .missingIdentity: "Identity unavailable"
+        case .unstableIdentity: "Identity unstable"
+        case .sharedIdentity: "Identity shared"
+        case .ambiguousIdentity: "Identity ambiguous"
         }
-        if keyboard.connectionState == .disconnected { return "Disconnected" }
-        if keyboard.isBuiltIn { return "Built-in" }
-        return keyboard.productName
     }
 }
 

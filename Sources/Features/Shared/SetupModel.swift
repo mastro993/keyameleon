@@ -106,6 +106,7 @@ final class KeyameleonSetupModel {
     private(set) var hasStartedGuidedSetup: Bool
     private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
+    private(set) var connectedExcludedKeyboardKeys: Set<String> = []
     private(set) var excludedPhysicalKeyboards: [SavedPhysicalKeyboardExclusion] = []
     private(set) var savedPhysicalKeyboardRecords: [SavedPhysicalKeyboardRecord] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
@@ -697,6 +698,7 @@ final class KeyameleonSetupModel {
     }
 
     private func publishPhysicalKeyboards() {
+        connectedExcludedKeyboardKeys = physicalKeyboardDiscovery.connectedExcludedKeys
         do {
             try readPhysicalKeyboards()
             if !savedPhysicalKeyboardChanges.hasPendingChange { persistenceError = nil }
