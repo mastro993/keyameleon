@@ -2195,6 +2195,7 @@
                       "type": "frame",
                       "id": "Frc4Y",
                       "name": "Keyboard Assignments",
+                      "context": "Keyboard labels: title is user-chosen name, falling back to product name. Subtitle is product name - Connected/Disconnected only when user renamed keyboard; otherwise show connection status only. Hidden state is independent of connection status.",
                       "clip": true,
                       "width": "fill_container",
                       "fill": "$bg-window",
@@ -2243,7 +2244,7 @@
                                   "fill": "$text-secondary",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "Built-in",
+                                  "content": "Connected",
                                   "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-subheadline",
@@ -2382,7 +2383,7 @@
                                   "fill": "$text-secondary",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "Keychron K2",
+                                  "content": "Keychron K2 - Connected",
                                   "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-subheadline",
@@ -2518,7 +2519,7 @@
                                   "fill": "$text-muted",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "HHKB Professional",
+                                  "content": "HHKB Professional - Disconnected",
                                   "lineHeight": "$leading-subheadline",
                                   "fontFamily": "$font-sans",
                                   "fontSize": "$type-subheadline",
@@ -2572,6 +2573,142 @@
                                       "id": "fblfw",
                                       "type": "ref",
                                       "ref": "mZtbv",
+                                      "name": "Context menu / Closed",
+                                      "enabled": false,
+                                      "layoutPosition": "absolute",
+                                      "x": -164,
+                                      "y": 32
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "V9dVyW",
+                          "name": "Hairline 3",
+                          "width": "fill_container",
+                          "padding": [
+                            "$space-0",
+                            "$space-0",
+                            "$space-0",
+                            "$space-22"
+                          ],
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "id": "SI5o7",
+                              "name": "Line",
+                              "context": "Sizing reference (editor stores numeric dimensions): height=$size-1",
+                              "fill": "$border",
+                              "width": "fill_container",
+                              "height": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zfiDs",
+                          "name": "Magic Keyboard / Default product name",
+                          "context": "No custom name. Title uses product name; subtitle shows connection status only.",
+                          "width": "fill_container",
+                          "gap": "$space-16",
+                          "padding": [
+                            "$space-18",
+                            "$space-22"
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "xyRTP",
+                              "name": "Labels",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": "$space-3",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "UZzG3",
+                                  "name": "Keyboard name and actions",
+                                  "gap": 4,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "bHg8m",
+                                      "name": "Keyboard Name",
+                                      "fill": "$text-primary",
+                                      "content": "Magic Keyboard",
+                                      "lineHeight": "$leading-body",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": "$type-body",
+                                      "fontWeight": "$weight-medium"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "FdHzf",
+                                  "name": "Keyboard Subtitle",
+                                  "fill": "$text-secondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Connected",
+                                  "lineHeight": "$leading-subheadline",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": "$type-subheadline",
+                                  "fontWeight": "$weight-regular"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "lgJG0",
+                              "name": "Layout picker and keyboard menu",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "xBOfq",
+                                  "type": "ref",
+                                  "ref": "OTLcf",
+                                  "name": "Input source / U.S.",
+                                  "width": 176,
+                                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                                  "descendants": {
+                                    "Io6QS": {
+                                      "content": "U.S."
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "mmr6O",
+                                  "name": "More keyboard actions",
+                                  "context": "Button. Accessibility label: More keyboard actions. Opens context menu aligned to trailing edge below button. Remains enabled for hidden keyboards.",
+                                  "width": 28,
+                                  "height": 28,
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "WFpCb",
+                                      "name": "More / Ellipsis",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "ellipsis",
+                                      "library": "lucide",
+                                      "fill": "$text-secondary"
+                                    },
+                                    {
+                                      "id": "q4SA8x",
+                                      "type": "ref",
+                                      "ref": "h3PbgF",
                                       "name": "Context menu / Closed",
                                       "enabled": false,
                                       "layoutPosition": "absolute",
@@ -4543,6 +4680,7 @@
               "type": "frame",
               "id": "BPtiK",
               "name": "Saved keyboards",
+              "context": "Keyboard labels: title is user-chosen name, falling back to product name. Subtitle is product name - Connected/Disconnected only when user renamed keyboard; otherwise show connection status only. Hidden state is independent of connection status.",
               "clip": true,
               "width": "fill_container",
               "fill": "$bg-window",
@@ -4591,7 +4729,7 @@
                           "fill": "$text-secondary",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "Built-in",
+                          "content": "Connected",
                           "lineHeight": "$leading-subheadline",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-subheadline",
@@ -4692,7 +4830,7 @@
                           "fill": "$text-secondary",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "Keychron K2",
+                          "content": "Keychron K2 - Connected",
                           "lineHeight": "$leading-subheadline",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-subheadline",
@@ -4828,7 +4966,7 @@
                           "fill": "$text-muted",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "HHKB Professional",
+                          "content": "HHKB Professional - Disconnected",
                           "lineHeight": "$leading-subheadline",
                           "fontFamily": "$font-sans",
                           "fontSize": "$type-subheadline",
@@ -4882,6 +5020,142 @@
                               "id": "o7wLc4",
                               "type": "ref",
                               "ref": "mZtbv",
+                              "name": "Context menu / Closed",
+                              "enabled": false,
+                              "layoutPosition": "absolute",
+                              "x": -164,
+                              "y": 32
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "idT1w",
+                  "name": "Hairline 3",
+                  "width": "fill_container",
+                  "padding": [
+                    "$space-0",
+                    "$space-0",
+                    "$space-0",
+                    "$space-22"
+                  ],
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "jnosp",
+                      "name": "Line",
+                      "context": "Sizing reference (editor stores numeric dimensions): height=$size-1",
+                      "fill": "$border",
+                      "width": "fill_container",
+                      "height": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "oGw1U",
+                  "name": "Magic Keyboard / Default product name",
+                  "context": "No custom name. Title uses product name; subtitle shows connection status only.",
+                  "width": "fill_container",
+                  "gap": "$space-16",
+                  "padding": [
+                    "$space-18",
+                    "$space-22"
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wCBgv",
+                      "name": "Labels",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": "$space-3",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "STJmo",
+                          "name": "Keyboard name and actions",
+                          "gap": 4,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "A6zJw",
+                              "name": "Keyboard Name",
+                              "fill": "$text-primary",
+                              "content": "Magic Keyboard",
+                              "lineHeight": "$leading-body",
+                              "fontFamily": "$font-sans",
+                              "fontSize": "$type-body",
+                              "fontWeight": "$weight-medium"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "i9GsJ7",
+                          "name": "Keyboard Subtitle",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Connected",
+                          "lineHeight": "$leading-subheadline",
+                          "fontFamily": "$font-sans",
+                          "fontSize": "$type-subheadline",
+                          "fontWeight": "$weight-regular"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "F2qnWd",
+                      "name": "Layout picker and keyboard menu",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "g1YgQl",
+                          "type": "ref",
+                          "ref": "OTLcf",
+                          "name": "Input source / U.S.",
+                          "width": 176,
+                          "context": "Sizing reference (editor stores numeric dimensions): width=$size-176, height=$size-28",
+                          "descendants": {
+                            "Io6QS": {
+                              "content": "U.S."
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bxFTN",
+                          "name": "More keyboard actions",
+                          "context": "Button. Accessibility label: More keyboard actions. Opens context menu aligned to trailing edge below button. Remains enabled for hidden keyboards.",
+                          "width": 28,
+                          "height": 28,
+                          "cornerRadius": 6,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "EIuUC",
+                              "name": "More / Ellipsis",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "ellipsis",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            },
+                            {
+                              "id": "yDSNk",
+                              "type": "ref",
+                              "ref": "h3PbgF",
                               "name": "Context menu / Closed",
                               "enabled": false,
                               "layoutPosition": "absolute",
