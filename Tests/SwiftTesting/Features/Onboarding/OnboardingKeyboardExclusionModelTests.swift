@@ -202,19 +202,24 @@ func hiddenRenameDoesNotRecreateMissingRecord() {
     #expect(model.excludedPhysicalKeyboards.count == 1)
 }
 
-@Test("Hidden rename requires an active exclusion for a saved record")
+@Test("A visible disconnected saved keyboard can be renamed without an exclusion")
 @MainActor
-func hiddenRenameRequiresCurrentExclusion() {
+func visibleDisconnectedKeyboardCanBeRenamedWithoutExclusion() throws {
     let identityKey = "identity:macos.keyboard.saved|anchor:serial:keyboard-a"
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     recordStore.saveName(identityKey: identityKey, productName: "Test Keyboard", customName: "Old")
     let model = makeOnboardingExclusionModel(
         discoverer: SetupModelTestPhysicalKeyboardDiscoverer(), recordStore: recordStore
     )
+    let keyboard = try #require(model.physicalKeyboards.first)
+    #expect(keyboard.id == PhysicalKeyboardRecordID(rawValue: identityKey))
+    #expect(keyboard.connectionState == .disconnected)
+    #expect(model.excludedPhysicalKeyboards.isEmpty)
 
-    model.setPhysicalKeyboardName(PhysicalKeyboardRecordID(rawValue: identityKey), customName: "New")
+    model.setPhysicalKeyboardName(keyboard.id, customName: "New")
 
-    #expect(recordStore.record(forIdentityKey: identityKey)?.name == "Old")
+    #expect(recordStore.record(forIdentityKey: identityKey)?.name == "New")
+    #expect(model.physicalKeyboards.first?.name == "New")
 }
 
 @Test("A failed hidden rename preserves visible state and retries the original name")
