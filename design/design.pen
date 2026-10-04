@@ -2728,10 +2728,16 @@
                       "id": "DaNNh",
                       "name": "Note",
                       "fill": "$text-secondary",
-                      "textGrowth": "fixed-width",
+                      "textGrowth": "fixed-width-height",
                       "width": "fill_container",
+                      "height": "fill_container",
                       "content": "Switching follows keyboard activity. Initial key presses may still use the previous Input Source.",
+<<<<<<< HEAD
                       "lineHeight": "$leading-callout",
+=======
+                      "lineHeight": "$leading-1_4",
+                      "textAlignVertical": "bottom",
+>>>>>>> 5cea5dd (Refine keyboard settings note layout)
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-callout",
                       "fontWeight": "$weight-regular"
@@ -3850,6 +3856,12 @@
             },
             "GlTVk/KwFI0": {
               "fontWeight": "$weight-semibold"
+            },
+            "DaNNh": {
+              "fontSize": "$type-callout",
+              "textGrowth": "fixed-width-height",
+              "height": "fill_container",
+              "textAlignVertical": "bottom"
             }
           }
         }
