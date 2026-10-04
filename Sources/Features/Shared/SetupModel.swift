@@ -4,6 +4,7 @@ import Observation
 enum GuidedSetupStep: String, Equatable, Sendable {
     case permission
     case assignments
+    case ready
 }
 
 @MainActor
@@ -81,7 +82,7 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
     func markGuidedSetupCompleted() {
         defaults.set(true, forKey: Key.hasStartedGuidedSetup)
         defaults.set(true, forKey: Key.hasCompletedGuidedSetup)
-        defaults.set(GuidedSetupStep.assignments.rawValue, forKey: Key.guidedSetupStep)
+        defaults.set(GuidedSetupStep.ready.rawValue, forKey: Key.guidedSetupStep)
     }
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {
@@ -105,7 +106,9 @@ final class KeyameleonSetupModel {
     private(set) var hasStartedGuidedSetup: Bool
     private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var physicalKeyboards: [PhysicalKeyboard] = []
+    private(set) var connectedExcludedKeyboardKeys: Set<String> = []
     private(set) var excludedPhysicalKeyboards: [SavedPhysicalKeyboardExclusion] = []
+    private(set) var savedPhysicalKeyboardRecords: [SavedPhysicalKeyboardRecord] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     private(set) var isWaitingForListenPermission = false
@@ -114,7 +117,7 @@ final class KeyameleonSetupModel {
     private let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     private var savedIdentityKeys: Set<String> = []
 
-    var onGuidedSetupCompleted: (() -> Void)?
+    var onGuidedSetupCompleted: ((GuidedSetupCompletionDestination) -> Void)?
 
     let activityTriggeredSwitching: ActivityTriggeredSwitching
 
@@ -161,7 +164,7 @@ final class KeyameleonSetupModel {
         )
         isSetupComplete = setupStore.hasCompletedGuidedSetup
         hasStartedGuidedSetup = setupStore.hasStartedGuidedSetup
-        guidedSetupStep = setupStore.guidedSetupStep
+        guidedSetupStep = setupStore.hasCompletedGuidedSetup ? .ready : setupStore.guidedSetupStep
 
         applyExclusionKeysToDiscovery()
         discoveryObserverID = physicalKeyboardDiscovery.observeChanges { [weak self] _ in
@@ -267,13 +270,19 @@ final class KeyameleonSetupModel {
     }
 
     func beginGuidedSetup() {
+        guard !isSetupComplete else { return }
         if !hasStartedGuidedSetup {
             setupStore.markGuidedSetupStarted()
             hasStartedGuidedSetup = true
             guidedSetupStep = setupStore.guidedSetupStep
         }
+        activityTriggeredSwitching.checkAgain()
         startPermissionWaitIfNeeded()
         advanceIfPermissionGranted()
+    }
+
+    func endGuidedSetupPresentation() {
+        stopPermissionWait()
     }
 
     func requestPermission() {
@@ -295,6 +304,8 @@ final class KeyameleonSetupModel {
     }
 
     func continueToAssignments() {
+        guard !isSetupComplete, guidedSetupStep == .permission,
+              activityTriggeredSwitching.outcome.switchingStatus != .permissionRequired else { return }
         stopPermissionWait()
         isWaitingForListenPermission = false
         setupStore.markGuidedSetupStep(.assignments)
@@ -303,22 +314,32 @@ final class KeyameleonSetupModel {
         activityTriggeredSwitching.checkAgain()
     }
 
-    func completeSetup() {
+    func continueToReady() {
+        guard !isSetupComplete, guidedSetupStep == .assignments,
+              persistenceError == nil, activityTriggeredSwitching.persistenceError == nil else { return }
+        setupStore.markGuidedSetupStep(.ready)
+        guidedSetupStep = .ready
+    }
+
+    func returnToAssignments() {
+        guard !isSetupComplete, guidedSetupStep == .ready else { return }
+        setupStore.markGuidedSetupStep(.assignments)
+        guidedSetupStep = .assignments
+    }
+
+    func completeSetup(destination: GuidedSetupCompletionDestination) {
+        guard !isSetupComplete, guidedSetupStep == .ready,
+              persistenceError == nil, activityTriggeredSwitching.persistenceError == nil else { return }
         stopPermissionWait()
         isWaitingForListenPermission = false
-        if !hasStartedGuidedSetup {
-            setupStore.markGuidedSetupStarted()
-            hasStartedGuidedSetup = true
-        }
-        if guidedSetupStep != .assignments {
-            setupStore.markGuidedSetupStep(.assignments)
-            guidedSetupStep = .assignments
-        }
-        if !isSetupComplete {
-            setupStore.markGuidedSetupCompleted()
-            isSetupComplete = true
-            onGuidedSetupCompleted?()
-        }
+        setupStore.markGuidedSetupCompleted()
+        isSetupComplete = true
+        onGuidedSetupCompleted?(destination)
+    }
+
+    func checkPermissionAgain() {
+        activityTriggeredSwitching.checkAgain()
+        advanceIfPermissionGranted()
     }
 
     func openSystemSettings() {
@@ -329,11 +350,28 @@ final class KeyameleonSetupModel {
         _ physicalKeyboardID: PhysicalKeyboardRecordID,
         customName: String?
     ) {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
-              physicalKeyboard.isAssignable,
-              physicalKeyboard.id.isIdentityBased
-        else {
+        guard persistenceError == nil,
+              activityTriggeredSwitching.persistenceError == nil,
+              physicalKeyboardID.isIdentityBased else {
             return
+        }
+
+        let physicalKeyboard: PhysicalKeyboard
+        if let liveKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }) {
+            guard liveKeyboard.isAssignable else { return }
+            physicalKeyboard = liveKeyboard
+        } else {
+            let records = savedPhysicalKeyboardRecords.filter { $0.recordID == physicalKeyboardID }
+            guard records.count == 1,
+                  let record = records.first,
+                  !record.isBuiltInIdentity,
+                  excludedPhysicalKeyboards.contains(where: {
+                      $0.key == PhysicalKeyboardExclusionKey.key(for: physicalKeyboardID)
+                  })
+            else {
+                return
+            }
+            physicalKeyboard = .restored(from: record)
         }
 
         finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(
@@ -660,6 +698,7 @@ final class KeyameleonSetupModel {
     }
 
     private func publishPhysicalKeyboards() {
+        connectedExcludedKeyboardKeys = physicalKeyboardDiscovery.connectedExcludedKeys
         do {
             try readPhysicalKeyboards()
             if !savedPhysicalKeyboardChanges.hasPendingChange { persistenceError = nil }
@@ -714,6 +753,7 @@ final class KeyameleonSetupModel {
 
         lastKnownPhysicalKeyboards = knownKeyboards
         savedIdentityKeys = Set(savedRecords.map(\.identityKey))
+        savedPhysicalKeyboardRecords = savedRecords
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
             connected + disconnected
         )

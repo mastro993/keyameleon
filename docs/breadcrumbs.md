@@ -1,5 +1,21 @@
 # Breadcrumbs
 
+## 2026-10-04 — Guided setup keyboard alignment
+
+- The Keyboards step keeps the Pencil paragraph, unheaded list, and inset
+  dividers. A trailing ellipsis menu offers Rename… and Ignore for eligible
+  external keyboards, or Rename… and Stop ignoring for an exact ignored saved
+  record. Missing or ambiguous ignored records only offer Stop ignoring.
+  The built-in row keeps a blank menu slot so its Input Source picker stays aligned.
+- Ignored saved keyboards show their retained assignment in a disabled native
+  picker. Rename preserves that assignment and exclusion, and the saved name
+  appears on the row after a successful write. An unsuccessful read keeps
+  the previous snapshot.
+- Ignored keyboards append ` (Ignored)` to their current connection status.
+  Stop ignoring removes that marker and restores the assignment controls.
+- Onboarding uses semantic type styles across the sidebar, steps, rows, and
+  footer. The Ready step uses the updated light and dark menu artwork.
+
 ## 2026-09-28 — Closed Guided setup can resume from the menu bar
 
 - Issue #119: closing Guided setup left no path back from the menu-bar app.

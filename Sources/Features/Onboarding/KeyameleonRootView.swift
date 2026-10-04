@@ -20,7 +20,7 @@ struct KeyameleonRootView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .resizable()
                         .frame(width: 32.0, height: 32.0)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     Text("Keyameleon is ready")
                         .font(.title.weight(.semibold))
                         .accessibilityAddTraits(.isHeader)
@@ -31,12 +31,13 @@ struct KeyameleonRootView: View {
                 .padding(28)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityIdentifier("guided-setup")
+                .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: model) }
             } else {
                 KeyameleonOnboardingView(model: model, switching: switching)
             }
         }
-        .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: model) }
-        .frame(minWidth: 520, minHeight: 520)
+        .frame(minWidth: 840, minHeight: 640)
+        .ignoresSafeArea(edges: .top)
     }
 }
 

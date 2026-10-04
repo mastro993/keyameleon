@@ -143,7 +143,7 @@ final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
     func markGuidedSetupCompleted() {
         hasStartedGuidedSetup = true
         hasCompletedGuidedSetup = true
-        guidedSetupStep = .assignments
+        guidedSetupStep = .ready
     }
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {

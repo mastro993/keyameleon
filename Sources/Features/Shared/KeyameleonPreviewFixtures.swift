@@ -5,8 +5,14 @@ import Foundation
 
 enum KeyameleonPreviewSetupState: Equatable {
     case permissionRequired
+    case permissionWaiting
     case assignmentsEmpty
     case assignmentsPopulated
+    case pencilAssignments
+    case readyEmpty
+    case readyPopulated
+    case readyPaused
+    case persistenceFailure
     case mixedAssignments
     case manyAssignments
     case excludedDevices
@@ -67,10 +73,10 @@ enum KeyameleonPreviewFixtures {
     static func setup(
         _ state: KeyameleonPreviewSetupState
     ) -> KeyameleonPreviewSetupFixture {
-        let requiresPermission = state == .permissionRequired
+        let requiresPermission = state == .permissionRequired || state == .permissionWaiting
         let isCompleted = state == .completed
-        let isPaused = state == .paused
-        let step: GuidedSetupStep = requiresPermission ? .permission : .assignments
+        let isPaused = state == .paused || state == .readyPaused
+        let step = guidedStep(for: state)
         let setupStore = PreviewSetupDecisionStore(
             hasStartedGuidedSetup: !isCompleted,
             hasCompletedGuidedSetup: isCompleted,
@@ -78,11 +84,13 @@ enum KeyameleonPreviewFixtures {
             isPaused: isPaused
         )
         let permissionProvider = PreviewListenPermissionProvider(
-            state: requiresPermission ? .denied : .granted
+            state: requiresPermission ? .denied : .granted,
+            grantsOnRequest: state != .permissionWaiting
         )
         let discoverer = PreviewPhysicalKeyboardDiscoverer()
-        let recordStore = InMemoryPhysicalKeyboardRecordStore()
-        seedDisconnectedRecord(into: recordStore, state: state)
+        let inMemoryRecordStore = InMemoryPhysicalKeyboardRecordStore()
+        seedDisconnectedRecord(into: inMemoryRecordStore, state: state)
+        let (recordStore, designationStore) = persistenceStores(for: state, seededRecords: inMemoryRecordStore)
 
         let model = KeyameleonSetupModel(
             permissionProvider: permissionProvider,
@@ -95,15 +103,19 @@ enum KeyameleonPreviewFixtures {
             physicalKeyboardRecordStore: recordStore,
             physicalKeyboardEventObserver: NoOpPhysicalKeyboardEventObserver(),
             inputSourceChangeObserver: NoOpInputSourceChangeObserver(),
-            designationStore: InMemoryManualPhysicalKeyboardDesignationStore(),
+            designationStore: designationStore,
             integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(
                 key: SymmetricKey(data: Data(repeating: 42, count: 32))
             )
         )
         let switching = model.activityTriggeredSwitching
         switching.start()
+        if state == .permissionWaiting {
+            model.requestPermission()
+        }
 
-        guard !requiresPermission, state != .assignmentsEmpty, !isCompleted else {
+        guard !requiresPermission, state != .assignmentsEmpty, state != .readyEmpty,
+              state != .persistenceFailure, !isCompleted else {
             return KeyameleonPreviewSetupFixture(model: model, switching: switching)
         }
 
@@ -112,6 +124,8 @@ enum KeyameleonPreviewFixtures {
             discoverer.emit(.connected(fact))
         }
         configureAssignments(for: model, state: state)
+
+        excludePencilTravelIfNeeded(from: model, discoverer: discoverer, state: state)
 
         if state == .excludedDevices,
            let pointer = model.physicalKeyboards.first(where: { !$0.isAssignable }) {
@@ -134,13 +148,49 @@ enum KeyameleonPreviewFixtures {
             }
         }
 
-        if state == .assignmentsPopulated || state == .mixedAssignments || state == .paused {
+        if [.assignmentsPopulated, .readyPopulated, .readyPaused, .mixedAssignments, .paused].contains(state) {
             if let active = model.physicalKeyboards.first {
                 switching.markActiveForTesting(active.id)
             }
         }
 
         return KeyameleonPreviewSetupFixture(model: model, switching: switching)
+    }
+
+    private static func excludePencilTravelIfNeeded(
+        from model: KeyameleonSetupModel,
+        discoverer: PreviewPhysicalKeyboardDiscoverer,
+        state: KeyameleonPreviewSetupState
+    ) {
+        guard state == .pencilAssignments,
+              let travel = model.physicalKeyboards.first(where: { $0.productName == "HHKB Professional" })
+        else {
+            return
+        }
+        model.excludePhysicalKeyboard(travel.id)
+        discoverer.emit(.disconnected(serviceID: 11))
+    }
+
+    private static func persistenceStores(
+        for state: KeyameleonPreviewSetupState,
+        seededRecords: InMemoryPhysicalKeyboardRecordStore
+    ) -> (any PhysicalKeyboardRecordStoring, any ManualPhysicalKeyboardDesignationStoring) {
+        guard state == .persistenceFailure else {
+            return (seededRecords, InMemoryManualPhysicalKeyboardDesignationStore())
+        }
+        let session = SwiftDataPersistenceSession(openContainer: { throw CocoaError(.fileReadNoPermission) })
+        return (
+            SwiftDataPhysicalKeyboardRecordStore(session: session),
+            SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+        )
+    }
+
+    private static func guidedStep(for state: KeyameleonPreviewSetupState) -> GuidedSetupStep {
+        switch state {
+        case .permissionRequired, .permissionWaiting: .permission
+        case .readyEmpty, .readyPopulated, .readyPaused: .ready
+        default: .assignments
+        }
     }
 
     static func panelActions() -> MenuBarPanelActions {
@@ -288,7 +338,7 @@ enum KeyameleonPreviewFixtures {
                     vendorID: 101
                 )
             ]
-        case .assignmentsPopulated, .paused:
+        case .assignmentsPopulated, .readyPopulated, .readyPaused, .paused:
             return [
                 makeFacts(
                     serviceID: 10,
@@ -301,6 +351,31 @@ enum KeyameleonPreviewFixtures {
                     identity: "preview.desk",
                     serial: "desk",
                     name: "HHKB Professional"
+                )
+            ]
+        case .pencilAssignments:
+            return [
+                PhysicalKeyboardHardwareFacts(
+                    serviceID: 8,
+                    identity: PhysicalKeyboardIdentity(
+                        rawValue: "preview.macbook", isBuiltIn: true, serialNumber: nil
+                    ),
+                    name: "MacBook Keyboard",
+                    transport: .usb,
+                    isBuiltIn: true,
+                    vendorID: 500,
+                    productID: 100,
+                    modelNumber: "MacBook",
+                    serialNumber: nil
+                ),
+                makeFacts(
+                    serviceID: 10, identity: "preview.travel", serial: "travel", name: "Keychron K2"
+                ),
+                makeFacts(
+                    serviceID: 11, identity: "preview.desk", serial: "desk", name: "HHKB Professional"
+                ),
+                makeFacts(
+                    serviceID: 12, identity: "preview.magic", serial: "magic", name: "Magic Keyboard"
                 )
             ]
         case .manyAssignments:
@@ -349,7 +424,7 @@ enum KeyameleonPreviewFixtures {
                     vendorID: 200
                 )
             ]
-        case .permissionRequired, .assignmentsEmpty, .completed:
+        case .permissionRequired, .permissionWaiting, .assignmentsEmpty, .readyEmpty, .persistenceFailure, .completed:
             return []
         }
     }
@@ -361,18 +436,33 @@ enum KeyameleonPreviewFixtures {
         for keyboard in model.physicalKeyboards where keyboard.isAssignable {
             switch keyboard.productName {
             case "Keychron K2":
-                model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
+                model.setPhysicalKeyboardName(
+                    keyboard.id, customName: state == .pencilAssignments ? "Office Keyboard" : "Travel"
+                )
                 model.setKeyboardAssignment(
                     keyboard.id,
-                    inputSourceIdentifier: "com.apple.keylayout.Italian"
+                    inputSourceIdentifier: state == .pencilAssignments
+                        ? "com.apple.keylayout.US" : "com.apple.keylayout.Italian"
                 )
             case "HHKB Professional":
-                if state == .assignmentsPopulated || state == .paused {
+                if state == .pencilAssignments {
+                    model.setPhysicalKeyboardName(keyboard.id, customName: "Travel Keyboard")
+                }
+                if state == .assignmentsPopulated || state == .paused || state == .pencilAssignments {
                     model.setKeyboardAssignment(
                         keyboard.id,
-                        inputSourceIdentifier: "com.apple.keylayout.US"
+                        inputSourceIdentifier: state == .pencilAssignments
+                            ? "com.apple.keylayout.German" : "com.apple.keylayout.US"
                     )
                 }
+            case "MacBook Keyboard":
+                model.setKeyboardAssignment(
+                    keyboard.id, inputSourceIdentifier: "com.apple.keylayout.Italian"
+                )
+            case "Magic Keyboard":
+                model.setKeyboardAssignment(
+                    keyboard.id, inputSourceIdentifier: "com.apple.keylayout.US"
+                )
             case "Unidentifiable Keyboard":
                 break
             case let name where state == .manyAssignments && name.hasPrefix("Board "):
@@ -462,9 +552,11 @@ final class PreviewUpdateChecker: UpdateChecking {
 @MainActor
 final class PreviewListenPermissionProvider: ListenPermissionProviding {
     private(set) var state: ListenPermissionState
+    private let grantsOnRequest: Bool
 
-    init(state: ListenPermissionState) {
+    init(state: ListenPermissionState, grantsOnRequest: Bool = true) {
         self.state = state
+        self.grantsOnRequest = grantsOnRequest
     }
 
     func checkListenPermission() -> ListenPermissionState {
@@ -472,8 +564,10 @@ final class PreviewListenPermissionProvider: ListenPermissionProviding {
     }
 
     func requestListenPermission() -> Bool {
-        state = .granted
-        return true
+        if grantsOnRequest {
+            state = .granted
+        }
+        return grantsOnRequest
     }
 }
 
@@ -521,7 +615,7 @@ final class PreviewSetupDecisionStore: SetupDecisionStoring {
     func markGuidedSetupCompleted() {
         hasStartedGuidedSetup = true
         hasCompletedGuidedSetup = true
-        guidedSetupStep = .assignments
+        guidedSetupStep = .ready
     }
 
     func setActivityTriggeredSwitchingPaused(_ paused: Bool) {

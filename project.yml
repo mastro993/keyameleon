@@ -36,6 +36,9 @@ targets:
     platform: macOS
     sources:
       - Sources
+      - path: Resources/Onboarding.xcassets
+        type: file
+        buildPhase: resources
       - path: Keyameleon-icon.icon
         type: file
         buildPhase: resources

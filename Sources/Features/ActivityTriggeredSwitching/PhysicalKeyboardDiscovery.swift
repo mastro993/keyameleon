@@ -226,6 +226,10 @@ final class PhysicalKeyboardDiscovery {
         }
     }
 
+    var connectedExcludedKeys: Set<String> {
+        catalog.connectedExcludedKeys
+    }
+
     private func physicalKeyboard(forServiceID serviceID: UInt64) -> PhysicalKeyboard? {
         catalog.physicalKeyboard(forServiceID: serviceID)
     }

@@ -2,6 +2,30 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
+@Test("Hidden connection lasts until its final service disconnects")
+func hiddenConnectionTracksFinalServiceAndExcludedKeys() throws {
+    var catalog = PhysicalKeyboardCatalog()
+    let first = makeSetupModelHardwareFacts(serviceID: 501)
+    let second = makeSetupModelHardwareFacts(serviceID: 502)
+    let key = try #require(PhysicalKeyboardExclusionKey.key(for: first))
+
+    catalog.apply(.connected(first))
+    catalog.apply(.connected(second))
+    #expect(catalog.connectedExcludedKeys.isEmpty)
+    catalog.setExcludedKeys([key, "identity:other"])
+    #expect(catalog.connectedExcludedKeys == [key])
+    #expect(catalog.physicalKeyboards.isEmpty)
+
+    catalog.apply(.disconnected(serviceID: 501))
+    #expect(catalog.connectedExcludedKeys == [key])
+    catalog.apply(.disconnected(serviceID: 502))
+    #expect(catalog.connectedExcludedKeys.isEmpty)
+    catalog.apply(.connected(first))
+    #expect(catalog.connectedExcludedKeys == [key])
+    catalog.removeAllServices()
+    #expect(catalog.connectedExcludedKeys.isEmpty)
+}
+
 @Test("Exclusion key of a Physical Keyboard Identity ignores its anchor")
 func exclusionKeyIgnoresIdentityAnchor() {
     let serialDevice = makeSetupModelHardwareFacts(

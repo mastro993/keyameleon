@@ -1,5 +1,88 @@
+import Foundation
+import SwiftData
 import Testing
 @testable import Keyameleon
+
+@Test("Hidden subtitles follow connection changes while row records stay unchanged")
+@MainActor
+func hiddenSubtitlesFollowConnectionChanges() throws {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = makeOnboardingExclusionModel(discoverer: discoverer)
+    startAndCheck(model)
+    let facts = makeSetupModelHardwareFacts(serviceID: 603)
+    discoverer.emit(.connected(facts))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.setPhysicalKeyboardName(keyboard.id, customName: "Desk Keyboard")
+    model.excludePhysicalKeyboard(keyboard.id)
+    let records = model.savedPhysicalKeyboardRecords
+    let exclusions = model.excludedPhysicalKeyboards
+    let rows = OnboardingPhysicalKeyboardRows(
+        physicalKeyboards: model.physicalKeyboards,
+        exclusions: exclusions,
+        savedRecords: records,
+        exclusionKeyFor: model.exclusionKey(for:)
+    )
+    let row = try #require(rows.rows.first)
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys)
+        == "Test Keyboard - Connected (Ignored)")
+
+    discoverer.emit(.disconnected(serviceID: facts.serviceID))
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys)
+        == "Test Keyboard - Disconnected (Ignored)")
+    discoverer.emit(.connected(facts))
+    #expect(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys)
+        == "Test Keyboard - Connected (Ignored)")
+    #expect(model.physicalKeyboards.isEmpty)
+    #expect(model.savedPhysicalKeyboardRecords == records)
+    #expect(model.excludedPhysicalKeyboards == exclusions)
+}
+
+@Test("Reopening an excluded assigned keyboard retains its saved Input Source")
+@MainActor
+func reopeningExcludedAssignedKeyboardRetainsItsSource() throws {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let exclusionStore = InMemoryPhysicalKeyboardExclusionStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = makeOnboardingExclusionModel(
+        discoverer: discoverer, recordStore: recordStore, exclusionStore: exclusionStore
+    )
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 600)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    let exclusionKey = try #require(model.exclusionKey(for: keyboard.id))
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.german")
+    model.excludePhysicalKeyboard(keyboard.id)
+
+    let reopened = makeOnboardingExclusionModel(
+        discoverer: SetupModelTestPhysicalKeyboardDiscoverer(),
+        recordStore: recordStore,
+        exclusionStore: exclusionStore
+    )
+    startAndCheck(reopened)
+    #expect(reopened.physicalKeyboards.isEmpty)
+    let saved = try #require(reopened.savedPhysicalKeyboardRecords.first)
+    #expect(saved.keyboardAssignment?.inputSourceIdentifier == "com.example.german")
+    let rows = OnboardingPhysicalKeyboardRows(
+        physicalKeyboards: reopened.physicalKeyboards,
+        exclusions: reopened.excludedPhysicalKeyboards,
+        savedRecords: reopened.savedPhysicalKeyboardRecords,
+        exclusionKeyFor: reopened.exclusionKey(for:)
+    )
+    let excludedRow = try #require(rows.rows.first)
+    #expect(excludedRow.state == .excluded(
+        SavedPhysicalKeyboardExclusion(key: exclusionKey, name: keyboard.name), .matched(saved)
+    ))
+    #expect(excludedRow.subtitle(connectedExcludedKeys: [])
+        == "Disconnected (Ignored)")
+
+    reopened.restorePhysicalKeyboard(exclusionKey: exclusionKey)
+    #expect(reopened.physicalKeyboards.first?.keyboardAssignment?.inputSourceIdentifier
+        == "com.example.german")
+    let restoredRow = OnboardingPhysicalKeyboardRow(
+        physicalKeyboard: try #require(reopened.physicalKeyboards.first), exclusionKey: nil
+    )
+    #expect(restoredRow.subtitle(connectedExcludedKeys: []) == "Disconnected")
+}
 
 @Test("Restoring an excluded saved keyboard returns it disconnected with its assignment")
 @MainActor
@@ -104,4 +187,124 @@ private func makeOnboardingExclusionModel(
         physicalKeyboardRecordStore: recordStore,
         exclusionStore: exclusionStore
     )
+}
+
+@Test("Renaming a hidden keyboard preserves its exclusion and assignment through unhide")
+@MainActor
+func renamingHiddenKeyboardPreservesExclusionAndAssignment() throws {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let exclusionStore = InMemoryPhysicalKeyboardExclusionStore()
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = makeOnboardingExclusionModel(
+        discoverer: discoverer, recordStore: recordStore, exclusionStore: exclusionStore
+    )
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 601)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    let exclusionKey = try #require(model.exclusionKey(for: keyboard.id))
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.german")
+    model.excludePhysicalKeyboard(keyboard.id)
+
+    model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
+
+    let hidden = try #require(model.savedPhysicalKeyboardRecords.first)
+    #expect(hidden.name == "Travel")
+    #expect(hidden.keyboardAssignment?.inputSourceIdentifier == "com.example.german")
+    #expect(model.excludedPhysicalKeyboards.map(\.key) == [exclusionKey])
+    #expect(model.physicalKeyboards.isEmpty)
+
+    model.restorePhysicalKeyboard(exclusionKey: exclusionKey)
+    let restored = try #require(model.physicalKeyboards.first)
+    #expect(restored.name == "Travel")
+    #expect(restored.keyboardAssignment?.inputSourceIdentifier == "com.example.german")
+}
+
+@Test("Hidden rename refuses an excluded identity with no exact saved record")
+@MainActor
+func hiddenRenameDoesNotRecreateMissingRecord() {
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    let exclusionStore = InMemoryPhysicalKeyboardExclusionStore()
+    exclusionStore.exclude(SavedPhysicalKeyboardExclusion(
+        key: "identity:macos.keyboard.missing", name: "Missing Keyboard"
+    ))
+    let model = makeOnboardingExclusionModel(
+        discoverer: SetupModelTestPhysicalKeyboardDiscoverer(),
+        recordStore: recordStore,
+        exclusionStore: exclusionStore
+    )
+
+    model.setPhysicalKeyboardName(
+        PhysicalKeyboardRecordID(rawValue: "identity:macos.keyboard.missing|anchor:serial:missing"),
+        customName: "Ghost"
+    )
+
+    #expect(model.savedPhysicalKeyboardRecords.isEmpty)
+    #expect(recordStore.allRecords().isEmpty)
+    #expect(model.excludedPhysicalKeyboards.count == 1)
+}
+
+@Test("A visible disconnected saved keyboard can be renamed without an exclusion")
+@MainActor
+func visibleDisconnectedKeyboardCanBeRenamedWithoutExclusion() throws {
+    let identityKey = "identity:macos.keyboard.saved|anchor:serial:keyboard-a"
+    let recordStore = InMemoryPhysicalKeyboardRecordStore()
+    recordStore.saveName(identityKey: identityKey, productName: "Test Keyboard", customName: "Old")
+    let model = makeOnboardingExclusionModel(
+        discoverer: SetupModelTestPhysicalKeyboardDiscoverer(), recordStore: recordStore
+    )
+    let keyboard = try #require(model.physicalKeyboards.first)
+    #expect(keyboard.id == PhysicalKeyboardRecordID(rawValue: identityKey))
+    #expect(keyboard.connectionState == .disconnected)
+    #expect(model.excludedPhysicalKeyboards.isEmpty)
+
+    model.setPhysicalKeyboardName(keyboard.id, customName: "New")
+
+    #expect(recordStore.record(forIdentityKey: identityKey)?.name == "New")
+    #expect(model.physicalKeyboards.first?.name == "New")
+}
+
+@Test("A failed hidden rename preserves visible state and retries the original name")
+@MainActor
+func failedHiddenRenamePreservesStateUntilRetry() throws {
+    let container = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(inMemory: true)
+    var fails = false
+    let session = SwiftDataPersistenceSession(modelContext: ModelContext(container), save: {
+        if fails { throw CocoaError(.fileWriteUnknown) }
+        try $0.save()
+    })
+    let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        protectedStateProvider: ProtectedStateTestProvider(state: .clear),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        physicalKeyboardRecordStore: records,
+        designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+    )
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 602)))
+    let keyboard = try #require(model.physicalKeyboards.first)
+    model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: "com.example.german")
+    model.excludePhysicalKeyboard(keyboard.id)
+    let saved = try #require(model.savedPhysicalKeyboardRecords.first)
+    let exclusions = model.excludedPhysicalKeyboards
+
+    fails = true
+    model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
+    let failure = try #require(model.persistenceError)
+    #expect(model.savedPhysicalKeyboardRecords == [saved])
+    model.setPhysicalKeyboardName(keyboard.id, customName: "Must not replace pending rename")
+    #expect(model.persistenceError == failure)
+    #expect(model.excludedPhysicalKeyboards == exclusions)
+
+    fails = false
+    model.retryPersistenceOperation()
+    let renamed = try #require(model.savedPhysicalKeyboardRecords.first)
+    #expect(model.persistenceError == nil)
+    #expect(renamed.name == "Travel")
+    #expect(renamed.keyboardAssignment == saved.keyboardAssignment)
+    #expect(model.excludedPhysicalKeyboards == exclusions)
+    #expect(model.physicalKeyboards.isEmpty)
 }
