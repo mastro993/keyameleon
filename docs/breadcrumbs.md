@@ -33,7 +33,7 @@
   opening `LICENSE.txt` and `Sparkle-LICENSE.txt`. `AppIdentity` now
   reads `CFBundleVersion` for the About version and exposes `creatorURL`.
 - Deleted: the old Settings split view, `KeyboardSettingsView`,
-  `KeyboardSettingsRow`, `KeyboardSettingsRowView`, `CardSurface`,
+  `KeyboardSettingsRow`, `KeyboardSettingsRowView`, `KeyameleonCardSurface`,
   `ManualPhysicalKeyboardDesignationNameSheet`, `AboutFolderRow`, and
   `KeyboardSettingsRowTests`. Forget, Replace Saved Physical Keyboard, and Manual
   Physical Keyboard Designation keep their model seams and tests without a
@@ -119,7 +119,7 @@
   card shows a keyboard symbol, the name, an `Active` marker, the connection
   state, a trailing Input Source button, and an actions menu, and is about 62 pt
   tall against 235 pt for the card it replaces.
-- `CardSurface` carries the fill, the radius, the padding, and
+- `KeyameleonCardSurface` carries the fill, the radius, the padding, and
   `isHighlighted` for the Active Physical Keyboard, so the keyboard cards and the
   excluded-device cards cannot drift apart. Rows hide their separators and take
   4 pt above and below.
