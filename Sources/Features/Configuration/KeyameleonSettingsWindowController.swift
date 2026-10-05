@@ -16,8 +16,13 @@ final class KeyameleonSettingsWindowController: NSWindowController {
     ) {
         self.selection = selection
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 760, height: 620),
-            styleMask: [.titled, .closable, .resizable],
+            contentRect: NSRect(
+                x: 0,
+                y: 0,
+                width: KeyameleonTheme.Metrics.settingsWindowMinimumWidth,
+                height: KeyameleonTheme.Metrics.settingsWindowMinimumHeight
+            ),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -25,7 +30,13 @@ final class KeyameleonSettingsWindowController: NSWindowController {
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.settings-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 720, height: 540)
+        // The design draws its own sidebar under the traffic lights.
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.contentMinSize = NSSize(
+            width: KeyameleonTheme.Metrics.settingsWindowMinimumWidth,
+            height: KeyameleonTheme.Metrics.settingsWindowMinimumHeight
+        )
         window.contentView = NSHostingView(
             rootView: KeyameleonSettingsView(
                 model: model,

@@ -43,7 +43,8 @@ enum KeyameleonPreviewFixtures {
         identity: KeyameleonAppIdentity(
             infoDictionary: [
                 "CFBundleDisplayName": "Keyameleon",
-                "CFBundleShortVersionString": "9.9.9"
+                "CFBundleShortVersionString": "9.9.9",
+                "CFBundleVersion": "1"
             ]
         ),
         repositoryURL: URL(string: "https://github.com/mastro993/Keyameleon")!,

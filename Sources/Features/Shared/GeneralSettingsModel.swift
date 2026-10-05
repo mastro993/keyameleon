@@ -1,11 +1,12 @@
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-final class KeyameleonGeneralSettingsModel: ObservableObject {
-    @Published private(set) var isLaunchAtLoginEnabled: Bool
-    @Published private(set) var launchAtLoginError: LaunchAtLoginChangeError?
-    @Published private(set) var canCheckForUpdates: Bool
+@Observable
+final class KeyameleonGeneralSettingsModel {
+    private(set) var isLaunchAtLoginEnabled: Bool
+    private(set) var launchAtLoginError: LaunchAtLoginChangeError?
+    private(set) var canCheckForUpdates: Bool
 
     private let launchAtLoginController: any LaunchAtLoginControlling
     private let updateChecker: any UpdateChecking

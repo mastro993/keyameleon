@@ -1,5 +1,48 @@
 # Breadcrumbs
 
+## 2026-10-05 — Settings rebuilt from the Pencil design
+
+- Reported: the Settings window predated the Pencil designs for General,
+  Keyboards, and About, and carried its own navigation, cards, and colors.
+- Shell: `KeyameleonSettingsView` is a fixed 220 pt sidebar beside the selected
+  pane, with `KeyameleonSettingsSidebar` drawing the app identity and the
+  General/Keyboards/About items. The window hides its title, makes the content
+  full size, and keeps an 840 × 560 content minimum, so the sidebar sits under
+  the native traffic lights as the design draws it.
+- Theme: `KeyameleonTheme` carries the design's colors and metrics, with three
+  new asset colors for the content pane, sidebar, and card surface.
+  `OnboardingPalette` now names the same tokens, so Guided setup and Settings
+  cannot drift. `KeyameleonInsetGroup` and `keyameleonGroupSeparator(_:)` are the
+  group and hairline both flows draw.
+- Keyboards: the pane renders `PhysicalKeyboardRowView` over
+  `PhysicalKeyboardRows`, the row and reconciled list that Guided setup used.
+  Both moved from `Sources/Features/Onboarding` to `Sources/Features/Shared` and
+  lost their onboarding names. Included and ignored keyboards stay in one group;
+  Ignore and Stop ignoring write immediately, and `reconcile(with:)` re-reads the
+  setup model. `PhysicalKeyboardNameSheet` moved to Shared with the row.
+- Panes: `GeneralSettingsPane` draws the Launch at login card, its explanation,
+  and the menu-bar line. `KeyameleonKeyboardSettingsPane` draws the introduction,
+  the shared group, the discovery note, and the `No keyboards detected` empty
+  state. `KeyameleonAboutSettingsPane` draws the identity, information rows,
+  Sparkle acknowledgement, and creator credit, with `KeyameleonBundledLicense`
+  opening `LICENSE.txt` and `Sparkle-LICENSE.txt`. `KeyameleonAppIdentity` now
+  reads `CFBundleVersion` for the About version and exposes `creatorURL`.
+- Deleted: `KeyameleonSettingsView`'s split view, `KeyboardSettingsView`,
+  `KeyboardSettingsRow`, `KeyboardSettingsRowView`, `KeyameleonCardSurface`,
+  `ManualPhysicalKeyboardDesignationNameSheet`, `AboutFolderRow`, and
+  `KeyboardSettingsRowTests`. Forget, Replace Saved Physical Keyboard, and Manual
+  Physical Keyboard Designation keep their model seams and tests without a
+  Settings entry point.
+- `KeyameleonGeneralSettingsModel` is `@MainActor @Observable`; Settings, About,
+  and the compact About window read it directly.
+- Tests: `SettingsSectionTests` covers both symbol variants,
+  `PhysicalKeyboardRowsTests` moves to Shared and gains the
+  `reconcile(with:)` case, `AppIdentityTests` covers the About version label, and
+  `BundledLicensesTests` covers both license URLs. All three panes were rendered
+  light and dark through `NSHostingView` and compared against the Pencil frames.
+- Docs: `docs/choices.md` entry for 2026-10-05 and `docs/testing.md` Settings
+  section.
+
 ## 2026-10-04 — Guided setup keyboard alignment
 
 - The Keyboards step keeps the Pencil paragraph, unheaded list, and inset

@@ -4,12 +4,12 @@ import SwiftUI
 struct KeyameleonOnboardingView: View {
     private let model: KeyameleonSetupModel
     private let switching: ActivityTriggeredSwitching
-    @State private var keyboardRows: OnboardingPhysicalKeyboardRows
+    @State private var keyboardRows: PhysicalKeyboardRows
 
     init(model: KeyameleonSetupModel, switching: ActivityTriggeredSwitching) {
         self.model = model
         self.switching = switching
-        _keyboardRows = State(initialValue: OnboardingPhysicalKeyboardRows(
+        _keyboardRows = State(initialValue: PhysicalKeyboardRows(
             physicalKeyboards: model.physicalKeyboards,
             exclusions: model.excludedPhysicalKeyboards,
             savedRecords: model.savedPhysicalKeyboardRecords,
@@ -33,11 +33,11 @@ struct KeyameleonOnboardingView: View {
                             OnboardingAssignmentsStep(
                                 model: model,
                                 rows: keyboardRows.rows,
-                                onExclude: { id in
+                                onIgnore: { id in
                                     model.excludePhysicalKeyboard(id)
                                     reconcileKeyboardRows()
                                 },
-                                onIncludeAgain: { key in
+                                onStopIgnoring: { key in
                                     model.restorePhysicalKeyboard(exclusionKey: key)
                                     reconcileKeyboardRows()
                                 }
@@ -83,12 +83,7 @@ struct KeyameleonOnboardingView: View {
     }
 
     private func reconcileKeyboardRows() {
-        keyboardRows.reconcile(
-            physicalKeyboards: model.physicalKeyboards,
-            exclusions: model.excludedPhysicalKeyboards,
-            savedRecords: model.savedPhysicalKeyboardRecords,
-            exclusionKeyFor: model.exclusionKey(for:)
-        )
+        keyboardRows.reconcile(with: model)
     }
 }
 

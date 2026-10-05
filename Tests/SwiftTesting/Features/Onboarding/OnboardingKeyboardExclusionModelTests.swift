@@ -16,7 +16,7 @@ func hiddenSubtitlesFollowConnectionChanges() throws {
     model.excludePhysicalKeyboard(keyboard.id)
     let records = model.savedPhysicalKeyboardRecords
     let exclusions = model.excludedPhysicalKeyboards
-    let rows = OnboardingPhysicalKeyboardRows(
+    let rows = PhysicalKeyboardRows(
         physicalKeyboards: model.physicalKeyboards,
         exclusions: exclusions,
         savedRecords: records,
@@ -62,7 +62,7 @@ func reopeningExcludedAssignedKeyboardRetainsItsSource() throws {
     #expect(reopened.physicalKeyboards.isEmpty)
     let saved = try #require(reopened.savedPhysicalKeyboardRecords.first)
     #expect(saved.keyboardAssignment?.inputSourceIdentifier == "com.example.german")
-    let rows = OnboardingPhysicalKeyboardRows(
+    let rows = PhysicalKeyboardRows(
         physicalKeyboards: reopened.physicalKeyboards,
         exclusions: reopened.excludedPhysicalKeyboards,
         savedRecords: reopened.savedPhysicalKeyboardRecords,
@@ -78,7 +78,7 @@ func reopeningExcludedAssignedKeyboardRetainsItsSource() throws {
     reopened.restorePhysicalKeyboard(exclusionKey: exclusionKey)
     #expect(reopened.physicalKeyboards.first?.keyboardAssignment?.inputSourceIdentifier
         == "com.example.german")
-    let restoredRow = OnboardingPhysicalKeyboardRow(
+    let restoredRow = PhysicalKeyboardRow(
         physicalKeyboard: try #require(reopened.physicalKeyboards.first), exclusionKey: nil
     )
     #expect(restoredRow.subtitle(connectedExcludedKeys: []) == "Disconnected")

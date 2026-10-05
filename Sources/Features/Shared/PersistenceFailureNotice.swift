@@ -38,8 +38,8 @@ struct PersistenceFailureNotice: View {
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )
-    KeyameleonKeyboardSettingsView(model: model)
+    KeyameleonKeyboardSettingsPane(model: model)
         .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: model) }
-        .frame(width: 560, height: 340)
+        .frame(width: 620, height: 340)
 }
 #endif

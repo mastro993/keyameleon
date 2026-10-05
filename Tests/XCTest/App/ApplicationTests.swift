@@ -83,6 +83,17 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertEqual(delegate.settingsSelection.section, .general)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
         XCTAssertNil(settingsWindow.toolbar)
+        XCTAssertTrue(settingsWindow.styleMask.contains(.fullSizeContentView))
+        XCTAssertEqual(settingsWindow.titleVisibility, .hidden)
+        XCTAssertTrue(settingsWindow.titlebarAppearsTransparent)
+        XCTAssertEqual(
+            settingsWindow.contentMinSize,
+            NSSize(
+                width: KeyameleonTheme.Metrics.settingsWindowMinimumWidth,
+                height: KeyameleonTheme.Metrics.settingsWindowMinimumHeight
+            )
+        )
+        XCTAssertTrue(settingsWindow.contentView is NSHostingView<KeyameleonSettingsView>)
 
         delegate.openAbout(nil)
         let aboutController = try XCTUnwrap(delegate.aboutWindowController)

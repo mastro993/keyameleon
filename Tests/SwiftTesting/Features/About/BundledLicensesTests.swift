@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import Testing
+@testable import Keyameleon
 
 @Test("Application bundle includes complete MIT and Sparkle licenses with third-party notices")
 func applicationBundleIncludesCompleteLicensesAndThirdPartyNotices() throws {
@@ -27,4 +28,15 @@ func applicationBundleIncludesCompleteLicensesAndThirdPartyNotices() throws {
     )
     let noticesText = try #require(String(data: notices, encoding: .utf8))
     #expect(!noticesText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+}
+
+@Test("Every bundled license the About pane links resolves inside the app bundle")
+func bundledLicenseLinksResolveInsideTheAppBundle() throws {
+    let licenses = try #require(Bundle.main.resourceURL)
+        .appending(path: "Licenses", directoryHint: .isDirectory)
+    for license in [KeyameleonBundledLicense.project, .sparkle] {
+        let url = try #require(license.url, "Missing bundled license URL: \(license.rawValue)")
+        #expect(url.deletingLastPathComponent() == licenses)
+        #expect(FileManager.default.fileExists(atPath: url.path))
+    }
 }

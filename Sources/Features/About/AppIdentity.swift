@@ -3,6 +3,7 @@ import Foundation
 struct KeyameleonAppIdentity: Equatable, Sendable {
     let name: String
     let version: String
+    let build: String
 
     static let current = KeyameleonAppIdentity(bundle: .main)
 
@@ -10,7 +11,8 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
         self.init(
             displayName: bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
             bundleName: bundle.object(forInfoDictionaryKey: "CFBundleName") as? String,
-            shortVersion: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+            shortVersion: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+            build: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
         )
     }
 
@@ -18,7 +20,8 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
         self.init(
             displayName: infoDictionary?["CFBundleDisplayName"] as? String,
             bundleName: infoDictionary?["CFBundleName"] as? String,
-            shortVersion: infoDictionary?["CFBundleShortVersionString"] as? String
+            shortVersion: infoDictionary?["CFBundleShortVersionString"] as? String,
+            build: infoDictionary?["CFBundleVersion"] as? String
         )
     }
 
@@ -29,11 +32,20 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
         return version.hasPrefix("v") ? version : "v\(version)"
     }
 
-    private init(displayName: String?, bundleName: String?, shortVersion: String?) {
+    /// The version the Settings About pane shows: short version and build.
+    var aboutVersionLabel: String {
+        guard version != "—", build != "—" else {
+            return version
+        }
+        return "\(version) (\(build))"
+    }
+
+    private init(displayName: String?, bundleName: String?, shortVersion: String?, build: String?) {
         name = Self.nonemptyString(displayName)
             ?? Self.nonemptyString(bundleName)
             ?? "Keyameleon"
         version = Self.nonemptyString(shortVersion) ?? "—"
+        self.build = Self.nonemptyString(build) ?? "—"
     }
 
     private static func nonemptyString(_ value: String?) -> String? {
@@ -46,6 +58,10 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
 }
 
 struct KeyameleonAboutInfo: Equatable, Sendable {
+    /// Keyameleon's public repository, as the About pane links it.
+    static let repositoryURL = URL(string: "https://github.com/mastro993/Keyameleon")!
+    static let creatorURL = URL(string: "https://x.com/fedemas")!
+
     let identity: KeyameleonAppIdentity
     let repositoryURL: URL
     let appDataFolderURL: URL
@@ -56,7 +72,7 @@ struct KeyameleonAboutInfo: Equatable, Sendable {
     init(identity: KeyameleonAppIdentity) {
         self.init(
             identity: identity,
-            repositoryURL: URL(string: "https://github.com/mastro993/Keyameleon")!,
+            repositoryURL: Self.repositoryURL,
             appDataFolderURL: SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
                 .url.deletingLastPathComponent(),
             logsFolderURL: Self.defaultLogsFolderURL

@@ -1,5 +1,74 @@
 # Choices
 
+## 2026-10-05 — Settings is rebuilt from the Pencil design
+
+The Settings window is now the Pencil `Settings / General`, `Settings /
+Keyboards`, `Settings / About`, and `Settings / Keyboards / Empty` designs. It
+is the only Settings presentation: the old split view, form panes, and keyboard
+cards are deleted. Guided setup and Settings draw from one theme, one inset
+group, and one Physical Keyboard row.
+
+### Seams
+
+- `KeyameleonTheme` — the design's colors plus the metrics Settings sizes itself
+  with: an 840 × 560 content minimum, a 220 pt sidebar, 24/30/28/30 pane insets,
+  radius 16 for the keyboard group, radius 10 for information rows, and radius 6
+  for the navigation item. `OnboardingPalette` names the same tokens for Guided
+  setup, so neither flow invents a color or a length.
+- `KeyameleonInsetGroup` and `keyameleonGroupSeparator(_:)` — the rounded group
+  and its hairline, drawn by the Keyboards list, Guided setup, and About.
+- `PhysicalKeyboardRows` and `PhysicalKeyboardRowView` — one reconciled list and
+  one row shared by Guided setup and Settings. `reconcile(with:)` reads the setup
+  model, so both flows keep row identity, ordering, and ignored rows the same way.
+- `KeyameleonSettingsView` — the sidebar and pane shell, with
+  `KeyameleonSettingsSidebar`, `GeneralSettingsPane`,
+  `KeyameleonKeyboardSettingsPane`, and `KeyameleonAboutSettingsPane`.
+- `KeyameleonBundledLicense` — the bundled `LICENSE.txt` and
+  `Sparkle-LICENSE.txt` the About pane opens for offline reading.
+- `KeyameleonGeneralSettingsModel` is `@MainActor @Observable`. Settings, About,
+  and the compact About window read it without a property wrapper.
+
+### Defaults
+
+- The window hides its title and makes the content full size, so the design's
+  sidebar sits under the traffic lights. Resizing keeps the 840 × 560 content
+  minimum. General stays the default pane, reopening keeps the current pane, and
+  the menu-bar dismissal, cached controller, and setup-to-Settings handoff are
+  unchanged.
+- Keyboards lists included and ignored Physical Keyboards in one group: name and
+  connection status, the native Input Source picker, and one actions menu holding
+  `Rename…` and then `Ignore` or `Stop ignoring`. Rename keeps its sheet and
+  product-name placeholder. Ignore and Stop ignoring write through the model
+  immediately and keep the row in place; an ignored row keeps its saved Input
+  Source with the picker disabled. The built-in keyboard reserves the menu column
+  without offering actions. Missing or ambiguous saved records read `Assignment
+  unavailable`, unsupported identities keep their reason, and a persistence error
+  disables the picker and the menu.
+- The Keyboards empty state is the design's keyboard symbol, `No keyboards
+  detected`, and its connection guidance. While the store is unreadable the pane
+  shows neither empty state and keeps the persistence notice and Retry instead.
+- About shows the app icon, name, and tagline, then information rows for version,
+  source code, app data folder, logs folder, license, and updates, then the
+  Sparkle acknowledgement and the creator credit. Folder rows show a selectable
+  path with Open in Finder. License rows open the bundled texts and are disabled
+  when the build does not carry them. Updates is disabled while Sparkle cannot
+  check. The version is read from the bundle and shows the build number.
+- The compact About window keeps its own presentation and its
+  `Licenses and Notices` button.
+- Settings offers no Forget, Replace Saved Physical Keyboard, or Manual Physical
+  Keyboard Designation entry point. Those model seams and their tests remain.
+
+### Superseded
+
+- 2026-09-25 and 2026-09-26: `KeyboardSettingsRow`, `KeyboardSettingsRowView`,
+  and `KeyameleonCardSurface` are deleted, and their tests with them.
+- 2026-09-27: the separate Settings Excluded Devices section is gone. Ignored
+  keyboards stay in the list and offer `Stop ignoring`.
+- 2026-10-04: Settings no longer keeps its own confirmation path; Ignore and
+  Stop ignoring save immediately, exactly as Guided setup does.
+- 2026-09-26 ellipsis rule: this design's copy uses the ellipsis character in
+  `Rename…` and `Check for Updates…`, as Guided setup already shipped it.
+
 ## 2026-10-04 — Guided setup keyboard rows match the Pencil design
 
 - The Keyboards step uses a short explanation above an unheaded list. An

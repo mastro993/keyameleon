@@ -29,12 +29,29 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
         infoDictionary: [
             "CFBundleDisplayName": "Shown",
             "CFBundleName": "Hidden",
-            "CFBundleShortVersionString": "1.2.3"
+            "CFBundleShortVersionString": "1.2.3",
+            "CFBundleVersion": "7"
         ]
     )
     #expect(identity.name == "Shown")
     #expect(identity.version == "1.2.3")
+    #expect(identity.build == "7")
     #expect(identity.versionLabel == "v1.2.3")
+    #expect(identity.aboutVersionLabel == "1.2.3 (7)")
+}
+
+@Test("About version label falls back when the build number is missing")
+func aboutVersionLabelFallsBackToShortVersion() {
+    let labeled = KeyameleonAppIdentity(
+        infoDictionary: [
+            "CFBundleDisplayName": "Keyameleon",
+            "CFBundleShortVersionString": "1.2.3"
+        ]
+    )
+    #expect(labeled.aboutVersionLabel == "1.2.3")
+
+    let unknown = KeyameleonAppIdentity(infoDictionary: [:])
+    #expect(unknown.aboutVersionLabel == "—")
 }
 
 @Test("About info exposes the production store folder and source")

@@ -3,14 +3,14 @@ import SwiftUI
 
 @MainActor
 struct KeyameleonCompactAboutView: View {
-    @ObservedObject private var model: KeyameleonGeneralSettingsModel
+    private let model: KeyameleonGeneralSettingsModel
     private let identity: KeyameleonAppIdentity
 
     init(
         model: KeyameleonGeneralSettingsModel,
         identity: KeyameleonAppIdentity = .current
     ) {
-        _model = ObservedObject(wrappedValue: model)
+        self.model = model
         self.identity = identity
     }
 

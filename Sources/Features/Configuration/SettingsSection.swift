@@ -15,11 +15,12 @@ enum KeyameleonSettingsSection: String, CaseIterable, Identifiable, Hashable, Se
         }
     }
 
-    var systemImage: String {
+    /// The symbol the sidebar shows. A selected section takes the filled variant.
+    func systemImage(isSelected: Bool) -> String {
         switch self {
-        case .general: "gearshape"
-        case .keyboards: "keyboard"
-        case .about: "info.circle"
+        case .general: isSelected ? "gearshape.fill" : "gearshape"
+        case .keyboards: isSelected ? "keyboard.fill" : "keyboard"
+        case .about: isSelected ? "info.circle.fill" : "info.circle"
         }
     }
 }

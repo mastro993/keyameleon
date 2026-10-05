@@ -1,12 +1,12 @@
 import Testing
 @testable import Keyameleon
 
-@Test("Onboarding subtitle prefixes the product only for a custom name")
-func onboardingSubtitleUsesOriginalNameOnlyAfterRename() {
+@Test("Subtitle prefixes the product only for a custom name")
+func subtitleUsesOriginalNameOnlyAfterRename() {
     let unrenamed = makeOnboardingRowKeyboard(id: "identity:magic", name: "Magic Keyboard")
-    #expect(OnboardingPhysicalKeyboardRow(physicalKeyboard: unrenamed, exclusionKey: nil)
+    #expect(PhysicalKeyboardRow(physicalKeyboard: unrenamed, exclusionKey: nil)
         .subtitle(connectedExcludedKeys: []) == "Connected")
-    #expect(OnboardingPhysicalKeyboardRow(physicalKeyboard: unrenamed.asDisconnected(), exclusionKey: nil)
+    #expect(PhysicalKeyboardRow(physicalKeyboard: unrenamed.asDisconnected(), exclusionKey: nil)
         .subtitle(connectedExcludedKeys: []) == "Disconnected")
 
     let renamed = PhysicalKeyboard(
@@ -14,7 +14,7 @@ func onboardingSubtitleUsesOriginalNameOnlyAfterRename() {
         transport: .usb, isBuiltIn: false, assignmentState: .unassigned,
         connectedServiceCount: 0, connectionState: .disconnected, isActive: false
     )
-    #expect(OnboardingPhysicalKeyboardRow(physicalKeyboard: renamed, exclusionKey: nil)
+    #expect(PhysicalKeyboardRow(physicalKeyboard: renamed, exclusionKey: nil)
         .subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Disconnected")
 
     let exclusion = SavedPhysicalKeyboardExclusion(key: "identity:magic", name: "Desk Keyboard")
@@ -22,30 +22,30 @@ func onboardingSubtitleUsesOriginalNameOnlyAfterRename() {
         identityKey: "identity:magic|anchor:serial:magic", productName: "Magic Keyboard",
         customName: "Desk Keyboard"
     )
-    let hidden = OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(saved))
-    #expect(OnboardingPhysicalKeyboardRow(physicalKeyboard: unrenamed.applying(savedRecord: saved), exclusionKey: nil)
+    let hidden = PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(saved))
+    #expect(PhysicalKeyboardRow(physicalKeyboard: unrenamed.applying(savedRecord: saved), exclusionKey: nil)
         .subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Connected")
     #expect(hidden.subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
     #expect(hidden.subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Disconnected (Ignored)")
-    #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .missing)
+    #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .missing)
         .subtitle(connectedExcludedKeys: [exclusion.key]) == "Connected (Ignored)")
-    #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .ambiguous)
+    #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .ambiguous)
         .subtitle(connectedExcludedKeys: []) == "Disconnected (Ignored)")
     let blankName = SavedPhysicalKeyboardRecord(
         identityKey: saved.identityKey, productName: saved.productName, customName: "  "
     )
-    #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(blankName))
+    #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(blankName))
         .subtitle(connectedExcludedKeys: []) == "Disconnected (Ignored)")
     let sameName = SavedPhysicalKeyboardRecord(
         identityKey: saved.identityKey, productName: saved.productName, customName: saved.productName
     )
-    #expect(OnboardingPhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(sameName))
+    #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(sameName))
         .subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
 }
 
-@Test("Excluding and restoring preserves onboarding row identity and order")
+@Test("Excluding and restoring preserves row identity and order")
 @MainActor
-func excludingAndRestoringPreservesOnboardingRowIdentityAndOrder() {
+func excludingAndRestoringPreservesRowIdentityAndOrder() {
     let firstKeyboard = makeOnboardingRowKeyboard(
         id: "identity:first|anchor:serial:first",
         name: "First Keyboard"
@@ -57,7 +57,7 @@ func excludingAndRestoringPreservesOnboardingRowIdentityAndOrder() {
     let firstKey = "identity:first"
     let secondKey = "identity:second"
     let exclusion = SavedPhysicalKeyboardExclusion(key: firstKey, name: "First Keyboard")
-    var rows = OnboardingPhysicalKeyboardRows(
+    var rows = PhysicalKeyboardRows(
         physicalKeyboards: [firstKeyboard, secondKeyboard],
         exclusionKeyFor: { keyboardID in
             keyboardID == firstKeyboard.id ? firstKey : secondKey
@@ -93,7 +93,7 @@ func repeatedExclusionsKeepSharedHardwareKeyRowsUniqueAndInPlace() {
     let secondKeyboard = makeOnboardingRowKeyboard(id: "service:second", name: "Receiver")
     let hardwareKey = "hardware:200:100:Model"
     let exclusion = SavedPhysicalKeyboardExclusion(key: hardwareKey, name: "Receiver")
-    var rows = OnboardingPhysicalKeyboardRows(
+    var rows = PhysicalKeyboardRows(
         physicalKeyboards: [firstKeyboard, secondKeyboard],
         exclusionKeyFor: { _ in hardwareKey }
     )
@@ -136,7 +136,7 @@ func excludedRowRetainsSavedAssignmentAfterReopening() throws {
         customName: "Travel",
         keyboardAssignment: KeyboardAssignment(inputSourceIdentifier: "com.example.german")
     )
-    var rows = OnboardingPhysicalKeyboardRows(
+    var rows = PhysicalKeyboardRows(
         physicalKeyboards: [keyboard],
         savedRecords: [saved],
         exclusionKeyFor: { _ in exclusion.key }
@@ -149,7 +149,7 @@ func excludedRowRetainsSavedAssignmentAfterReopening() throws {
     #expect(rows.rows.first?.id == originalID)
     #expect(rows.rows.first?.state == .excluded(exclusion, .matched(saved)))
 
-    let reopened = OnboardingPhysicalKeyboardRows(
+    let reopened = PhysicalKeyboardRows(
         exclusions: [exclusion], savedRecords: [saved], exclusionKeyFor: { _ in nil }
     )
     #expect(reopened.rows.first?.state == .excluded(exclusion, .matched(saved)))
@@ -175,7 +175,7 @@ func excludedGroupDoesNotInventAnAssignmentForCollisions() throws {
         identityKey: "identity:shared|anchor:second", productName: "Second",
         keyboardAssignment: KeyboardAssignment(inputSourceIdentifier: "com.example.german")
     )
-    var rows = OnboardingPhysicalKeyboardRows(
+    var rows = PhysicalKeyboardRows(
         physicalKeyboards: [keyboard], exclusionKeyFor: { _ in exclusion.key }
     )
     rows.reconcile(
@@ -184,7 +184,7 @@ func excludedGroupDoesNotInventAnAssignmentForCollisions() throws {
     )
     #expect(rows.rows.first?.state == .excluded(exclusion, .matched(first)))
 
-    let reopened = OnboardingPhysicalKeyboardRows(
+    let reopened = PhysicalKeyboardRows(
         exclusions: [exclusion], savedRecords: [first, second], exclusionKeyFor: { _ in nil }
     )
     #expect(reopened.rows.first?.state == .excluded(exclusion, .ambiguous))
@@ -197,12 +197,12 @@ func persistedExclusionsAppearAndUnavailableDevicesDisappearOnRestore() {
         key: "hardware:200:100:Model",
         name: "USB Receiver"
     )
-    var rows = OnboardingPhysicalKeyboardRows(
+    var rows = PhysicalKeyboardRows(
         exclusions: [exclusion],
         exclusionKeyFor: { _ in nil }
     )
 
-    #expect(rows.rows == [OnboardingPhysicalKeyboardRow(exclusion: exclusion)])
+    #expect(rows.rows == [PhysicalKeyboardRow(exclusion: exclusion)])
 
     rows.reconcile(physicalKeyboards: [], exclusions: [], exclusionKeyFor: { _ in nil })
 
@@ -221,4 +221,41 @@ private func makeOnboardingRowKeyboard(id: String, name: String) -> PhysicalKeyb
         connectionState: .connected,
         isActive: false
     )
+}
+
+@MainActor
+@Test("Reconciling from the setup model keeps included and ignored keyboards in one list")
+func reconcilingFromTheSetupModelKeepsOneList() throws {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let model = KeyameleonSetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        physicalKeyboardRecordStore: InMemoryPhysicalKeyboardRecordStore(),
+        exclusionStore: InMemoryPhysicalKeyboardExclusionStore()
+    )
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 701)))
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(
+        serviceID: 702, identity: "macos.keyboard.second", serialNumber: "keyboard-b"
+    )))
+
+    var rows = PhysicalKeyboardRows(
+        physicalKeyboards: model.physicalKeyboards,
+        exclusions: model.excludedPhysicalKeyboards,
+        savedRecords: model.savedPhysicalKeyboardRecords,
+        exclusionKeyFor: model.exclusionKey(for:)
+    )
+    let ignored = try #require(model.physicalKeyboards.first)
+    model.excludePhysicalKeyboard(ignored.id)
+
+    rows.reconcile(with: model)
+
+    #expect(rows.rows.count == 2)
+    #expect(rows.rows.first?.state == .excluded(
+        try #require(model.excludedPhysicalKeyboards.first),
+        .missing
+    ))
+    #expect(rows.rows.last?.state == .included(try #require(model.physicalKeyboards.first)))
 }
