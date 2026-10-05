@@ -194,7 +194,7 @@ struct PhysicalKeyboardRowView: View {
     }
 
     private var hasPersistenceError: Bool {
-        model.persistenceError != nil || model.activityTriggeredSwitching.persistenceError != nil
+        model.hasPersistenceFailure
     }
 
     private func presentRename(for keyboard: PhysicalKeyboard) {

@@ -54,8 +54,9 @@ group, and one Physical Keyboard row.
   unavailable`, unsupported identities keep their reason, and a persistence error
   disables the picker and the menu.
 - The Keyboards empty state is the design's keyboard symbol, `No keyboards
-  detected`, and its connection guidance. While the store is unreadable the pane
-  shows neither empty state and keeps the persistence notice and Retry instead.
+  detected`, and its connection guidance. While either store is unreadable —
+  `SetupModel.hasPersistenceFailure` covers the record and switching stores — the
+  pane shows no empty state and keeps the persistence notice and Retry instead.
 - About shows the app icon, name, and tagline, then information rows for version,
   source code, app data folder, logs folder, license, and updates, then the
   Sparkle acknowledgement, and the creator credit as the last content block, so

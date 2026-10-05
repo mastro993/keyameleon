@@ -60,8 +60,7 @@ struct MenuBarPanelView: View {
                 )
             }
 
-            if content.assignmentList.emptyTitle == nil
-                || (setupModel.persistenceError == nil && switching.persistenceError == nil) {
+            if content.assignmentList.emptyTitle == nil || !setupModel.hasPersistenceFailure {
                 MenuBarAssignmentSection(
                     list: content.assignmentList,
                     emphasis: chrome.assignmentEmphasis,

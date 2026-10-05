@@ -28,22 +28,22 @@ struct OnboardingFooter: View {
                 Button("Set Up Later") { model.continueToReady() }
                     .buttonStyle(.plain)
                     .foregroundStyle(OnboardingPalette.accent)
-                    .disabled(hasPersistenceFailure)
+                    .disabled(model.hasPersistenceFailure)
                 Button("Continue") { model.continueToReady() }
                     .buttonStyle(.borderedProminent)
                     .tint(OnboardingPalette.button)
-                    .disabled(hasPersistenceFailure)
+                    .disabled(model.hasPersistenceFailure)
                     .keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("continue-guided-setup")
             case .ready:
                 Button("Back") { model.returnToAssignments() }
                 Spacer()
                 Button("Open Settings") { model.completeSetup(destination: .settings) }
-                    .disabled(hasPersistenceFailure)
+                    .disabled(model.hasPersistenceFailure)
                 Button("Finish") { model.completeSetup(destination: .menuBar) }
                     .buttonStyle(.borderedProminent)
                     .tint(OnboardingPalette.button)
-                    .disabled(hasPersistenceFailure)
+                    .disabled(model.hasPersistenceFailure)
                     .keyboardShortcut(.defaultAction)
             }
         }
@@ -54,10 +54,6 @@ struct OnboardingFooter: View {
         .frame(height: 67)
         .frame(maxWidth: .infinity)
         .overlay(alignment: .top) { OnboardingPalette.border.frame(height: 1) }
-    }
-
-    private var hasPersistenceFailure: Bool {
-        model.persistenceError != nil || model.activityTriggeredSwitching.persistenceError != nil
     }
 }
 

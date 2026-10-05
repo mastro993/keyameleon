@@ -25,7 +25,7 @@ struct OnboardingAssignmentsStep: View {
                 .foregroundStyle(OnboardingPalette.secondary)
             InsetGroup {
                 if rows.isEmpty {
-                    Text(model.persistenceError == nil
+                    Text(!model.hasPersistenceFailure
                         ? "Connect a Physical Keyboard to add a Keyboard Assignment."
                         : "Retry to load saved Physical Keyboards.")
                         .foregroundStyle(OnboardingPalette.secondary)

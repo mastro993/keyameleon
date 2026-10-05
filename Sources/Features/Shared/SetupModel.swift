@@ -114,6 +114,11 @@ final class SetupModel {
     private(set) var isWaitingForListenPermission = false
 
     private(set) var persistenceError: String?
+    /// True while either store cannot be read or written, which is what every
+    /// surface reports. The row list and the notice must never disagree.
+    var hasPersistenceFailure: Bool {
+        persistenceError != nil || activityTriggeredSwitching.persistenceError != nil
+    }
     private let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     private var savedIdentityKeys: Set<String> = []
 

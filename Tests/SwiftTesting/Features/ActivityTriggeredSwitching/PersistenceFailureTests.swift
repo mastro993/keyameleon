@@ -293,6 +293,10 @@ private func switchingReadFailurePreservesAssignment() throws {
     fails = true
     switching.checkAgain()
     #expect(switching.persistenceError != nil)
+    // The row list and the Settings empty state read one predicate, so a
+    // switching-store failure counts even while the record store is healthy.
+    #expect(model.persistenceError == nil)
+    #expect(model.hasPersistenceFailure)
     #expect(switching.outcome == previous)
     #expect(switching.testingWantedKeyboardAssignmentIdentifier == "com.example.us")
     selector.current = "com.example.italian"
@@ -302,6 +306,7 @@ private func switchingReadFailurePreservesAssignment() throws {
     fails = false
     model.retryPersistenceOperation()
     #expect(switching.persistenceError == nil)
+    #expect(!model.hasPersistenceFailure)
     discovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 903, kind: .press))
     #expect(selector.selectCount == 2)
     #expect(selector.current == "com.example.us")

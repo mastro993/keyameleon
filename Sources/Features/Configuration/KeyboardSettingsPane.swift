@@ -28,7 +28,7 @@ struct KeyboardSettingsPane: View {
             }
 
             if rows.rows.isEmpty {
-                if model.persistenceError == nil {
+                if !model.hasPersistenceFailure {
                     KeyboardEmptyState()
                 }
             } else {
