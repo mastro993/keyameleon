@@ -32,7 +32,7 @@
   Sparkle acknowledgement, and creator credit, with `BundledLicense`
   opening `LICENSE.txt` and `Sparkle-LICENSE.txt`. `AppIdentity` now
   reads `CFBundleVersion` for the About version and exposes `creatorURL`.
-- Deleted: `SettingsView`'s split view, `KeyboardSettingsView`,
+- Deleted: the old Settings split view, `KeyboardSettingsView`,
   `KeyboardSettingsRow`, `KeyboardSettingsRowView`, `CardSurface`,
   `ManualPhysicalKeyboardDesignationNameSheet`, `AboutFolderRow`, and
   `KeyboardSettingsRowTests`. Forget, Replace Saved Physical Keyboard, and Manual
