@@ -11,10 +11,13 @@ group, and one Physical Keyboard row.
 ### Seams
 
 - `KeyameleonTheme` — the design's colors plus the metrics Settings sizes itself
-  with: an 840 × 560 content minimum, a 220 pt sidebar, 24/30/28/30 pane insets,
-  radius 16 for the keyboard group, radius 10 for information rows, and radius 6
-  for the navigation item. `OnboardingPalette` names the same tokens for Guided
-  setup, so neither flow invents a color or a length.
+  with: an 840 × 560 content minimum, a 220 pt sidebar with a 24 pt top inset, a
+  24/30 pane inset, 20 pt between a pane's blocks, radius 16 for the keyboard
+  group, radius 10 for information rows, and radius 6 for the navigation item.
+  Settings packs its keyboard rows at 16 pt while Guided setup keeps the
+  design's 18/22, and information rows take a 16 pt inset and the design's 39 pt
+  height. `OnboardingPalette` names the same tokens for Guided setup, so neither
+  flow invents a color or a length.
 - `KeyameleonInsetGroup` and `keyameleonGroupSeparator(_:)` — the rounded group
   and its hairline, drawn by the Keyboards list, Guided setup, and About.
 - `PhysicalKeyboardRows` and `PhysicalKeyboardRowView` — one reconciled list and
@@ -31,9 +34,11 @@ group, and one Physical Keyboard row.
 ### Defaults
 
 - The window hides its title and makes the content full size, so the design's
-  sidebar sits under the traffic lights. Resizing keeps the 840 × 560 content
-  minimum. General stays the default pane, reopening keeps the current pane, and
-  the menu-bar dismissal, cached controller, and setup-to-Settings handoff are
+  sidebar sits under the traffic lights. The sidebar shows the keycap mark from
+  `KeyameleonKeycap` — the design's crop of the official logo, not the app icon,
+  which stays on the About pane. Resizing keeps the 840 × 560 content minimum.
+  General stays the default pane, reopening keeps the current pane, and the
+  menu-bar dismissal, cached controller, and setup-to-Settings handoff are
   unchanged.
 - Keyboards lists included and ignored Physical Keyboards in one group: name and
   connection status, the native Input Source picker, and one actions menu holding

@@ -16,12 +16,13 @@ struct KeyameleonAboutInformationRow<Content: View>: View {
             content
         }
         .padding(.vertical, 11)
+        .frame(minHeight: KeyameleonTheme.Metrics.informationRowMinHeight)
         .overlay(alignment: .bottom) {
             if showsSeparator {
                 KeyameleonTheme.border.frame(height: 1)
             }
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, KeyameleonTheme.Metrics.informationRowInset)
     }
 }
 
@@ -67,7 +68,7 @@ struct KeyameleonAboutFolderRow: View {
                 KeyameleonTheme.border.frame(height: 1)
             }
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, KeyameleonTheme.Metrics.informationRowInset)
     }
 }
 

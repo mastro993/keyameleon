@@ -17,7 +17,7 @@ struct KeyameleonKeyboardSettingsPane: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Keyboard layouts")
                     .font(.headline)
@@ -34,7 +34,7 @@ struct KeyameleonKeyboardSettingsPane: View {
                 }
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
                         keyboardGroup
                         Text(
                             "New keyboards appear here when connected. "
@@ -61,6 +61,7 @@ struct KeyameleonKeyboardSettingsPane: View {
                 PhysicalKeyboardRowView(
                     row: row,
                     model: model,
+                    rowPadding: KeyameleonTheme.Metrics.settingsKeyboardRowPadding,
                     onIgnore: { id in
                         model.excludePhysicalKeyboard(id)
                         rows.reconcile(with: model)
@@ -70,7 +71,10 @@ struct KeyameleonKeyboardSettingsPane: View {
                         rows.reconcile(with: model)
                     }
                 )
-                .keyameleonGroupSeparator(row.id != rows.rows.first?.id)
+                .keyameleonGroupSeparator(
+                    row.id != rows.rows.first?.id,
+                    inset: KeyameleonTheme.Metrics.settingsKeyboardRowPadding.leading
+                )
             }
         }
     }

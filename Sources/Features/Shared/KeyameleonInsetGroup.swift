@@ -27,15 +27,19 @@ struct KeyameleonInsetGroup<Content: View>: View {
 #Preview("Inset group") {
     KeyameleonInsetGroup {
         Text("First row")
-            .padding(.horizontal, 22)
-            .padding(.vertical, 18)
+            .padding(KeyameleonTheme.Metrics.settingsKeyboardRowPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .keyameleonGroupSeparator(false)
+            .keyameleonGroupSeparator(
+                false,
+                inset: KeyameleonTheme.Metrics.settingsKeyboardRowPadding.leading
+            )
         Text("Second row")
-            .padding(.horizontal, 22)
-            .padding(.vertical, 18)
+            .padding(KeyameleonTheme.Metrics.settingsKeyboardRowPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .keyameleonGroupSeparator(true)
+            .keyameleonGroupSeparator(
+                true,
+                inset: KeyameleonTheme.Metrics.settingsKeyboardRowPadding.leading
+            )
     }
     .padding()
     .background(KeyameleonTheme.contentBackground)

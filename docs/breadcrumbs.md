@@ -8,7 +8,12 @@
   pane, with `KeyameleonSettingsSidebar` drawing the app identity and the
   General/Keyboards/About items. The window hides its title, makes the content
   full size, and keeps an 840 × 560 content minimum, so the sidebar sits under
-  the native traffic lights as the design draws it.
+  the native traffic lights as the design draws it. The identity uses the
+  keycap-only `KeyameleonKeycap` asset; About keeps the app icon.
+- Metrics: the panes share one 24/30 inset and 20 pt block spacing, Settings
+  keyboard rows pack at 16 pt with a 16 pt separator inset, and information rows
+  take a 16 pt inset at the design's 39 pt height. Guided setup keeps its own
+  18/22 row padding, passed by the flow rather than baked into the shared row.
 - Theme: `KeyameleonTheme` carries the design's colors and metrics, with three
   new asset colors for the content pane, sidebar, and card surface.
   `OnboardingPalette` now names the same tokens, so Guided setup and Settings

@@ -36,8 +36,11 @@ enum KeyameleonTheme {
         static let settingsWindowMinimumWidth: CGFloat = 840
         static let settingsWindowMinimumHeight: CGFloat = 560
         static let sidebarWidth: CGFloat = 220
-        /// The Settings content pane's insets, in the design's order.
-        static let panePadding = EdgeInsets(top: 24, leading: 30, bottom: 28, trailing: 30)
+        /// The sidebar's top inset, measured from the bottom of the native title bar.
+        static let sidebarTopInset: CGFloat = 24
+        /// The Settings content pane's insets, and the spacing between its blocks.
+        static let panePadding = EdgeInsets(top: 24, leading: 30, bottom: 24, trailing: 30)
+        static let paneSpacing: CGFloat = 20
         /// Inset group of rows, as the Keyboards list and Guided setup draw it.
         static let groupRadius: CGFloat = 16
         /// Inset group of label and value rows, as About draws it.
@@ -46,18 +49,23 @@ enum KeyameleonTheme {
         static let controlRadius: CGFloat = 6
         static let navigationItemHeight: CGFloat = 34
         static let navigationItemSpacing: CGFloat = 4
-        static let groupSeparatorInset: CGFloat = 22
+        /// Settings rows sit in a tighter group than Guided setup's rows.
+        static let settingsKeyboardRowPadding = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        static let onboardingKeyboardRowPadding = EdgeInsets(top: 18, leading: 22, bottom: 18, trailing: 22)
+        /// The horizontal inset every Settings information row takes, and its design height.
+        static let informationRowInset: CGFloat = 16
+        static let informationRowMinHeight: CGFloat = 39
     }
 }
 
 extension View {
-    /// Draws the hairline a Pencil group uses between two rows.
-    func keyameleonGroupSeparator(_ isVisible: Bool) -> some View {
+    /// Draws the hairline a Pencil group uses between two rows, inset like the rows it separates.
+    func keyameleonGroupSeparator(_ isVisible: Bool, inset: CGFloat) -> some View {
         overlay(alignment: .top) {
             if isVisible {
                 KeyameleonTheme.border
                     .frame(height: 1)
-                    .padding(.leading, KeyameleonTheme.Metrics.groupSeparatorInset)
+                    .padding(.leading, inset)
             }
         }
     }

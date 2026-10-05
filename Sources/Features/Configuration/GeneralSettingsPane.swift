@@ -7,28 +7,31 @@ struct KeyameleonGeneralSettingsPane: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("App")
-                    .font(.headline)
-                    .bold()
-                    .foregroundStyle(KeyameleonTheme.primary)
-                    .padding(.top, 14)
+            VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("App")
+                        .font(.headline)
+                        .bold()
+                        .foregroundStyle(KeyameleonTheme.primary)
 
-                launchAtLoginSetting
+                    launchAtLoginSetting
+                }
 
-                Text("Keyameleon runs quietly in your menu bar.")
-                    .font(.callout)
-                    .foregroundStyle(KeyameleonTheme.secondary)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Keyameleon runs quietly in your menu bar.")
+                        .font(.callout)
+                        .foregroundStyle(KeyameleonTheme.secondary)
 
-                if model.launchAtLoginError != nil {
-                    Text(
-                        """
-                        Could not change Launch at Login. Open System Settings → General → \
-                        Login Items if macOS requires approval.
-                        """
-                    )
-                    .font(.callout)
-                    .foregroundStyle(.red)
+                    if model.launchAtLoginError != nil {
+                        Text(
+                            """
+                            Could not change Launch at Login. Open System Settings → General → \
+                            Login Items if macOS requires approval.
+                            """
+                        )
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

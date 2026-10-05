@@ -9,6 +9,8 @@ import SwiftUI
 struct PhysicalKeyboardRowView: View {
     let row: PhysicalKeyboardRow
     let model: KeyameleonSetupModel
+    /// The flow owns the row's inset: Settings packs its group tighter than Guided setup.
+    let rowPadding: EdgeInsets
     let onIgnore: (PhysicalKeyboardRecordID) -> Void
     let onStopIgnoring: (String) -> Void
 
@@ -76,8 +78,7 @@ struct PhysicalKeyboardRowView: View {
                 .fixedSize(horizontal: true, vertical: false)
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 18)
+        .padding(rowPadding)
         .accessibilityElement(children: .contain)
         .sheet(item: $keyboardToRename) { keyboard in
             PhysicalKeyboardNameSheet(
@@ -227,6 +228,7 @@ struct PhysicalKeyboardRowView: View {
         PhysicalKeyboardRowView(
             row: PhysicalKeyboardRow(physicalKeyboard: keyboard, exclusionKey: nil),
             model: fixture.model,
+            rowPadding: KeyameleonTheme.Metrics.onboardingKeyboardRowPadding,
             onIgnore: { _ in },
             onStopIgnoring: { _ in }
         )
@@ -240,6 +242,7 @@ struct PhysicalKeyboardRowView: View {
         PhysicalKeyboardRowView(
             row: PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .missing),
             model: fixture.model,
+            rowPadding: KeyameleonTheme.Metrics.settingsKeyboardRowPadding,
             onIgnore: { _ in },
             onStopIgnoring: { _ in }
         )

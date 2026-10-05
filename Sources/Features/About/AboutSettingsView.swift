@@ -14,7 +14,7 @@ struct KeyameleonAboutSettingsPane: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
                 identity
                 information
                 acknowledgements
@@ -109,8 +109,8 @@ struct KeyameleonAboutSettingsPane: View {
                     Spacer(minLength: 12)
                     licenseButton(for: .sparkle, title: "View full License")
                 }
-                .padding(.vertical, 11)
-                .padding(.horizontal, 14)
+                .padding(.vertical, 14)
+                .padding(.horizontal, KeyameleonTheme.Metrics.informationRowInset)
             }
         }
     }

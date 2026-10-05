@@ -9,7 +9,7 @@ struct KeyameleonSettingsSidebar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             appIdentity
-                .padding(.top, 28)
+                .padding(.top, KeyameleonTheme.Metrics.sidebarTopInset)
                 .padding(.horizontal, 20)
             navigation
                 .padding(.top, 24)
@@ -25,7 +25,7 @@ struct KeyameleonSettingsSidebar: View {
 
     private var appIdentity: some View {
         HStack(spacing: 4) {
-            Image(nsImage: NSApp.applicationIconImage)
+            Image("KeyameleonKeycap")
                 .resizable()
                 .interpolation(.high)
                 .frame(width: 22, height: 22)

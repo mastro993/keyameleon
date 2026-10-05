@@ -36,10 +36,14 @@ struct OnboardingAssignmentsStep: View {
                     PhysicalKeyboardRowView(
                         row: row,
                         model: model,
+                        rowPadding: KeyameleonTheme.Metrics.onboardingKeyboardRowPadding,
                         onIgnore: onIgnore,
                         onStopIgnoring: onStopIgnoring
                     )
-                    .keyameleonGroupSeparator(row.id != rows.first?.id)
+                    .keyameleonGroupSeparator(
+                        row.id != rows.first?.id,
+                        inset: KeyameleonTheme.Metrics.onboardingKeyboardRowPadding.leading
+                    )
                 }
             }
             Text(Self.switchingNote)
