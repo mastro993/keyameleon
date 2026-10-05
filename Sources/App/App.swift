@@ -2,12 +2,12 @@ import SwiftUI
 
 @main
 struct KeyameleonApp: App {
-    @NSApplicationDelegateAdaptor(KeyameleonApplicationDelegate.self)
+    @NSApplicationDelegateAdaptor(ApplicationDelegate.self)
     private var applicationDelegate
 
     var body: some Scene {
         Settings {
-            KeyameleonSettingsView(
+            SettingsView(
                 model: applicationDelegate.generalSettingsModel,
                 setupModel: applicationDelegate.setupModel,
                 selection: applicationDelegate.settingsSelection

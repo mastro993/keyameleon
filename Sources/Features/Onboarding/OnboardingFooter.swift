@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 struct OnboardingFooter: View {
-    let model: KeyameleonSetupModel
+    let model: SetupModel
 
     var body: some View {
         HStack(spacing: 28) {
@@ -63,7 +63,7 @@ struct OnboardingFooter: View {
 
 #if DEBUG
 #Preview("Onboarding footer") {
-    let fixture = KeyameleonPreviewFixtures.setup(.readyEmpty)
+    let fixture = PreviewFixtures.setup(.readyEmpty)
     OnboardingFooter(model: fixture.model)
         .frame(width: 705)
 }

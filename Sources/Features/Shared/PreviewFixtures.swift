@@ -3,7 +3,7 @@ import AppKit
 import CryptoKit
 import Foundation
 
-enum KeyameleonPreviewSetupState: Equatable {
+enum PreviewSetupState: Equatable {
     case permissionRequired
     case permissionWaiting
     case assignmentsEmpty
@@ -22,16 +22,16 @@ enum KeyameleonPreviewSetupState: Equatable {
 }
 
 @MainActor
-struct KeyameleonPreviewSetupFixture {
-    let model: KeyameleonSetupModel
+struct PreviewSetupFixture {
+    let model: SetupModel
     let switching: ActivityTriggeredSwitching
 }
 
 @MainActor
-enum KeyameleonPreviewFixtures {
+enum PreviewFixtures {
     static let fixedDate = Date(timeIntervalSince1970: 1_735_689_600)
 
-    static func setupWithAllKeyboardsExcluded() -> KeyameleonPreviewSetupFixture {
+    static func setupWithAllKeyboardsExcluded() -> PreviewSetupFixture {
         let fixture = setup(.excludedDevices)
         fixture.model.physicalKeyboards.forEach { physicalKeyboard in
             fixture.model.excludePhysicalKeyboard(physicalKeyboard.id)
@@ -39,8 +39,8 @@ enum KeyameleonPreviewFixtures {
         return fixture
     }
 
-    static let aboutInfo = KeyameleonAboutInfo(
-        identity: KeyameleonAppIdentity(
+    static let aboutInfo = AboutInfo(
+        identity: AppIdentity(
             infoDictionary: [
                 "CFBundleDisplayName": "Keyameleon",
                 "CFBundleShortVersionString": "9.9.9",
@@ -56,8 +56,8 @@ enum KeyameleonPreviewFixtures {
         launchAtLoginEnabled: Bool = false,
         launchAtLoginFailure: Bool = false,
         canCheckForUpdates: Bool = true
-    ) -> KeyameleonGeneralSettingsModel {
-        let model = KeyameleonGeneralSettingsModel(
+    ) -> GeneralSettingsModel {
+        let model = GeneralSettingsModel(
             launchAtLoginController: PreviewLaunchAtLoginController(
                 isEnabled: launchAtLoginEnabled,
                 shouldFail: launchAtLoginFailure
@@ -72,8 +72,8 @@ enum KeyameleonPreviewFixtures {
     }
 
     static func setup(
-        _ state: KeyameleonPreviewSetupState
-    ) -> KeyameleonPreviewSetupFixture {
+        _ state: PreviewSetupState
+    ) -> PreviewSetupFixture {
         let requiresPermission = state == .permissionRequired || state == .permissionWaiting
         let isCompleted = state == .completed
         let isPaused = state == .paused || state == .readyPaused
@@ -93,7 +93,7 @@ enum KeyameleonPreviewFixtures {
         seedDisconnectedRecord(into: inMemoryRecordStore, state: state)
         let (recordStore, designationStore) = persistenceStores(for: state, seededRecords: inMemoryRecordStore)
 
-        let model = KeyameleonSetupModel(
+        let model = SetupModel(
             permissionProvider: permissionProvider,
             protectedStateProvider: PreviewProtectedStateProvider(),
             setupStore: setupStore,
@@ -117,7 +117,7 @@ enum KeyameleonPreviewFixtures {
 
         guard !requiresPermission, state != .assignmentsEmpty, state != .readyEmpty,
               state != .persistenceFailure, !isCompleted else {
-            return KeyameleonPreviewSetupFixture(model: model, switching: switching)
+            return PreviewSetupFixture(model: model, switching: switching)
         }
 
         let facts = hardwareFacts(for: state)
@@ -155,13 +155,13 @@ enum KeyameleonPreviewFixtures {
             }
         }
 
-        return KeyameleonPreviewSetupFixture(model: model, switching: switching)
+        return PreviewSetupFixture(model: model, switching: switching)
     }
 
     private static func excludePencilTravelIfNeeded(
-        from model: KeyameleonSetupModel,
+        from model: SetupModel,
         discoverer: PreviewPhysicalKeyboardDiscoverer,
-        state: KeyameleonPreviewSetupState
+        state: PreviewSetupState
     ) {
         guard state == .pencilAssignments,
               let travel = model.physicalKeyboards.first(where: { $0.productName == "HHKB Professional" })
@@ -173,7 +173,7 @@ enum KeyameleonPreviewFixtures {
     }
 
     private static func persistenceStores(
-        for state: KeyameleonPreviewSetupState,
+        for state: PreviewSetupState,
         seededRecords: InMemoryPhysicalKeyboardRecordStore
     ) -> (any PhysicalKeyboardRecordStoring, any ManualPhysicalKeyboardDesignationStoring) {
         guard state == .persistenceFailure else {
@@ -186,7 +186,7 @@ enum KeyameleonPreviewFixtures {
         )
     }
 
-    private static func guidedStep(for state: KeyameleonPreviewSetupState) -> GuidedSetupStep {
+    private static func guidedStep(for state: PreviewSetupState) -> GuidedSetupStep {
         switch state {
         case .permissionRequired, .permissionWaiting: .permission
         case .readyEmpty, .readyPopulated, .readyPaused: .ready
@@ -300,7 +300,7 @@ enum KeyameleonPreviewFixtures {
 
     private static func seedDisconnectedRecord(
         into store: InMemoryPhysicalKeyboardRecordStore,
-        state: KeyameleonPreviewSetupState
+        state: PreviewSetupState
     ) {
         guard state == .mixedAssignments || state == .designationInProgress else {
             return
@@ -319,7 +319,7 @@ enum KeyameleonPreviewFixtures {
     }
 
     private static func hardwareFacts(
-        for state: KeyameleonPreviewSetupState
+        for state: PreviewSetupState
     ) -> [PhysicalKeyboardHardwareFacts] {
         switch state {
         case .designationInProgress:
@@ -431,8 +431,8 @@ enum KeyameleonPreviewFixtures {
     }
 
     private static func configureAssignments(
-        for model: KeyameleonSetupModel,
-        state: KeyameleonPreviewSetupState
+        for model: SetupModel,
+        state: PreviewSetupState
     ) {
         for keyboard in model.physicalKeyboards where keyboard.isAssignable {
             switch keyboard.productName {
@@ -648,7 +648,7 @@ final class PreviewPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
 @MainActor
 final class PreviewInputSourceProvider: InputSourceProviding {
     func eligibleInputSources() -> [EligibleInputSource] {
-        KeyameleonPreviewFixtures.inputSources()
+        PreviewFixtures.inputSources()
     }
 }
 

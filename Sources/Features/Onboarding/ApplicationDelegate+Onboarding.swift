@@ -1,13 +1,13 @@
 import AppKit
 
-extension KeyameleonApplicationDelegate {
+extension ApplicationDelegate {
     @objc
     func openKeyameleon(_ sender: Any?) {
         closeMenuBarPanel()
         NSApp.activate(ignoringOtherApps: true)
 
         if windowController == nil {
-            windowController = KeyameleonWindowController(
+            windowController = MainWindowController(
                 model: setupModel,
                 switching: activityTriggeredSwitching
             )

@@ -5,17 +5,17 @@ import SwiftUI
 /// Colors come from the design's variables and resolve light and dark from the
 /// asset catalog. Guided setup and Settings both read from here, so a rebuild
 /// never invents a color, radius, or metric of its own.
-enum KeyameleonTheme {
+enum Theme {
     // MARK: Colors
 
     /// The window behind a flow's content, and the row surface a keyboard group draws on.
     static let windowBackground = Color("OnboardingBackground")
     /// The Settings content pane behind its groups.
-    static let contentBackground = Color("KeyameleonContentBackground")
+    static let contentBackground = Color("ContentBackground")
     /// The Settings sidebar the navigation sits on.
-    static let sidebarBackground = Color("KeyameleonSidebarBackground")
+    static let sidebarBackground = Color("SidebarBackground")
     /// The card surface for Settings information rows.
-    static let cardSurface = Color("KeyameleonCardSurface")
+    static let cardSurface = Color("CardSurface")
     /// The softer surface Guided setup uses behind requirement and preview blocks.
     static let surface = Color("OnboardingSurface")
     static let primary = Color("OnboardingPrimary")
@@ -63,7 +63,7 @@ extension View {
     func keyameleonGroupSeparator(_ isVisible: Bool, inset: CGFloat) -> some View {
         overlay(alignment: .top) {
             if isVisible {
-                KeyameleonTheme.border
+                Theme.border
                     .frame(height: 1)
                     .padding(.leading, inset)
             }

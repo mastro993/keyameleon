@@ -34,7 +34,7 @@ func applicationBundleIncludesCompleteLicensesAndThirdPartyNotices() throws {
 func bundledLicenseLinksResolveInsideTheAppBundle() throws {
     let licenses = try #require(Bundle.main.resourceURL)
         .appending(path: "Licenses", directoryHint: .isDirectory)
-    for license in [KeyameleonBundledLicense.project, .sparkle] {
+    for license in [BundledLicense.project, .sparkle] {
         let url = try #require(license.url, "Missing bundled license URL: \(license.rawValue)")
         #expect(url.deletingLastPathComponent() == licenses)
         #expect(FileManager.default.fileExists(atPath: url.path))

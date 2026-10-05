@@ -6,7 +6,7 @@ import SwiftUI
 /// Native macOS 26 Liquid Glass comes from `NSPopover` chrome. Callers must not
 /// wrap this surface in extra glass cards.
 @MainActor
-final class KeyameleonMenuBarPanelController: NSObject, NSPopoverDelegate {
+final class MenuBarPanelController: NSObject, NSPopoverDelegate {
     static let panelWidth: CGFloat = MenuBarPanelContent.panelWidth
 
     private let popover = NSPopover()

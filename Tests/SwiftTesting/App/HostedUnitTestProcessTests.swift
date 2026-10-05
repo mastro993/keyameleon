@@ -4,7 +4,7 @@ import Testing
 @Test("Hosted unit-test process reads XCTest configuration path")
 func hostedUnitTestProcessReadsXCTestConfigurationPath() {
     #expect(
-        KeyameleonHostedUnitTestProcess.isDetected(
+        HostedUnitTestProcess.isDetected(
             environment: ["XCTestConfigurationFilePath": "/tmp/test"]
         )
     )
@@ -13,7 +13,7 @@ func hostedUnitTestProcessReadsXCTestConfigurationPath() {
 @Test("Hosted unit-test process reads XCTest bundle path")
 func hostedUnitTestProcessReadsXCTestBundlePath() {
     #expect(
-        KeyameleonHostedUnitTestProcess.isDetected(
+        HostedUnitTestProcess.isDetected(
             environment: ["XCTestBundlePath": "/tmp/bundle.xctest"]
         )
     )
@@ -21,13 +21,13 @@ func hostedUnitTestProcessReadsXCTestBundlePath() {
 
 @Test("Hosted unit-test process ignores a launch without XCTest host env")
 func hostedUnitTestProcessIgnoresLaunchWithoutXCTestHostEnv() {
-    #expect(!KeyameleonHostedUnitTestProcess.isDetected(environment: [:]))
+    #expect(!HostedUnitTestProcess.isDetected(environment: [:]))
 }
 
 @Test("Preview process reads the Xcode preview environment flag")
 func previewProcessReadsXcodeEnvironmentFlag() {
     #expect(
-        KeyameleonPreviewProcess.isDetected(
+        PreviewProcess.isDetected(
             environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]
         )
     )
@@ -36,9 +36,9 @@ func previewProcessReadsXcodeEnvironmentFlag() {
 @Test("Preview process requires the enabled flag value")
 func previewProcessRequiresEnabledFlagValue() {
     #expect(
-        !KeyameleonPreviewProcess.isDetected(
+        !PreviewProcess.isDetected(
             environment: ["XCODE_RUNNING_FOR_PREVIEWS": "0"]
         )
     )
-    #expect(!KeyameleonPreviewProcess.isDetected(environment: [:]))
+    #expect(!PreviewProcess.isDetected(environment: [:]))
 }

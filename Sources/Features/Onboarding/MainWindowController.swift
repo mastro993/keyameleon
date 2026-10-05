@@ -2,10 +2,10 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class KeyameleonWindowController: NSWindowController, NSWindowDelegate {
-    private let model: KeyameleonSetupModel
+final class MainWindowController: NSWindowController, NSWindowDelegate {
+    private let model: SetupModel
     init(
-        model: KeyameleonSetupModel,
+        model: SetupModel,
         switching: ActivityTriggeredSwitching
     ) {
         self.model = model
@@ -24,7 +24,7 @@ final class KeyameleonWindowController: NSWindowController, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.minSize = NSSize(width: 840, height: 640)
         window.contentView = NSHostingView(
-            rootView: KeyameleonRootView(
+            rootView: RootView(
                 model: model,
                 switching: switching
             )

@@ -5,14 +5,14 @@ import Testing
 
 @Test("App identity falls back when bundle keys are missing")
 func appIdentityFallsBackWhenBundleKeysAreMissing() {
-    let identity = KeyameleonAppIdentity(infoDictionary: [:])
+    let identity = AppIdentity(infoDictionary: [:])
     #expect(identity.name == "Keyameleon")
     #expect(identity.version == "—")
 }
 
 @Test("App identity trims empty bundle strings as absent")
 func appIdentityTrimsEmptyBundleStringsAsAbsent() {
-    let identity = KeyameleonAppIdentity(
+    let identity = AppIdentity(
         infoDictionary: [
             "CFBundleDisplayName": "  ",
             "CFBundleName": "Fallback",
@@ -25,7 +25,7 @@ func appIdentityTrimsEmptyBundleStringsAsAbsent() {
 
 @Test("App identity prefers display name and short version")
 func appIdentityPrefersDisplayNameAndShortVersion() {
-    let identity = KeyameleonAppIdentity(
+    let identity = AppIdentity(
         infoDictionary: [
             "CFBundleDisplayName": "Shown",
             "CFBundleName": "Hidden",
@@ -42,7 +42,7 @@ func appIdentityPrefersDisplayNameAndShortVersion() {
 
 @Test("About version label falls back when the build number is missing")
 func aboutVersionLabelFallsBackToShortVersion() {
-    let labeled = KeyameleonAppIdentity(
+    let labeled = AppIdentity(
         infoDictionary: [
             "CFBundleDisplayName": "Keyameleon",
             "CFBundleShortVersionString": "1.2.3"
@@ -50,14 +50,14 @@ func aboutVersionLabelFallsBackToShortVersion() {
     )
     #expect(labeled.aboutVersionLabel == "1.2.3")
 
-    let unknown = KeyameleonAppIdentity(infoDictionary: [:])
+    let unknown = AppIdentity(infoDictionary: [:])
     #expect(unknown.aboutVersionLabel == "—")
 }
 
 @Test("About info exposes the production store folder and source")
 func aboutInfoExposesProductionStoreFolderAndSource() {
-    let info = KeyameleonAboutInfo(
-        identity: KeyameleonAppIdentity(
+    let info = AboutInfo(
+        identity: AppIdentity(
             infoDictionary: [
                 "CFBundleDisplayName": "Keyameleon",
                 "CFBundleShortVersionString": "1.2.3"

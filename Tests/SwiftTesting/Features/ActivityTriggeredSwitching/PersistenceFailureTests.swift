@@ -170,8 +170,8 @@ private func makePersistenceFailureModel(
     records: SwiftDataPhysicalKeyboardRecordStore,
     session: SwiftDataPersistenceSession,
     discoverer: SetupModelTestPhysicalKeyboardDiscoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-) -> KeyameleonSetupModel {
-    KeyameleonSetupModel(
+) -> SetupModel {
+    SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
@@ -267,7 +267,7 @@ private func switchingReadFailurePreservesAssignment() throws {
     let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.italian")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),

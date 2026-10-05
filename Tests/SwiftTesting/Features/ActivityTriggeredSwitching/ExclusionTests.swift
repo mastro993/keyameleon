@@ -371,8 +371,8 @@ private func makeExclusionTestModel(
         current: nil,
         verifySuccess: true
     )
-) -> KeyameleonSetupModel {
-    KeyameleonSetupModel(
+) -> SetupModel {
+    SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

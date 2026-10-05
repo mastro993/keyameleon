@@ -2,25 +2,25 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class KeyameleonSettingsWindowController: NSWindowController {
-    private let selection: KeyameleonSettingsSelection
+final class SettingsWindowController: NSWindowController {
+    private let selection: SettingsSelection
 
-    var selectedSection: KeyameleonSettingsSection {
+    var selectedSection: SettingsSection {
         selection.section
     }
 
     init(
-        model: KeyameleonGeneralSettingsModel,
-        setupModel: KeyameleonSetupModel,
-        selection: KeyameleonSettingsSelection
+        model: GeneralSettingsModel,
+        setupModel: SetupModel,
+        selection: SettingsSelection
     ) {
         self.selection = selection
         let window = NSWindow(
             contentRect: NSRect(
                 x: 0,
                 y: 0,
-                width: KeyameleonTheme.Metrics.settingsWindowMinimumWidth,
-                height: KeyameleonTheme.Metrics.settingsWindowMinimumHeight
+                width: Theme.Metrics.settingsWindowMinimumWidth,
+                height: Theme.Metrics.settingsWindowMinimumHeight
             ),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
@@ -34,11 +34,11 @@ final class KeyameleonSettingsWindowController: NSWindowController {
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.contentMinSize = NSSize(
-            width: KeyameleonTheme.Metrics.settingsWindowMinimumWidth,
-            height: KeyameleonTheme.Metrics.settingsWindowMinimumHeight
+            width: Theme.Metrics.settingsWindowMinimumWidth,
+            height: Theme.Metrics.settingsWindowMinimumHeight
         )
         window.contentView = NSHostingView(
-            rootView: KeyameleonSettingsView(
+            rootView: SettingsView(
                 model: model,
                 setupModel: setupModel,
                 selection: selection

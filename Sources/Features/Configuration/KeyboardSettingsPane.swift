@@ -2,11 +2,11 @@ import SwiftUI
 
 /// The Keyboards pane: one row per Physical Keyboard, ignored ones included.
 @MainActor
-struct KeyameleonKeyboardSettingsPane: View {
-    private let model: KeyameleonSetupModel
+struct KeyboardSettingsPane: View {
+    private let model: SetupModel
     @State private var rows: PhysicalKeyboardRows
 
-    init(model: KeyameleonSetupModel) {
+    init(model: SetupModel) {
         self.model = model
         _rows = State(initialValue: PhysicalKeyboardRows(
             physicalKeyboards: model.physicalKeyboards,
@@ -17,38 +17,38 @@ struct KeyameleonKeyboardSettingsPane: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
+        VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Keyboard layouts")
                     .font(.headline)
                     .bold()
-                    .foregroundStyle(KeyameleonTheme.primary)
+                    .foregroundStyle(Theme.primary)
                 Text("Choose a layout for each keyboard. Keyameleon switches when you type.")
                     .font(.callout)
-                    .foregroundStyle(KeyameleonTheme.secondary)
+                    .foregroundStyle(Theme.secondary)
             }
 
             if rows.rows.isEmpty {
                 if model.persistenceError == nil {
-                    KeyameleonKeyboardEmptyState()
+                    KeyboardEmptyState()
                 }
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
+                    VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
                         keyboardGroup
                         Text(
                             "New keyboards appear here when connected. "
                                 + "Disconnected keyboards keep their saved layout."
                         )
                         .font(.callout)
-                        .foregroundStyle(KeyameleonTheme.secondary)
+                        .foregroundStyle(Theme.secondary)
                     }
                     .padding(.bottom, 4)
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(KeyameleonTheme.Metrics.panePadding)
+        .padding(Theme.Metrics.panePadding)
         .accessibilityIdentifier("physical-keyboard-configuration")
         .onChange(of: model.physicalKeyboards) { _, _ in rows.reconcile(with: model) }
         .onChange(of: model.excludedPhysicalKeyboards) { _, _ in rows.reconcile(with: model) }
@@ -56,12 +56,12 @@ struct KeyameleonKeyboardSettingsPane: View {
     }
 
     private var keyboardGroup: some View {
-        KeyameleonInsetGroup {
+        InsetGroup {
             ForEach(rows.rows) { row in
                 PhysicalKeyboardRowView(
                     row: row,
                     model: model,
-                    rowPadding: KeyameleonTheme.Metrics.settingsKeyboardRowPadding,
+                    rowPadding: Theme.Metrics.settingsKeyboardRowPadding,
                     onIgnore: { id in
                         model.excludePhysicalKeyboard(id)
                         rows.reconcile(with: model)
@@ -73,7 +73,7 @@ struct KeyameleonKeyboardSettingsPane: View {
                 )
                 .keyameleonGroupSeparator(
                     row.id != rows.rows.first?.id,
-                    inset: KeyameleonTheme.Metrics.settingsKeyboardRowPadding.leading
+                    inset: Theme.Metrics.settingsKeyboardRowPadding.leading
                 )
             }
         }
@@ -82,18 +82,18 @@ struct KeyameleonKeyboardSettingsPane: View {
 
 /// The Keyboards pane empty state: nothing is connected yet.
 @MainActor
-private struct KeyameleonKeyboardEmptyState: View {
+private struct KeyboardEmptyState: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "keyboard")
                 .font(.largeTitle)
-                .foregroundStyle(KeyameleonTheme.secondary)
+                .foregroundStyle(Theme.secondary)
                 .accessibilityHidden(true)
             VStack(spacing: 8) {
                 Text("No keyboards detected")
                     .font(.title2)
                     .bold()
-                    .foregroundStyle(KeyameleonTheme.primary)
+                    .foregroundStyle(Theme.primary)
                 Text(
                     """
                     Plug in a USB keyboard or connect one via Bluetooth.
@@ -102,7 +102,7 @@ private struct KeyameleonKeyboardEmptyState: View {
                 )
                 .font(.body)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(KeyameleonTheme.secondary)
+                .foregroundStyle(Theme.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -112,15 +112,15 @@ private struct KeyameleonKeyboardEmptyState: View {
 
 #if DEBUG
 #Preview("Keyboards pane") {
-    KeyameleonKeyboardSettingsPane(model: KeyameleonPreviewFixtures.setup(.pencilAssignments).model)
+    KeyboardSettingsPane(model: PreviewFixtures.setup(.pencilAssignments).model)
         .frame(width: 620, height: 560)
-        .background(KeyameleonTheme.contentBackground)
+        .background(Theme.contentBackground)
 }
 
 #Preview("Keyboards pane empty") {
-    KeyameleonKeyboardSettingsPane(model: KeyameleonPreviewFixtures.setup(.assignmentsEmpty).model)
+    KeyboardSettingsPane(model: PreviewFixtures.setup(.assignmentsEmpty).model)
         .frame(width: 620, height: 560)
-        .background(KeyameleonTheme.contentBackground)
+        .background(Theme.contentBackground)
         .preferredColorScheme(.dark)
 }
 #endif

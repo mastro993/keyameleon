@@ -1,19 +1,19 @@
 import AppKit
 
-extension KeyameleonApplicationDelegate {
+extension ApplicationDelegate {
     @objc
     func openSettings(_ sender: Any?) {
         presentSettings(section: nil)
     }
 
-    private func presentSettings(section: KeyameleonSettingsSection?) {
+    private func presentSettings(section: SettingsSection?) {
         closeMenuBarPanel()
         generalSettingsModel.refresh()
         if let section {
             settingsSelection.section = section
         }
         if settingsWindowController == nil {
-            settingsWindowController = KeyameleonSettingsWindowController(
+            settingsWindowController = SettingsWindowController(
                 model: generalSettingsModel,
                 setupModel: setupModel,
                 selection: settingsSelection

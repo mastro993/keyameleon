@@ -107,7 +107,7 @@ private extension MenuBarPanelContent.Action {
 #Preview("Menu-bar actions") {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarActionList(
-        actions: KeyameleonPreviewFixtures.panelActionList(),
+        actions: PreviewFixtures.panelActionList(),
         focusedTarget: $focusedTarget,
         perform: { _ in }
     )
@@ -117,7 +117,7 @@ private extension MenuBarPanelContent.Action {
 #Preview("Menu-bar actions paused") {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarActionList(
-        actions: KeyameleonPreviewFixtures.panelActionList(paused: true),
+        actions: PreviewFixtures.panelActionList(paused: true),
         focusedTarget: $focusedTarget,
         perform: { _ in }
     )

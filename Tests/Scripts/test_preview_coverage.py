@@ -32,7 +32,7 @@ class PreviewCoverageTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
     def test_preview_fixtures_are_debug_only(self):
-        path = FEATURES_ROOT / "Shared" / "KeyameleonPreviewFixtures.swift"
+        path = FEATURES_ROOT / "Shared" / "PreviewFixtures.swift"
         source = path.read_text()
         self.assertTrue(source.lstrip().startswith("#if DEBUG"))
         self.assertTrue(source.rstrip().endswith("#endif"))

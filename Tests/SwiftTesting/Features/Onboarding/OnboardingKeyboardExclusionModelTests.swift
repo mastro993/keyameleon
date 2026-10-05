@@ -178,8 +178,8 @@ private func makeOnboardingExclusionModel(
     discoverer: SetupModelTestPhysicalKeyboardDiscoverer,
     recordStore: InMemoryPhysicalKeyboardRecordStore = InMemoryPhysicalKeyboardRecordStore(),
     exclusionStore: InMemoryPhysicalKeyboardExclusionStore = InMemoryPhysicalKeyboardExclusionStore()
-) -> KeyameleonSetupModel {
-    KeyameleonSetupModel(
+) -> SetupModel {
+    SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -274,7 +274,7 @@ func failedHiddenRenamePreservesStateUntilRetry() throws {
     })
     let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),

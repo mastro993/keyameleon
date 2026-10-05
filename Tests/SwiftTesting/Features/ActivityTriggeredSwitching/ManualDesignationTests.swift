@@ -436,10 +436,10 @@ func replacementDropsManualDesignationForOldIdentity() throws {
         discoverer: discoverer
     )
     let loggedMessages = Mutex<[String]>([])
-    KeyameleonLog.start(KeyameleonLogWriter { _, _, message in
+    Log.start(LogWriter { _, _, message in
         loggedMessages.withLock { $0.append(message) }
     })
-    defer { KeyameleonLog.stop() }
+    defer { Log.stop() }
 
     startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 251, 252, identity: "macos.keyboard.replaced")
@@ -495,8 +495,8 @@ private func makeDesignationModel(
     designationStore: any ManualPhysicalKeyboardDesignationStoring,
     integrityKeyProvider: any InstallationIntegrityKeyProviding,
     discoverer: DesignationTestPhysicalKeyboardDiscoverer
-) -> KeyameleonSetupModel {
-    KeyameleonSetupModel(
+) -> SetupModel {
+    SetupModel(
         permissionProvider: DesignationTestListenPermissionProvider(state: .granted),
         setupStore: DesignationTestSetupDecisionStore(),
         systemSettingsOpener: DesignationTestSystemSettingsOpener(),

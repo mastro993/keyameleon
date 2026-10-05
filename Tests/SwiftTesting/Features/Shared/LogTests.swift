@@ -7,7 +7,7 @@ import Testing
 func everyLevelWritesOneLineWithItsCategoryAndMessage() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(directory: directory)
+    let writer = LogWriter.file(directory: directory)
 
     writer.append(.verbose, category: .app, message: "Coalesced")
     writer.append(.debug, category: .switching, message: "Selected Input Source")
@@ -29,7 +29,7 @@ func everyLevelWritesOneLineWithItsCategoryAndMessage() throws {
 func logFileRotatesAtTheSizeLimitAndKeepsTheNewestRotatedFiles() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(
+    let writer = LogWriter.file(
         directory: directory,
         maximumFileByteCount: 120,
         keptRotatedFileCount: 2
@@ -50,7 +50,7 @@ func logFileRotatesAtTheSizeLimitAndKeepsTheNewestRotatedFiles() throws {
 func messageWithLineBreakStaysOneLine() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(directory: directory)
+    let writer = LogWriter.file(directory: directory)
 
     writer.append(.debug, category: .switching, message: "Connected (Travel\r\nKeyboard)")
 
@@ -63,7 +63,7 @@ func messageWithLineBreakStaysOneLine() throws {
 func oversizedRecordStaysInsideTheFileSizeLimit() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(
+    let writer = LogWriter.file(
         directory: directory,
         maximumFileByteCount: 120,
         keptRotatedFileCount: 2
@@ -91,14 +91,14 @@ func oversizedRecordStaysInsideTheFileSizeLimit() throws {
 func rotationCountsBytesAnotherWriterAppended() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(
+    let writer = LogWriter.file(
         directory: directory,
         maximumFileByteCount: 200,
         keptRotatedFileCount: 1
     )
 
     writer.append(.debug, category: .app, message: "First")
-    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+    let activeFile = directory.appending(path: LogFile.activeFileName)
     let handle = try FileHandle(forWritingTo: activeFile)
     try handle.seekToEnd()
     try handle.write(contentsOf: Data(repeating: 0x42, count: 200))
@@ -122,8 +122,8 @@ func rotationCountsBytesAnotherWriterAppended() throws {
 func writerRecreatesActiveFileAfterDeletion() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(directory: directory)
-    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+    let writer = LogWriter.file(directory: directory)
+    let activeFile = directory.appending(path: LogFile.activeFileName)
 
     writer.append(.debug, category: .app, message: "First")
     try FileManager.default.removeItem(at: activeFile)
@@ -138,8 +138,8 @@ func writerRecreatesActiveFileAfterDeletion() throws {
 func writerFollowsPathWhenActiveFileIsReplaced() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let writer = KeyameleonLogWriter.file(directory: directory)
-    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
+    let writer = LogWriter.file(directory: directory)
+    let activeFile = directory.appending(path: LogFile.activeFileName)
 
     writer.append(.debug, category: .app, message: "First")
     try FileManager.default.moveItem(at: activeFile, to: directory.appending(path: "moved.log"))
@@ -159,15 +159,15 @@ func appendOnlyWriterNeverRotatesAFullActiveFile() throws {
     let directory = temporaryLogDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    let activeFile = directory.appending(path: KeyameleonLogFile.activeFileName)
-    try Data(repeating: 0x41, count: KeyameleonLogFile.maximumFileByteCount + 1)
+    let activeFile = directory.appending(path: LogFile.activeFileName)
+    try Data(repeating: 0x41, count: LogFile.maximumFileByteCount + 1)
         .write(to: activeFile)
 
-    let writer = KeyameleonLogWriter.appendOnlyFile(directory: directory)
+    let writer = LogWriter.appendOnlyFile(directory: directory)
     writer.append(.warning, category: .app, message: "Another instance is running")
 
     let names = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
-    #expect(names == [KeyameleonLogFile.activeFileName])
+    #expect(names == [LogFile.activeFileName])
     let contents = try String(contentsOf: activeFile, encoding: .utf8)
     #expect(contents.hasSuffix("[warning] [app] Another instance is running\n"))
 }
@@ -179,13 +179,13 @@ func appendOnlyWriterNeverRotatesAFullActiveFile() throws {
 func processWritesNothingUntilAWriterIsInstalled() {
     let lines = Mutex<[String]>([])
 
-    KeyameleonLog.debug(.app, "Dropped before start")
-    KeyameleonLog.start(KeyameleonLogWriter { level, category, message in
+    Log.debug(.app, "Dropped before start")
+    Log.start(LogWriter { level, category, message in
         lines.withLock { $0.append("[\(level.rawValue)] [\(category.rawValue)] \(message)") }
     })
-    KeyameleonLog.warning(.setup, "Kept while started")
-    KeyameleonLog.stop()
-    KeyameleonLog.error(.app, "Dropped after stop")
+    Log.warning(.setup, "Kept while started")
+    Log.stop()
+    Log.error(.app, "Dropped after stop")
 
     let captured = lines.withLock { $0 }
     #expect(captured.contains("[warning] [setup] Kept while started"))
@@ -195,7 +195,7 @@ func processWritesNothingUntilAWriterIsInstalled() {
 
 private func temporaryLogDirectory() -> URL {
     FileManager.default.temporaryDirectory.appending(
-        path: "KeyameleonLogTests-\(UUID().uuidString)",
+        path: "LogTests-\(UUID().uuidString)",
         directoryHint: .isDirectory
     )
 }

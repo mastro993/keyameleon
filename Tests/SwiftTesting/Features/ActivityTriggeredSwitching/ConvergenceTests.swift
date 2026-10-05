@@ -17,7 +17,7 @@ private func makeConvergeEligibleInputSources() -> SetupModelTestInputSourceProv
 func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -72,7 +72,7 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
 func eachWantedGenerationReceivesOneSelectionRequestAndOneReadback() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -107,7 +107,7 @@ func eachWantedGenerationReceivesOneSelectionRequestAndOneReadback() {
 func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -163,7 +163,7 @@ func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
 func repeatedActivityCoalescesWhenWantedKeyboardAssignmentAlreadyVerified() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -205,7 +205,7 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
     let changeObserver = SetupModelTestInputSourceChangeObserver()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -269,7 +269,7 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
 func permissionRequiredStopsInputSourceChangeObservation() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .granted)
     let changeObserver = SetupModelTestInputSourceChangeObserver()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -289,7 +289,7 @@ func permissionRequiredStopsInputSourceChangeObservation() {
 func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

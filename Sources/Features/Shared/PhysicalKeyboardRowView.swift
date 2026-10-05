@@ -8,7 +8,7 @@ import SwiftUI
 @MainActor
 struct PhysicalKeyboardRowView: View {
     let row: PhysicalKeyboardRow
-    let model: KeyameleonSetupModel
+    let model: SetupModel
     /// The flow owns the row's inset: Settings packs its group tighter than Guided setup.
     let rowPadding: EdgeInsets
     let onIgnore: (PhysicalKeyboardRecordID) -> Void
@@ -29,7 +29,7 @@ struct PhysicalKeyboardRowView: View {
                     } else {
                         Text("Unsupported")
                             .font(.subheadline)
-                            .foregroundStyle(KeyameleonTheme.secondary)
+                            .foregroundStyle(Theme.secondary)
                             .frame(width: 176, alignment: .leading)
                             .help(unsupportedReason(for: keyboard))
                             .accessibilityValue(unsupportedReason(for: keyboard))
@@ -51,7 +51,7 @@ struct PhysicalKeyboardRowView: View {
                     case .missing, .ambiguous:
                         Text("Assignment unavailable")
                             .font(.subheadline)
-                            .foregroundStyle(KeyameleonTheme.muted)
+                            .foregroundStyle(Theme.muted)
                             .frame(width: 176, alignment: .leading)
                     }
                     Menu {
@@ -97,10 +97,10 @@ struct PhysicalKeyboardRowView: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(keyboard.name)
                 .font(.body.weight(.medium))
-                .foregroundStyle(KeyameleonTheme.primary)
+                .foregroundStyle(Theme.primary)
             Text(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys))
                 .font(.subheadline)
-                .foregroundStyle(KeyameleonTheme.muted)
+                .foregroundStyle(Theme.muted)
         }
     }
 
@@ -111,10 +111,10 @@ struct PhysicalKeyboardRowView: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(excludedName(exclusion, savedRecord: savedRecord))
                 .font(.body.weight(.medium))
-                .foregroundStyle(KeyameleonTheme.muted)
+                .foregroundStyle(Theme.muted)
             Text(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys))
                 .font(.subheadline)
-                .foregroundStyle(KeyameleonTheme.muted)
+                .foregroundStyle(Theme.muted)
         }
     }
 
@@ -223,12 +223,12 @@ struct PhysicalKeyboardRowView: View {
 
 #if DEBUG
 #Preview("Physical keyboard row included") {
-    let fixture = KeyameleonPreviewFixtures.setup(.pencilAssignments)
+    let fixture = PreviewFixtures.setup(.pencilAssignments)
     if let keyboard = fixture.model.physicalKeyboards.first(where: { $0.isAssignable }) {
         PhysicalKeyboardRowView(
             row: PhysicalKeyboardRow(physicalKeyboard: keyboard, exclusionKey: nil),
             model: fixture.model,
-            rowPadding: KeyameleonTheme.Metrics.onboardingKeyboardRowPadding,
+            rowPadding: Theme.Metrics.onboardingKeyboardRowPadding,
             onIgnore: { _ in },
             onStopIgnoring: { _ in }
         )
@@ -237,12 +237,12 @@ struct PhysicalKeyboardRowView: View {
 }
 
 #Preview("Physical keyboard row ignored") {
-    let fixture = KeyameleonPreviewFixtures.setup(.excludedDevices)
+    let fixture = PreviewFixtures.setup(.excludedDevices)
     if let exclusion = fixture.model.excludedPhysicalKeyboards.first {
         PhysicalKeyboardRowView(
             row: PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .missing),
             model: fixture.model,
-            rowPadding: KeyameleonTheme.Metrics.settingsKeyboardRowPadding,
+            rowPadding: Theme.Metrics.settingsKeyboardRowPadding,
             onIgnore: { _ in },
             onStopIgnoring: { _ in }
         )

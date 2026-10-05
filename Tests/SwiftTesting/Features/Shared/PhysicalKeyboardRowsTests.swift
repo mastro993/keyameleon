@@ -227,7 +227,7 @@ private func makeOnboardingRowKeyboard(id: String, name: String) -> PhysicalKeyb
 @Test("Reconciling from the setup model keeps included and ignored keyboards in one list")
 func reconcilingFromTheSetupModelKeepsOneList() throws {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

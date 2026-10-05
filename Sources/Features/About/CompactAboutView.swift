@@ -2,13 +2,13 @@ import AppKit
 import SwiftUI
 
 @MainActor
-struct KeyameleonCompactAboutView: View {
-    private let model: KeyameleonGeneralSettingsModel
-    private let identity: KeyameleonAppIdentity
+struct CompactAboutView: View {
+    private let model: GeneralSettingsModel
+    private let identity: AppIdentity
 
     init(
-        model: KeyameleonGeneralSettingsModel,
-        identity: KeyameleonAppIdentity = .current
+        model: GeneralSettingsModel,
+        identity: AppIdentity = .current
     ) {
         self.model = model
         self.identity = identity
@@ -35,7 +35,7 @@ struct KeyameleonCompactAboutView: View {
                 .disabled(!model.canCheckForUpdates)
                 .padding(.top)
 
-            KeyameleonLicensesButton()
+            LicensesButton()
 
             Spacer(minLength: 0)
 
@@ -50,26 +50,26 @@ struct KeyameleonCompactAboutView: View {
 
 #if DEBUG
 #Preview("Compact About") {
-    KeyameleonCompactAboutView(
-        model: KeyameleonPreviewFixtures.general(),
-        identity: KeyameleonPreviewFixtures.aboutInfo.identity
+    CompactAboutView(
+        model: PreviewFixtures.general(),
+        identity: PreviewFixtures.aboutInfo.identity
     )
     .frame(width: 360, height: 360)
 }
 
 #Preview("Compact About, dark, updates unavailable") {
-    KeyameleonCompactAboutView(
-        model: KeyameleonPreviewFixtures.general(canCheckForUpdates: false),
-        identity: KeyameleonPreviewFixtures.aboutInfo.identity
+    CompactAboutView(
+        model: PreviewFixtures.general(canCheckForUpdates: false),
+        identity: PreviewFixtures.aboutInfo.identity
     )
     .frame(width: 360, height: 360)
     .preferredColorScheme(.dark)
 }
 
 #Preview("Compact About, large text") {
-    KeyameleonCompactAboutView(
-        model: KeyameleonPreviewFixtures.general(),
-        identity: KeyameleonPreviewFixtures.aboutInfo.identity
+    CompactAboutView(
+        model: PreviewFixtures.general(),
+        identity: PreviewFixtures.aboutInfo.identity
     )
     .frame(width: 360, height: 360)
     .environment(\.dynamicTypeSize, .xxxLarge)

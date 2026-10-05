@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 struct OnboardingAssignmentsStep: View {
-    let model: KeyameleonSetupModel
+    let model: SetupModel
     let rows: [PhysicalKeyboardRow]
     let onIgnore: (PhysicalKeyboardRecordID) -> Void
     let onStopIgnoring: (String) -> Void
@@ -23,7 +23,7 @@ struct OnboardingAssignmentsStep: View {
                 .lineSpacing(2)
                 .padding(.vertical, 1)
                 .foregroundStyle(OnboardingPalette.secondary)
-            KeyameleonInsetGroup {
+            InsetGroup {
                 if rows.isEmpty {
                     Text(model.persistenceError == nil
                         ? "Connect a Physical Keyboard to add a Keyboard Assignment."
@@ -36,13 +36,13 @@ struct OnboardingAssignmentsStep: View {
                     PhysicalKeyboardRowView(
                         row: row,
                         model: model,
-                        rowPadding: KeyameleonTheme.Metrics.onboardingKeyboardRowPadding,
+                        rowPadding: Theme.Metrics.onboardingKeyboardRowPadding,
                         onIgnore: onIgnore,
                         onStopIgnoring: onStopIgnoring
                     )
                     .keyameleonGroupSeparator(
                         row.id != rows.first?.id,
-                        inset: KeyameleonTheme.Metrics.onboardingKeyboardRowPadding.leading
+                        inset: Theme.Metrics.onboardingKeyboardRowPadding.leading
                     )
                 }
             }
@@ -55,7 +55,7 @@ struct OnboardingAssignmentsStep: View {
 
 #if DEBUG
 #Preview("Assignment table") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    let fixture = PreviewFixtures.setup(.assignmentsPopulated)
     OnboardingAssignmentsStep(
         model: fixture.model,
         rows: PhysicalKeyboardRows(

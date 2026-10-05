@@ -1,13 +1,13 @@
 import AppKit
 
-extension KeyameleonApplicationDelegate {
+extension ApplicationDelegate {
     @objc
     func openAbout(_ sender: Any?) {
         closeMenuBarPanel()
         generalSettingsModel.refresh()
 
         if aboutWindowController == nil {
-            aboutWindowController = KeyameleonAboutWindowController(
+            aboutWindowController = AboutWindowController(
                 model: generalSettingsModel
             )
         }

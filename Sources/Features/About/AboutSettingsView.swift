@@ -3,24 +3,24 @@ import SwiftUI
 
 /// The About pane: app identity, information rows, acknowledgements, and credit.
 @MainActor
-struct KeyameleonAboutSettingsPane: View {
-    let model: KeyameleonGeneralSettingsModel
-    let info: KeyameleonAboutInfo
+struct AboutSettingsPane: View {
+    let model: GeneralSettingsModel
+    let info: AboutInfo
 
-    init(model: KeyameleonGeneralSettingsModel, info: KeyameleonAboutInfo = .current) {
+    init(model: GeneralSettingsModel, info: AboutInfo = .current) {
         self.model = model
         self.info = info
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
+            VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
                 identity
                 information
                 acknowledgements
                 creatorCredit
             }
-            .padding(KeyameleonTheme.Metrics.panePadding)
+            .padding(Theme.Metrics.panePadding)
         }
     }
 
@@ -35,10 +35,10 @@ struct KeyameleonAboutSettingsPane: View {
                 Text(info.identity.name)
                     .font(.title2)
                     .bold()
-                    .foregroundStyle(KeyameleonTheme.primary)
+                    .foregroundStyle(Theme.primary)
                 Text("The right layout. On every keyboard.")
                     .font(.callout)
-                    .foregroundStyle(KeyameleonTheme.secondary)
+                    .foregroundStyle(Theme.secondary)
             }
         }
     }
@@ -48,41 +48,41 @@ struct KeyameleonAboutSettingsPane: View {
             Text("Information")
                 .font(.headline)
                 .bold()
-                .foregroundStyle(KeyameleonTheme.primary)
-            KeyameleonInsetGroup(
-                cornerRadius: KeyameleonTheme.Metrics.informationGroupRadius,
-                fill: KeyameleonTheme.cardSurface
+                .foregroundStyle(Theme.primary)
+            InsetGroup(
+                cornerRadius: Theme.Metrics.informationGroupRadius,
+                fill: Theme.cardSurface
             ) {
-                KeyameleonAboutInformationRow(label: "Version") {
+                AboutInformationRow(label: "Version") {
                     Text(info.identity.aboutVersionLabel)
-                        .foregroundStyle(KeyameleonTheme.secondary)
+                        .foregroundStyle(Theme.secondary)
                         .help("Installed Keyameleon version.")
                 }
-                KeyameleonAboutInformationRow(label: "Source code") {
+                AboutInformationRow(label: "Source code") {
                     Link(destination: info.repositoryURL) {
-                        KeyameleonAboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+                        AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
                     }
                     .help("Opens Keyameleon's source repository on GitHub.")
                 }
-                KeyameleonAboutFolderRow(
+                AboutFolderRow(
                     label: "App data folder",
                     url: info.appDataFolderURL,
                     openFolder: openFolder
                 )
                 .help("Contains Keyameleon's local application data.")
-                KeyameleonAboutFolderRow(
+                AboutFolderRow(
                     label: "Logs folder",
                     url: info.logsFolderURL,
                     openFolder: openFolder
                 )
                 .help("Contains Keyameleon's local log files.")
-                KeyameleonAboutInformationRow(label: "License") {
+                AboutInformationRow(label: "License") {
                     licenseButton(for: .project, title: "MIT")
                         .help("Keyameleon is distributed under MIT.")
                 }
-                KeyameleonAboutInformationRow(label: "Updates", showsSeparator: false) {
+                AboutInformationRow(label: "Updates", showsSeparator: false) {
                     Button(action: model.checkForUpdates) {
-                        KeyameleonAboutLinkLabel(title: "Check for Updates…")
+                        AboutLinkLabel(title: "Check for Updates…")
                     }
                     .buttonStyle(.plain)
                     .disabled(!model.canCheckForUpdates)
@@ -97,20 +97,20 @@ struct KeyameleonAboutSettingsPane: View {
             Text("Acknowledgements")
                 .font(.headline)
                 .bold()
-                .foregroundStyle(KeyameleonTheme.primary)
-            KeyameleonInsetGroup(
-                cornerRadius: KeyameleonTheme.Metrics.informationGroupRadius,
-                fill: KeyameleonTheme.cardSurface
+                .foregroundStyle(Theme.primary)
+            InsetGroup(
+                cornerRadius: Theme.Metrics.informationGroupRadius,
+                fill: Theme.cardSurface
             ) {
                 HStack(spacing: 12) {
                     Text("Sparkle")
                         .font(.body)
-                        .foregroundStyle(KeyameleonTheme.primary)
+                        .foregroundStyle(Theme.primary)
                     Spacer(minLength: 12)
                     licenseButton(for: .sparkle, title: "View full License")
                 }
                 .padding(.vertical, 14)
-                .padding(.horizontal, KeyameleonTheme.Metrics.informationRowInset)
+                .padding(.horizontal, Theme.Metrics.informationRowInset)
             }
         }
     }
@@ -119,8 +119,8 @@ struct KeyameleonAboutSettingsPane: View {
         HStack(spacing: 4) {
             Text("Made with ❤️ by")
                 .font(.callout)
-                .foregroundStyle(KeyameleonTheme.secondary)
-            Link(destination: KeyameleonAboutInfo.creatorURL) {
+                .foregroundStyle(Theme.secondary)
+            Link(destination: AboutInfo.creatorURL) {
                 Text("@fedemas")
                     .font(.callout)
             }
@@ -130,13 +130,13 @@ struct KeyameleonAboutSettingsPane: View {
 
     /// A bundled license text, or a disabled label when the build does not carry it.
     private func licenseButton(
-        for license: KeyameleonBundledLicense,
+        for license: BundledLicense,
         title: String
     ) -> some View {
         Button {
             license.open()
         } label: {
-            KeyameleonAboutLinkLabel(title: title, systemImage: "chevron.right")
+            AboutLinkLabel(title: title, systemImage: "chevron.right")
         }
         .buttonStyle(.plain)
         .disabled(license.url == nil)
@@ -153,28 +153,28 @@ struct KeyameleonAboutSettingsPane: View {
 
 #if DEBUG
 #Preview("About pane") {
-    KeyameleonAboutSettingsPane(
-        model: KeyameleonPreviewFixtures.general(),
-        info: KeyameleonPreviewFixtures.aboutInfo
+    AboutSettingsPane(
+        model: PreviewFixtures.general(),
+        info: PreviewFixtures.aboutInfo
     )
     .frame(width: 620, height: 620)
-    .background(KeyameleonTheme.contentBackground)
+    .background(Theme.contentBackground)
 }
 
 #Preview("About pane updates disabled") {
-    KeyameleonAboutSettingsPane(
-        model: KeyameleonPreviewFixtures.general(canCheckForUpdates: false),
-        info: KeyameleonPreviewFixtures.aboutInfo
+    AboutSettingsPane(
+        model: PreviewFixtures.general(canCheckForUpdates: false),
+        info: PreviewFixtures.aboutInfo
     )
     .frame(width: 620, height: 620)
-    .background(KeyameleonTheme.contentBackground)
+    .background(Theme.contentBackground)
     .preferredColorScheme(.dark)
 }
 
 #Preview("About pane large text") {
-    KeyameleonAboutSettingsPane(
-        model: KeyameleonPreviewFixtures.general(),
-        info: KeyameleonPreviewFixtures.aboutInfo
+    AboutSettingsPane(
+        model: PreviewFixtures.general(),
+        info: PreviewFixtures.aboutInfo
     )
     .frame(width: 620, height: 620)
     .environment(\.dynamicTypeSize, .xxxLarge)

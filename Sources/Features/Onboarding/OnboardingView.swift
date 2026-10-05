@@ -1,12 +1,12 @@
 import SwiftUI
 
 @MainActor
-struct KeyameleonOnboardingView: View {
-    private let model: KeyameleonSetupModel
+struct OnboardingView: View {
+    private let model: SetupModel
     private let switching: ActivityTriggeredSwitching
     @State private var keyboardRows: PhysicalKeyboardRows
 
-    init(model: KeyameleonSetupModel, switching: ActivityTriggeredSwitching) {
+    init(model: SetupModel, switching: ActivityTriggeredSwitching) {
         self.model = model
         self.switching = switching
         _keyboardRows = State(initialValue: PhysicalKeyboardRows(
@@ -89,81 +89,81 @@ struct KeyameleonOnboardingView: View {
 
 #if DEBUG
 #Preview("Permissions light") {
-    let fixture = KeyameleonPreviewFixtures.setup(.permissionRequired)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.permissionRequired)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 
 #Preview("Permissions dark") {
-    let fixture = KeyameleonPreviewFixtures.setup(.permissionRequired)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.permissionRequired)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Keyboards light") {
-    let fixture = KeyameleonPreviewFixtures.setup(.pencilAssignments)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.pencilAssignments)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 
 #Preview("Keyboards dark") {
-    let fixture = KeyameleonPreviewFixtures.setup(.pencilAssignments)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.pencilAssignments)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Keyboards mixed and unsupported") {
-    let fixture = KeyameleonPreviewFixtures.setup(.mixedAssignments)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.mixedAssignments)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Ready light") {
-    let fixture = KeyameleonPreviewFixtures.setup(.readyPopulated)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.readyPopulated)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 
 #Preview("Ready dark") {
-    let fixture = KeyameleonPreviewFixtures.setup(.readyEmpty)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.readyEmpty)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Keyboards minimum size and large text") {
-    let fixture = KeyameleonPreviewFixtures.setup(.manyAssignments)
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.manyAssignments)
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 840, height: 640)
         .environment(\.dynamicTypeSize, .xxxLarge)
 }
 
 #Preview("Keyboards all excluded") {
-    let fixture = KeyameleonPreviewFixtures.setupWithAllKeyboardsExcluded()
-    KeyameleonOnboardingView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setupWithAllKeyboardsExcluded()
+    OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 #endif
 
 #if DEBUG
 #Preview("Keyboards persistence failure") {
-    let fixture = KeyameleonPreviewFixtures.setup(.persistenceFailure)
-    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.persistenceFailure)
+    RootView(model: fixture.model, switching: fixture.switching)
         .frame(width: 840, height: 640)
 }
 
 #Preview("Permission recovery minimum size") {
-    let fixture = KeyameleonPreviewFixtures.setup(.permissionWaiting)
-    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.permissionWaiting)
+    RootView(model: fixture.model, switching: fixture.switching)
         .frame(width: 840, height: 640)
 }
 
 #Preview("Ready while switching is paused") {
-    let fixture = KeyameleonPreviewFixtures.setup(.readyPaused)
-    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.readyPaused)
+    RootView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 #endif

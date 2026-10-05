@@ -4,13 +4,13 @@ import Testing
 
 @Test("Update policy bounds checks and forbids auto-install tracking")
 func updatePolicyBoundsChecksAndPrivacy() {
-    #expect(KeyameleonUpdatePolicy.minimumCheckInterval == 24 * 60 * 60)
-    #expect(KeyameleonUpdatePolicy.allowsAutomaticInstallation == false)
-    #expect(KeyameleonUpdatePolicy.criticalUpdatesBypassUserApproval == false)
-    #expect(KeyameleonUpdatePolicy.allowsKeyameleonGeneratedIdentifiers == false)
-    #expect(KeyameleonUpdatePolicy.sendsSystemProfile == false)
+    #expect(UpdatePolicy.minimumCheckInterval == 24 * 60 * 60)
+    #expect(UpdatePolicy.allowsAutomaticInstallation == false)
+    #expect(UpdatePolicy.criticalUpdatesBypassUserApproval == false)
+    #expect(UpdatePolicy.allowsAppGeneratedIdentifiers == false)
+    #expect(UpdatePolicy.sendsSystemProfile == false)
     #expect(
-        KeyameleonUpdatePolicy.feedURLString
+        UpdatePolicy.feedURLString
             == "https://mastro993.github.io/keyameleon/appcast.xml"
     )
 }

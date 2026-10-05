@@ -9,12 +9,12 @@ func singleInstanceOwnershipRejectsSecondHolder() throws {
     defer { try? FileManager.default.removeItem(at: path) }
 
     do {
-        let first = try #require(KeyameleonSingleInstanceLock.acquire(at: path))
-        #expect(KeyameleonSingleInstanceLock.acquire(at: path) == nil)
+        let first = try #require(SingleInstanceLock.acquire(at: path))
+        #expect(SingleInstanceLock.acquire(at: path) == nil)
         _ = first
     }
 
-    #expect(KeyameleonSingleInstanceLock.acquire(at: path) != nil)
+    #expect(SingleInstanceLock.acquire(at: path) != nil)
 }
 
 @Test("Single-instance ownership rejects unsafe lock paths")
@@ -24,5 +24,5 @@ func singleInstanceOwnershipRejectsUnsafeLockPaths() throws {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
     defer { try? FileManager.default.removeItem(at: directory) }
 
-    #expect(KeyameleonSingleInstanceLock.acquire(at: directory) == nil)
+    #expect(SingleInstanceLock.acquire(at: directory) == nil)
 }

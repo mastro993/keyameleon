@@ -1,11 +1,11 @@
 import Foundation
 
-struct KeyameleonAppIdentity: Equatable, Sendable {
+struct AppIdentity: Equatable, Sendable {
     let name: String
     let version: String
     let build: String
 
-    static let current = KeyameleonAppIdentity(bundle: .main)
+    static let current = AppIdentity(bundle: .main)
 
     init(bundle: Bundle) {
         self.init(
@@ -57,19 +57,19 @@ struct KeyameleonAppIdentity: Equatable, Sendable {
     }
 }
 
-struct KeyameleonAboutInfo: Equatable, Sendable {
+struct AboutInfo: Equatable, Sendable {
     /// Keyameleon's public repository, as the About pane links it.
     static let repositoryURL = URL(string: "https://github.com/mastro993/Keyameleon")!
     static let creatorURL = URL(string: "https://x.com/fedemas")!
 
-    let identity: KeyameleonAppIdentity
+    let identity: AppIdentity
     let repositoryURL: URL
     let appDataFolderURL: URL
     let logsFolderURL: URL
 
-    static let current = KeyameleonAboutInfo(identity: .current)
+    static let current = AboutInfo(identity: .current)
 
-    init(identity: KeyameleonAppIdentity) {
+    init(identity: AppIdentity) {
         self.init(
             identity: identity,
             repositoryURL: Self.repositoryURL,
@@ -80,7 +80,7 @@ struct KeyameleonAboutInfo: Equatable, Sendable {
     }
 
     init(
-        identity: KeyameleonAppIdentity,
+        identity: AppIdentity,
         repositoryURL: URL,
         appDataFolderURL: URL,
         logsFolderURL: URL

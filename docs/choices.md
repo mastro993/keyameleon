@@ -10,7 +10,7 @@ group, and one Physical Keyboard row.
 
 ### Seams
 
-- `KeyameleonTheme` — the design's colors plus the metrics Settings sizes itself
+- `Theme` — the design's colors plus the metrics Settings sizes itself
   with: an 840 × 560 content minimum, a 220 pt sidebar with a 24 pt top inset, a
   24/30 pane inset, 20 pt between a pane's blocks, radius 16 for the keyboard
   group, radius 10 for information rows, and radius 6 for the navigation item.
@@ -18,24 +18,24 @@ group, and one Physical Keyboard row.
   design's 18/22, and information rows take a 16 pt inset and the design's 39 pt
   height. `OnboardingPalette` names the same tokens for Guided setup, so neither
   flow invents a color or a length.
-- `KeyameleonInsetGroup` and `keyameleonGroupSeparator(_:)` — the rounded group
+- `InsetGroup` and `keyameleonGroupSeparator(_:)` — the rounded group
   and its hairline, drawn by the Keyboards list, Guided setup, and About.
 - `PhysicalKeyboardRows` and `PhysicalKeyboardRowView` — one reconciled list and
   one row shared by Guided setup and Settings. `reconcile(with:)` reads the setup
   model, so both flows keep row identity, ordering, and ignored rows the same way.
-- `KeyameleonSettingsView` — the sidebar and pane shell, with
-  `KeyameleonSettingsSidebar`, `GeneralSettingsPane`,
-  `KeyameleonKeyboardSettingsPane`, and `KeyameleonAboutSettingsPane`.
-- `KeyameleonBundledLicense` — the bundled `LICENSE.txt` and
+- `SettingsView` — the sidebar and pane shell, with
+  `SettingsSidebar`, `GeneralSettingsPane`,
+  `KeyboardSettingsPane`, and `AboutSettingsPane`.
+- `BundledLicense` — the bundled `LICENSE.txt` and
   `Sparkle-LICENSE.txt` the About pane opens for offline reading.
-- `KeyameleonGeneralSettingsModel` is `@MainActor @Observable`. Settings, About,
+- `GeneralSettingsModel` is `@MainActor @Observable`. Settings, About,
   and the compact About window read it without a property wrapper.
 
 ### Defaults
 
 - The window hides its title and makes the content full size, so the design's
   sidebar sits under the traffic lights. The sidebar shows the keycap mark from
-  `KeyameleonKeycap` — the design's crop of the official logo, not the app icon,
+  `Keycap` — the design's crop of the official logo, not the app icon,
   which stays on the About pane. Resizing keeps the 840 × 560 content minimum.
   General stays the default pane, reopening keeps the current pane, and the
   menu-bar dismissal, cached controller, and setup-to-Settings handoff are
@@ -126,7 +126,7 @@ group, and one Physical Keyboard row.
 ## 2026-09-28 — Resume unfinished Guided setup from the menu bar
 
 - While Guided setup is incomplete, the menu-bar action list offers `Continue Guided Setup` in every Switching Status. It stays available even when a higher-priority notice is showing.
-- The action uses the existing `continueSetup` presentation path. The saved permission or assignment step remains in `KeyameleonSetupModel`; reopening only advances permission when Input Monitoring has since been granted.
+- The action uses the existing `continueSetup` presentation path. The saved permission or assignment step remains in `SetupModel`; reopening only advances permission when Input Monitoring has since been granted.
 - Completing setup removes the action and unfinished notice. Reopening a second app instance remains silent.
 - This supersedes the old `No Continue Setup action` menu decision below.
 
@@ -148,7 +148,7 @@ menu and its contents shrink to three items.
   sites still do and are outstanding: `Assign Input Source…` in
   `KeyboardSettingsRow`, `Check for
   Updates…` in `AboutSettingsView` and `CompactAboutView`, `Waiting…` in
-  `OnboardingView`, and the `…` truncation marker in `KeyameleonLogFile`.
+  `OnboardingView`, and the `…` truncation marker in `LogFile`.
 - `Forget` is the Physical Keyboard forget, unchanged: it removes the saved
   Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard
   Designation, keeps `role: .destructive`, and is followed by the
@@ -316,16 +316,16 @@ Sparkle gentle reminders.
 
 - Delete Diagnostic Data end to end: the closed domain, SwiftData store, service,
   Diagnostic Session UI, bundle review window, and the `DiagnosticDataControlling`
-  parameter on `KeyameleonSetupModel`, `ActivityTriggeredSwitching`,
-  `KeyameleonGeneralSettingsModel`, and the composition root.
-- One process-wide `KeyameleonLog` with four levels (`verbose`, `debug`,
+  parameter on `SetupModel`, `ActivityTriggeredSwitching`,
+  `GeneralSettingsModel`, and the composition root.
+- One process-wide `Log` with four levels (`verbose`, `debug`,
   `warning`, `error`) and three categories (`app`, `switching`, `setup`). A call
   site emits one line and carries no logger, so nothing threads a destination
   through the models that used to take a diagnostic controller.
-- The process is silent until `KeyameleonLog.start` installs a writer at launch.
+- The process is silent until `Log.start` installs a writer at launch.
   Hosted unit tests and SwiftUI previews never install one, so they cannot write
   to the user's Logs folder.
-- `KeyameleonLogWriter.file` appends to `~/Library/Logs/Keyameleon/keyameleon.log`
+- `LogWriter.file` appends to `~/Library/Logs/Keyameleon/keyameleon.log`
   through one `O_APPEND` descriptor, rotates at 1 MiB into `keyameleon.<n>.log`,
   and keeps 5 rotated files. Every file operation is best effort: a missing folder,
   a full disk, or a lock must not interrupt switching.
@@ -349,8 +349,8 @@ Sparkle gentle reminders.
 - Delete `UncleanExitState`, `UncleanExitPresentation`, and the Unclean Exit test
   file. Nothing tracks whether the previous process terminated normally, so the
   About page keeps no launch-condition notice and no launch opens About by itself.
-- Remove the store from `KeyameleonApplicationDelegate` and
-  `KeyameleonGeneralSettingsModel`, including the `hasPendingUncleanExitNotice`
+- Remove the store from `ApplicationDelegate` and
+  `GeneralSettingsModel`, including the `hasPendingUncleanExitNotice`
   flag and its dismiss action.
 - Two `UserDefaults` keys, `keyameleon.lifecycle.activeLaunch` and
   `keyameleon.lifecycle.pendingUncleanExitNotice`, are left behind on existing
@@ -363,13 +363,13 @@ Sparkle gentle reminders.
 ### Defaults
 
 - One file per type, following the project structure rule in `AGENTS.md`. The
-  logging pipeline is now `KeyameleonLog`, `KeyameleonLogFile`,
-  `KeyameleonLogWriter`, `KeyameleonLogLevel`, and `KeyameleonLogCategory`.
+  logging pipeline is now `Log`, `LogFile`,
+  `LogWriter`, `LogLevel`, and `LogCategory`.
 - `PhysicalKeyboardDiscoveryRecordChange` carries the Physical Keyboard Name.
   Discovery removes a keyboard from the catalog before it publishes a disconnect,
   so a subscriber that looked the name up read `name unknown` for every real
   disconnect.
-- `KeyameleonLogWriter.appendOnlyFile` serves the single-instance exit path. A
+- `LogWriter.appendOnlyFile` serves the single-instance exit path. A
   blocked second launch appends its one line and never rotates, so it cannot
   rename a file the running app holds open, and the line the user needs is still
   written.
@@ -463,7 +463,7 @@ Sparkle gentle reminders.
 
 - Hosted unit-test detect: `XCTestConfigurationFilePath` or `XCTestBundlePath`. UI tests omit both → stay live.
 - `startsUpdaterOnLaunch = false` when hosted unit tests. Keep the updater flag separate from `startsApplicationSurfaceOnLaunch`.
-- Test-only `KeyameleonApplicationDelegate` initializer defaults to `NoOpPhysicalKeyboardDiscoverer`, `NoOpPhysicalKeyboardEventObserver`, `NoOpInputSourceChangeObserver`, and `NoOpKeyameleonLifecycleObserver`.
+- Test-only `ApplicationDelegate` initializer defaults to `NoOpPhysicalKeyboardDiscoverer`, `NoOpPhysicalKeyboardEventObserver`, `NoOpInputSourceChangeObserver`, and `NoOpKeyameleonLifecycleObserver`.
 - Local `./Scripts/run.sh test` green in ~61s after the change (180 Swift Testing + 11 XCTest). `xcodebuild` exited after XCTest; no hang-after-pass.
 
 ## 2026-08-16 — DMG-only Official Release distribution (grill)
@@ -522,7 +522,7 @@ Sparkle gentle reminders.
 - `MenuBarPanelAccessibility` — VoiceOver speech, keyboard focus order, overflow keyboard path. Tests live here.
 - `MenuBarAssignmentList.Row` — one label (Physical Keyboard Name) + one value (Input Source, connection or Active, warning).
 - `MenuBarPanelChrome` — Liquid Glass vs opaque (Reduce Transparency); rainbow vs high-contrast Active emphasis.
-- `KeyameleonMenuBarPanelController` / `KeyameleonApplicationDelegate` — Escape and outside-click close the transient popover only.
+- `MenuBarPanelController` / `ApplicationDelegate` — Escape and outside-click close the transient popover only.
 
 ### Defaults
 
@@ -558,7 +558,7 @@ Sparkle gentle reminders.
 ### Seams
 
 - `MenuBarPanelContent` — `MenuBarAssignmentList` plus footer. Overflow actions are typed here. Tests live here.
-- `KeyameleonMenuBarPanelView` — renders keyboards and footer only.
+- `MenuBarPanelView` — renders keyboards and footer only.
 - `MenuBarPanelContent.Action.closesPanel` — dismissal contract. View closes the popover before running a closing action.
 
 ### Defaults
@@ -591,7 +591,7 @@ Sparkle gentle reminders.
 
 ### Seams
 - `NSInputMonitoringUsageDescription` in `Info.plist` / `project.yml` — required for `IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)` to show the Input Monitoring prompt.
-- `KeyameleonSetupModel.requestPermission()` — Guided setup action: request listen permission, then open System Settings only if Switching Status stays Permission Required.
+- `SetupModel.requestPermission()` — Guided setup action: request listen permission, then open System Settings only if Switching Status stays Permission Required.
 - `SystemListenPermissionProvider.requestListenPermission()` — activate the accessory app before `IOHIDRequestAccess`.
 
 ### Defaults
@@ -625,8 +625,8 @@ Sparkle gentle reminders.
 
 ### Seams
 
-- `KeyameleonMenuBarPanelController` — one AppKit module: show, toggle, and close one transient 320 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
-- `MenuBarPanelContent` — typed Menu first rows and actions. `KeyameleonMenuBarPanelView` renders that content on one native popover glass surface.
+- `MenuBarPanelController` — one AppKit module: show, toggle, and close one transient 320 pt `NSPopover` anchored to the existing `NSStatusItem` button. Refresh runs before presentation.
+- `MenuBarPanelContent` — typed Menu first rows and actions. `MenuBarPanelView` renders that content on one native popover glass surface.
 - `NSStatusItem` stays the durable menu-bar lifecycle. Icon marks and accessibility descriptions stay on the status-item button.
 
 ### Defaults
@@ -690,7 +690,7 @@ Sparkle gentle reminders.
 - `OperationalNotificationEpisodeStoring` — persistent episode, sent, and recovery state.
 - `NotificationSetupDecisionStoring` — one optional setup offer after the first Keyboard Assignment.
 - `NotificationSettingsOpening` — General Settings access to notification settings.
-- `KeyameleonSetupModel` — permission and Unavailable Keyboard Assignment episode boundaries.
+- `SetupModel` — permission and Unavailable Keyboard Assignment episode boundaries.
 
 ### Defaults
 - Request authorization only after an explicit Enable Operational Notifications action.
@@ -722,8 +722,8 @@ Sparkle gentle reminders.
 - **Domain pure** (`KeyameleonDiagnosticData`): closed allowlist categories/codes, session max 10m, retention 7d/5MB oldest-first, temporary Physical Keyboard tokens, estimated record size.
 - **`DiagnosticDataControlling`**: start/stop session, auto-expire, record allowlisted operational/session events, clear all, delete by Physical Keyboard identity linkage, retention prune, read records.
 - **`ClockProviding`**: time boundary for session + retention.
-- **`KeyameleonSetupModel.forgetPhysicalKeyboard`**: also deletes Diagnostic Data linked to that Physical Keyboard.
-- **`KeyameleonGeneralSettingsModel`**: Diagnostics section (session + clear).
+- **`SetupModel.forgetPhysicalKeyboard`**: also deletes Diagnostic Data linked to that Physical Keyboard.
+- **`GeneralSettingsModel`**: Diagnostics section (session + clear).
 
 ### Defaults
 - Typed API only — no free-form String payload path into Diagnostic Data.
@@ -753,7 +753,7 @@ Sparkle gentle reminders.
 ## 2026-08-10 — Issue #10 selection failure + Unavailable Keyboard Assignment seams
 
 - **Domain pure**: `SwitchingWarning`, `SwitchingFailureCategory`, `SwitchingRecoveryAction`, `WantedKeyboardAssignment`, `KeyboardAssignmentAvailability` (exact identifier only).
-- **Recovery coordinator** on `KeyameleonSetupModel`: one warning per active cause, `retryNow()`, skip select for unavailable, reevaluate on Input Source refresh.
+- **Recovery coordinator** on `SetupModel`: one warning per active cause, `retryNow()`, skip select for unavailable, reevaluate on Input Source refresh.
 - **Converge integration**: keep wanted generation + generation-gated readback from #6; `WantedKeyboardAssignment` adds Physical Keyboard ID for Retry Now.
 - **InputSourceSelecting** unchanged: restore prior Input Source on exact readback mismatch.
 
@@ -772,7 +772,7 @@ Defaults:
 - `ManualPhysicalKeyboardDesignationAuthenticator` — CryptoKit HMAC over identityKey/productName/confirmedName only (no Key Content).
 - `InstallationIntegrityKeyProviding` — Keychain-backed SymmetricKey (in-memory for tests).
 - `ManualPhysicalKeyboardDesignationStoring` — authenticated evidence persistence (SwiftData + in-memory).
-- `KeyameleonSetupModel` session: start → leave → return → confirm name; other Physical Keyboards stay assignable.
+- `SetupModel` session: start → leave → return → confirm name; other Physical Keyboards stay assignable.
 
 ### Defaults
 - Eligible only: external, identity-based, `.unsupported(.ambiguousIdentity)`. Missing/unstable/shared never offered.
@@ -798,8 +798,8 @@ Defaults:
 ### Issue #6 Converge after rapid activity and external changes
 
 Seams under test:
-- `KeyameleonSetupModel.handlePhysicalKeyboardEvent` — serial activity consumer (observation order).
-- Wanted Keyboard Assignment generation on `KeyameleonSetupModel` — bump per select need; discard stale readback.
+- `SetupModel.handlePhysicalKeyboardEvent` — serial activity consumer (observation order).
+- Wanted Keyboard Assignment generation on `SetupModel` — bump per select need; discard stale readback.
 - `InputSourceChangeObserving` — external Input Source changes (manual / shortcut / other apps).
 - `activeInputSourceMismatch` presentation — current vs assigned when they differ.
 - `KeyameleonAppMetadata` restore copy.
@@ -814,7 +814,7 @@ Defaults:
 ### Issue #5 Activity-Triggered Switching seams
 
 - **Activation Activity classification** (domain pure): `PhysicalKeyboardEventKind` press/repeat/release; release not Activation Activity.
-- **Switching coordinator** via `KeyameleonSetupModel`: Active Physical Keyboard, request exact Keyboard Assignment, exact identifier readback.
+- **Switching coordinator** via `SetupModel`: Active Physical Keyboard, request exact Keyboard Assignment, exact identifier readback.
 - **Input Source select/verify** protocol: `InputSourceSelecting` (TIS boundary).
 - **Event observe** protocol: `PhysicalKeyboardEventObserving` (CoreHID listen-only; no seize).
 - **Catalog**: serviceID → Physical Keyboard for attribution.
@@ -831,8 +831,8 @@ Defaults:
 ### Seams under test
 - `LaunchAtLoginControlling` — enable/disable Launch at Login; `ServiceManagement` adapter uses `SMAppService.mainApp` (no login helper).
 - `UpdateChecking` — start on launch + manual check; Sparkle adapter only.
-- `KeyameleonUpdatePolicy` — pure constants for 24h interval, no auto-install, no system profile, no Keyameleon-generated identifiers.
-- `KeyameleonGeneralSettingsModel` — General settings presentation over those seams.
+- `UpdatePolicy` — pure constants for 24h interval, no auto-install, no system profile, no Keyameleon-generated identifiers.
+- `GeneralSettingsModel` — General settings presentation over those seams.
 - `KeyameleonAppMetadata` — user-visible General / Launch at Login / update strings.
 
 ### Defaults
@@ -846,8 +846,8 @@ Defaults:
 
 ## 2026-08-10 — Issue #8 Physical Keyboard lifecycle
 
-- **Seams under test**: `PhysicalKeyboardRecordStoring` and `KeyameleonSetupModel` (application-service seam from parent #1). Catalog unit rules stay in domain tests.
-- **Active Physical Keyboard**: in-memory only on `KeyameleonSetupModel`; not persisted across app restart. `noteActivationActivity` remains a test/manual seam; real switching uses `handlePhysicalKeyboardEvent`. Lifecycle slice never increments Input Source selection requests.
+- **Seams under test**: `PhysicalKeyboardRecordStoring` and `SetupModel` (application-service seam from parent #1). Catalog unit rules stay in domain tests.
+- **Active Physical Keyboard**: in-memory only on `SetupModel`; not persisted across app restart. `noteActivationActivity` remains a test/manual seam; real switching uses `handlePhysicalKeyboardEvent`. Lifecycle slice never increments Input Source selection requests.
 - **Disconnected list merge**: saved SwiftData records whose identity is not in the live catalog publish as `connectionState == .disconnected`. Catalog still drops disconnected HID services.
 - **Replace**: explicit model API + confirmation UI; candidates are disconnected saved identity-based records only.
 - **Forget**: deletes store record only. Connected hardware republishes as new unassigned from catalog; disconnected vanishes.
@@ -898,7 +898,7 @@ Defaults:
 
 ### Defaults
 
-- `KeyameleonMenuBarPanelView` returns focus to the silent container whenever one of the app's windows becomes key, which is the moment the popover is shown.
+- `MenuBarPanelView` returns focus to the silent container whenever one of the app's windows becomes key, which is the moment the popover is shown.
 - The popover reuses one content view across shows, so `onAppear` and `onDisappear` do not run per show. The key transition is the only per-show signal the view gets.
 - Keyboard focus order, the silent container, and `focusEffectDisabled(focusedTarget == .container)` stay as shipped in #51.
 
@@ -913,7 +913,7 @@ notifications finish. A failed change blocks later saved changes until Retry
 succeeds or a pending Manual Physical Keyboard Designation is canceled.
 The module uses the existing record and designation adapters with one shared
 SwiftData session; tests and previews can use the concrete in-memory pair.
-`KeyameleonSetupModel` keeps eligibility checks, designation evidence, and display
+`SetupModel` keeps eligibility checks, designation evidence, and display
 and switching effects. First attempts and Retry use the same completion path.
 Saved reads and Activity-Triggered Switching read recovery remain with their
 existing modules.
@@ -936,7 +936,7 @@ strict tag syntax, artifact naming, the emitted SHA-256, and invalid inputs.
 The app has no separate release-evidence model or tag parser.
 
 Sparkle owns update scheduling through the shipped Info.plist configuration.
-`KeyameleonUpdatePolicy` retains the configuration values used by the updater
+`UpdatePolicy` retains the configuration values used by the updater
 and checked against the app bundle. It does not calculate when a check is due.
 
 ## 2026-10-03 — Guided setup finishes from Ready

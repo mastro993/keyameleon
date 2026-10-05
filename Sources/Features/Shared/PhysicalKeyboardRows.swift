@@ -92,7 +92,7 @@ struct PhysicalKeyboardRows: Equatable {
 
     /// Reconciles against the setup model's current Physical Keyboard state.
     @MainActor
-    mutating func reconcile(with model: KeyameleonSetupModel) {
+    mutating func reconcile(with model: SetupModel) {
         reconcile(
             physicalKeyboards: model.physicalKeyboards,
             exclusions: model.excludedPhysicalKeyboards,

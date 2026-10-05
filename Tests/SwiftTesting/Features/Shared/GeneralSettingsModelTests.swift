@@ -7,7 +7,7 @@ import Testing
 func generalSettingsTogglesLaunchAtLogin() {
     let launchAtLogin = FakeLaunchAtLoginController(isEnabled: false)
     let updates = FakeUpdateChecker(canCheck: true)
-    let model = KeyameleonGeneralSettingsModel(
+    let model = GeneralSettingsModel(
         launchAtLoginController: launchAtLogin,
         updateChecker: updates
     )
@@ -26,7 +26,7 @@ func generalSettingsTogglesLaunchAtLogin() {
 func generalSettingsSurfacesLaunchAtLoginFailures() {
     let launchAtLogin = FakeLaunchAtLoginController(isEnabled: false, shouldFail: true)
     let updates = FakeUpdateChecker(canCheck: false)
-    let model = KeyameleonGeneralSettingsModel(
+    let model = GeneralSettingsModel(
         launchAtLoginController: launchAtLogin,
         updateChecker: updates
     )
@@ -42,7 +42,7 @@ func generalSettingsSurfacesLaunchAtLoginFailures() {
 func generalSettingsRequestsUpdateCheck() {
     let launchAtLogin = FakeLaunchAtLoginController(isEnabled: false)
     let updates = FakeUpdateChecker(canCheck: true)
-    let model = KeyameleonGeneralSettingsModel(
+    let model = GeneralSettingsModel(
         launchAtLoginController: launchAtLogin,
         updateChecker: updates
     )

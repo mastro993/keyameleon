@@ -3,7 +3,7 @@ import Observation
 
 @MainActor
 @Observable
-final class KeyameleonGeneralSettingsModel {
+final class GeneralSettingsModel {
     private(set) var isLaunchAtLoginEnabled: Bool
     private(set) var launchAtLoginError: LaunchAtLoginChangeError?
     private(set) var canCheckForUpdates: Bool
@@ -33,14 +33,14 @@ final class KeyameleonGeneralSettingsModel {
             isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
             launchAtLoginError = nil
         case .failure:
-            KeyameleonLog.error(.app, "Launch at Login could not be changed")
+            Log.error(.app, "Launch at Login could not be changed")
             isLaunchAtLoginEnabled = launchAtLoginController.isEnabled
             launchAtLoginError = .registrationFailed
         }
     }
 
     func checkForUpdates() {
-        KeyameleonLog.debug(.app, "Checking for updates")
+        Log.debug(.app, "Checking for updates")
         updateChecker.checkForUpdates()
         canCheckForUpdates = updateChecker.canCheckForUpdates
     }

@@ -101,7 +101,7 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
 /// Keyboard Assignment editing only.
 @MainActor
 @Observable
-final class KeyameleonSetupModel {
+final class SetupModel {
     private(set) var isSetupComplete: Bool
     private(set) var hasStartedGuidedSetup: Bool
     private(set) var guidedSetupStep: GuidedSetupStep
@@ -210,7 +210,7 @@ final class KeyameleonSetupModel {
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider()
     ) {
-        let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
+        let composition = ProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
             protectedStateProvider: protectedStateProvider,
             setupStore: setupStore,
@@ -497,7 +497,7 @@ final class KeyameleonSetupModel {
             return
         }
 
-        KeyameleonLog.debug(.setup, "Excluded \(physicalKeyboard.name) as a Physical Keyboard")
+        Log.debug(.setup, "Excluded \(physicalKeyboard.name) as a Physical Keyboard")
         cancelManualDesignationIfMatching(physicalKeyboardID)
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
         activityTriggeredSwitching.forgetPhysicalKeyboard(physicalKeyboardID)
@@ -529,7 +529,7 @@ final class KeyameleonSetupModel {
             return
         }
 
-        KeyameleonLog.debug(.setup, "Restored an excluded device to the Physical Keyboard list")
+        Log.debug(.setup, "Restored an excluded device to the Physical Keyboard list")
         exclusionStore.restore(key: exclusionKey)
         applyExclusionKeysToDiscovery()
     }
@@ -780,7 +780,7 @@ final class KeyameleonSetupModel {
         )
         setupStore.markBuiltInIdentityMigrationEvaluated()
         if migratedRecord != nil {
-            KeyameleonLog.debug(
+            Log.debug(
                 .setup,
                 "Migrated the saved record to the built-in Physical Keyboard"
             )
@@ -805,18 +805,18 @@ final class KeyameleonSetupModel {
             case .rename:
                 break
             case let .assign(keyboard, assignment):
-                KeyameleonLog.debug(
+                Log.debug(
                     .setup,
                     assignment == nil
                         ? "Keyboard Assignment removed for \(keyboard.name)"
                         : "Keyboard Assignment saved for \(keyboard.name)"
                 )
             case let .replace(old, new):
-                KeyameleonLog.debug(.setup, "Moved the saved Physical Keyboard record to \(old.name)")
+                Log.debug(.setup, "Moved the saved Physical Keyboard record to \(old.name)")
                 lastKnownPhysicalKeyboards.removeValue(forKey: old.id.rawValue)
                 activityTriggeredSwitching.replaceActivePhysicalKeyboard(from: old.id, to: new.id)
             case let .forget(keyboard):
-                KeyameleonLog.debug(.setup, "Forgot Physical Keyboard (\(keyboard.name))")
+                Log.debug(.setup, "Forgot Physical Keyboard (\(keyboard.name))")
                 lastKnownPhysicalKeyboards.removeValue(forKey: keyboard.id.rawValue)
                 cancelManualDesignationIfMatching(keyboard.id)
                 activityTriggeredSwitching.forgetPhysicalKeyboard(keyboard.id)

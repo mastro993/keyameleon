@@ -3,7 +3,7 @@ import SwiftUI
 import XCTest
 @testable import Keyameleon
 
-final class KeyameleonApplicationTests: XCTestCase {
+final class ApplicationTests: XCTestCase {
     private var keyameleonBundle: Bundle? {
         Bundle(identifier: "dev.fedemas.keyameleon.development")
             ?? Bundle(identifier: "dev.fedemas.keyameleon")
@@ -25,7 +25,7 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertNil(delegate.menuBarStatusItem?.menu)
         XCTAssertEqual(
             delegate.menuBarStatusItem?.button?.action,
-            #selector(KeyameleonApplicationDelegate.toggleMenuBarPanel(_:))
+            #selector(ApplicationDelegate.toggleMenuBarPanel(_:))
         )
         XCTAssertTrue(delegate.menuBarStatusItem?.button?.target === delegate)
         let panel = try XCTUnwrap(delegate.menuBarPanelController)
@@ -89,11 +89,11 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertEqual(
             settingsWindow.contentMinSize,
             NSSize(
-                width: KeyameleonTheme.Metrics.settingsWindowMinimumWidth,
-                height: KeyameleonTheme.Metrics.settingsWindowMinimumHeight
+                width: Theme.Metrics.settingsWindowMinimumWidth,
+                height: Theme.Metrics.settingsWindowMinimumHeight
             )
         )
-        XCTAssertTrue(settingsWindow.contentView is NSHostingView<KeyameleonSettingsView>)
+        XCTAssertTrue(settingsWindow.contentView is NSHostingView<SettingsView>)
 
         delegate.openAbout(nil)
         let aboutController = try XCTUnwrap(delegate.aboutWindowController)
@@ -104,7 +104,7 @@ final class KeyameleonApplicationTests: XCTestCase {
         XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
         XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
         XCTAssertEqual(aboutWindow.frame.size, NSSize(width: 360, height: 360))
-        XCTAssertTrue(aboutWindow.contentView is NSHostingView<KeyameleonCompactAboutView>)
+        XCTAssertTrue(aboutWindow.contentView is NSHostingView<CompactAboutView>)
         XCTAssertEqual(delegate.settingsSelection.section, .general)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
 
@@ -343,7 +343,7 @@ final class KeyameleonApplicationTests: XCTestCase {
                 isSetupComplete: delegate.setupModel.isSetupComplete
             )
             let action = try XCTUnwrap(content.footer.actions.first { $0.id == .continueSetup })
-            let view = KeyameleonMenuBarPanelView(
+            let view = MenuBarPanelView(
                 setupModel: delegate.setupModel,
                 switching: delegate.activityTriggeredSwitching,
                 actions: delegate.makeMenuBarPanelActions()
@@ -408,12 +408,12 @@ final class KeyameleonApplicationTests: XCTestCase {
         let bundle = keyameleonBundle
         XCTAssertEqual(
             bundle?.object(forInfoDictionaryKey: "SUFeedURL") as? String,
-            KeyameleonUpdatePolicy.feedURLString
+            UpdatePolicy.feedURLString
         )
         XCTAssertEqual(bundle?.object(forInfoDictionaryKey: "SUEnableAutomaticChecks") as? Bool, true)
         XCTAssertEqual(
             bundle?.object(forInfoDictionaryKey: "SUScheduledCheckInterval") as? Int,
-            Int(KeyameleonUpdatePolicy.minimumCheckInterval)
+            Int(UpdatePolicy.minimumCheckInterval)
         )
         XCTAssertEqual(bundle?.object(forInfoDictionaryKey: "SUAutomaticallyUpdate") as? Bool, false)
         XCTAssertEqual(bundle?.object(forInfoDictionaryKey: "SUAllowsAutomaticUpdates") as? Bool, false)

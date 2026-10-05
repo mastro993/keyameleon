@@ -6,9 +6,9 @@ import SwiftUI
 /// surface; Settings information rows use the smaller radius on the card
 /// surface. Rows draw their own separators with `keyameleonGroupSeparator`.
 @MainActor
-struct KeyameleonInsetGroup<Content: View>: View {
-    var cornerRadius = KeyameleonTheme.Metrics.groupRadius
-    var fill = KeyameleonTheme.windowBackground
+struct InsetGroup<Content: View>: View {
+    var cornerRadius = Theme.Metrics.groupRadius
+    var fill = Theme.windowBackground
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -18,30 +18,30 @@ struct KeyameleonInsetGroup<Content: View>: View {
         .background(fill, in: .rect(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(KeyameleonTheme.border)
+                .strokeBorder(Theme.border)
         }
     }
 }
 
 #if DEBUG
 #Preview("Inset group") {
-    KeyameleonInsetGroup {
+    InsetGroup {
         Text("First row")
-            .padding(KeyameleonTheme.Metrics.settingsKeyboardRowPadding)
+            .padding(Theme.Metrics.settingsKeyboardRowPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .keyameleonGroupSeparator(
                 false,
-                inset: KeyameleonTheme.Metrics.settingsKeyboardRowPadding.leading
+                inset: Theme.Metrics.settingsKeyboardRowPadding.leading
             )
         Text("Second row")
-            .padding(KeyameleonTheme.Metrics.settingsKeyboardRowPadding)
+            .padding(Theme.Metrics.settingsKeyboardRowPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .keyameleonGroupSeparator(
                 true,
-                inset: KeyameleonTheme.Metrics.settingsKeyboardRowPadding.leading
+                inset: Theme.Metrics.settingsKeyboardRowPadding.leading
             )
     }
     .padding()
-    .background(KeyameleonTheme.contentBackground)
+    .background(Theme.contentBackground)
 }
 #endif

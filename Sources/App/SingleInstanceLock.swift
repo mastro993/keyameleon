@@ -2,7 +2,7 @@ import Darwin
 import Foundation
 
 /// Holds a machine-wide advisory lock for the lifetime of the Keyameleon process.
-final class KeyameleonSingleInstanceLock {
+final class SingleInstanceLock {
     static let defaultLockURL = URL(
         fileURLWithPath: "/dev/null"
     )
@@ -18,7 +18,7 @@ final class KeyameleonSingleInstanceLock {
     ///
     /// `/dev/null` is available to every local user and cannot be replaced by
     /// deleting an app-owned lock file while the process is running.
-    static func acquire() -> KeyameleonSingleInstanceLock? {
+    static func acquire() -> SingleInstanceLock? {
         let fileDescriptor = open(defaultLockURL.path, O_RDWR | O_CLOEXEC)
         guard fileDescriptor >= 0 else {
             return nil
@@ -29,11 +29,11 @@ final class KeyameleonSingleInstanceLock {
             return nil
         }
 
-        return KeyameleonSingleInstanceLock(fileDescriptor: fileDescriptor)
+        return SingleInstanceLock(fileDescriptor: fileDescriptor)
     }
 
     /// Acquires a file lock at an injected path for deterministic unit tests.
-    static func acquire(at url: URL) -> KeyameleonSingleInstanceLock? {
+    static func acquire(at url: URL) -> SingleInstanceLock? {
         // The lock file must be writable by every local user because ownership is
         // intentionally shared by the test processes. Restore the process umask
         // immediately after creation so later users can open the same file.
@@ -49,7 +49,7 @@ final class KeyameleonSingleInstanceLock {
             return nil
         }
 
-        return KeyameleonSingleInstanceLock(fileDescriptor: fileDescriptor)
+        return SingleInstanceLock(fileDescriptor: fileDescriptor)
     }
 
     deinit {

@@ -9,7 +9,7 @@ func permissionRevocationStopsObservationAndLaterInputSourceRequests() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .granted)
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -35,7 +35,7 @@ func permissionRevocationStopsObservationAndLaterInputSourceRequests() {
 func sleepAndLockStopObservationWakeAndUnlockResumeAutomatically() {
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -70,7 +70,7 @@ func sleepAndLockStopObservationWakeAndUnlockResumeAutomatically() {
 func wakeRestoresSavedPhysicalKeyboardRecordsAfterLifecycleStop() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -111,7 +111,7 @@ func positiveSecureInputEvidenceSetsTemporarilyUnavailableAndResumesWithoutRetry
     let protectedStateProvider = ProtectedStateTestProvider(state: .clear)
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: protectedStateProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
@@ -146,7 +146,7 @@ func positiveSecureInputEvidenceSetsTemporarilyUnavailableAndResumesWithoutRetry
 @MainActor
 func missingActivityDoesNotCreateTemporarilyUnavailable() {
     let protectedStateProvider = ProtectedStateTestProvider(state: .clear)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: protectedStateProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
@@ -165,7 +165,7 @@ func protectedLifecycleRecoveryKeepsPausedStatusUntilUserResumes() {
     let protectedStateProvider = ProtectedStateTestProvider(state: .clear)
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: protectedStateProvider,
         setupStore: setupStore,
@@ -197,11 +197,11 @@ func protectedLifecycleRecoveryKeepsPausedStatusUntilUserResumes() {
 func systemLifecycleObserverForwardsPublicLifecycleNotificationsAndStopsCleanly() async {
     let workspaceCenter = NotificationCenter()
     let applicationCenter = NotificationCenter()
-    let observer = SystemKeyameleonLifecycleObserver(
+    let observer = SystemLifecycleObserver(
         workspaceNotificationCenter: workspaceCenter,
         applicationNotificationCenter: applicationCenter
     )
-    var events: [KeyameleonLifecycleEvent] = []
+    var events: [LifecycleEvent] = []
     observer.start { event in
         events.append(event)
     }

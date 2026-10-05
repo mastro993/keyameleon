@@ -3,7 +3,7 @@ import Darwin
 import Observation
 @preconcurrency import SwiftData
 
-enum KeyameleonHostedUnitTestProcess {
+enum HostedUnitTestProcess {
     static func isDetected(
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
@@ -12,7 +12,7 @@ enum KeyameleonHostedUnitTestProcess {
     }
 }
 
-enum KeyameleonPreviewProcess {
+enum PreviewProcess {
     static func isDetected(
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
@@ -21,59 +21,59 @@ enum KeyameleonPreviewProcess {
 }
 
 @MainActor
-final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
-    let setupModel: KeyameleonSetupModel
+final class ApplicationDelegate: NSObject, NSApplicationDelegate {
+    let setupModel: SetupModel
     let activityTriggeredSwitching: ActivityTriggeredSwitching
     private let updateChecker: any UpdateChecking
-    private let lifecycleObserver: any KeyameleonLifecycleObserving
-    private let singleInstanceLock: KeyameleonSingleInstanceLock?
+    private let lifecycleObserver: any LifecycleObserving
+    private let singleInstanceLock: SingleInstanceLock?
     private let startsUpdaterOnLaunch: Bool
     private let startsApplicationSurfaceOnLaunch: Bool
-    let generalSettingsModel: KeyameleonGeneralSettingsModel
-    let settingsSelection = KeyameleonSettingsSelection()
+    let generalSettingsModel: GeneralSettingsModel
+    let settingsSelection = SettingsSelection()
     var statusItem: NSStatusItem?
     /// Template status image loaded from `menu_icon.pdf` once per process.
     var menuBarStatusImage: NSImage?
     /// System-symbol fallbacks for a missing PDF, keyed by symbol name.
     var menuBarFallbackImages: [String: NSImage] = [:]
-    var menuBarPanelController: KeyameleonMenuBarPanelController?
-    var windowController: KeyameleonWindowController?
-    var settingsWindowController: KeyameleonSettingsWindowController?
-    var aboutWindowController: KeyameleonAboutWindowController?
+    var menuBarPanelController: MenuBarPanelController?
+    var windowController: MainWindowController?
+    var settingsWindowController: SettingsWindowController?
+    var aboutWindowController: AboutWindowController?
     private let modelContainer: ModelContainer?
 
     override convenience init() {
-        let isHostedUnitTest = KeyameleonHostedUnitTestProcess.isDetected()
-        let isPreview = KeyameleonPreviewProcess.isDetected()
+        let isHostedUnitTest = HostedUnitTestProcess.isDetected()
+        let isPreview = PreviewProcess.isDetected()
 
-        let singleInstanceLock: KeyameleonSingleInstanceLock?
+        let singleInstanceLock: SingleInstanceLock?
         if isPreview {
             singleInstanceLock = nil
         } else {
-            guard let acquiredLock = KeyameleonSingleInstanceLock.acquire() else {
+            guard let acquiredLock = SingleInstanceLock.acquire() else {
                 if !isHostedUnitTest {
-                    KeyameleonLog.start(.appendOnlyFile())
-                    KeyameleonLog.warning(
+                    Log.start(.appendOnlyFile())
+                    Log.warning(
                         .app,
                         "Another Keyameleon instance is running; exiting"
                     )
                 }
-                Darwin.exit(KeyameleonSingleInstanceLock.blockedLaunchExitCode)
+                Darwin.exit(SingleInstanceLock.blockedLaunchExitCode)
             }
             singleInstanceLock = acquiredLock
         }
 
         if !isHostedUnitTest, !isPreview {
-            KeyameleonLog.start(.file())
+            Log.start(.file())
         }
-        KeyameleonLog.debug(.app, "Launching Keyameleon \(KeyameleonAppIdentity.current.versionLabel)")
+        Log.debug(.app, "Launching Keyameleon \(AppIdentity.current.versionLabel)")
 
         let persistenceSession = SwiftDataPersistenceSession {
             try SwiftDataPhysicalKeyboardRecordStore.makeContainer(
                 inMemory: isHostedUnitTest || isPreview
             )
         }
-        let composition = KeyameleonProductionFactory.makeLiveComposition(
+        let composition = ProductionFactory.makeLiveComposition(
             setupStore: UserDefaultsSetupDecisionStore(),
             physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: persistenceSession),
             designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: persistenceSession),
@@ -83,7 +83,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         self.init(
             composition: composition,
             systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
-            lifecycleObserver: SystemKeyameleonLifecycleObserver(),
+            lifecycleObserver: SystemLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
             startsUpdaterOnLaunch: !isHostedUnitTest,
@@ -94,15 +94,15 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     private init(
-        composition: KeyameleonActivityTriggeredSwitchingComposition,
+        composition: ActivityTriggeredSwitchingComposition,
         systemSettingsOpener: any SystemSettingsOpening,
-        lifecycleObserver: any KeyameleonLifecycleObserving,
+        lifecycleObserver: any LifecycleObserving,
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
         startsUpdaterOnLaunch: Bool,
         startsApplicationSurfaceOnLaunch: Bool,
         modelContainer: ModelContainer?,
-        singleInstanceLock: KeyameleonSingleInstanceLock?
+        singleInstanceLock: SingleInstanceLock?
     ) {
         self.modelContainer = modelContainer
         self.singleInstanceLock = singleInstanceLock
@@ -111,7 +111,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         self.startsApplicationSurfaceOnLaunch = startsApplicationSurfaceOnLaunch
         self.activityTriggeredSwitching = composition.activityTriggeredSwitching
-        setupModel = KeyameleonSetupModel(
+        setupModel = SetupModel(
             activityTriggeredSwitching: composition.activityTriggeredSwitching,
             setupStore: composition.setupStore,
             systemSettingsOpener: systemSettingsOpener,
@@ -123,7 +123,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
             integrityKeyProvider: composition.integrityKeyProvider,
             savedPhysicalKeyboardChanges: composition.savedPhysicalKeyboardChanges
         )
-        generalSettingsModel = KeyameleonGeneralSettingsModel(
+        generalSettingsModel = GeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker
         )
@@ -152,15 +152,15 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
         physicalKeyboardEventObserver: any PhysicalKeyboardEventObserving =
             NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: any InputSourceChangeObserving = NoOpInputSourceChangeObserver(),
-        lifecycleObserver: any KeyameleonLifecycleObserving = NoOpKeyameleonLifecycleObserver(),
+        lifecycleObserver: any LifecycleObserving = NoOpLifecycleObserver(),
         launchAtLoginController: any LaunchAtLoginControlling = ServiceManagementLaunchAtLoginController(),
         updateChecker: any UpdateChecking = SparkleUpdateChecker(),
         startsUpdaterOnLaunch: Bool = true,
         startsApplicationSurfaceOnLaunch: Bool = true,
         modelContainer: ModelContainer? = nil,
-        singleInstanceLock: KeyameleonSingleInstanceLock?
+        singleInstanceLock: SingleInstanceLock?
     ) {
-        let composition = KeyameleonProductionFactory.makeActivityTriggeredSwitching(
+        let composition = ProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
             protectedStateProvider: protectedStateProvider,
             setupStore: setupStore,
@@ -223,7 +223,7 @@ final class KeyameleonApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        KeyameleonLog.debug(.app, "Terminating")
+        Log.debug(.app, "Terminating")
         lifecycleObserver.stop()
         activityTriggeredSwitching.stop()
         closeMenuBarPanel()

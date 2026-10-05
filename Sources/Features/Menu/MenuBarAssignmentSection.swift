@@ -219,7 +219,7 @@ private struct MenuBarAssignmentFocusBinding: ViewModifier {
     MenuBarAssignmentSection(
         list: MenuBarAssignmentList(
             physicalKeyboards: [
-                KeyameleonPreviewFixtures.physicalKeyboard(
+                PreviewFixtures.physicalKeyboard(
                     name: "Travel Keyboard",
                     assignment: "com.apple.keylayout.Missing"
                 )

@@ -3,49 +3,49 @@ import SwiftUI
 
 /// The Settings navigation sidebar: app identity over the three panes.
 @MainActor
-struct KeyameleonSettingsSidebar: View {
-    let selection: KeyameleonSettingsSelection
+struct SettingsSidebar: View {
+    let selection: SettingsSelection
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             appIdentity
-                .padding(.top, KeyameleonTheme.Metrics.sidebarTopInset)
+                .padding(.top, Theme.Metrics.sidebarTopInset)
                 .padding(.horizontal, 20)
             navigation
                 .padding(.top, 24)
                 .padding(.horizontal, 12)
             Spacer(minLength: 0)
         }
-        .frame(width: KeyameleonTheme.Metrics.sidebarWidth)
-        .background(KeyameleonTheme.sidebarBackground, ignoresSafeAreaEdges: .all)
+        .frame(width: Theme.Metrics.sidebarWidth)
+        .background(Theme.sidebarBackground, ignoresSafeAreaEdges: .all)
         .overlay(alignment: .trailing) {
-            KeyameleonTheme.border.frame(width: 1).ignoresSafeArea()
+            Theme.border.frame(width: 1).ignoresSafeArea()
         }
     }
 
     private var appIdentity: some View {
         HStack(spacing: 4) {
-            Image("KeyameleonKeycap")
+            Image("Keycap")
                 .resizable()
                 .interpolation(.high)
                 .frame(width: 22, height: 22)
                 .accessibilityHidden(true)
-            Text(KeyameleonAppIdentity.current.name)
+            Text(AppIdentity.current.name)
                 .font(.body)
                 .bold()
-                .foregroundStyle(KeyameleonTheme.secondary)
+                .foregroundStyle(Theme.secondary)
         }
     }
 
     private var navigation: some View {
-        VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.navigationItemSpacing) {
-            ForEach(KeyameleonSettingsSection.allCases) { section in
+        VStack(alignment: .leading, spacing: Theme.Metrics.navigationItemSpacing) {
+            ForEach(SettingsSection.allCases) { section in
                 navigationItem(for: section)
             }
         }
     }
 
-    private func navigationItem(for section: KeyameleonSettingsSection) -> some View {
+    private func navigationItem(for section: SettingsSection) -> some View {
         let isSelected = selection.section == section
         return Button {
             selection.section = section
@@ -57,13 +57,13 @@ struct KeyameleonSettingsSidebar: View {
                     .font(.body)
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(isSelected ? KeyameleonTheme.textOnAccent : KeyameleonTheme.primary)
+            .foregroundStyle(isSelected ? Theme.textOnAccent : Theme.primary)
             .padding(.horizontal, 10)
-            .frame(height: KeyameleonTheme.Metrics.navigationItemHeight)
+            .frame(height: Theme.Metrics.navigationItemHeight)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                isSelected ? KeyameleonTheme.button : .clear,
-                in: .rect(cornerRadius: KeyameleonTheme.Metrics.controlRadius, style: .continuous)
+                isSelected ? Theme.button : .clear,
+                in: .rect(cornerRadius: Theme.Metrics.controlRadius, style: .continuous)
             )
             .contentShape(.rect)
         }
@@ -74,8 +74,8 @@ struct KeyameleonSettingsSidebar: View {
 
 #if DEBUG
 #Preview("Settings sidebar") {
-    @Previewable @State var selection = KeyameleonSettingsSelection()
-    KeyameleonSettingsSidebar(selection: selection)
+    @Previewable @State var selection = SettingsSelection()
+    SettingsSidebar(selection: selection)
         .frame(height: 400)
 }
 #endif

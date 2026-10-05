@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The accent label and trailing symbol the About pane's rows use for actions.
 @MainActor
-struct KeyameleonAboutLinkLabel: View {
+struct AboutLinkLabel: View {
     let title: String
     var systemImage: String?
 
@@ -15,15 +15,15 @@ struct KeyameleonAboutLinkLabel: View {
                     .font(.callout)
             }
         }
-        .foregroundStyle(KeyameleonTheme.accent)
+        .foregroundStyle(Theme.accent)
         .contentShape(.rect)
     }
 }
 
 #if DEBUG
 #Preview("About link label") {
-    KeyameleonAboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+    AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
         .padding()
-        .background(KeyameleonTheme.contentBackground)
+        .background(Theme.contentBackground)
 }
 #endif

@@ -11,7 +11,7 @@ private func persistenceFailureKeepsStatusControlsResponsive() {
     })
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
@@ -57,7 +57,7 @@ private func retrySelectionReadFailureDoesNotSelect() throws {
     })
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.italian", verifySuccess: false)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),

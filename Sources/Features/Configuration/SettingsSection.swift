@@ -1,6 +1,6 @@
 import Observation
 
-enum KeyameleonSettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
     case general
     case keyboards
     case about
@@ -27,6 +27,6 @@ enum KeyameleonSettingsSection: String, CaseIterable, Identifiable, Hashable, Se
 
 @MainActor
 @Observable
-final class KeyameleonSettingsSelection {
-    var section: KeyameleonSettingsSection = .general
+final class SettingsSelection {
+    var section: SettingsSection = .general
 }

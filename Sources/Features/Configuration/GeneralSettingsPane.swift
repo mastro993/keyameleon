@@ -2,17 +2,17 @@ import SwiftUI
 
 /// The General pane: app preferences that apply to Keyameleon as a whole.
 @MainActor
-struct KeyameleonGeneralSettingsPane: View {
-    let model: KeyameleonGeneralSettingsModel
+struct GeneralSettingsPane: View {
+    let model: GeneralSettingsModel
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: KeyameleonTheme.Metrics.paneSpacing) {
+            VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("App")
                         .font(.headline)
                         .bold()
-                        .foregroundStyle(KeyameleonTheme.primary)
+                        .foregroundStyle(Theme.primary)
 
                     launchAtLoginSetting
                 }
@@ -20,7 +20,7 @@ struct KeyameleonGeneralSettingsPane: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Keyameleon runs quietly in your menu bar.")
                         .font(.callout)
-                        .foregroundStyle(KeyameleonTheme.secondary)
+                        .foregroundStyle(Theme.secondary)
 
                     if model.launchAtLoginError != nil {
                         Text(
@@ -35,23 +35,23 @@ struct KeyameleonGeneralSettingsPane: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(KeyameleonTheme.Metrics.panePadding)
+            .padding(Theme.Metrics.panePadding)
         }
     }
 
     private var launchAtLoginSetting: some View {
-        KeyameleonInsetGroup(
-            cornerRadius: KeyameleonTheme.Metrics.informationGroupRadius,
-            fill: KeyameleonTheme.cardSurface
+        InsetGroup(
+            cornerRadius: Theme.Metrics.informationGroupRadius,
+            fill: Theme.cardSurface
         ) {
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Launch at login")
                         .font(.body.weight(.medium))
-                        .foregroundStyle(KeyameleonTheme.primary)
+                        .foregroundStyle(Theme.primary)
                     Text("Start Keyameleon automatically when you log in.")
                         .font(.callout)
-                        .foregroundStyle(KeyameleonTheme.secondary)
+                        .foregroundStyle(Theme.secondary)
                 }
                 Spacer(minLength: 0)
                 Toggle("Launch at login", isOn: launchAtLoginBinding)
@@ -72,19 +72,19 @@ struct KeyameleonGeneralSettingsPane: View {
 
 #if DEBUG
 #Preview("General pane") {
-    KeyameleonGeneralSettingsPane(
-        model: KeyameleonPreviewFixtures.general(launchAtLoginEnabled: true)
+    GeneralSettingsPane(
+        model: PreviewFixtures.general(launchAtLoginEnabled: true)
     )
     .frame(width: 620, height: 400)
-    .background(KeyameleonTheme.contentBackground)
+    .background(Theme.contentBackground)
 }
 
 #Preview("General pane launch error") {
-    KeyameleonGeneralSettingsPane(
-        model: KeyameleonPreviewFixtures.general(launchAtLoginFailure: true)
+    GeneralSettingsPane(
+        model: PreviewFixtures.general(launchAtLoginFailure: true)
     )
     .frame(width: 620, height: 400)
-    .background(KeyameleonTheme.contentBackground)
+    .background(Theme.contentBackground)
     .preferredColorScheme(.dark)
 }
 #endif

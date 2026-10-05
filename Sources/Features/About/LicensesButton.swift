@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// One license text the app bundles for offline reading.
-enum KeyameleonBundledLicense: String, Equatable, Sendable {
+enum BundledLicense: String, Equatable, Sendable {
     case project = "LICENSE.txt"
     case sparkle = "Sparkle-LICENSE.txt"
 
@@ -24,7 +24,7 @@ enum KeyameleonBundledLicense: String, Equatable, Sendable {
 
 /// Opens the folder of bundled license texts and third-party notices.
 @MainActor
-struct KeyameleonLicensesButton: View {
+struct LicensesButton: View {
     private let licensesURL = Bundle.main.resourceURL?
         .appending(path: "Licenses", directoryHint: .isDirectory)
 
@@ -41,7 +41,7 @@ struct KeyameleonLicensesButton: View {
 
 #if DEBUG
 #Preview("Licenses and notices") {
-    KeyameleonLicensesButton()
+    LicensesButton()
         .padding()
 }
 #endif
