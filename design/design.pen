@@ -6943,6 +6943,562 @@
           }
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "KtwKd",
+      "x": 6238,
+      "y": -1218,
+      "name": "Keyameleon / Menu bar / Permission alert",
+      "context": "Sizing reference (editor stores numeric dimensions): width=$menu-width",
+      "reusable": true,
+      "clip": true,
+      "width": 320,
+      "fill": "$menu-surface",
+      "cornerRadius": "$radius-20",
+      "stroke": "$menu-border",
+      "strokeWidth": "$stroke-1",
+      "effect": {
+        "type": "background_blur",
+        "radius": "$material-blur-10"
+      },
+      "layout": "vertical",
+      "padding": [
+        "$space-0",
+        "$space-11",
+        "$space-6",
+        "$space-11"
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "JRy0E",
+          "name": "Header",
+          "context": "Sizing reference (editor stores numeric dimensions): height=$size-49",
+          "width": "fill_container",
+          "height": 49,
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": "$stroke-1"
+          },
+          "padding": [
+            "$space-0",
+            "$space-6"
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "UKdk1",
+              "name": "App name",
+              "fill": "$menu-text",
+              "content": "Keyameleon",
+              "lineHeight": "$leading-body",
+              "fontFamily": "$font-sans",
+              "fontSize": "$type-headline",
+              "fontWeight": "$weight-bold"
+            },
+            {
+              "id": "uvFhy",
+              "type": "ref",
+              "ref": "k4x9PJ",
+              "name": "SF Symbol · info.circle.fill",
+              "width": 18,
+              "height": 18,
+              "context": "Sizing reference (editor stores numeric dimensions): width=$size-18, height=$size-18",
+              "descendants": {
+                "ZqBCB": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 16,
+                  "height": 15.9912,
+                  "fill": "$menu-secondary",
+                  "viewBox": [
+                    0,
+                    0,
+                    19.92,
+                    19.909
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Cjmp9",
+          "name": "Permission alert",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            12,
+            6,
+            0,
+            6
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "ppSt4",
+              "name": "Alert card",
+              "width": "fill_container",
+              "fill": "$warning-soft",
+              "cornerRadius": "$radius-12",
+              "stroke": "$warning-border",
+              "strokeWidth": "$stroke-1",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Olw3E",
+                  "name": "Alert title row",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "W8mOI4",
+                      "name": "Warning icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "triangle-alert",
+                      "library": "lucide",
+                      "fill": "$warning"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mWiF9",
+                      "name": "Alert title",
+                      "fill": "$menu-text",
+                      "content": "Input Monitoring required",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-body",
+                      "fontWeight": "$weight-semibold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "vySYa",
+                  "name": "Alert body",
+                  "fill": "$menu-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Keyameleon can't detect keyboard activity until you allow access in System Settings.",
+                  "lineHeight": "$leading-body-loose",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-callout",
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "U4cCJG",
+                  "name": "Open System Settings button",
+                  "width": "fill_container",
+                  "fill": "$warning",
+                  "cornerRadius": "$radius-6",
+                  "padding": [
+                    6,
+                    10
+                  ],
+                  "justifyContent": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "N0sx9",
+                      "name": "Button label",
+                      "fill": "$on-warning",
+                      "content": "Open System Settings",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-medium"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "iUHIg",
+          "name": "Keyboards",
+          "width": "fill_container",
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": "$stroke-1"
+          },
+          "layout": "vertical",
+          "gap": "$space-4",
+          "padding": [
+            "$space-8",
+            "$space-0"
+          ],
+          "children": [
+            {
+              "id": "kNyK7",
+              "type": "ref",
+              "ref": "DhSlx",
+              "name": "Keyboard item · Built-in",
+              "width": "fill_container",
+              "height": 62,
+              "theme": {},
+              "context": "Sizing reference (editor stores numeric dimensions): height=$size-62"
+            },
+            {
+              "id": "MDWPe",
+              "type": "ref",
+              "ref": "xdhm3",
+              "name": "Keyboard item · Active",
+              "width": "fill_container",
+              "height": 62,
+              "theme": {},
+              "context": "Sizing reference (editor stores numeric dimensions): height=$size-62"
+            },
+            {
+              "id": "sFtmr",
+              "type": "ref",
+              "ref": "Vvjkf",
+              "name": "Keyboard item · Disconnected",
+              "width": "fill_container",
+              "height": 62,
+              "theme": {},
+              "context": "Sizing reference (editor stores numeric dimensions): height=$size-62"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sqi55",
+          "name": "Actions",
+          "width": "fill_container",
+          "stroke": "$divider",
+          "strokeWidth": {
+            "bottom": "$stroke-1"
+          },
+          "layout": "vertical",
+          "padding": [
+            "$space-8",
+            "$space-6",
+            "$space-5",
+            "$space-6"
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "lZZZw",
+              "name": "Pause Switching",
+              "context": "Sizing reference (editor stores numeric dimensions): height=$size-32",
+              "width": "fill_container",
+              "height": 32,
+              "gap": "$space-11",
+              "padding": [
+                "$space-0",
+                "$space-5"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HZdjJ",
+                  "name": "Frame 2",
+                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-16, height=$size-16",
+                  "width": 16,
+                  "height": 16,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "id": "RuLCF",
+                      "type": "ref",
+                      "ref": "HIVlJ",
+                      "x": 2,
+                      "y": 0,
+                      "name": "Pause symbol",
+                      "height": 16,
+                      "width": 11.8,
+                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-11_8, height=$size-16",
+                      "descendants": {
+                        "DYulZ": {
+                          "fill": "$menu-text",
+                          "width": 11.8,
+                          "height": 16
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "appQ1",
+                  "name": "Action label",
+                  "fill": "$menu-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pause Switching",
+                  "lineHeight": "$leading-body",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "$weight-regular"
+                },
+                {
+                  "type": "frame",
+                  "id": "VF3C5",
+                  "name": "Keyboard shortcut",
+                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-24",
+                  "width": 24,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "TFbVt",
+                      "name": "Command modifier",
+                      "fill": "$menu-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "⌘",
+                      "lineHeight": "$leading-callout",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-regular"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vdY2j",
+                      "name": "Shortcut key",
+                      "fill": "$menu-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "P",
+                      "lineHeight": "$leading-callout",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-regular"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vt6Hf",
+              "name": "Settings",
+              "context": "Sizing reference (editor stores numeric dimensions): height=$size-32",
+              "width": "fill_container",
+              "height": 32,
+              "gap": "$space-11",
+              "padding": [
+                "$space-0",
+                "$space-5"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vcBYU",
+                  "name": "Frame 3",
+                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-16, height=$size-16",
+                  "width": 16,
+                  "height": 16,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "id": "HcDM3",
+                      "type": "ref",
+                      "ref": "fmJgp",
+                      "x": 0,
+                      "y": 0,
+                      "width": 16,
+                      "height": 16,
+                      "name": "Shared component instance",
+                      "context": "Sizing reference (editor stores numeric dimensions): width=$size-16, height=$size-16",
+                      "descendants": {
+                        "GRO9Y": {
+                          "width": 16,
+                          "height": 16,
+                          "flipX": false,
+                          "flipY": false,
+                          "x": 0,
+                          "y": 0,
+                          "fill": "$menu-text"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "gD3ZL",
+                  "name": "Action label",
+                  "fill": "$menu-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Settings",
+                  "lineHeight": "$leading-body",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "$weight-regular"
+                },
+                {
+                  "type": "frame",
+                  "id": "D99cY9",
+                  "name": "Keyboard shortcut",
+                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-24",
+                  "width": 24,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FEUfH",
+                      "name": "Command modifier",
+                      "fill": "$menu-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "⌘",
+                      "lineHeight": "$leading-callout",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-regular"
+                    },
+                    {
+                      "type": "text",
+                      "id": "iJUJ9",
+                      "name": "Shortcut key",
+                      "fill": "$menu-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": ",",
+                      "lineHeight": "$leading-callout",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-regular"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kDZ1N",
+          "name": "Quit action",
+          "width": "fill_container",
+          "padding": [
+            "$space-4",
+            "$space-6"
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "nUZX6",
+              "name": "Quit Keyameleon",
+              "context": "Sizing reference (editor stores numeric dimensions): height=$size-32",
+              "width": "fill_container",
+              "height": 32,
+              "gap": "$space-11",
+              "padding": [
+                "$space-0",
+                "$space-5"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "ueKBC",
+                  "type": "ref",
+                  "ref": "N7tI4l",
+                  "width": 16,
+                  "height": 16,
+                  "name": "Shared component instance",
+                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-16, height=$size-16",
+                  "descendants": {
+                    "oZ5CX": {
+                      "width": 16,
+                      "height": 16,
+                      "flipX": false,
+                      "flipY": false,
+                      "x": 0,
+                      "y": 0,
+                      "fill": "$menu-text"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "eNzpt",
+                  "name": "Action label",
+                  "fill": "$menu-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Quit Keyameleon",
+                  "lineHeight": "$leading-body",
+                  "fontFamily": "$font-sans",
+                  "fontSize": "$type-body",
+                  "fontWeight": "$weight-regular"
+                },
+                {
+                  "type": "frame",
+                  "id": "FusK4",
+                  "name": "Keyboard shortcut",
+                  "context": "Sizing reference (editor stores numeric dimensions): width=$size-24",
+                  "width": 24,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "z1AzA",
+                      "name": "Command modifier",
+                      "fill": "$menu-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "⌘",
+                      "lineHeight": "$leading-callout",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-regular"
+                    },
+                    {
+                      "type": "text",
+                      "id": "po8Rm",
+                      "name": "Shortcut key",
+                      "fill": "$menu-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q",
+                      "lineHeight": "$leading-callout",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-callout",
+                      "fontWeight": "$weight-regular"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BjJ3V",
+      "type": "ref",
+      "ref": "KtwKd",
+      "name": "Keyameleon / Menu bar / Permission alert / Dark",
+      "theme": {
+        "mode": "dark"
+      },
+      "x": 6638,
+      "y": -1218,
+      "width": 320,
+      "height": 510
     }
   ],
   "themes": {
@@ -8070,6 +8626,61 @@
     "leading-artwork": {
       "type": "number",
       "value": 1.2058823529411764
+    },
+    "warning": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FF9500",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#FF9F0A",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "warning-soft": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FF95001F",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#FF9F0A1F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "warning-border": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FF95003D",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#FF9F0A3D",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "on-warning": {
+      "type": "color",
+      "value": "#1C1C1E"
     }
   },
   "fileToken": "bd679dd2-580d-4944-953f-d2e24a908f77",
