@@ -29,6 +29,32 @@ enum Theme {
     static let successText = Color("OnboardingSuccessText")
     static let textOnAccent = Color.white
 
+    // MARK: Typography
+
+    /// The design's type roles, spelled with the semantic styles their sizes match.
+    enum Typography {
+        /// `type-headline`, medium: a pane's section title.
+        static let sectionTitle = Font.body.weight(.medium)
+        /// `type-body`, regular.
+        static let body = Font.body
+        /// `type-body`, medium: a row title such as a Physical Keyboard Name.
+        static let rowTitle = Font.body.weight(.medium)
+        /// `type-body`, medium: the selected sidebar item.
+        static let navigationLabelSelected = Font.body.weight(.medium)
+        /// `type-body`, semibold: the sidebar mark and other emphasised body text.
+        static let bodyStrong = Font.body.weight(.semibold)
+        /// `type-callout`, regular: explanations, help, and credits.
+        static let caption = Font.callout
+        /// `type-subheadline`, regular: connection status and folder paths.
+        static let subheadline = Font.subheadline
+        /// `type-title-2`, medium: the About app name.
+        static let screenTitle = Font.title2.weight(.medium)
+        /// `type-title-2`, semibold: a pane's empty state title.
+        static let emptyStateTitle = Font.title2.weight(.semibold)
+        /// Chip and badge labels.
+        static let chip = Font.subheadline.weight(.medium)
+    }
+
     // MARK: Metrics
 
     enum Metrics {

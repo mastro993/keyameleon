@@ -10,7 +10,7 @@ struct AboutInformationRow<Content: View>: View {
     var body: some View {
         HStack(spacing: 12) {
             Text(label)
-                .font(.body)
+                .font(Theme.Typography.body)
                 .foregroundStyle(Theme.primary)
             Spacer(minLength: 12)
             content
@@ -37,11 +37,11 @@ struct AboutFolderRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(label)
-                .font(.body)
+                .font(Theme.Typography.body)
                 .foregroundStyle(Theme.primary)
             HStack(spacing: 12) {
                 Text(url.path)
-                    .font(.subheadline)
+                    .font(Theme.Typography.subheadline)
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .textSelection(.enabled)

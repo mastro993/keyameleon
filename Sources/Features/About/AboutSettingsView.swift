@@ -33,11 +33,10 @@ struct AboutSettingsPane: View {
                 .accessibilityLabel("Keyameleon app icon")
             VStack(alignment: .leading, spacing: 5) {
                 Text(info.identity.name)
-                    .font(.title2)
-                    .bold()
+                    .font(Theme.Typography.screenTitle)
                     .foregroundStyle(Theme.primary)
                 Text("The right layout. On every keyboard.")
-                    .font(.callout)
+                    .font(Theme.Typography.caption)
                     .foregroundStyle(Theme.secondary)
             }
         }
@@ -46,8 +45,7 @@ struct AboutSettingsPane: View {
     private var information: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Information")
-                .font(.headline)
-                .bold()
+                .font(Theme.Typography.sectionTitle)
                 .foregroundStyle(Theme.primary)
             InsetGroup(
                 cornerRadius: Theme.Metrics.informationGroupRadius,
@@ -95,8 +93,7 @@ struct AboutSettingsPane: View {
     private var acknowledgements: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Acknowledgements")
-                .font(.headline)
-                .bold()
+                .font(Theme.Typography.sectionTitle)
                 .foregroundStyle(Theme.primary)
             InsetGroup(
                 cornerRadius: Theme.Metrics.informationGroupRadius,
@@ -104,7 +101,7 @@ struct AboutSettingsPane: View {
             ) {
                 HStack(spacing: 12) {
                     Text("Sparkle")
-                        .font(.body)
+                        .font(Theme.Typography.body)
                         .foregroundStyle(Theme.primary)
                     Spacer(minLength: 12)
                     licenseButton(for: .sparkle, title: "View full License")
@@ -118,11 +115,11 @@ struct AboutSettingsPane: View {
     private var creatorCredit: some View {
         HStack(spacing: 4) {
             Text("Made with ❤️ by")
-                .font(.callout)
+                .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.secondary)
             Link(destination: AboutInfo.creatorURL) {
                 Text("@fedemas")
-                    .font(.callout)
+                    .font(Theme.Typography.caption)
             }
         }
         .frame(maxWidth: .infinity)

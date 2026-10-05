@@ -9,10 +9,10 @@ struct AboutLinkLabel: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(title)
-                .font(.body)
+                .font(Theme.Typography.body)
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.callout)
+                    .font(Theme.Typography.caption)
             }
         }
         .foregroundStyle(Theme.accent)

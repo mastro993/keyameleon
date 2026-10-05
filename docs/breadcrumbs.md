@@ -14,11 +14,13 @@
   keyboard rows pack at 16 pt with a 16 pt separator inset, and information rows
   take a 16 pt inset at the design's 39 pt height. Guided setup keeps its own
   18/22 row padding, passed by the flow rather than baked into the shared row.
-- Theme: `Theme` carries the design's colors and metrics, with three
+- Theme: `Theme` carries the design's colors, type roles, and metrics, with three
   new asset colors for the content pane, sidebar, and card surface.
   `OnboardingPalette` now names the same tokens, so Guided setup and Settings
-  cannot drift. `InsetGroup` and `keyameleonGroupSeparator(_:)` are the
-  group and hairline both flows draw.
+  cannot drift. Section titles are `type-headline` medium, row titles
+  `type-body` medium, and the sidebar mark `type-body` semibold, so Settings no
+  longer bolds its headings. `InsetGroup` and `keyameleonGroupSeparator(_:)` are
+  the group and hairline both flows draw.
 - Keyboards: the pane renders `PhysicalKeyboardRowView` over
   `PhysicalKeyboardRows`, the row and reconciled list that Guided setup used.
   Both moved from `Sources/Features/Onboarding` to `Sources/Features/Shared` and

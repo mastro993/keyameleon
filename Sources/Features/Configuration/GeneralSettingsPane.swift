@@ -10,8 +10,7 @@ struct GeneralSettingsPane: View {
             VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("App")
-                        .font(.headline)
-                        .bold()
+                        .font(Theme.Typography.sectionTitle)
                         .foregroundStyle(Theme.primary)
 
                     launchAtLoginSetting
@@ -19,7 +18,7 @@ struct GeneralSettingsPane: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Keyameleon runs quietly in your menu bar.")
-                        .font(.callout)
+                        .font(Theme.Typography.caption)
                         .foregroundStyle(Theme.secondary)
 
                     if model.launchAtLoginError != nil {
@@ -29,7 +28,7 @@ struct GeneralSettingsPane: View {
                             Login Items if macOS requires approval.
                             """
                         )
-                        .font(.callout)
+                        .font(Theme.Typography.caption)
                         .foregroundStyle(.red)
                     }
                 }
@@ -47,10 +46,10 @@ struct GeneralSettingsPane: View {
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Launch at login")
-                        .font(.body.weight(.medium))
+                        .font(Theme.Typography.rowTitle)
                         .foregroundStyle(Theme.primary)
                     Text("Start Keyameleon automatically when you log in.")
-                        .font(.callout)
+                        .font(Theme.Typography.caption)
                         .foregroundStyle(Theme.secondary)
                 }
                 Spacer(minLength: 0)

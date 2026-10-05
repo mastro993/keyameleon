@@ -31,8 +31,7 @@ struct SettingsSidebar: View {
                 .frame(width: 22, height: 22)
                 .accessibilityHidden(true)
             Text(AppIdentity.current.name)
-                .font(.body)
-                .bold()
+                .font(Theme.Typography.bodyStrong)
                 .foregroundStyle(Theme.secondary)
         }
     }
@@ -54,7 +53,7 @@ struct SettingsSidebar: View {
                 Image(systemName: section.systemImage(isSelected: isSelected))
                     .frame(width: 17)
                 Text(section.title)
-                    .font(.body)
+                    .font(isSelected ? Theme.Typography.navigationLabelSelected : Theme.Typography.body)
                 Spacer(minLength: 0)
             }
             .foregroundStyle(isSelected ? Theme.textOnAccent : Theme.primary)

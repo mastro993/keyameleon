@@ -28,7 +28,7 @@ struct PhysicalKeyboardRowView: View {
                         assignmentPicker(for: keyboard)
                     } else {
                         Text("Unsupported")
-                            .font(.subheadline)
+                            .font(Theme.Typography.subheadline)
                             .foregroundStyle(Theme.secondary)
                             .frame(width: 176, alignment: .leading)
                             .help(unsupportedReason(for: keyboard))
@@ -50,7 +50,7 @@ struct PhysicalKeyboardRowView: View {
                         savedAssignmentPicker(for: record)
                     case .missing, .ambiguous:
                         Text("Assignment unavailable")
-                            .font(.subheadline)
+                            .font(Theme.Typography.subheadline)
                             .foregroundStyle(Theme.muted)
                             .frame(width: 176, alignment: .leading)
                     }
@@ -96,10 +96,10 @@ struct PhysicalKeyboardRowView: View {
     private func includedLabels(for keyboard: PhysicalKeyboard) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(keyboard.name)
-                .font(.body.weight(.medium))
+                .font(Theme.Typography.rowTitle)
                 .foregroundStyle(Theme.primary)
             Text(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys))
-                .font(.subheadline)
+                .font(Theme.Typography.subheadline)
                 .foregroundStyle(Theme.muted)
         }
     }
@@ -110,10 +110,10 @@ struct PhysicalKeyboardRowView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(excludedName(exclusion, savedRecord: savedRecord))
-                .font(.body.weight(.medium))
+                .font(Theme.Typography.rowTitle)
                 .foregroundStyle(Theme.muted)
             Text(row.subtitle(connectedExcludedKeys: model.connectedExcludedKeyboardKeys))
-                .font(.subheadline)
+                .font(Theme.Typography.subheadline)
                 .foregroundStyle(Theme.muted)
         }
     }

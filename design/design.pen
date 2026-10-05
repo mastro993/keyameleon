@@ -4515,7 +4515,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "frame",
@@ -4650,7 +4650,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "text",
@@ -5231,7 +5231,7 @@
                       "lineHeight": "$leading-title-2",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-title-2",
-                      "fontWeight": "$weight-bold"
+                      "fontWeight": "$weight-medium"
                     },
                     {
                       "type": "text",
@@ -5265,7 +5265,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "frame",
@@ -5710,7 +5710,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "frame",
@@ -5912,6 +5912,10 @@
             },
             "QzudY": {
               "theme": {}
+            },
+            "QzudY/SCBRa": {
+              "fontStyle": "normal",
+              "fontWeight": "500"
             }
           }
         }

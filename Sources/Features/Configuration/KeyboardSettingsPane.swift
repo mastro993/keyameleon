@@ -20,11 +20,10 @@ struct KeyboardSettingsPane: View {
         VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Keyboard layouts")
-                    .font(.headline)
-                    .bold()
+                    .font(Theme.Typography.sectionTitle)
                     .foregroundStyle(Theme.primary)
                 Text("Choose a layout for each keyboard. Keyameleon switches when you type.")
-                    .font(.callout)
+                    .font(Theme.Typography.caption)
                     .foregroundStyle(Theme.secondary)
             }
 
@@ -40,7 +39,7 @@ struct KeyboardSettingsPane: View {
                             "New keyboards appear here when connected. "
                                 + "Disconnected keyboards keep their saved layout."
                         )
-                        .font(.callout)
+                        .font(Theme.Typography.caption)
                         .foregroundStyle(Theme.secondary)
                     }
                     .padding(.bottom, 4)
@@ -91,8 +90,7 @@ private struct KeyboardEmptyState: View {
                 .accessibilityHidden(true)
             VStack(spacing: 8) {
                 Text("No keyboards detected")
-                    .font(.title2)
-                    .bold()
+                    .font(Theme.Typography.emptyStateTitle)
                     .foregroundStyle(Theme.primary)
                 Text(
                     """
@@ -100,7 +98,7 @@ private struct KeyboardEmptyState: View {
                     Your keyboard will appear here when detected.
                     """
                 )
-                .font(.body)
+                .font(Theme.Typography.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Theme.secondary)
             }

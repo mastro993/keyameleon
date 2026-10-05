@@ -10,14 +10,18 @@ group, and one Physical Keyboard row.
 
 ### Seams
 
-- `Theme` — the design's colors plus the metrics Settings sizes itself
-  with: an 840 × 560 content minimum, a 220 pt sidebar with a 24 pt top inset, a
-  24/30 pane inset, 20 pt between a pane's blocks, radius 16 for the keyboard
-  group, radius 10 for information rows, and radius 6 for the navigation item.
-  Settings packs its keyboard rows at 16 pt while Guided setup keeps the
-  design's 18/22, and information rows take a 16 pt inset and the design's 39 pt
-  height. `OnboardingPalette` names the same tokens for Guided setup, so neither
-  flow invents a color or a length.
+- `Theme` — the design's colors and type roles plus the metrics Settings sizes
+  itself with: an 840 × 560 content minimum, a 220 pt sidebar with a 24 pt top
+  inset, a 24/30 pane inset, 20 pt between a pane's blocks, radius 16 for the
+  keyboard group, radius 10 for information rows, and radius 6 for the navigation
+  item. `Theme.Typography` spells the design's roles with the semantic styles
+  their sizes match: `type-headline` medium for a section title, `type-body`
+  medium for a row title and the selected sidebar item, `type-body` semibold for
+  the sidebar mark, `type-callout`, `type-subheadline`, and `type-title-2` medium
+  for the About app name. Settings packs its keyboard rows at 16 pt while Guided
+  setup keeps the design's 18/22, and information rows take a 16 pt inset and the
+  design's 39 pt height. `OnboardingPalette` names the same color tokens for
+  Guided setup, so neither flow invents a color or a length.
 - `InsetGroup` and `keyameleonGroupSeparator(_:)` — the rounded group
   and its hairline, drawn by the Keyboards list, Guided setup, and About.
 - `PhysicalKeyboardRows` and `PhysicalKeyboardRowView` — one reconciled list and
