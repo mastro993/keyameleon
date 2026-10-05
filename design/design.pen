@@ -6947,8 +6947,8 @@
     {
       "type": "frame",
       "id": "KtwKd",
-      "x": 6238,
-      "y": -1218,
+      "x": 3014,
+      "y": -264,
       "name": "Keyameleon / Menu bar / Permission alert",
       "context": "Sizing reference (editor stores numeric dimensions): width=$menu-width",
       "reusable": true,
@@ -7495,8 +7495,8 @@
       "theme": {
         "mode": "dark"
       },
-      "x": 6638,
-      "y": -1218,
+      "x": 3414,
+      "y": -264,
       "width": 320,
       "height": 510
     }
