@@ -673,8 +673,8 @@ run_tests
 
     def test_version_commit_installs_pinned_swiftlint_before_tests(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        bump = workflow.split("\n  bump:\n", maxsplit=1)[1].split("\n  produce:\n", maxsplit=1)[0]
-        before_tests = bump.split("- name: Test version commit", maxsplit=1)[0]
+        release = workflow.split("\n  release:\n", maxsplit=1)[1]
+        before_tests = release.split("- name: Test version commit", maxsplit=1)[0]
         configuration = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
         version = configuration.split('swiftlint_version: "', maxsplit=1)[1].split('"', maxsplit=1)[0]
         ci_workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
@@ -696,36 +696,105 @@ run_tests
         self.assertIn("- major\n          - minor\n          - patch", workflow)
         self.assertNotIn("inputs.version", workflow)
         self.assertIn('git commit -m "chore(release): ${VERSION}"', workflow)
-        self.assertIn("ref: ${{ needs.bump.outputs.commit }}", workflow)
+        self.assertIn("COMMIT: ${{ steps.bump.outputs.commit }}", workflow)
         self.assertIn('--head "${{ github.sha }}"', workflow)
 
-    def test_release_asset_precedes_pages_and_crosses_artifact_boundary(self) -> None:
+    def test_single_approval_preserves_artifacts_and_publication_order(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        produce = workflow.split("  produce:", maxsplit=1)[1].split("  publish:", maxsplit=1)[0]
-        publish = workflow.split("  publish:", maxsplit=1)[1]
-        self.assertIn("actions/upload-artifact@", produce)
-        self.assertIn("dist/Keyameleon-${{ needs.verify.outputs.version }}.dmg", produce)
-        self.assertIn("dist/appcast.xml", produce)
-        self.assertIn("dist/release-evidence.json", produce)
-        self.assertIn("- produce", publish)
-        self.assertIn("actions/download-artifact@", publish)
-        self.assertLess(publish.index("Publish and verify downloadable DMG"), publish.index("bash Scripts/publish-release-pages.sh"))
-        self.assertIn("releases/${tag}/release-evidence.json", publish)
-        self.assertIn('cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json', publish)
+        release = workflow.split("\n  release:\n", maxsplit=1)[1]
+        self.assertEqual(workflow.count("environment: official-release"), 1)
+        self.assertEqual(release.count("actions/checkout@"), 1)
+        self.assertEqual(release.count("brew install xcodegen"), 1)
+        self.assertIn("needs: verify", release)
+        self.assertIn("actions: read", release)
+        self.assertIn("pull-requests: read", release)
+        steps = (
+            "Restore saved release artifacts on retry", "Prepare version commit",
+            "Test version commit", "Push version commit to main",
+            "Produce signed, notarized, stapled artifacts", "Require complete artifact bundle",
+            "Upload workflow artifacts", "Prepare Official Release tag and notes",
+            "Publish and verify downloadable DMG", "bash Scripts/publish-release-pages.sh",
+            "Verify published feed and enclosure",
+        )
+        self.assertEqual([release.index(step) for step in steps], sorted(release.index(step) for step in steps))
+        for step in ("Test version commit", "Produce signed, notarized, stapled artifacts", "Upload workflow artifacts"):
+            self.assertIn(f"- name: {step}\n        if: steps.saved.outputs.restored != 'true'", release)
+        self.assertIn('gh run download "${GITHUB_RUN_ID}" --name "${artifact_name}" --dir dist', release)
+        self.assertIn("dist/Keyameleon-${{ needs.verify.outputs.version }}.dmg", release)
+        self.assertIn("dist/appcast.xml", release)
+        self.assertIn("dist/release-evidence.json", release)
+        self.assertIn("releases/${tag}/release-evidence.json", release)
+        self.assertIn('cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json', release)
         self.assertNotIn("Keyameleon-source-", workflow)
-        self.assertIn("pull-requests: read", workflow)
+
+    def test_same_run_artifact_recovery_fails_closed(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        step = workflow.split("- name: Restore saved release artifacts on retry", 1)[1].split("\n      - name:", 1)[0]
+        command = "\n".join(line[10:] for line in step.split("        run: |\n", 1)[1].splitlines())
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            fake_bin = directory / "bin"
+            fake_bin.mkdir()
+            gh = fake_bin / "gh"
+            gh.write_text(r'''#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$1 $2" == "run download" ]]; then
+  test "$3" = "42"
+  test "$4 $5 $6 $7" = "--name official-release-1.2.3 --dir dist"
+  test "$CASE" != "download_error"
+  mkdir dist
+  cp "$SAVED_DMG" dist/Keyameleon-1.2.3.dmg
+elif [[ "$*" == *"/artifacts"* ]]; then
+  test "$CASE" != "api_error"
+  case "$CASE" in
+    present|download_error) payload='[{"artifacts":[{"name":"official-release-1.2.3","id":7,"expired":false}]}]' ;;
+    expired) payload='[{"artifacts":[{"name":"official-release-1.2.3","id":7,"expired":true}]}]' ;;
+    duplicate) payload='[{"artifacts":[{"name":"official-release-1.2.3","id":7,"expired":false},{"name":"official-release-1.2.3","id":8,"expired":false}]}]' ;;
+    *) payload='[{"artifacts":[]}]' ;;
+  esac
+  printf '%s' "$payload"
+else
+  test "$CASE" != "release_error"
+  if [[ "$CASE" == "release" ]]; then printf '99'; fi
+fi
+''', encoding="utf-8")
+            git = fake_bin / "git"
+            git.write_text(r'''#!/usr/bin/env bash
+set -euo pipefail
+test "$CASE" != "tag_error"
+if [[ "$CASE" == "tag" ]]; then printf 'sha\trefs/tags/v1.2.3\n'; fi
+''', encoding="utf-8")
+            gh.chmod(0o755)
+            git.chmod(0o755)
+            saved_dmg = directory / "saved.dmg"
+            saved_dmg.write_bytes(b"original signed bytes")
+            for case in ("absent", "present", "expired", "duplicate", "api_error", "download_error", "tag", "tag_error", "release", "release_error"):
+                with self.subTest(case=case):
+                    working = directory / case
+                    working.mkdir()
+                    output = working / "output"
+                    environment = os.environ | {
+                        "PATH": f"{fake_bin}:{os.environ['PATH']}", "CASE": case,
+                        "GITHUB_REPOSITORY": "example/Keyameleon", "GITHUB_RUN_ID": "42",
+                        "GITHUB_OUTPUT": str(output), "VERSION": "1.2.3", "TAG": "v1.2.3",
+                        "SAVED_DMG": str(saved_dmg),
+                    }
+                    result = subprocess.run(("bash", "-c", command), cwd=working, env=environment, capture_output=True, text=True)
+                    self.assertEqual(result.returncode == 0, case in ("absent", "present"), result.stderr)
+                    if case == "present":
+                        self.assertEqual(output.read_text(), "restored=true\n")
+                        self.assertEqual((working / "dist/Keyameleon-1.2.3.dmg").read_bytes(), saved_dmg.read_bytes())
+                    elif case == "absent":
+                        self.assertEqual(output.read_text(), "restored=false\n")
+                    else:
+                        self.assertFalse(output.exists())
 
     def test_protected_version_commit_and_tag_use_deploy_key(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        bump = workflow.split("\n  bump:\n", maxsplit=1)[1].split("\n  produce:\n", maxsplit=1)[0]
-        publish = workflow.split("\n  publish:\n", maxsplit=1)[1]
-        for job in (bump, publish):
-            with self.subTest(job=job.split("\n", maxsplit=1)[0]):
-                checkout = job.split("- uses: actions/checkout@v7\n", maxsplit=1)[1].split(
-                    "\n\n", maxsplit=1
-                )[0]
-                self.assertIn("ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}", checkout)
-                self.assertIn("environment: official-release", job)
+        release = workflow.split("\n  release:\n", maxsplit=1)[1]
+        checkout = release.split("- uses: actions/checkout@v7\n", maxsplit=1)[1].split("\n\n", maxsplit=1)[0]
+        self.assertIn("ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}", checkout)
+        self.assertIn("environment: official-release", release)
 
         documentation = (ROOT / "docs" / "release" / "official-release.md").read_text(
             encoding="utf-8"

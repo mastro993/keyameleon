@@ -63,7 +63,6 @@ jobs:
           RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
           set -euo pipefail
-          chmod +x Scripts/*.sh
           VERSION="$(python3 Scripts/release-version.py "${RELEASE_TYPE}")"
           TAG="v${VERSION}"
           ./Scripts/verify-official-release-tag.sh "$TAG"
@@ -83,28 +82,56 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          chmod +x Scripts/*.sh
           ./Scripts/wait-for-ci.sh "${{ github.sha }}"
 
-  bump:
-    name: Commit Official Release version
+  release:
+    name: Official Release
     needs: verify
     runs-on: macos-26
     environment: official-release
     permissions:
-      contents: read
-    outputs:
-      commit: ${{ steps.bump.outputs.commit }}
+      actions: read
+      contents: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
+      - name: Restore saved release artifacts on retry
+        id: saved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          TAG: ${{ needs.verify.outputs.tag }}
+        run: |
+          set -euo pipefail
+          artifact_name="official-release-${VERSION}"
+          artifact_id="$(gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+            | jq -r --arg name "${artifact_name}" '[.[].artifacts[] | select(.name == $name)] |
+              if length == 0 then ""
+              elif length != 1 or .[0].expired then error("saved release artifact is ambiguous or expired")
+              else .[0].id end')"
+          if [[ -n "${artifact_id}" ]]; then
+            gh run download "${GITHUB_RUN_ID}" --name "${artifact_name}" --dir dist
+            echo "restored=true" >> "$GITHUB_OUTPUT"
+          else
+            remote_tag="$(git ls-remote --tags origin "refs/tags/${TAG}")"
+            test -z "${remote_tag}"
+            release_id="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" \
+              --jq '.[] | select(.tag_name == "'"${TAG}"'") | .id')"
+            test -z "${release_id}"
+            echo "restored=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install XcodeGen
+        if: steps.saved.outputs.restored != 'true'
         run: brew install xcodegen
 
       - name: Install SwiftLint 0.65.1
+        if: steps.saved.outputs.restored != 'true'
         run: |
           set -euo pipefail
           swiftlint_dir="${RUNNER_TEMP}/swiftlint"
@@ -124,6 +151,7 @@ jobs:
           RELEASE_TYPE: ${{ inputs.release_type }}
           SOURCE_SHA: ${{ github.sha }}
           VERSION: ${{ needs.verify.outputs.version }}
+          RESTORED: ${{ steps.saved.outputs.restored }}
         run: |
           set -euo pipefail
           expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
@@ -145,6 +173,11 @@ jobs:
               exit 0
             fi
             echo "main changed before the release bump; dispatch again from current main" >&2
+            exit 1
+          fi
+
+          if [[ "${RESTORED}" == "true" ]]; then
+            echo "saved artifacts require the pushed release bump commit" >&2
             exit 1
           fi
 
@@ -171,6 +204,7 @@ jobs:
           echo "reused=false" >> "$GITHUB_OUTPUT"
 
       - name: Test version commit
+        if: steps.saved.outputs.restored != 'true'
         run: |
           ./Scripts/run.sh test
           git diff --exit-code
@@ -179,25 +213,8 @@ jobs:
         if: steps.bump.outputs.reused != 'true'
         run: git push origin "HEAD:${{ github.event.repository.default_branch }}"
 
-  produce:
-    name: Produce Official Release artifacts
-    needs:
-      - verify
-      - bump
-    runs-on: macos-26
-    environment: official-release
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.bump.outputs.commit }}
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
       - name: Produce signed, notarized, stapled artifacts
+        if: steps.saved.outputs.restored != 'true'
         env:
           RELEASE_TAG: ${{ needs.verify.outputs.tag }}
           APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64 }}
@@ -210,13 +227,13 @@ jobs:
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
           CODESIGN_IDENTITY: ${{ vars.CODESIGN_IDENTITY }}
         run: |
-          chmod +x Scripts/*.sh
           if [[ -z "${CODESIGN_IDENTITY}" ]]; then
             unset CODESIGN_IDENTITY
           fi
           ./Scripts/official-release.sh
 
       - name: Check installed feed URL and complete artifact bundle
+        if: steps.saved.outputs.restored != 'true'
         env:
           VERSION: ${{ needs.verify.outputs.version }}
         run: |
@@ -229,7 +246,24 @@ jobs:
           evidence_feed="$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["feedURLString"])')"
           test "$installed_feed" = "$evidence_feed"
 
+      - name: Require complete artifact bundle
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          COMMIT: ${{ steps.bump.outputs.commit }}
+        run: |
+          set -euo pipefail
+          test -s "dist/Keyameleon-${VERSION}.dmg"
+          test -s dist/appcast.xml
+          test -s dist/release-evidence.json
+          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["gitCommit"])')" = "$COMMIT"
+          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["tag"])')" = "$TAG"
+          python3 Scripts/verify-release-appcast.py \
+            --appcast dist/appcast.xml --evidence dist/release-evidence.json \
+            --artifact "dist/Keyameleon-${VERSION}.dmg"
+
       - name: Upload workflow artifacts
+        if: steps.saved.outputs.restored != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: official-release-${{ needs.verify.outputs.version }}
@@ -239,53 +273,15 @@ jobs:
             dist/release-evidence.json
           if-no-files-found: error
 
-  publish:
-    name: Publish Official Release
-    needs:
-      - verify
-      - bump
-      - produce
-    runs-on: ubuntu-latest
-    environment: official-release
-    permissions:
-      contents: write
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.bump.outputs.commit }}
-          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
-
-      - name: Download exact produced artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: official-release-${{ needs.verify.outputs.version }}
-          path: dist
-
-      - name: Require complete artifact bundle
-        env:
-          VERSION: ${{ needs.verify.outputs.version }}
-          TAG: ${{ needs.verify.outputs.tag }}
-          COMMIT: ${{ needs.bump.outputs.commit }}
-        run: |
-          set -euo pipefail
-          test -s "dist/Keyameleon-${VERSION}.dmg"
-          test -s dist/appcast.xml
-          test -s dist/release-evidence.json
-          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["gitCommit"])')" = "$COMMIT"
-          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["tag"])')" = "$TAG"
-
       - name: Prepare Official Release tag and notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           VERSION: ${{ needs.verify.outputs.version }}
           TAG: ${{ needs.verify.outputs.tag }}
-          COMMIT: ${{ needs.bump.outputs.commit }}
+          COMMIT: ${{ steps.bump.outputs.commit }}
         run: |
           set -euo pipefail
-          chmod +x Scripts/*.sh
           # The notes script excludes TAG if this job is resuming after the tag
           # was created but before the GitHub Release was published.
           CHANGES="$(./Scripts/official-release-notes.sh --tag "$TAG" --head "${{ github.sha }}")"
@@ -319,7 +315,7 @@ jobs:
       - name: Publish Sparkle appcast and permanent evidence to GitHub Pages
         env:
           TAG: ${{ needs.verify.outputs.tag }}
-          COMMIT: ${{ needs.bump.outputs.commit }}
+          COMMIT: ${{ steps.bump.outputs.commit }}
           VERSION: ${{ needs.verify.outputs.version }}
         run: |
           set -euo pipefail
@@ -337,13 +333,11 @@ jobs:
           archive="Keyameleon-${VERSION}.dmg"
           tag="v${VERSION}"
           evidence_url="https://mastro993.github.io/keyameleon/releases/${tag}/release-evidence.json"
-          public_url="https://github.com/mastro993/Keyameleon/releases/download/${tag}/${archive}"
           for attempt in {1..20}; do
             if curl -fsSL -o "$RUNNER_TEMP/published-appcast.xml" "$feed_url" 2>/dev/null && \
               cmp -s "$RUNNER_TEMP/published-appcast.xml" dist/appcast.xml && \
               curl -fsSL -o "$RUNNER_TEMP/published-evidence.json" "$evidence_url" 2>/dev/null && \
               cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json && \
-              curl -fLsS -o "$RUNNER_TEMP/release-asset/${archive}" "$public_url" 2>/dev/null && \
               python3 Scripts/verify-release-appcast.py \
                 --appcast "$RUNNER_TEMP/published-appcast.xml" \
                 --expected-appcast dist/appcast.xml \
