@@ -54,7 +54,8 @@ group, and one Physical Keyboard row.
   shows neither empty state and keeps the persistence notice and Retry instead.
 - About shows the app icon, name, and tagline, then information rows for version,
   source code, app data folder, logs folder, license, and updates, then the
-  Sparkle acknowledgement and the creator credit. Folder rows show a selectable
+  Sparkle acknowledgement, and the creator credit as the last content block, so
+  it scrolls with the pane rather than pinning to the window. Folder rows show a selectable
   path with Open in Finder. License rows open the bundled texts and are disabled
   when the build does not carry them. Updates is disabled while Sparkle cannot
   check. The version is read from the bundle and shows the build number.

@@ -18,10 +18,10 @@ struct KeyameleonAboutSettingsPane: View {
                 identity
                 information
                 acknowledgements
+                creatorCredit
             }
             .padding(KeyameleonTheme.Metrics.panePadding)
         }
-        .safeAreaInset(edge: .bottom) { creatorCredit }
     }
 
     private var identity: some View {
@@ -125,7 +125,7 @@ struct KeyameleonAboutSettingsPane: View {
                     .font(.callout)
             }
         }
-        .padding(.bottom, KeyameleonTheme.Metrics.panePadding.bottom)
+        .frame(maxWidth: .infinity)
     }
 
     /// A bundled license text, or a disabled label when the build does not carry it.
