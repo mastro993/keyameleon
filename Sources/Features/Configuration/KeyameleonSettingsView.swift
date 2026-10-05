@@ -29,6 +29,9 @@ struct KeyameleonSettingsView: View {
                 pane
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            // The design starts the pane at the window top and keeps its own 24 pt inset,
+            // so the pane does not take the title bar's safe area on top of that.
+            .ignoresSafeArea(edges: .top)
             .background(KeyameleonTheme.contentBackground, ignoresSafeAreaEdges: .all)
         }
         .frame(minWidth: KeyameleonTheme.Metrics.settingsWindowMinimumWidth)
