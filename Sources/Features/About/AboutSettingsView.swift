@@ -121,6 +121,7 @@ struct AboutSettingsPane: View {
                 Text("@fedemas")
                     .font(Theme.Typography.caption)
             }
+            .pointingHandCursor()
         }
         .frame(maxWidth: .infinity)
     }

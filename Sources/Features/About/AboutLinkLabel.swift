@@ -17,6 +17,7 @@ struct AboutLinkLabel: View {
         }
         .foregroundStyle(Theme.accent)
         .contentShape(.rect)
+        .pointingHandCursor()
     }
 }
 
