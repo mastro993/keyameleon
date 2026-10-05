@@ -63,9 +63,9 @@ struct KeyboardAssignmentPickerView: View {
 #if DEBUG
 #Preview("Input Source picker") {
     KeyboardAssignmentPickerView(
-        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(),
+        physicalKeyboard: PreviewFixtures.physicalKeyboard(),
         filteredInputSources: { query in
-            KeyameleonPreviewFixtures.inputSources().filter {
+            PreviewFixtures.inputSources().filter {
                 query.isEmpty || $0.name.localizedCaseInsensitiveContains(query)
             }
         },
@@ -76,7 +76,7 @@ struct KeyboardAssignmentPickerView: View {
 
 #Preview("Input Source picker empty") {
     KeyboardAssignmentPickerView(
-        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(name: "HHKB Professional"),
+        physicalKeyboard: PreviewFixtures.physicalKeyboard(name: "HHKB Professional"),
         filteredInputSources: { _ in [] },
         onSelect: { _ in },
         onCancel: {}

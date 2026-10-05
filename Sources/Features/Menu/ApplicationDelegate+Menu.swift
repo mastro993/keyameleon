@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-extension KeyameleonApplicationDelegate {
+extension ApplicationDelegate {
     var menuBarStatusItem: NSStatusItem? {
         statusItem
     }
@@ -42,9 +42,9 @@ extension KeyameleonApplicationDelegate {
         return item
     }
 
-    func makeMenuBarPanelController() -> KeyameleonMenuBarPanelController {
-        KeyameleonMenuBarPanelController(
-            rootView: KeyameleonMenuBarPanelView(
+    func makeMenuBarPanelController() -> MenuBarPanelController {
+        MenuBarPanelController(
+            rootView: MenuBarPanelView(
                 setupModel: setupModel,
                 switching: activityTriggeredSwitching,
                 actions: makeMenuBarPanelActions()

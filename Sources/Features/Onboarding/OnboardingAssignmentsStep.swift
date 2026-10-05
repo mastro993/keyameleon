@@ -2,10 +2,10 @@ import SwiftUI
 
 @MainActor
 struct OnboardingAssignmentsStep: View {
-    let model: KeyameleonSetupModel
-    let rows: [OnboardingPhysicalKeyboardRow]
-    let onExclude: (PhysicalKeyboardRecordID) -> Void
-    let onIncludeAgain: (String) -> Void
+    let model: SetupModel
+    let rows: [PhysicalKeyboardRow]
+    let onIgnore: (PhysicalKeyboardRecordID) -> Void
+    let onStopIgnoring: (String) -> Void
 
     static let switchingNote = "Switching follows keyboard activity. "
         + "Initial key presses may still use the previous Input Source."
@@ -23,9 +23,9 @@ struct OnboardingAssignmentsStep: View {
                 .lineSpacing(2)
                 .padding(.vertical, 1)
                 .foregroundStyle(OnboardingPalette.secondary)
-            VStack(spacing: 0) {
+            InsetGroup {
                 if rows.isEmpty {
-                    Text(model.persistenceError == nil
+                    Text(!model.hasPersistenceFailure
                         ? "Connect a Physical Keyboard to add a Keyboard Assignment."
                         : "Retry to load saved Physical Keyboards.")
                         .foregroundStyle(OnboardingPalette.secondary)
@@ -33,22 +33,19 @@ struct OnboardingAssignmentsStep: View {
                         .padding(20)
                 }
                 ForEach(rows) { row in
-                    OnboardingKeyboardRow(
+                    PhysicalKeyboardRowView(
                         row: row,
                         model: model,
-                        onExclude: onExclude,
-                        onIncludeAgain: onIncludeAgain
+                        rowPadding: Theme.Metrics.onboardingKeyboardRowPadding,
+                        onIgnore: onIgnore,
+                        onStopIgnoring: onStopIgnoring
                     )
-                    .overlay(alignment: .top) {
-                        if row.id != rows.first?.id {
-                            OnboardingPalette.border.frame(height: 1)
-                                .padding(.leading, 22)
-                        }
-                    }
+                    .keyameleonGroupSeparator(
+                        row.id != rows.first?.id,
+                        inset: Theme.Metrics.onboardingKeyboardRowPadding.leading
+                    )
                 }
             }
-            .background(OnboardingPalette.background, in: .rect(cornerRadius: 16))
-            .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(OnboardingPalette.border) }
             Text(Self.switchingNote)
                 .font(.callout)
                 .foregroundStyle(OnboardingPalette.muted)
@@ -58,17 +55,17 @@ struct OnboardingAssignmentsStep: View {
 
 #if DEBUG
 #Preview("Assignment table") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
+    let fixture = PreviewFixtures.setup(.assignmentsPopulated)
     OnboardingAssignmentsStep(
         model: fixture.model,
-        rows: OnboardingPhysicalKeyboardRows(
+        rows: PhysicalKeyboardRows(
             physicalKeyboards: fixture.model.physicalKeyboards,
             exclusions: fixture.model.excludedPhysicalKeyboards,
             savedRecords: fixture.model.savedPhysicalKeyboardRecords,
             exclusionKeyFor: fixture.model.exclusionKey(for:)
         ).rows,
-        onExclude: { _ in },
-        onIncludeAgain: { _ in }
+        onIgnore: { _ in },
+        onStopIgnoring: { _ in }
     )
     .frame(width: 630)
 }

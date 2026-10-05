@@ -1,4 +1,11 @@
-struct OnboardingPhysicalKeyboardRow: Identifiable, Equatable {
+import Foundation
+
+/// One row of a Physical Keyboard list, shared by Guided setup and Settings.
+///
+/// A row keeps its identity while the keyboard it shows connects, disconnects,
+/// gets renamed, or is ignored, so neither flow reorders under the person's
+/// hands. Included and ignored keyboards take the same row.
+struct PhysicalKeyboardRow: Identifiable, Equatable {
     enum SavedRecordSelection: Equatable {
         case matched(SavedPhysicalKeyboardRecord)
         case missing
@@ -64,8 +71,9 @@ struct OnboardingPhysicalKeyboardRow: Identifiable, Equatable {
     }
 }
 
-struct OnboardingPhysicalKeyboardRows: Equatable {
-    private(set) var rows: [OnboardingPhysicalKeyboardRow] = []
+/// The reconciled Physical Keyboard rows one list draws.
+struct PhysicalKeyboardRows: Equatable {
+    private(set) var rows: [PhysicalKeyboardRow] = []
 
     @MainActor
     init(
@@ -79,6 +87,17 @@ struct OnboardingPhysicalKeyboardRows: Equatable {
             exclusions: exclusions,
             savedRecords: savedRecords,
             exclusionKeyFor: exclusionKeyFor
+        )
+    }
+
+    /// Reconciles against the setup model's current Physical Keyboard state.
+    @MainActor
+    mutating func reconcile(with model: SetupModel) {
+        reconcile(
+            physicalKeyboards: model.physicalKeyboards,
+            exclusions: model.excludedPhysicalKeyboards,
+            savedRecords: model.savedPhysicalKeyboardRecords,
+            exclusionKeyFor: model.exclusionKey(for:)
         )
     }
 
@@ -97,7 +116,7 @@ struct OnboardingPhysicalKeyboardRows: Equatable {
             uniquingKeysWith: { _, latest in latest }
         )
         var consumedKeyboardIDs: Set<PhysicalKeyboardRecordID> = []
-        var reconciledRows: [OnboardingPhysicalKeyboardRow] = []
+        var reconciledRows: [PhysicalKeyboardRow] = []
 
         for var row in rows {
             if let key = row.exclusionKey, let exclusion = exclusionsByKey[key] {
@@ -143,7 +162,7 @@ struct OnboardingPhysicalKeyboardRows: Equatable {
         from candidates: [(keyboard: PhysicalKeyboard, exclusionKey: String?)],
         exclusionsByKey: [String: SavedPhysicalKeyboardExclusion],
         consumedKeyboardIDs: Set<PhysicalKeyboardRecordID>
-    ) -> [OnboardingPhysicalKeyboardRow] {
+    ) -> [PhysicalKeyboardRow] {
         candidates.compactMap { candidate in
             guard !consumedKeyboardIDs.contains(candidate.keyboard.id),
                   candidate.exclusionKey.flatMap({ exclusionsByKey[$0] }) == nil
@@ -151,7 +170,7 @@ struct OnboardingPhysicalKeyboardRows: Equatable {
                 return nil
             }
 
-            return OnboardingPhysicalKeyboardRow(
+            return PhysicalKeyboardRow(
                 physicalKeyboard: candidate.keyboard,
                 exclusionKey: candidate.exclusionKey
             )
@@ -160,14 +179,14 @@ struct OnboardingPhysicalKeyboardRows: Equatable {
 
     private func missingExclusionRows(
         _ exclusions: [SavedPhysicalKeyboardExclusion],
-        from rows: [OnboardingPhysicalKeyboardRow],
+        from rows: [PhysicalKeyboardRow],
         savedRecords: [SavedPhysicalKeyboardRecord]
-    ) -> [OnboardingPhysicalKeyboardRow] {
+    ) -> [PhysicalKeyboardRow] {
         exclusions.compactMap { exclusion in
             guard !rows.contains(where: { $0.exclusionKey == exclusion.key }) else {
                 return nil
             }
-            return OnboardingPhysicalKeyboardRow(
+            return PhysicalKeyboardRow(
                 exclusion: exclusion,
                 savedRecord: savedRecordSelection(for: exclusion.key, anchoredTo: nil, in: savedRecords)
             )
@@ -178,7 +197,7 @@ struct OnboardingPhysicalKeyboardRows: Equatable {
         for exclusionKey: String,
         anchoredTo keyboardID: PhysicalKeyboardRecordID?,
         in savedRecords: [SavedPhysicalKeyboardRecord]
-    ) -> OnboardingPhysicalKeyboardRow.SavedRecordSelection {
+    ) -> PhysicalKeyboardRow.SavedRecordSelection {
         let matches = savedRecords.filter {
             PhysicalKeyboardExclusionKey.key(for: $0.recordID) == exclusionKey
         }

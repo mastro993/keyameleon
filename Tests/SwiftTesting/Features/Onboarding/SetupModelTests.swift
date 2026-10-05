@@ -13,7 +13,7 @@ func hiddenConnectionUpdatesDespiteSavedRecordReadFailure() throws {
         throw CocoaError(.fileReadNoPermission)
     })
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
@@ -35,7 +35,7 @@ func hiddenConnectionUpdatesDespiteSavedRecordReadFailure() throws {
 @MainActor
 func firstLaunchChecksListenPermissionWithoutRequestingIt() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .unknown)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -58,7 +58,7 @@ func requestPermissionKeepsDeniedStatusAndDoesNotCompleteSetup() {
     )
     let setupStore = SetupModelTestSetupDecisionStore()
     let settingsOpener = SetupModelTestSystemSettingsOpener()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         systemSettingsOpener: settingsOpener
@@ -84,7 +84,7 @@ func requestPermissionDoesNotOpenSystemSettingsWhenListenPermissionIsGranted() {
         stateAfterRequest: .granted
     )
     let settingsOpener = SetupModelTestSystemSettingsOpener()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: settingsOpener
@@ -123,7 +123,7 @@ func infoPlistDeclaresInputMonitoringUsageDescription() throws {
 @MainActor
 func checkAgainRefreshesPermissionWithoutRequestingIt() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .denied)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -144,7 +144,7 @@ func checkAgainRefreshesPermissionWithoutRequestingIt() {
 func permissionCannotBeSkippedWithoutAccess() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .denied)
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -164,7 +164,7 @@ func permissionCannotBeSkippedWithoutAccess() {
 @MainActor
 func completingSetupWithoutAssignmentsRecordsCompletion() {
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -183,7 +183,7 @@ func completingSetupWithoutAssignmentsRecordsCompletion() {
 @MainActor
 func beginGuidedSetupAdvancesWhenListenPermissionIsGranted() {
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -202,7 +202,7 @@ func beginGuidedSetupAdvancesWhenListenPermissionIsGranted() {
 func relaunchAfterListenPermissionGrantResumesAtAssignments() {
     let setupStore = SetupModelTestSetupDecisionStore()
     setupStore.markGuidedSetupStep(.permission)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -219,7 +219,7 @@ func relaunchAfterListenPermissionGrantResumesAtAssignments() {
 func checkAgainAdvancesGuidedSetupWhenListenPermissionIsGranted() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .denied)
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -240,7 +240,7 @@ func checkAgainAdvancesGuidedSetupWhenListenPermissionIsGranted() {
 @MainActor
 func completingSetupNotifiesOnce() {
     var completionCount = 0
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -278,7 +278,7 @@ func interruptedSetupRestoresCompletedDecisionsAndResumesIncompleteStep() {
     )
 
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -432,7 +432,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
     let defaults = try #require(UserDefaults(suiteName: name))
     defer { defaults.removePersistentDomain(forName: name) }
     let firstStore = UserDefaultsSetupDecisionStore(defaults: defaults)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: firstStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -441,7 +441,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
     model.continueToReady()
     #expect(UserDefaultsSetupDecisionStore(defaults: defaults).guidedSetupStep == .ready)
 
-    let resumed = KeyameleonSetupModel(
+    let resumed = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
         setupStore: UserDefaultsSetupDecisionStore(defaults: defaults),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -451,7 +451,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
     #expect(!resumed.isSetupComplete)
     resumed.completeSetup(destination: .menuBar)
     defaults.set(GuidedSetupStep.permission.rawValue, forKey: "keyameleon.guidedSetup.step")
-    let historical = KeyameleonSetupModel(
+    let historical = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
         setupStore: UserDefaultsSetupDecisionStore(defaults: defaults),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -465,7 +465,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
 func readyBackKeepsAssignmentsAndCompletesOnce() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -501,7 +501,7 @@ func closingPermissionPresentationStopsPolling() async throws {
     let permission = SetupModelTestListenPermissionProvider(
         state: .denied, stateAfterRequest: .denied
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permission,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()

@@ -4491,11 +4491,9 @@
           "height": 560,
           "fill": "$settings-background",
           "layout": "vertical",
-          "gap": "$space-28",
+          "gap": "$space-20",
           "padding": [
             "$space-24",
-            "$space-30",
-            "$space-28",
             "$space-30"
           ],
           "children": [
@@ -4506,12 +4504,7 @@
               "width": "fill_container",
               "layout": "vertical",
               "gap": "$space-10",
-              "padding": [
-                "$space-14",
-                "$space-0",
-                "$space-0",
-                "$space-0"
-              ],
+              "padding": "$space-0",
               "children": [
                 {
                   "type": "text",
@@ -4522,7 +4515,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "frame",
@@ -4606,21 +4599,21 @@
                       ]
                     }
                   ]
-                },
-                {
-                  "type": "text",
-                  "id": "R51Yh",
-                  "name": "Menu bar help",
-                  "fill": "$text-secondary",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Keyameleon runs quietly in your menu bar.",
-                  "lineHeight": "$leading-callout",
-                  "fontFamily": "$font-sans",
-                  "fontSize": "$type-callout",
-                  "fontWeight": "$weight-regular"
                 }
               ]
+            },
+            {
+              "type": "text",
+              "id": "R51Yh",
+              "name": "Menu bar help",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Keyameleon runs quietly in your menu bar.",
+              "lineHeight": "$leading-callout",
+              "fontFamily": "$font-sans",
+              "fontSize": "$type-callout",
+              "fontWeight": "$weight-regular"
             }
           ]
         },
@@ -4634,11 +4627,9 @@
           "height": 560,
           "fill": "$settings-background",
           "layout": "vertical",
-          "gap": "$space-24",
+          "gap": "$space-20",
           "padding": [
             "$space-24",
-            "$space-30",
-            "$space-28",
             "$space-30"
           ],
           "children": [
@@ -4659,7 +4650,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "text",
@@ -4695,10 +4686,8 @@
                   "name": "MacBook Keyboard",
                   "width": "fill_container",
                   "gap": "$space-16",
-                  "padding": [
-                    "$space-18",
-                    "$space-22"
-                  ],
+                  "padding": "$space-16",
+                  "justifyContent": "space_between",
                   "alignItems": "center",
                   "children": [
                     {
@@ -4769,7 +4758,7 @@
                     "$space-0",
                     "$space-0",
                     "$space-0",
-                    "$space-22"
+                    "$space-16"
                   ],
                   "children": [
                     {
@@ -4789,10 +4778,8 @@
                   "name": "Office Keyboard",
                   "width": "fill_container",
                   "gap": "$space-16",
-                  "padding": [
-                    "$space-18",
-                    "$space-22"
-                  ],
+                  "padding": "$space-16",
+                  "justifyContent": "space_between",
                   "alignItems": "center",
                   "children": [
                     {
@@ -4904,7 +4891,7 @@
                     "$space-0",
                     "$space-0",
                     "$space-0",
-                    "$space-22"
+                    "$space-16"
                   ],
                   "children": [
                     {
@@ -4925,10 +4912,8 @@
                   "context": "Ignored keyboard: labels and layout picker dimmed, saved assignment retained. More actions menu remains enabled; Stop ignoring restores inclusion.",
                   "width": "fill_container",
                   "gap": "$space-16",
-                  "padding": [
-                    "$space-18",
-                    "$space-22"
-                  ],
+                  "padding": "$space-16",
+                  "justifyContent": "space_between",
                   "alignItems": "center",
                   "children": [
                     {
@@ -5041,7 +5026,7 @@
                     "$space-0",
                     "$space-0",
                     "$space-0",
-                    "$space-22"
+                    "$space-16"
                   ],
                   "children": [
                     {
@@ -5062,10 +5047,8 @@
                   "context": "No custom name. Title uses product name; subtitle shows connection status only.",
                   "width": "fill_container",
                   "gap": "$space-16",
-                  "padding": [
-                    "$space-18",
-                    "$space-22"
-                  ],
+                  "padding": "$space-16",
+                  "justifyContent": "space_between",
                   "alignItems": "center",
                   "children": [
                     {
@@ -5198,8 +5181,6 @@
           "gap": "$space-20",
           "padding": [
             "$space-24",
-            "$space-30",
-            "$space-28",
             "$space-30"
           ],
           "children": [
@@ -5250,7 +5231,7 @@
                       "lineHeight": "$leading-title-2",
                       "fontFamily": "$font-sans",
                       "fontSize": "$type-title-2",
-                      "fontWeight": "$weight-bold"
+                      "fontWeight": "$weight-medium"
                     },
                     {
                       "type": "text",
@@ -5284,7 +5265,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "frame",
@@ -5298,7 +5279,7 @@
                   "layout": "vertical",
                   "padding": [
                     "$space-0",
-                    "$space-14"
+                    "$space-16"
                   ],
                   "children": [
                     {
@@ -5729,7 +5710,7 @@
                   "lineHeight": "$leading-body",
                   "fontFamily": "$font-sans",
                   "fontSize": "$type-headline",
-                  "fontWeight": "$weight-bold"
+                  "fontWeight": "$weight-medium"
                 },
                 {
                   "type": "frame",
@@ -5744,7 +5725,7 @@
                   "strokeWidth": "$stroke-1",
                   "padding": [
                     "$space-0",
-                    "$space-14"
+                    "$space-16"
                   ],
                   "justifyContent": "space_between",
                   "alignItems": "center",
@@ -5931,6 +5912,10 @@
             },
             "QzudY": {
               "theme": {}
+            },
+            "QzudY/SCBRa": {
+              "fontStyle": "normal",
+              "fontWeight": "500"
             }
           }
         }
@@ -6666,6 +6651,296 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "mhPST",
+      "x": 4132,
+      "y": 3559,
+      "name": "Onboarding / 2 Keyboards / Empty",
+      "reusable": true,
+      "clip": true,
+      "width": 1000,
+      "height": 750,
+      "fill": "$bg-window",
+      "cornerRadius": "$radius-16",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "aOpf3",
+          "type": "ref",
+          "ref": "zq0o4",
+          "name": "Keyboards · Empty state",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "M17uD": {
+              "content": "Connect a keyboard to this Mac to choose its Input Source. You can also set this up later in Settings."
+            },
+            "Frc4Y": {
+              "type": "frame",
+              "id": "fvIbE",
+              "name": "No keyboards detected",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": "$space-16",
+              "padding": "$space-32",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "w4h7Og",
+                  "type": "ref",
+                  "ref": "miFYo",
+                  "name": "Keyboard symbol",
+                  "width": 48,
+                  "height": 30.18,
+                  "descendants": {
+                    "T0hkh": {
+                      "fill": "$text-secondary",
+                      "width": 48,
+                      "height": 30.14
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "Nt5FH",
+                  "name": "Connection guidance",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": "$space-8",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Z74EJ",
+                      "name": "Empty state title",
+                      "fill": "$text-primary",
+                      "content": "No keyboards detected",
+                      "lineHeight": "$leading-title-2",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-title-2",
+                      "fontWeight": "$weight-semibold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SCGHm",
+                      "name": "Empty state guidance",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Plug in a USB keyboard or connect one via Bluetooth.\nYour keyboard will appear here when detected.",
+                      "lineHeight": "$leading-body-loose",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-body",
+                      "fontWeight": "$weight-regular"
+                    }
+                  ]
+                }
+              ]
+            },
+            "DaNNh": {
+              "enabled": false,
+              "width": 560
+            },
+            "Lu1Jw": {
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "SXazK",
+                  "name": "Empty state actions",
+                  "gap": "$space-28",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "R5poL",
+                      "type": "ref",
+                      "ref": "eWypo",
+                      "name": "Set Up Later",
+                      "descendants": {
+                        "p35zrj": {
+                          "content": "Set Up Later"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Ywe6h",
+      "x": 4132,
+      "y": 4529,
+      "name": "Onboarding / Dark / 2 Keyboards / Empty",
+      "theme": {
+        "mode": "dark"
+      },
+      "clip": true,
+      "width": 1000,
+      "height": 750,
+      "fill": "$bg-window",
+      "cornerRadius": "$radius-16",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "WXjLp",
+          "type": "ref",
+          "ref": "mhPST",
+          "name": "Keyboards · Empty state · Shared layout",
+          "width": "fill_container",
+          "height": "fill_container",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "BloGV",
+      "x": 7921,
+      "y": 3514,
+      "name": "Settings / Keyboards / Empty",
+      "reusable": true,
+      "clip": true,
+      "width": 840,
+      "height": 560,
+      "fill": "$bg-window",
+      "cornerRadius": "$radius-14",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "rQmz7",
+          "type": "ref",
+          "ref": "dDMT9",
+          "name": "Keyboard settings · Empty state",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "x4jt96": {
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "LPjVx",
+                  "x": 0,
+                  "y": 0,
+                  "name": "SF Symbol layers",
+                  "enabled": false,
+                  "width": 17,
+                  "height": 17,
+                  "layout": "none"
+                }
+              ]
+            },
+            "QzudY/BPtiK": {
+              "type": "frame",
+              "id": "Sd4hd",
+              "name": "No keyboards detected",
+              "width": 560,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": "$space-16",
+              "padding": "$space-32",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "H0K6Q",
+                  "type": "ref",
+                  "ref": "miFYo",
+                  "name": "Keyboard symbol",
+                  "width": 48,
+                  "height": 30.18,
+                  "descendants": {
+                    "T0hkh": {
+                      "fill": "$text-secondary",
+                      "width": 48,
+                      "height": 30.14
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "FBekJ",
+                  "name": "Connection guidance",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": "$space-8",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "H7JDV",
+                      "name": "Empty state title",
+                      "fill": "$text-primary",
+                      "content": "No keyboards detected",
+                      "lineHeight": "$leading-title-2",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-title-2",
+                      "fontWeight": "$weight-semibold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "FRc2J",
+                      "name": "Empty state guidance",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Plug in a USB keyboard or connect one via Bluetooth.\nYour keyboard will appear here when detected.",
+                      "lineHeight": "$leading-body-loose",
+                      "textAlign": "center",
+                      "fontFamily": "$font-sans",
+                      "fontSize": "$type-body",
+                      "fontWeight": "$weight-regular"
+                    }
+                  ]
+                }
+              ]
+            },
+            "QzudY/yhyYG": {
+              "enabled": false,
+              "width": 560
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "b9e7lv",
+      "x": 7921,
+      "y": 4154,
+      "name": "Settings / Dark / Keyboards / Empty",
+      "theme": {
+        "mode": "dark"
+      },
+      "clip": true,
+      "width": 840,
+      "height": 560,
+      "fill": "$bg-window",
+      "cornerRadius": "$radius-14",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "eggYV",
+          "type": "ref",
+          "ref": "BloGV",
+          "name": "Keyboard settings · Empty state · Shared layout",
+          "width": "fill_container",
+          "height": "fill_container",
+          "theme": {
+            "mode": "dark"
+          }
         }
       ]
     }

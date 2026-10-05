@@ -15,11 +15,11 @@ audit_sources() {
     fi
 
     local log_pipeline_paths=(
-        Sources/Features/Shared/KeyameleonLog.swift
-        Sources/Features/Shared/KeyameleonLogFile.swift
-        Sources/Features/Shared/KeyameleonLogWriter.swift
-        Sources/Features/Shared/KeyameleonLogLevel.swift
-        Sources/Features/Shared/KeyameleonLogCategory.swift
+        Sources/Features/Shared/Log.swift
+        Sources/Features/Shared/LogFile.swift
+        Sources/Features/Shared/LogWriter.swift
+        Sources/Features/Shared/LogLevel.swift
+        Sources/Features/Shared/LogCategory.swift
     )
     local log_call_paths=(
         Sources/App/ApplicationDelegate.swift

@@ -1,5 +1,55 @@
 # Breadcrumbs
 
+## 2026-10-05 — Settings rebuilt from the Pencil design
+
+- Reported: the Settings window predated the Pencil designs for General,
+  Keyboards, and About, and carried its own navigation, cards, and colors.
+- Shell: `SettingsView` is a fixed 220 pt sidebar beside the selected
+  pane, with `SettingsSidebar` drawing the app identity and the
+  General/Keyboards/About items. The window hides its title, makes the content
+  full size, and keeps an 840 × 560 content minimum, so the sidebar sits under
+  the native traffic lights as the design draws it. The identity uses the
+  keycap-only `Keycap` asset; About keeps the app icon.
+- Metrics: the panes share one 24/30 inset and 20 pt block spacing, Settings
+  keyboard rows pack at 16 pt with a 16 pt separator inset, and information rows
+  take a 16 pt inset at the design's 39 pt height. Guided setup keeps its own
+  18/22 row padding, passed by the flow rather than baked into the shared row.
+- Theme: `Theme` carries the design's colors, type roles, and metrics, with three
+  new asset colors for the content pane, sidebar, and card surface.
+  `OnboardingPalette` now names the same tokens, so Guided setup and Settings
+  cannot drift. Section titles are `type-headline` medium, row titles
+  `type-body` medium, and the sidebar mark `type-body` semibold, so Settings no
+  longer bolds its headings. `InsetGroup` and `keyameleonGroupSeparator(_:)` are
+  the group and hairline both flows draw.
+- Keyboards: the pane renders `PhysicalKeyboardRowView` over
+  `PhysicalKeyboardRows`, the row and reconciled list that Guided setup used.
+  Both moved from `Sources/Features/Onboarding` to `Sources/Features/Shared` and
+  lost their onboarding names. Included and ignored keyboards stay in one group;
+  Ignore and Stop ignoring write immediately, and `reconcile(with:)` re-reads the
+  setup model. `PhysicalKeyboardNameSheet` moved to Shared with the row.
+- Panes: `GeneralSettingsPane` draws the Launch at login card, its explanation,
+  and the menu-bar line. `KeyboardSettingsPane` draws the introduction,
+  the shared group, the discovery note, and the `No keyboards detected` empty
+  state. `AboutSettingsPane` draws the identity, information rows,
+  Sparkle acknowledgement, and creator credit, with `BundledLicense`
+  opening `LICENSE.txt` and `Sparkle-LICENSE.txt`. `AppIdentity` now
+  reads `CFBundleVersion` for the About version and exposes `creatorURL`.
+- Deleted: the old Settings split view, `KeyboardSettingsView`,
+  `KeyboardSettingsRow`, `KeyboardSettingsRowView`, `KeyameleonCardSurface`,
+  `ManualPhysicalKeyboardDesignationNameSheet`, `AboutFolderRow`, and
+  `KeyboardSettingsRowTests`. Forget, Replace Saved Physical Keyboard, and Manual
+  Physical Keyboard Designation keep their model seams and tests without a
+  Settings entry point.
+- `GeneralSettingsModel` is `@MainActor @Observable`; Settings, About,
+  and the compact About window read it directly.
+- Tests: `SettingsSectionTests` covers both symbol variants,
+  `PhysicalKeyboardRowsTests` moves to Shared and gains the
+  `reconcile(with:)` case, `AppIdentityTests` covers the About version label, and
+  `BundledLicensesTests` covers both license URLs. All three panes were rendered
+  light and dark through `NSHostingView` and compared against the Pencil frames.
+- Docs: `docs/choices.md` entry for 2026-10-05 and `docs/testing.md` Settings
+  section.
+
 ## 2026-10-04 — Guided setup keyboard alignment
 
 - The Keyboards step keeps the Pencil paragraph, unheaded list, and inset
@@ -112,7 +162,7 @@
   catalogue, and `removeAllServices()` keeps the set across the stop that pause,
   lock, and sleep perform. Excluded devices therefore reach no consumer: no card,
   no Activation Activity, no Active Physical Keyboard, no connection log.
-- `KeyameleonSetupModel` gains `canExcludePhysicalKeyboard`,
+- `SetupModel` gains `canExcludePhysicalKeyboard`,
   `excludePhysicalKeyboard`, `restorePhysicalKeyboard`, and
   `excludedPhysicalKeyboards`, and filters a saved record of an excluded device
   out of the disconnected rows it publishes. A saved record stays excludable
@@ -143,7 +193,7 @@
   the path case as the cause and shows the appcast, version comparison, and
   EdDSA key all work.
 - Fixed in `project.yml`, `Sources/App/Info.plist`,
-  `KeyameleonUpdatePolicy.feedURLString`, `Scripts/write-release-evidence.sh`,
+  `UpdatePolicy.feedURLString`, `Scripts/write-release-evidence.sh`,
   `docs/release/official-release.md`, and `MEMORY.md`.
 - The release workflow now reads `SUFeedURL` back out of the archived app and
   requires the published feed to serve the released `<sparkle:version>` before
@@ -178,8 +228,8 @@
 - Removed the Operational Notifications subsystem end to end:
   `OperationalNotifications.swift` and `OperationalNotificationTests.swift` are
   deleted, along with the `operationalNotifications` parameter on
-  `ActivityTriggeredSwitching`, `KeyameleonSetupModel`,
-  `KeyameleonGeneralSettingsModel`, and the composition root.
+  `ActivityTriggeredSwitching`, `SetupModel`,
+  `GeneralSettingsModel`, and the composition root.
 - General Settings loses the Operational Notifications section: the authorization
   row, the Enable Notifications button, and the System Settings shortcut that
   opened notification settings. `NotificationSettingsOpening`,
@@ -188,7 +238,7 @@
 - `ActivityTriggeredSwitching` loses `hasKeyboardAssignment` and
   `refreshHasKeyboardAssignment()`, which existed only to gate the setup offer,
   plus `updateOperationalNotifications()` and its observer.
-- `KeyameleonSetupModel` loses `notificationAuthorizationState` and
+- `SetupModel` loses `notificationAuthorizationState` and
   `shouldOfferOperationalNotificationSetup`. Guided setup and Keyboard
   Assignment editing are unchanged.
 - `UserNotifications.framework` is no longer linked.
@@ -227,8 +277,8 @@
   `DiagnosticBundleReviewView.swift`, `KeyameleonDiagnosticWindowController.swift`,
   the About Diagnostics section, the Diagnostic Bundle review, and the dead
   `reviewDiagnostics`/`dismissDiagnosticsNotice` selectors.
-- Added `Sources/Features/Shared/KeyameleonLog.swift`: level and category enums, a
-  `KeyameleonLogWriter` value, the process-wide `KeyameleonLog`, and the rotating
+- Added `Sources/Features/Shared/Log.swift`: level and category enums, a
+  `LogWriter` value, the process-wide `Log`, and the rotating
   file writer.
 - Log call sites: launch, termination, record store failure, Launch at Login
   failure, update check, Active Physical Keyboard change, connect, disconnect,
@@ -241,7 +291,7 @@
   file, plus the store on the application delegate and the notice flag on the
   settings model. No launch tracks normal termination, and no launch opens About
   by itself.
-- Tests: `KeyameleonLogTests.swift` covers the line shape, size rotation, the
+- Tests: `LogTests.swift` covers the line shape, size rotation, the
   append-only writer, and silence until a writer is installed. Diagnostic-only
   tests are deleted, and the migration and designation tests no longer assert on
   diagnostic tokens.
@@ -348,7 +398,7 @@
 
 ## 2026-08-17 — Impl hang-after-pass
 
-- `startsApplicationSurfaceOnLaunch` + `KeyameleonHostedUnitTestProcess`.
+- `startsApplicationSurfaceOnLaunch` + `HostedUnitTestProcess`.
 - Test-only DI defaults: NoOp discoverer / event / Input Source change / lifecycle.
 - `run.sh` kills leftover `./build/**/Keyameleon.app/**` after each test `xcodebuild`.
 - ADR 0005. `docs/testing.md` updated.
@@ -383,7 +433,7 @@
 ## 2026-08-17 — Grill: CI hang vs suite rewrite
 
 - User claim: CI stuck for no reason → rewrite all test suites.
-- Fact: run 31839656616 — `KeyameleonApplicationTests` 10/10 pass, then `xcodebuild` idle until "timed out after 10 minutes." Orphan: `xcodebuild`, `SWBBuildService`, `DTServiceHub`. Last logs: NSStatusItem / Control Center scene teardown + `TCC deny IOHIDDeviceOpen`.
+- Fact: run 31839656616 — `ApplicationTests` 10/10 pass, then `xcodebuild` idle until "timed out after 10 minutes." Orphan: `xcodebuild`, `SWBBuildService`, `DTServiceHub`. Last logs: NSStatusItem / Control Center scene teardown + `TCC deny IOHIDDeviceOpen`.
 - CI #136 (PR #64, 2026-08-17): job annotation `The job has exceeded the maximum execution time of 8m0s`. Same class, now capped.
 - `ApplicationTests` host `Keyameleon.app`; `applicationDidFinishLaunching` always `activityTriggeredSwitching.start()` with default `SystemPhysicalKeyboardDiscoverer` + `SystemPhysicalKeyboardEventObserver` — unbounded CoreHID `for try await`.
 - `run.sh` already splits UI tests first: "delayed UI runner cannot hold completed product tests for 30 minutes."
@@ -525,7 +575,7 @@
 
 - Added `Sources/App/ActivityTriggeredSwitching.swift` and `Sources/Domain/ActivityTriggeredSwitchingOutcome.swift`.
 - Added shared Physical Keyboard discovery, Input Source, Physical Keyboard record change observation, and Operational Notification modules.
-- Added `KeyameleonProductionFactory` at the application composition root. SetupModel now owns management only; RootView and Daily Status read the canonical switching outcome.
+- Added `ProductionFactory` at the application composition root. SetupModel now owns management only; RootView and Daily Status read the canonical switching outcome.
 - Focused Swift Testing covers the preserved activation, convergence, recovery, lifecycle, pause, notification, and privacy behavior through deterministic adapter evidence.
 
 ## 2026-08-10 — Issue #19 Setup and accessibility qualification

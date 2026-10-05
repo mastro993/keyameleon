@@ -5,7 +5,7 @@ import Foundation
 /// This factory builds the shared internal modules once so SetupModel and
 /// Activity-Triggered Switching use the same discovery and Input Source.
 @MainActor
-struct KeyameleonActivityTriggeredSwitchingComposition {
+struct ActivityTriggeredSwitchingComposition {
     let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
     let inputSources: InputSourceModule
     let activityTriggeredSwitching: ActivityTriggeredSwitching
@@ -18,7 +18,7 @@ struct KeyameleonActivityTriggeredSwitchingComposition {
 }
 
 @MainActor
-enum KeyameleonProductionFactory {
+enum ProductionFactory {
     /// Builds the live application composition. Persistence adapters are passed
     /// in because the application owns their model containers.
     static func makeLiveComposition(
@@ -27,7 +27,7 @@ enum KeyameleonProductionFactory {
         designationStore: any ManualPhysicalKeyboardDesignationStoring,
         exclusionStore: any PhysicalKeyboardExclusionStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding
-    ) -> KeyameleonActivityTriggeredSwitchingComposition {
+    ) -> ActivityTriggeredSwitchingComposition {
         let inputSources = SystemInputSourceProvider()
         return makeActivityTriggeredSwitching(
             permissionProvider: SystemListenPermissionProvider(),
@@ -65,7 +65,7 @@ enum KeyameleonProductionFactory {
             InMemoryPhysicalKeyboardExclusionStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
             InMemoryInstallationIntegrityKeyProvider()
-    ) -> KeyameleonActivityTriggeredSwitchingComposition {
+    ) -> ActivityTriggeredSwitchingComposition {
         let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
         if let records = physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore,
            let designations = designationStore as? SwiftDataManualPhysicalKeyboardDesignationStore {
@@ -104,7 +104,7 @@ enum KeyameleonProductionFactory {
             integrityKeyProvider: integrityKeyProvider
         )
 
-        return KeyameleonActivityTriggeredSwitchingComposition(
+        return ActivityTriggeredSwitchingComposition(
             physicalKeyboardDiscovery: physicalKeyboardDiscovery,
             inputSources: inputSources,
             activityTriggeredSwitching: activityTriggeredSwitching,

@@ -13,8 +13,8 @@ struct MenuBarPanelActions {
 /// The popover supplies the panel glass. Content uses a compact header,
 /// assignment cards, and full-width action rows.
 @MainActor
-struct KeyameleonMenuBarPanelView: View {
-    private let setupModel: KeyameleonSetupModel
+struct MenuBarPanelView: View {
+    private let setupModel: SetupModel
     private let switching: ActivityTriggeredSwitching
     private let actions: MenuBarPanelActions
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -22,7 +22,7 @@ struct KeyameleonMenuBarPanelView: View {
     @FocusState private var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
 
     init(
-        setupModel: KeyameleonSetupModel,
+        setupModel: SetupModel,
         switching: ActivityTriggeredSwitching,
         actions: MenuBarPanelActions
     ) {
@@ -60,8 +60,7 @@ struct KeyameleonMenuBarPanelView: View {
                 )
             }
 
-            if content.assignmentList.emptyTitle == nil
-                || (setupModel.persistenceError == nil && switching.persistenceError == nil) {
+            if content.assignmentList.emptyTitle == nil || !setupModel.hasPersistenceFailure {
                 MenuBarAssignmentSection(
                     list: content.assignmentList,
                     emphasis: chrome.assignmentEmphasis,
@@ -219,18 +218,18 @@ struct MenuBarPanelHeader: View {
 
 #if DEBUG
 #Preview("Menu-bar panel") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
-    KeyameleonMenuBarPanelView(
+    let fixture = PreviewFixtures.setup(.assignmentsPopulated)
+    MenuBarPanelView(
         setupModel: fixture.model,
         switching: fixture.switching,
-        actions: KeyameleonPreviewFixtures.panelActions()
+        actions: PreviewFixtures.panelActions()
     )
 }
 
 #Preview("Menu-bar header") {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarPanelHeader(
-        openAction: KeyameleonPreviewFixtures.aboutAction(),
+        openAction: PreviewFixtures.aboutAction(),
         pausedMarker: nil,
         focusedTarget: $focusedTarget,
         perform: { _ in }
@@ -241,7 +240,7 @@ struct MenuBarPanelHeader: View {
 #Preview("Menu-bar header paused") {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarPanelHeader(
-        openAction: KeyameleonPreviewFixtures.aboutAction(),
+        openAction: PreviewFixtures.aboutAction(),
         pausedMarker: "(paused)",
         focusedTarget: $focusedTarget,
         perform: { _ in }

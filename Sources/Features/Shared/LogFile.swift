@@ -6,7 +6,7 @@ import Synchronization
 /// Each append is a single `write(2)` of one complete line against a descriptor
 /// opened `O_APPEND`, so a crash can truncate only the line in flight and
 /// concurrent emitters cannot interleave partial lines.
-final class KeyameleonLogFile: Sendable {
+final class LogFile: Sendable {
     static let activeFileName = "keyameleon.log"
     static let maximumFileByteCount = 1 << 20
     static let keptRotatedFileCount = 5
@@ -23,8 +23,8 @@ final class KeyameleonLogFile: Sendable {
 
     init(
         directory: URL,
-        maximumFileByteCount: Int = KeyameleonLogFile.maximumFileByteCount,
-        keptRotatedFileCount: Int = KeyameleonLogFile.keptRotatedFileCount,
+        maximumFileByteCount: Int = LogFile.maximumFileByteCount,
+        keptRotatedFileCount: Int = LogFile.keptRotatedFileCount,
         rotates: Bool = true
     ) {
         self.directory = directory
@@ -33,7 +33,7 @@ final class KeyameleonLogFile: Sendable {
         self.rotates = rotates
     }
 
-    func append(_ level: KeyameleonLogLevel, category: KeyameleonLogCategory, message: String) {
+    func append(_ level: LogLevel, category: LogCategory, message: String) {
         let line = Self.line(
             level: level,
             category: category,
@@ -130,8 +130,8 @@ final class KeyameleonLogFile: Sendable {
     }
 
     private static func line(
-        level: KeyameleonLogLevel,
-        category: KeyameleonLogCategory,
+        level: LogLevel,
+        category: LogCategory,
         message: String,
         maximumByteCount: Int
     ) -> String {

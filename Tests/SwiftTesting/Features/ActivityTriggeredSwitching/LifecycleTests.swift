@@ -690,7 +690,7 @@ func wakeAndUnlockDoNotSelectActiveKeyboardAssignment() throws {
 }
 
 @MainActor
-private func driveActivationActivity(serviceID: UInt64, on model: KeyameleonSetupModel) {
+private func driveActivationActivity(serviceID: UInt64, on model: SetupModel) {
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery
         .handlePhysicalKeyboardEventForTesting(
             PhysicalKeyboardEvent(serviceID: serviceID, kind: .press)
@@ -703,8 +703,8 @@ private func makeLifecycleModel(
     discoverer: SetupModelTestPhysicalKeyboardDiscoverer,
     selector: SetupModelTestInputSourceSelector = SetupModelTestInputSourceSelector(),
     setupStore: any SetupDecisionStoring = SetupModelTestSetupDecisionStore()
-) -> KeyameleonSetupModel {
-    KeyameleonSetupModel(
+) -> SetupModel {
+    SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

@@ -15,7 +15,7 @@ func selectionFailureLeavesNormalInputUnchangedAndOpensOneWarningEpisode() {
             EligibleInputSource(identifier: "com.example.other", name: "Other"),
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -60,7 +60,7 @@ func retryNowRetriesCurrentWantedKeyboardAssignment() {
             EligibleInputSource(identifier: "com.example.other", name: "Other"),
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -108,7 +108,7 @@ func laterAssignedActivationActivityReplacesWantedStateAndCanStartNewRequest() {
             EligibleInputSource(identifier: "com.example.other", name: "Other"),
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -170,7 +170,7 @@ func missingAssignedInputSourceBecomesUnavailableKeyboardAssignmentWithoutSelect
             EligibleInputSource(identifier: "com.example.other", name: "Other")
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -211,7 +211,7 @@ func exactInputSourceReturnEndsUnavailableConditionAndRestoresSwitching() {
             EligibleInputSource(identifier: "com.example.other", name: "Other")
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -254,7 +254,7 @@ func changeAssignmentAndRemoveAssignmentClearUnavailableKeyboardAssignment() {
             EligibleInputSource(identifier: "com.example.it", name: "Italian")
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -321,7 +321,7 @@ func unavailableActivationActivityClearsPriorSelectionFailureWarning() {
             EligibleInputSource(identifier: "com.example.other", name: "Other"),
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -385,7 +385,7 @@ func changeAssignmentClearsSelectionFailureWarningForThatWantedKeyboard() {
             EligibleInputSource(identifier: "com.example.other", name: "Other"),
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

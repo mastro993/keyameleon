@@ -6,7 +6,7 @@ import Testing
 func activationActivitySetsActivePhysicalKeyboard() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -33,7 +33,7 @@ func activationActivitySetsActivePhysicalKeyboard() {
 func releaseOnlyPhysicalKeyboardEventIsNotActivationActivity() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -59,7 +59,7 @@ func releaseOnlyPhysicalKeyboardEventIsNotActivationActivity() {
 func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadback() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -93,7 +93,7 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
 func unassignedAndUnsupportedActivationActivityDoesNotRequestInputSourceChange() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -132,7 +132,7 @@ func unassignedAndUnsupportedActivationActivityDoesNotRequestInputSourceChange()
 func verifiedAssignmentCoalescesFurtherActivationActivityWithoutReselect() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -169,7 +169,7 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
         current: "com.example.other",
         verifySuccess: false
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -205,7 +205,7 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
 @MainActor
 func activePhysicalKeyboardDoesNotChangeGuidedSetupOrder() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -252,7 +252,7 @@ func activePhysicalKeyboardDoesNotChangeGuidedSetupOrder() {
 func permissionRequiredStopsPhysicalKeyboardEventObservation() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .granted)
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -270,7 +270,7 @@ func permissionRequiredStopsPhysicalKeyboardEventObservation() {
 @Test("Switching outcome does not expose an unknown Input Source identifier")
 @MainActor
 func switchingOutcomeDoesNotExposeUnknownInputSourceIdentifier() {
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

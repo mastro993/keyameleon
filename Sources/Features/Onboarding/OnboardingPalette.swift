@@ -1,15 +1,16 @@
 import SwiftUI
 
+/// Guided setup's names for the shared design tokens.
 enum OnboardingPalette {
-    static let background = Color("OnboardingBackground")
-    static let primary = Color("OnboardingPrimary")
-    static let secondary = Color("OnboardingSecondary")
-    static let muted = Color("OnboardingMuted")
-    static let border = Color("OnboardingBorder")
-    static let surface = Color("OnboardingSurface")
-    static let chip = Color("OnboardingChip")
-    static let accent = Color("OnboardingAccent")
-    static let button = Color("OnboardingButton")
-    static let success = Color("OnboardingSuccess")
-    static let successText = Color("OnboardingSuccessText")
+    static let background = Theme.windowBackground
+    static let primary = Theme.primary
+    static let secondary = Theme.secondary
+    static let muted = Theme.muted
+    static let border = Theme.border
+    static let surface = Theme.surface
+    static let chip = Theme.chip
+    static let accent = Theme.accent
+    static let button = Theme.button
+    static let success = Theme.success
+    static let successText = Theme.successText
 }

@@ -94,7 +94,7 @@ func pauseStopsKeyContentObservationAndInputSourceRequests() {
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -145,7 +145,7 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
     let setupStore = SetupModelTestSetupDecisionStore()
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -163,7 +163,7 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
     model.activityTriggeredSwitching.pause()
     #expect(setupStore.isActivityTriggeredSwitchingPaused)
 
-    let restarted = KeyameleonSetupModel(
+    let restarted = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -184,7 +184,7 @@ func resumeRechecksListenPermissionBeforeObservationStarts() {
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let setupStore = SetupModelTestSetupDecisionStore()
     setupStore.setActivityTriggeredSwitchingPaused(true)
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -220,7 +220,7 @@ func resumeFromPausedWithPermissionStartsObservation() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .granted)
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -246,7 +246,7 @@ func resumeFromPausedWithPermissionStartsObservation() {
 func permissionRequiredBeatsPauseAfterResumeDenial() {
     let permissionProvider = SetupModelTestListenPermissionProvider(state: .granted)
     let setupStore = SetupModelTestSetupDecisionStore()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener()
@@ -267,7 +267,7 @@ func permissionRequiredBeatsPauseAfterResumeDenial() {
 @MainActor
 func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -316,7 +316,7 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
 func activeKeyboardAssignmentAndCurrentInputSourceMenuValues() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

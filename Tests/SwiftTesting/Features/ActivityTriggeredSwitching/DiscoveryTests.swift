@@ -361,7 +361,7 @@ func readySwitchingStatusStartsDiscoveryAndPublishesConfigurationChoices() {
             EligibleInputSource(identifier: "com.example.us", name: "U.S.")
         ]
     )
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: DiscoveryTestSetupDecisionStore(),
         systemSettingsOpener: DiscoveryTestSystemSettingsOpener(),
@@ -383,7 +383,7 @@ func readySwitchingStatusStartsDiscoveryAndPublishesConfigurationChoices() {
 func permissionRequiredStopsPhysicalKeyboardDiscovery() {
     let permissionProvider = DiscoveryTestListenPermissionProvider(state: .granted)
     let discoverer = TestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: DiscoveryTestSetupDecisionStore(),
         systemSettingsOpener: DiscoveryTestSystemSettingsOpener(),

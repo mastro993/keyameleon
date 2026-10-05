@@ -4,7 +4,7 @@ import Foundation
 /// Start the concrete switching module, then refresh its current adapters.
 /// Tests use the module outcome and internal adapter evidence directly.
 @MainActor
-func startAndCheck(_ model: KeyameleonSetupModel) {
+func startAndCheck(_ model: SetupModel) {
     if model.activityTriggeredSwitching.testingIsStarted {
         model.activityTriggeredSwitching.checkAgain()
     } else {
@@ -14,7 +14,7 @@ func startAndCheck(_ model: KeyameleonSetupModel) {
 
 @MainActor
 func isUnavailableKeyboardAssignment(
-    _ model: KeyameleonSetupModel,
+    _ model: SetupModel,
     for physicalKeyboardID: PhysicalKeyboardRecordID
 ) -> Bool {
     guard let keyboard = model.physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),

@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 struct PersistenceFailureNotice: View {
-    let model: KeyameleonSetupModel
+    let model: SetupModel
 
     var body: some View {
         if let message = model.persistenceError ?? model.activityTriggeredSwitching.persistenceError {
@@ -28,7 +28,7 @@ struct PersistenceFailureNotice: View {
     let session = SwiftDataPersistenceSession(openContainer: {
         throw CocoaError(.fileReadNoPermission)
     })
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: PreviewListenPermissionProvider(state: .granted),
         setupStore: PreviewSetupDecisionStore(
             hasStartedGuidedSetup: true, hasCompletedGuidedSetup: true,
@@ -38,8 +38,8 @@ struct PersistenceFailureNotice: View {
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )
-    KeyameleonKeyboardSettingsView(model: model)
+    KeyboardSettingsPane(model: model)
         .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: model) }
-        .frame(width: 560, height: 340)
+        .frame(width: 620, height: 340)
 }
 #endif

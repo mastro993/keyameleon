@@ -6,7 +6,7 @@ import Testing
 func physicalKeyboardNameDefaultsToProductNameAndAcceptsCustomValue() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -34,7 +34,7 @@ func physicalKeyboardNameDefaultsToProductNameAndAcceptsCustomValue() {
 func duplicatePhysicalKeyboardNamesStayValidAndLeaveIdentityUnchanged() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -78,7 +78,7 @@ func duplicatePhysicalKeyboardNamesStayValidAndLeaveIdentityUnchanged() {
 func keyboardAssignmentSavesExactInputSourceIdentifierImmediatelyWithoutSelectionRequest() {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
@@ -112,7 +112,7 @@ func keyboardAssignmentSavesExactInputSourceIdentifierImmediatelyWithoutSelectio
 @Test("Searchable assignment picker filters by Input Source name only")
 @MainActor
 func searchableAssignmentPickerFiltersByInputSourceNameOnly() {
-    let model = KeyameleonSetupModel(
+    let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),

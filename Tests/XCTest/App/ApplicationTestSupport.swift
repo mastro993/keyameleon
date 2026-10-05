@@ -11,14 +11,14 @@ func makeApplicationTestDelegate(
     physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = NoOpPhysicalKeyboardDiscoverer(),
     startsUpdaterOnLaunch: Bool = false,
     startsApplicationSurfaceOnLaunch: Bool = true
-) -> KeyameleonApplicationDelegate {
-    KeyameleonApplicationDelegate(
+) -> ApplicationDelegate {
+    ApplicationDelegate(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
         physicalKeyboardDiscoverer: physicalKeyboardDiscoverer,
         physicalKeyboardEventObserver: NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: NoOpInputSourceChangeObserver(),
-        lifecycleObserver: NoOpKeyameleonLifecycleObserver(),
+        lifecycleObserver: NoOpLifecycleObserver(),
         updateChecker: updateChecker,
         startsUpdaterOnLaunch: startsUpdaterOnLaunch,
         startsApplicationSurfaceOnLaunch: startsApplicationSurfaceOnLaunch,
@@ -26,10 +26,10 @@ func makeApplicationTestDelegate(
     )
 }
 
-func makeApplicationTestSingleInstanceLock() -> KeyameleonSingleInstanceLock {
+func makeApplicationTestSingleInstanceLock() -> SingleInstanceLock {
     let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("KeyameleonApplicationTests-\(UUID().uuidString).lock")
-    guard let lock = KeyameleonSingleInstanceLock.acquire(at: url) else {
+        .appendingPathComponent("ApplicationTests-\(UUID().uuidString).lock")
+    guard let lock = SingleInstanceLock.acquire(at: url) else {
         fatalError("Could not acquire test single-instance lock")
     }
     try? FileManager.default.removeItem(at: url)
@@ -37,7 +37,7 @@ func makeApplicationTestSingleInstanceLock() -> KeyameleonSingleInstanceLock {
 }
 
 @MainActor
-func stopApplicationTestSurface(_ delegate: KeyameleonApplicationDelegate) {
+func stopApplicationTestSurface(_ delegate: ApplicationDelegate) {
     delegate.applicationWillTerminate(
         Notification(name: NSApplication.willTerminateNotification)
     )

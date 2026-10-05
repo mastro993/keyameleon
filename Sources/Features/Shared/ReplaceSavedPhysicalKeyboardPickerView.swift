@@ -71,12 +71,12 @@ struct ReplaceSavedPhysicalKeyboardPickerView: View {
 #if DEBUG
 #Preview("Replace saved Physical Keyboard") {
     ReplaceSavedPhysicalKeyboardPickerView(
-        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(
+        physicalKeyboard: PreviewFixtures.physicalKeyboard(
             name: "Keychron K2",
             assignment: nil
         ),
         candidates: [
-            KeyameleonPreviewFixtures.physicalKeyboard(
+            PreviewFixtures.physicalKeyboard(
                 name: "HHKB Professional",
                 id: "identity:preview.disconnected|anchor:serial:preview-disconnected",
                 connection: .disconnected
@@ -89,7 +89,7 @@ struct ReplaceSavedPhysicalKeyboardPickerView: View {
 
 #Preview("Replace saved Physical Keyboard empty") {
     ReplaceSavedPhysicalKeyboardPickerView(
-        physicalKeyboard: KeyameleonPreviewFixtures.physicalKeyboard(),
+        physicalKeyboard: PreviewFixtures.physicalKeyboard(),
         candidates: [],
         onSelect: { _ in },
         onCancel: {}

@@ -2,49 +2,49 @@
 import SwiftUI
 
 #Preview("Panel ready") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
-    KeyameleonMenuBarPanelView(
+    let fixture = PreviewFixtures.setup(.assignmentsPopulated)
+    MenuBarPanelView(
         setupModel: fixture.model,
         switching: fixture.switching,
-        actions: KeyameleonPreviewFixtures.panelActions()
+        actions: PreviewFixtures.panelActions()
     )
     .preferredColorScheme(.light)
 }
 
 #Preview("Panel empty") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsEmpty)
-    KeyameleonMenuBarPanelView(
+    let fixture = PreviewFixtures.setup(.assignmentsEmpty)
+    MenuBarPanelView(
         setupModel: fixture.model,
         switching: fixture.switching,
-        actions: KeyameleonPreviewFixtures.panelActions()
+        actions: PreviewFixtures.panelActions()
     )
 }
 
 #Preview("Panel paused") {
-    let fixture = KeyameleonPreviewFixtures.setup(.paused)
-    KeyameleonMenuBarPanelView(
+    let fixture = PreviewFixtures.setup(.paused)
+    MenuBarPanelView(
         setupModel: fixture.model,
         switching: fixture.switching,
-        actions: KeyameleonPreviewFixtures.panelActions()
+        actions: PreviewFixtures.panelActions()
     )
     .preferredColorScheme(.dark)
 }
 
 #Preview("Panel unavailable assignment") {
-    let fixture = KeyameleonPreviewFixtures.setup(.mixedAssignments)
-    KeyameleonMenuBarPanelView(
+    let fixture = PreviewFixtures.setup(.mixedAssignments)
+    MenuBarPanelView(
         setupModel: fixture.model,
         switching: fixture.switching,
-        actions: KeyameleonPreviewFixtures.panelActions()
+        actions: PreviewFixtures.panelActions()
     )
 }
 
 #Preview("Panel overflow") {
-    let fixture = KeyameleonPreviewFixtures.setup(.manyAssignments)
-    KeyameleonMenuBarPanelView(
+    let fixture = PreviewFixtures.setup(.manyAssignments)
+    MenuBarPanelView(
         setupModel: fixture.model,
         switching: fixture.switching,
-        actions: KeyameleonPreviewFixtures.panelActions()
+        actions: PreviewFixtures.panelActions()
     )
     .environment(\.dynamicTypeSize, .xxxLarge)
 }

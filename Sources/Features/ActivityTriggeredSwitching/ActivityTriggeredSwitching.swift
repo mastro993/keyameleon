@@ -337,7 +337,7 @@ final class ActivityTriggeredSwitching {
     }
 
     /// Application lifecycle seam. Not part of the product interface.
-    func handleLifecycleEvent(_ event: KeyameleonLifecycleEvent) {
+    func handleLifecycleEvent(_ event: LifecycleEvent) {
         switch event {
         case .willSleep:
             updateUnavailableReason(.sleeping, isActive: true)
@@ -389,7 +389,7 @@ final class ActivityTriggeredSwitching {
         physicalKeyboardDiscovery.markActive(physicalKeyboard.id)
 
         if activeChanged {
-            KeyameleonLog.debug(
+            Log.debug(
                 .switching,
                 "Active Physical Keyboard is now \(physicalKeyboard.name)"
             )
@@ -454,7 +454,7 @@ final class ActivityTriggeredSwitching {
 
         if previousObserved != observedCurrentInputSourceIdentifier
             || previousVerified != verifiedKeyboardAssignmentIdentifier {
-            KeyameleonLog.verbose(
+            Log.verbose(
                 .switching,
                 "Observed Input Source is now \(observedCurrentInputSourceIdentifier ?? "none")"
             )
@@ -518,10 +518,10 @@ final class ActivityTriggeredSwitching {
         switch change {
         case let .connected(physicalKeyboardID, name):
             let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
-            KeyameleonLog.debug(.switching, "Physical Keyboard connected (\(displayName))")
+            Log.debug(.switching, "Physical Keyboard connected (\(displayName))")
         case let .disconnected(physicalKeyboardID, name):
             let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
-            KeyameleonLog.debug(.switching, "Physical Keyboard disconnected (\(displayName))")
+            Log.debug(.switching, "Physical Keyboard disconnected (\(displayName))")
         }
     }
 
@@ -621,9 +621,9 @@ final class ActivityTriggeredSwitching {
             return
         }
 
-        KeyameleonLog.debug(.switching, "Switching Status is now \(current.rawValue)")
+        Log.debug(.switching, "Switching Status is now \(current.rawValue)")
         if current == .permissionRequired {
-            KeyameleonLog.warning(.switching, "Listen permission is required")
+            Log.warning(.switching, "Listen permission is required")
         }
     }
 
@@ -645,7 +645,7 @@ final class ActivityTriggeredSwitching {
             verifiedKeyboardAssignmentIdentifier = inputSourceIdentifier
             observedCurrentInputSourceIdentifier = inputSourceIdentifier
             clearWarning(cause: .selectionFailure)
-            KeyameleonLog.debug(
+            Log.debug(
                 .switching,
                 "Selected Input Source \(inputSourceIdentifier) for "
                     + "\(keyboardName)"
@@ -658,7 +658,7 @@ final class ActivityTriggeredSwitching {
         }
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
         openWarning(.selectionFailure(inputSourceIdentifier: inputSourceIdentifier))
-        KeyameleonLog.warning(
+        Log.warning(
             .switching,
             "Could not select Input Source \(inputSourceIdentifier) for "
                 + "\(keyboardName)"
@@ -667,7 +667,7 @@ final class ActivityTriggeredSwitching {
     }
     private func markPersistenceUnavailable() {
         guard persistenceError == nil else { return }
-        KeyameleonLog.error(.switching, "Saved Physical Keyboard data could not be read")
+        Log.error(.switching, "Saved Physical Keyboard data could not be read")
         persistenceError = "Saved Physical Keyboard data is unavailable. Retry to read it again."
         physicalKeyboardDiscovery.stopActivationActivityObservation()
         inputSources.stopObservingChanges()

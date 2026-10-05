@@ -41,7 +41,7 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
         }
 
         // Enforce privacy-bound request shape before any network work.
-        controller.updater.sendsSystemProfile = KeyameleonUpdatePolicy.sendsSystemProfile
+        controller.updater.sendsSystemProfile = UpdatePolicy.sendsSystemProfile
         controller.updater.httpHeaders = nil
         controller.updater.userAgentString = defaultUserAgentString()
 

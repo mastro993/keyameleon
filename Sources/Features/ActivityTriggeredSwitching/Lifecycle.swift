@@ -1,7 +1,7 @@
 import AppKit
 import Carbon.HIToolbox
 
-enum KeyameleonLifecycleEvent: Equatable, Sendable {
+enum LifecycleEvent: Equatable, Sendable {
     case willSleep
     case didWake
     case sessionDidResignActive
@@ -36,25 +36,25 @@ final class SystemProtectedStateProvider: ProtectedStateProviding {
 }
 
 @MainActor
-protocol KeyameleonLifecycleObserving: AnyObject {
-    func start(onEvent: @escaping @MainActor (KeyameleonLifecycleEvent) -> Void)
+protocol LifecycleObserving: AnyObject {
+    func start(onEvent: @escaping @MainActor (LifecycleEvent) -> Void)
     func stop()
 }
 
 /// Test double / no-op default when lifecycle observation is not started.
 @MainActor
-final class NoOpKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
-    func start(onEvent: @escaping @MainActor (KeyameleonLifecycleEvent) -> Void) {}
+final class NoOpLifecycleObserver: LifecycleObserving {
+    func start(onEvent: @escaping @MainActor (LifecycleEvent) -> Void) {}
     func stop() {}
 }
 
 @MainActor
-final class SystemKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
+final class SystemLifecycleObserver: LifecycleObserving {
     private let workspaceNotificationCenter: NotificationCenter
     private let applicationNotificationCenter: NotificationCenter
     private var workspaceObserverTokens: [NSObjectProtocol] = []
     private var applicationObserverTokens: [NSObjectProtocol] = []
-    private var onEvent: (@MainActor (KeyameleonLifecycleEvent) -> Void)?
+    private var onEvent: (@MainActor (LifecycleEvent) -> Void)?
 
     init(
         workspaceNotificationCenter: NotificationCenter = NSWorkspace.shared.notificationCenter,
@@ -64,7 +64,7 @@ final class SystemKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
         self.applicationNotificationCenter = applicationNotificationCenter
     }
 
-    func start(onEvent: @escaping @MainActor (KeyameleonLifecycleEvent) -> Void) {
+    func start(onEvent: @escaping @MainActor (LifecycleEvent) -> Void) {
         stop()
         self.onEvent = onEvent
 
@@ -123,7 +123,7 @@ final class SystemKeyameleonLifecycleObserver: KeyameleonLifecycleObserving {
         in center: NotificationCenter,
         storingIn tokens: inout [NSObjectProtocol],
         name: Notification.Name,
-        event: KeyameleonLifecycleEvent
+        event: LifecycleEvent
     ) {
         tokens.append(
             center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in

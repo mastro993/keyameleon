@@ -1,12 +1,12 @@
 import SwiftUI
 
 @MainActor
-struct KeyameleonRootView: View {
-    private let model: KeyameleonSetupModel
+struct RootView: View {
+    private let model: SetupModel
     private let switching: ActivityTriggeredSwitching
 
     init(
-        model: KeyameleonSetupModel,
+        model: SetupModel,
         switching: ActivityTriggeredSwitching
     ) {
         self.model = model
@@ -33,7 +33,7 @@ struct KeyameleonRootView: View {
                 .accessibilityIdentifier("guided-setup")
                 .safeAreaInset(edge: .top) { PersistenceFailureNotice(model: model) }
             } else {
-                KeyameleonOnboardingView(model: model, switching: switching)
+                OnboardingView(model: model, switching: switching)
             }
         }
         .frame(minWidth: 840, minHeight: 640)
@@ -43,18 +43,18 @@ struct KeyameleonRootView: View {
 
 #if DEBUG
 #Preview("Guided setup complete") {
-    let fixture = KeyameleonPreviewFixtures.setup(.completed)
-    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.completed)
+    RootView(model: fixture.model, switching: fixture.switching)
 }
 
 #Preview("Permission required") {
-    let fixture = KeyameleonPreviewFixtures.setup(.permissionRequired)
-    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.permissionRequired)
+    RootView(model: fixture.model, switching: fixture.switching)
 }
 
 #Preview("Assignments populated") {
-    let fixture = KeyameleonPreviewFixtures.setup(.assignmentsPopulated)
-    KeyameleonRootView(model: fixture.model, switching: fixture.switching)
+    let fixture = PreviewFixtures.setup(.assignmentsPopulated)
+    RootView(model: fixture.model, switching: fixture.switching)
         .preferredColorScheme(.dark)
         .environment(\.dynamicTypeSize, .xxxLarge)
 }

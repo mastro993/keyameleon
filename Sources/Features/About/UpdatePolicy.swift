@@ -1,7 +1,7 @@
 import Foundation
 
 /// Product rules for user-approved, privacy-bounded updates.
-enum KeyameleonUpdatePolicy {
+enum UpdatePolicy {
     /// Sparkle may check on launch at most this often.
     static let minimumCheckInterval: TimeInterval = 24 * 60 * 60
 
@@ -12,7 +12,7 @@ enum KeyameleonUpdatePolicy {
     static let criticalUpdatesBypassUserApproval = false
 
     /// No Keyameleon-generated user or device identifier on update requests.
-    static let allowsKeyameleonGeneratedIdentifiers = false
+    static let allowsAppGeneratedIdentifiers = false
 
     /// Anonymous system profiling is off.
     static let sendsSystemProfile = false
