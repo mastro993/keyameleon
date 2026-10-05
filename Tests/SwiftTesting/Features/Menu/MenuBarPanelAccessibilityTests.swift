@@ -18,7 +18,7 @@ func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
     #expect(accessibility.panel.value == "Ready")
     #expect(accessibility.about.label == "About Keyameleon")
     #expect(accessibility.actions.map(\.label) == [
-        "Pause",
+        "Pause Switching",
         "Settings",
         "Quit Keyameleon"
     ])
@@ -26,7 +26,7 @@ func menuBarPanelVoiceOverAnnouncesIntegratedSurface() {
         "Keyameleon",
         "About Keyameleon",
         "Travel",
-        "Pause",
+        "Pause Switching",
         "Settings",
         "Quit Keyameleon"
     ])
@@ -90,7 +90,7 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
 
     #expect(assigned.accessibility.keyboardFocusOrder == [
         .about,
-        .action(id: .requestPermission),
+        .action(id: .openSystemSettings),
         .assignment(id: "desk"),
         .assignment(id: "travel"),
         .action(id: .pause),
@@ -105,27 +105,27 @@ func menuBarPanelKeyboardFocusOrderVisitsAssignmentsThenActions() {
     ])
     #expect(assigned.accessibility.keyboardOperationTitles == [
         "About Keyameleon",
-        "Request Permission",
+        "Open System Settings",
         "Desk",
         "Travel",
-        "Pause",
+        "Pause Switching",
         "Settings",
         "Quit Keyameleon"
     ])
     #expect(assigned.accessibility.voiceOverOrderLabels == [
         "Keyameleon",
         "About Keyameleon",
-        "Permission Required",
-        "Request Permission",
+        "Input Monitoring required",
+        "Open System Settings",
         "Desk",
         "Travel",
-        "Pause",
+        "Pause Switching",
         "Settings",
         "Quit Keyameleon"
     ])
-    #expect(assigned.accessibility.notice?.label == "Permission Required")
-    #expect(assigned.accessibility.notice?.value == "Keyameleon needs Input Monitoring to observe Activation Activity.")
-    #expect(assigned.accessibility.noticeActionTitle == "Request Permission")
+    #expect(assigned.accessibility.notice?.label == "Input Monitoring required")
+    #expect(assigned.accessibility.notice?.value == "Keyameleon can't detect keyboard activity until you allow access in System Settings.")
+    #expect(assigned.accessibility.noticeActionTitle == "Open System Settings")
 }
 
 @Test("Continue Guided Setup is reachable by keyboard and VoiceOver")
@@ -155,10 +155,10 @@ func menuBarPanelAccessibilityLiveUpdatesWithSwitchingStatus() {
     #expect(permission.accessibility.panel.value == "Permission Required")
     #expect(paused.accessibility.notice == nil)
     #expect(paused.accessibility.noticeActionTitle == nil)
-    #expect(ready.accessibility.actions.first?.label == "Pause")
-    #expect(paused.accessibility.actions.first?.label == "Resume")
+    #expect(ready.accessibility.actions.first?.label == "Pause Switching")
+    #expect(paused.accessibility.actions.first?.label == "Resume Switching")
     #expect(permission.accessibility.actions.map(\.label) == [
-        "Pause",
+        "Pause Switching",
         "Settings",
         "Quit Keyameleon"
     ])
@@ -209,7 +209,7 @@ func menuBarPanelChromeFollowsIncreasedContrast() {
     )
 }
 
-@Test("Long Physical Keyboard Names stay complete in speech at the 280 pt panel width")
+@Test("Long Physical Keyboard Names stay complete in speech at the 320 pt panel width")
 func menuBarPanelLongNamesStayCompleteInSpeech() {
     let name = "Keychron K2 HE ISO Nordic Traveler Custom Mechanical"
     let list = MenuBarAssignmentList(

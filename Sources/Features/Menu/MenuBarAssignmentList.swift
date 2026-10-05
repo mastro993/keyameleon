@@ -30,9 +30,6 @@ struct MenuBarAssignmentList: Equatable, Sendable {
     struct Row: Equatable, Identifiable, Sendable {
         let id: String
         let physicalKeyboardName: String
-        /// Second line: the product name with the connection type, or the
-        /// connection type alone when the name line already shows the product
-        /// name.
         let subtitle: String
         let assignedInputSourceName: String
         /// Locale code of the assigned Input Source, such as `US` or `IT`.
@@ -82,16 +79,18 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         rows = ordered.map { physicalKeyboard in
             let savedSource = assignedInputSources[physicalKeyboard.id]
             let isUnavailable = savedSource == nil
-            let connectionType = physicalKeyboard.connectionTypeName
+            let connectionMark = Self.connectionMark(for: physicalKeyboard)
+            let state = physicalKeyboard.isBuiltIn && connectionMark != .disconnected
+                ? "Built-in" : connectionMark.accessibilityName
             return Row(
                 id: physicalKeyboard.id.rawValue,
                 physicalKeyboardName: physicalKeyboard.name,
                 subtitle: physicalKeyboard.customName == nil
-                    ? connectionType
-                    : "\(physicalKeyboard.productName) - \(connectionType)",
+                    ? state
+                    : "\(physicalKeyboard.productName) - \(state)",
                 assignedInputSourceName: savedSource?.name ?? Self.unavailableInputSourceName,
                 assignedLocaleCode: savedSource?.localeCode,
-                connectionMark: Self.connectionMark(for: physicalKeyboard),
+                connectionMark: connectionMark,
                 isDimmed: physicalKeyboard.connectionState == .disconnected,
                 warningNote: isUnavailable ? Self.unavailableNote : nil,
                 showsWarningSymbol: isUnavailable

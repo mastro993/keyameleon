@@ -11,7 +11,9 @@ struct MenuBarActionList: View {
             ForEach(actions) { action in
                 if action.id == .quit {
                     Divider()
-                        .opacity(0.22)
+                        .opacity(Theme.Menu.separatorOpacity)
+                        .padding(.horizontal, -Theme.Menu.innerInset)
+                        .padding(.vertical, Theme.Menu.quitSectionInset)
                 }
 
                 MenuBarActionRow(action: action) {
@@ -21,7 +23,9 @@ struct MenuBarActionList: View {
                 .focused(focusedTarget, equals: .action(id: action.id))
             }
         }
-        .padding(.bottom, 6)
+        .padding(.horizontal, Theme.Menu.innerInset)
+        .padding(.top, Theme.Menu.actionTopInset)
+        .padding(.bottom, Theme.Menu.actionBottomInset)
         .accessibilityElement(children: .contain)
     }
 }
@@ -30,27 +34,37 @@ private struct MenuBarActionRow: View {
     let action: MenuBarPanelContent.Action
     let perform: () -> Void
     @State private var isHovered = false
+    @ScaledMetric(relativeTo: .body) private var rowHeight = Theme.Menu.actionHeight
 
     var body: some View {
         Button(action: perform) {
-            HStack(spacing: 13) {
+            HStack(spacing: Theme.Menu.actionGap) {
                 Image(systemName: action.iconName)
-                    .font(.system(size: 14, weight: .medium))
+                    .resizable()
+                    .scaledToFit()
                     .symbolRenderingMode(.monochrome)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 22)
+                    .foregroundStyle(.primary)
+                    .frame(width: Theme.Menu.actionIconSize, height: Theme.Menu.actionIconSize)
                     .accessibilityHidden(true)
 
                 Text(action.title)
-                    .font(.body)
+                    .font(Theme.Typography.body)
                     .foregroundStyle(.primary)
 
                 Spacer(minLength: 0)
+
+                if let shortcut = action.id.shortcut {
+                    Text(shortcut.title)
+                        .font(Theme.Typography.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
             }
-            .padding(.horizontal, 18)
-            .frame(minHeight: 36)
+            .padding(.horizontal, Theme.Menu.actionRowInset)
+            .frame(minHeight: rowHeight)
             .contentShape(.rect)
-            .background(isHovered ? Color.primary.opacity(0.08) : .clear)
+            .background(isHovered ? Theme.Menu.hoverFill : .clear,
+                        in: .rect(cornerRadius: Theme.Metrics.controlRadius))
         }
         .buttonStyle(.plain)
         .modifier(MenuBarActionShortcut(actionID: action.id))
@@ -65,12 +79,9 @@ private struct MenuBarActionShortcut: ViewModifier {
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        switch actionID {
-        case .settings:
-            content.keyboardShortcut(",", modifiers: .command)
-        case .quit:
-            content.keyboardShortcut("q", modifiers: .command)
-        default:
+        if let shortcut = actionID.shortcut {
+            content.keyboardShortcut(shortcut.key, modifiers: shortcut.modifiers)
+        } else {
             content
         }
     }

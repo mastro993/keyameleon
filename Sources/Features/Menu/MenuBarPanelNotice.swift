@@ -19,16 +19,9 @@ struct MenuBarPanelNotice: Equatable, Sendable {
         switch outcome.switchingStatus {
         case .permissionRequired:
             return MenuBarPanelNotice(
-                title: "Permission Required",
-                detail: "Keyameleon needs Input Monitoring to observe Activation Activity.",
-                action: outcome.hasAction(.requestPermission)
-                    ? MenuBarPanelContent.Action(
-                        id: .requestPermission,
-                        title: "Request Permission",
-                        isEnabled: true,
-                        closesPanel: false
-                    )
-                    : nil,
+                title: "Input Monitoring required",
+                detail: "Keyameleon can't detect keyboard activity until you allow access in System Settings.",
+                action: permissionAction(outcome: outcome),
                 tone: .warning
             )
         case .temporarilyUnavailable:
@@ -130,6 +123,28 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             }
             return nil
         }
+    }
+
+    private static func permissionAction(
+        outcome: ActivityTriggeredSwitchingOutcome
+    ) -> MenuBarPanelContent.Action? {
+        if outcome.hasAction(.openSystemSettings) {
+            return MenuBarPanelContent.Action(
+                id: .openSystemSettings,
+                title: "Open System Settings",
+                isEnabled: true,
+                closesPanel: true
+            )
+        }
+        if outcome.hasAction(.requestPermission) {
+            return MenuBarPanelContent.Action(
+                id: .requestPermission,
+                title: "Request Permission",
+                isEnabled: true,
+                closesPanel: false
+            )
+        }
+        return nil
     }
 
     private static func sentence(_ name: String) -> String {

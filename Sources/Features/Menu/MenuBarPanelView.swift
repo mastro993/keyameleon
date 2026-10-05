@@ -48,7 +48,7 @@ struct MenuBarPanelView: View {
             )
 
             Divider()
-                .opacity(0.22)
+                .opacity(Theme.Menu.separatorOpacity)
 
             PersistenceFailureNotice(model: setupModel)
 
@@ -66,13 +66,11 @@ struct MenuBarPanelView: View {
                     emphasis: chrome.assignmentEmphasis,
                     focusedTarget: $focusedTarget
                 )
-                .padding(.horizontal, 12)
-                .padding(.top, 10)
-                .padding(.bottom, 10)
+                .padding(.vertical, Theme.Menu.sectionInset)
             }
 
             Divider()
-                .opacity(0.22)
+                .opacity(Theme.Menu.separatorOpacity)
 
             MenuBarActionList(
                 actions: content.footer.actions,
@@ -80,6 +78,8 @@ struct MenuBarPanelView: View {
                 perform: perform
             )
         }
+        .padding(.horizontal, Theme.Menu.outerInset)
+        .padding(.bottom, Theme.Menu.bottomInset)
         .frame(width: MenuBarPanelContent.panelWidth, alignment: .leading)
         .background(panelBackground(chrome.surface))
         .focusable()
@@ -115,7 +115,7 @@ struct MenuBarPanelView: View {
         case .liquidGlass:
             Color.clear
         case .opaque:
-            Color(nsColor: .windowBackgroundColor)
+            Rectangle().fill(.background)
         }
     }
 
@@ -177,30 +177,30 @@ struct MenuBarPanelHeader: View {
     let perform: (MenuBarPanelContent.Action) -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+        HStack(alignment: .center, spacing: Theme.Menu.headerSpacing) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Menu.headerSpacing) {
                 Text("Keyameleon")
-                    .font(.headline.weight(.semibold))
+                    .font(Theme.Typography.menuHeading)
                     .foregroundStyle(.primary)
 
                 if let pausedMarker {
                     Text(pausedMarker)
-                        .font(.subheadline)
+                        .font(Theme.Typography.body)
                         .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button {
+            Button(openAction.title, systemImage: "info.circle.fill") {
                 perform(openAction)
-            } label: {
-                Image(systemName: "info.circle.fill")
-                    .font(.body)
-                    .symbolRenderingMode(.monochrome)
-                    .frame(width: 22, height: 22)
-                    .contentShape(.circle)
             }
+            .labelStyle(.iconOnly)
+            .imageScale(.large)
+            .font(Theme.Typography.body)
+            .symbolRenderingMode(.monochrome)
+            .frame(width: Theme.Menu.aboutSize, height: Theme.Menu.aboutSize)
+            .contentShape(.circle)
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .focusable()
@@ -209,9 +209,8 @@ struct MenuBarPanelHeader: View {
             .accessibilityLabel(openAction.title)
             .accessibilityIdentifier("menu-bar-about")
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 9)
+        .padding(.horizontal, Theme.Menu.innerInset)
+        .frame(minHeight: Theme.Menu.headerHeight)
         .accessibilityElement(children: .contain)
     }
 }
@@ -241,7 +240,7 @@ struct MenuBarPanelHeader: View {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarPanelHeader(
         openAction: PreviewFixtures.aboutAction(),
-        pausedMarker: "(paused)",
+        pausedMarker: "(Paused)",
         focusedTarget: $focusedTarget,
         perform: { _ in }
     )
