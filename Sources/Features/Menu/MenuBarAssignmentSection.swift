@@ -5,7 +5,7 @@ struct MenuBarAssignmentSection: View {
     let list: MenuBarAssignmentList
     var emphasis: MenuBarAssignmentEmphasis = .standard
     var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
-    @ScaledMetric(relativeTo: .body) private var assignmentRowHeight = 46
+    @ScaledMetric(relativeTo: .body) private var assignmentRowHeight = Theme.Menu.rowHeight
 
     var body: some View {
         if let emptyTitle = list.emptyTitle,
@@ -68,10 +68,10 @@ private struct MenuBarAssignmentRows: View {
     var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
 
     var body: some View {
-        let stack = LazyVStack(alignment: .leading, spacing: 8) {
+        let stack = LazyVStack(alignment: .leading, spacing: Theme.Menu.rowSpacing) {
             ForEach(list.rows) { row in
                 MenuBarAssignmentPill(row: row, emphasis: emphasis)
-                    .frame(minHeight: rowHeight, alignment: .top)
+                    .frame(minHeight: rowHeight)
                     .focusable()
                     .modifier(MenuBarAssignmentFocusBinding(
                         target: .assignment(id: row.id),
@@ -93,7 +93,7 @@ private struct MenuBarAssignmentRows: View {
 
     private static func scrollerHeight(rowHeight: CGFloat) -> CGFloat {
         let visibleRows = CGFloat(MenuBarAssignmentList.visibleRowLimit)
-        let spacing = 4 * (visibleRows - 1)
+        let spacing = Theme.Menu.rowSpacing * (visibleRows - 1)
         return rowHeight * visibleRows + spacing
     }
 }

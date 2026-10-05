@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import SwiftUI
 @testable import Keyameleon
 
 @Test("Ready tray has Pause and no recovery actions")
@@ -9,7 +10,7 @@ func menuBarPanelReadyShowsPauseWithoutRecovery() {
 
     #expect(content.footer.about.title == "About Keyameleon")
     #expect(content.footer.about.id == .about)
-    #expect(overflow(content, .pause)?.title == "Pause")
+    #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content).contains(.requestPermission) == false)
     #expect(overflowIDs(content).contains(.checkAgain) == false)
     #expect(content.actionTitles.contains("Continue Setup…") == false)
@@ -21,7 +22,7 @@ func menuBarPanelPausedShowsResume() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
     #expect(content.footer.about.id == .about)
-    #expect(overflow(content, .resume)?.title == "Resume")
+    #expect(overflow(content, .resume)?.title == "Resume Switching")
     #expect(overflowIDs(content).contains(.pause) == false)
 }
 
@@ -127,7 +128,7 @@ func menuBarPanelFooterOverflowDefaultActions() {
 
     #expect(overflowIDs(content) == [.pause, .settings, .quit])
     #expect(content.footer.actions.map(\.title) == [
-        "Pause",
+        "Pause Switching",
         "Settings",
         "Quit Keyameleon",
     ])
@@ -205,13 +206,13 @@ func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throw
     let desk = try #require(list.rows.first { $0.id == "desk" })
 
     #expect(travel.physicalKeyboardName == "Travel")
-    #expect(travel.subtitle == "Keychron K2 - USB")
+    #expect(travel.subtitle == "Keychron K2 - Connected")
     #expect(travel.assignedInputSourceName == "Italian")
     #expect(travel.assignedLocaleCode == "IT")
 
     // The name line already carries the product name without a Custom name.
     #expect(desk.physicalKeyboardName == "HHKB Professional")
-    #expect(desk.subtitle == "USB")
+    #expect(desk.subtitle == "Connected")
     #expect(desk.assignedLocaleCode == "US")
 }
 
@@ -433,7 +434,7 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
     #expect(content.footer.about.title == "About Keyameleon")
-    #expect(overflow(content, .pause)?.title == "Pause")
+    #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content) == [.pause, .settings, .quit])
 }
 
@@ -466,7 +467,7 @@ func menuBarPanelReadyWithoutNoticeConditionsHasNoNotice() {
     #expect(overflowIDs(content) == [.pause, .settings, .quit])
 }
 
-@Test("Permission Required shows Request Permission on notice, not footer")
+@Test("Permission notice prefers Open System Settings and closes the panel")
 @MainActor
 func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     let content = makeMenuBarPanelContent(
@@ -477,13 +478,74 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     )
     let action = try #require(content.notice?.action)
 
-    #expect(content.notice?.title == "Permission Required")
+    #expect(content.notice?.title == "Input Monitoring required")
+    #expect(content.notice?.detail == "Keyameleon can't detect keyboard activity until you allow access in System Settings.")
     #expect(content.notice?.tone == .warning)
+    #expect(action.id == .openSystemSettings)
+    #expect(action.title == "Open System Settings")
+    #expect(action.closesPanel == true)
+    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(content.actionTitles.contains("Open System Settings") == false)
+}
+
+@Test("Permission notice falls back to Request Permission without a Settings action")
+@MainActor
+func menuBarPanelPermissionNoticeFallsBackToRequest() throws {
+    let content = makeMenuBarPanelContent(
+        outcome: .permissionRequiredFixture(availableActions: [.pause, .requestPermission])
+    )
+    let action = try #require(content.notice?.action)
+
     #expect(action.id == .requestPermission)
     #expect(action.title == "Request Permission")
     #expect(action.closesPanel == false)
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
-    #expect(content.actionTitles.contains("Request Permission") == false)
+}
+
+@Test("Displayed menu shortcuts use the same Command keys as their native bindings")
+func menuBarPanelCommandShortcutMapping() {
+    for id in [MenuBarPanelActionID.pause, .resume] {
+        #expect(id.shortcut?.title == "⌘P")
+        #expect(id.shortcut?.key == KeyEquivalent("p"))
+        #expect(id.shortcut?.modifiers == .command)
+    }
+    #expect(MenuBarPanelActionID.settings.shortcut?.title == "⌘,")
+    #expect(MenuBarPanelActionID.settings.shortcut?.key == KeyEquivalent(","))
+    #expect(MenuBarPanelActionID.settings.shortcut?.modifiers == .command)
+    #expect(MenuBarPanelActionID.quit.shortcut?.title == "⌘Q")
+    #expect(MenuBarPanelActionID.quit.shortcut?.key == KeyEquivalent("q"))
+    #expect(MenuBarPanelActionID.quit.shortcut?.modifiers == .command)
+    for id in [MenuBarPanelActionID.about, .requestPermission, .openSystemSettings,
+               .checkAgain, .retryNow, .continueSetup] {
+        #expect(id.shortcut == nil)
+    }
+}
+
+@Test("Assignment subtitles describe built-in, active, and disconnected keyboard states")
+func menuBarPanelAssignmentSubtitlesDescribeState() throws {
+    let builtIn = PhysicalKeyboard(
+        id: .builtIn,
+        productName: "MacBook Keyboard",
+        customName: nil,
+        transport: .usb,
+        isBuiltIn: true,
+        assignmentState: .assigned(try #require(KeyboardAssignment(inputSourceIdentifier: "com.example.us"))),
+        connectedServiceCount: 1,
+        connectionState: .connected,
+        isActive: false
+    )
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            builtIn,
+            makeAssignedPanelKeyboard(name: "Keychron K2", identifier: "office", isActive: true,
+                                      customName: "Office Keyboard"),
+            makeAssignedPanelKeyboard(name: "HHKB Professional", identifier: "travel",
+                                      connectionState: .disconnected, customName: "Travel Keyboard")
+        ],
+        assignedInputSources: [:]
+    )
+    #expect(list.rows.map(\.subtitle) == [
+        "Built-in", "Keychron K2 - Active", "HHKB Professional - Disconnected"
+    ])
 }
 
 @Test("Only the Permission Required notice carries the warning tone")
@@ -587,9 +649,9 @@ func menuBarPanelTemporarilyUnavailableNoticeWithoutKnownReasonExplainsAutomatic
 func menuBarPanelPausedMarksTitleWithoutNotice() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.pausedMarker == "(paused)")
+    #expect(content.pausedMarker == "(Paused)")
     #expect(content.notice == nil)
-    #expect(overflow(content, .resume)?.title == "Resume")
+    #expect(overflow(content, .resume)?.title == "Resume Switching")
 }
 
 @Test("Paused marker appears only while switching is paused")
@@ -598,7 +660,7 @@ func menuBarPanelPausedMarkerAppearsOnlyWhilePaused() {
     #expect(makeMenuBarPanelContent(outcome: .readyFixture()).pausedMarker == nil)
     #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).pausedMarker == nil)
     #expect(makeMenuBarPanelContent(outcome: .permissionRequiredFixture()).pausedMarker == nil)
-    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).pausedMarker == "(paused)")
+    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).pausedMarker == "(Paused)")
 }
 
 @Test("Input Source differs notice names the Active Physical Keyboard")
@@ -783,7 +845,7 @@ func menuBarPanelNoticePrioritizesPermissionOverUnassignedKeyboard() {
         ]
     )
 
-    #expect(content.notice?.title == "Permission Required")
+    #expect(content.notice?.title == "Input Monitoring required")
 }
 
 @Test("Selection failure notice outranks mismatch and unassigned conditions")

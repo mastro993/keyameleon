@@ -7,47 +7,56 @@ struct MenuBarPanelNoticeView: View {
     let perform: (MenuBarPanelContent.Action) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
+        VStack(alignment: .leading, spacing: Theme.Menu.noticeGap) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Menu.noticeGap) {
                 if notice.tone == .warning {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.Menu.warning)
                         .accessibilityHidden(true)
                 } else if notice.tone == .neutral {
-                    Image(systemName: "info.triangle.fill")
-                        .foregroundStyle(.blue)
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
 
                 Text(notice.title)
-                    .font(.headline)
+                    .font(Theme.Typography.rowTitle)
                     .foregroundStyle(.primary)
                     .accessibilityHidden(true)
             }
 
             Text(notice.detail)
-                .font(.callout)
+                .font(Theme.Typography.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityHidden(true)
 
             if let action = notice.action {
-                Button {
+                let button = Button {
                     perform(action)
                 } label: {
                     Text(action.title)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.automatic)
                 .focusable()
                 .focused(focusedTarget, equals: .action(id: action.id))
                 .accessibilityIdentifier("menu-bar-notice-\(action.id.rawValue)")
+
+                switch notice.tone {
+                case .warning:
+                    button.buttonStyle(.automatic)
+                case .neutral:
+                    button
+                        .buttonStyle(.borderedProminent)
+                        .tint(Theme.Menu.accent)
+                }
             }
         }
-        .padding(12)
+        .padding(Theme.Menu.rowInset)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.horizontal, 12)
+        .background(background, in: .rect(cornerRadius: Theme.Menu.rowRadius))
+        .padding(.horizontal, Theme.Menu.innerInset)
+        .padding(.top, Theme.Menu.noticeTopInset)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(notice.title)
         .accessibilityValue(notice.detail)
@@ -57,9 +66,9 @@ struct MenuBarPanelNoticeView: View {
     private var background: Color {
         switch notice.tone {
         case .warning:
-            Color.yellow.opacity(0.16)
+            Theme.Menu.warningFill
         case .neutral:
-            Color.primary.opacity(0.06)
+            Theme.Menu.neutralFill
         }
     }
 }
@@ -69,13 +78,13 @@ struct MenuBarPanelNoticeView: View {
     @Previewable @FocusState var focusedTarget: MenuBarPanelAccessibility.FocusTarget?
     MenuBarPanelNoticeView(
         notice: MenuBarPanelNotice(
-            title: "Permission Required",
-            detail: "Keyameleon needs Input Monitoring to observe Activation Activity.",
+            title: "Input Monitoring required",
+            detail: "Keyameleon can't detect keyboard activity until you allow access in System Settings.",
             action: MenuBarPanelContent.Action(
-                id: .requestPermission,
-                title: "Request Permission",
+                id: .openSystemSettings,
+                title: "Open System Settings",
                 isEnabled: true,
-                closesPanel: false
+                closesPanel: true
             ),
             tone: .warning
         ),

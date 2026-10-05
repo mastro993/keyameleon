@@ -5,22 +5,22 @@ struct MenuBarAssignmentPill: View {
     var emphasis: MenuBarAssignmentEmphasis = .standard
 
     var body: some View {
-        HStack(alignment: .center, spacing: 7) {
+        HStack(alignment: .center, spacing: Theme.Menu.rowGap) {
             MenuBarConnectionMark(mark: row.connectionMark)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Theme.Menu.detailGap) {
                 Text(row.physicalKeyboardName)
-                    .font(.body.weight(row.isActive ? .semibold : .medium))
-                    .foregroundStyle(.primary)
+                    .font(Theme.Typography.rowTitle)
+                    .foregroundStyle(row.isDimmed ? Theme.Menu.muted : Color.primary)
                     .lineLimit(MenuBarPanelLayout.nameLineLimit)
                 Text(row.subtitle)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.Typography.subheadline)
+                    .foregroundStyle(row.isDimmed ? Theme.Menu.muted : Color.secondary)
                     .lineLimit(MenuBarPanelLayout.subtitleLineLimit)
                 if let warningNote = row.warningNote {
                     Text(warningNote)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.Typography.subheadline)
+                        .foregroundStyle(row.isDimmed ? Theme.Menu.muted : Color.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -29,7 +29,7 @@ struct MenuBarAssignmentPill: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.body)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(row.isDimmed ? Theme.Menu.muted : Color.secondary)
                     .accessibilityHidden(true)
                     .ifLet(row.warningNote) { view, warningNote in
                         view.help(warningNote)
@@ -38,16 +38,15 @@ struct MenuBarAssignmentPill: View {
 
             if let localeCode = row.assignedLocaleCode {
                 Text(localeCode)
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(.primary)
+                    .font(Theme.Typography.chip)
+                    .foregroundStyle(row.isDimmed ? Theme.Menu.muted : Color.primary)
                     .lineLimit(1)
-                    .padding(.vertical, 2)
-                    .frame(width: 25)
+                    .frame(minWidth: Theme.Menu.badgeWidth, minHeight: Theme.Menu.badgeHeight)
                     .overlay {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        RoundedRectangle(cornerRadius: Theme.Metrics.controlRadius, style: .continuous)
                             .strokeBorder(
-                                emphasis.outlineColor,
-                                lineWidth: emphasis.outlineLineWidth + 0.5
+                                emphasis == .highContrast ? Theme.Menu.strongBadgeBorder : Theme.Menu.badgeBorder,
+                                lineWidth: 1
                             )
                     }
                     .accessibilityHidden(true)
@@ -56,7 +55,6 @@ struct MenuBarAssignmentPill: View {
         .modifier(
             MenuBarAssignmentPillStyle(
                 connectionMark: row.connectionMark,
-                isDimmed: row.isDimmed,
                 emphasis: emphasis
             )
         )
@@ -74,78 +72,41 @@ private struct MenuBarConnectionMark: View {
 
     var icon: String {
         switch mark {
-        case .active:
-            "checkmark.circle.fill"
-        case .connected:
-            "circle"
-        case .disconnected:
-            "circle.slash"
+        case .active: "circle.fill"
+        case .connected: "circle"
+        case .disconnected: "circle.dashed"
         }
     }
 
     var body: some View {
         Image(systemName: icon)
-            .font(.system(size: 14, weight: .semibold))
+            .resizable()
+            .scaledToFit()
             .symbolRenderingMode(.monochrome)
-            .foregroundStyle(mark == .active ? .green : .primary)
-            .frame(width: 16, height: 22)
-            .opacity(mark == .active ? 1 : 0.25)
+            .foregroundStyle(mark == .active ? Theme.Menu.accent
+                : mark == .connected ? Color.primary : Theme.Menu.muted)
+            .frame(width: Theme.Menu.statusSize, height: Theme.Menu.statusSize)
             .accessibilityHidden(true)
-    }
-}
-
-private extension MenuBarAssignmentEmphasis {
-    /// Shared outline vocabulary for the pill and its locale badge.
-    var outlineColor: Color {
-        Color.primary.opacity(self == .highContrast ? 0.5 : 0.25)
-    }
-
-    var outlineLineWidth: CGFloat {
-        self == .highContrast ? 1.5 : 0.5
     }
 }
 
 private struct MenuBarAssignmentPillStyle: ViewModifier {
     let connectionMark: MenuBarAssignmentList.ConnectionMark
-    let isDimmed: Bool
     let emphasis: MenuBarAssignmentEmphasis
+    @ScaledMetric(relativeTo: .body) private var rowHeight = Theme.Menu.rowHeight
 
     func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Theme.Menu.rowRadius, style: .continuous)
         content
-            .opacity(isDimmed ? 0.55 : 1)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(connectionMark == .active ? Color.primary.opacity(0.12) : .clear, in: shape)
-            .overlay { border(in: shape) }
-            .compositingGroup()
-            .clipShape(shape)
-    }
-
-    @ViewBuilder
-    private func border(in shape: RoundedRectangle) -> some View {
-        switch connectionMark {
-        case .active:
-            if emphasis == .highContrast {
-                shape.strokeBorder(Color.accentColor, lineWidth: 2)
+            .padding(.horizontal, Theme.Menu.rowInset)
+            .padding(.vertical, Theme.Menu.sectionInset)
+            .frame(maxWidth: .infinity, minHeight: rowHeight, alignment: .leading)
+            .background(connectionMark == .active ? Theme.Menu.activeFill : .clear, in: shape)
+            .overlay {
+                if connectionMark == .active {
+                    shape.strokeBorder(Theme.Menu.accent, lineWidth: emphasis == .highContrast ? 2 : 1)
+                }
             }
-        case .connected:
-            shape.strokeBorder(borderColor, lineWidth: borderLineWidth)
-        case .disconnected:
-            shape.strokeBorder(
-                borderColor,
-                style: StrokeStyle(lineWidth: borderLineWidth, dash: [4, 3])
-            )
-        }
-    }
-
-    private var borderLineWidth: CGFloat {
-        emphasis.outlineLineWidth
-    }
-
-    private var borderColor: Color {
-        emphasis.outlineColor
     }
 }
 
@@ -155,7 +116,7 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
         row: MenuBarAssignmentList.Row(
             id: "preview-disconnected",
             physicalKeyboardName: "Office Keyboard",
-            subtitle: "HHKB Professional - Bluetooth",
+            subtitle: "HHKB Professional - Disconnected",
             assignedInputSourceName: "German",
             assignedLocaleCode: "DE",
             connectionMark: .disconnected,

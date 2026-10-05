@@ -949,3 +949,11 @@ and checked against the app bundle. It does not calculate when a check is due.
 Guided setup has three saved stages: Permissions, Keyboards, and Ready. Input Monitoring is checked when the window opens; a granted permission advances Permissions automatically. An unsuccessful explicit permission request leaves recovery controls to open System Settings or check again. Closing the window stops permission polling, and reopening resumes the saved stage.
 
 The Keyboards stage saves each assignment and exclusion immediately. Continue and Set Up Later both reach Ready, even with no assignments. Back returns to Keyboards without discarding changes. Ready reports the saved assignment count and current switching status, including paused, unavailable, and missing permission conditions. Finish closes setup and leaves Keyameleon in the menu bar. Open Settings closes setup before opening Settings. Completion is persisted before either action and handled once. This replaces the older setup completion behavior that opened Settings directly from the assignment stage.
+
+## 2026-10-05 Menu-bar panel follows the Pencil design
+
+The menu panel uses the existing SwiftUI components in a 320-point native transient popover. `Theme.Menu` owns its measured dimensions and native semantic colors. macOS owns the outer glass and radius. Active assignments have an accent fill and border; connected and disconnected rows have no card border. Status symbols are `circle.fill`, `circle`, and `circle.dashed`. Subtitles show Built-in, Active, Connected, or Disconnected, prefixed by the product name when a custom name is shown.
+
+The header shows `(Paused)` inline. Pause Switching and Resume Switching share Command-P. Settings uses Command-comma, and Quit Keyameleon uses Command-Q. The typed shortcut descriptor supplies both each visible hint and its native binding.
+
+The Input Monitoring required notice prefers Open System Settings when available and closes the panel before opening that external window. Request Permission remains the fallback and keeps the panel open. An unavailable recovery action is omitted. Assignment filtering, ordering, the five-row scroll threshold, Guided Setup continuation, persistence recovery, and focus order remain unchanged.

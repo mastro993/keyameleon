@@ -117,3 +117,17 @@ Keyboards should show one row per Physical Keyboard, with the ignored ones in pl
 About should show the app icon, name, and tagline, the information rows, the Sparkle acknowledgement, and the creator credit. Version must match the running build. `View on GitHub` and `@fedemas` must open the browser; `Open in Finder` must create and open the two folders; the license rows must open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt`; `Check for Updates…` must be disabled while Sparkle cannot check.
 
 Use the named previews in `Sources/Features/Configuration/SettingsView.swift` to compare all three panes and the Keyboards empty state in light and dark appearances, and at 840 × 560 with large text and many keyboards. Compare them against the Pencil `Settings / General`, `Settings / Keyboards`, `Settings / About`, and `Settings / Keyboards / Empty` frames. Check keyboard navigation and VoiceOver: the sidebar items must report their selected state, and each keyboard row must read its name, status, Input Source, and menu.
+
+## Verify the menu-bar panel
+
+1. Open the status item in light and dark appearance. Confirm the panel is 320 points wide and shows assigned keyboards in the saved order.
+2. Check an active external keyboard, a connected built-in keyboard, and a disconnected keyboard. Confirm the filled, outlined, and dashed circles and the Active, Built-in, and Disconnected subtitles. All disconnected keyboard text and symbols should use the shared muted theme color in both appearances.
+3. Press Command-P. Confirm Pause Switching becomes Resume Switching, `(Paused)` appears, and the panel stays open. Press Command-P again to resume.
+4. Press Command-comma. Confirm the panel closes and Settings opens. On a disposable development session, press Command-Q and confirm Keyameleon quits.
+5. Deny Input Monitoring and reopen the panel. Confirm the warning notice uses its yellow background, orange symbol, and native button colors and reads Input Monitoring required. Click Open System Settings and confirm the panel closes before System Settings opens.
+6. Tab and Shift-Tab through About, any notice action, assignment rows, and footer actions. Confirm visible focus rings. Close and reopen with the pointer, then confirm no persistent row ring appears. Check Escape, outside click, and status-item toggling.
+7. Use six assigned keyboards and larger text. Scroll to the last keyboard while the footer remains reachable. Check a long name and an unavailable Input Source with VoiceOver; speech retains the full Input Source name and warning.
+8. Enable Increase Contrast and Reduce Transparency. Confirm readable glyphs and text, stronger active and badge borders, and an opaque native background.
+9. Check no assignments, unfinished Guided Setup, and a saved-data failure. Confirm their empty, continuation, and Retry behavior remains available.
+
+`MenuBarPanelPreviews.swift` covers completed ready and paused states in both appearances, missing permission, empty assignments, unavailable assignments, overflow with larger text, and assignment rows with increased contrast. The menu fixture completes setup after populating assignments so ready previews do not hide missing setup behind a screenshot-only renderer.

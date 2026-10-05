@@ -9,6 +9,7 @@ enum PreviewSetupState: Equatable {
     case assignmentsEmpty
     case assignmentsPopulated
     case pencilAssignments
+    case menuAssignments
     case readyEmpty
     case readyPopulated
     case readyPaused
@@ -72,11 +73,13 @@ enum PreviewFixtures {
     }
 
     static func setup(
-        _ state: PreviewSetupState
+        _ state: PreviewSetupState,
+        menuCompleted: Bool = false,
+        menuPaused: Bool = false
     ) -> PreviewSetupFixture {
         let requiresPermission = state == .permissionRequired || state == .permissionWaiting
-        let isCompleted = state == .completed
-        let isPaused = state == .paused || state == .readyPaused
+        let isCompleted = state == .completed || (menuCompleted && requiresPermission)
+        let isPaused = menuPaused || state == .paused || state == .readyPaused
         let step = guidedStep(for: state)
         let setupStore = PreviewSetupDecisionStore(
             hasStartedGuidedSetup: !isCompleted,
@@ -109,6 +112,9 @@ enum PreviewFixtures {
                 key: SymmetricKey(data: Data(repeating: 42, count: 32))
             )
         )
+        defer {
+            finishMenuFixture(model, discoverer: discoverer, state: state, completed: menuCompleted)
+        }
         let switching = model.activityTriggeredSwitching
         switching.start()
         if state == .permissionWaiting {
@@ -156,6 +162,24 @@ enum PreviewFixtures {
         }
 
         return PreviewSetupFixture(model: model, switching: switching)
+    }
+
+    private static func finishMenuFixture(
+        _ model: SetupModel,
+        discoverer: PreviewPhysicalKeyboardDiscoverer,
+        state: PreviewSetupState,
+        completed: Bool
+    ) {
+        if state == .menuAssignments {
+            discoverer.emit(.disconnected(serviceID: 11))
+            if let office = model.physicalKeyboards.first(where: { $0.productName == "Keychron K2" }) {
+                model.activityTriggeredSwitching.markActiveForTesting(office.id)
+            }
+        }
+        if completed {
+            model.continueToReady()
+            model.completeSetup(destination: .menuBar)
+        }
     }
 
     private static func excludePencilTravelIfNeeded(
@@ -219,7 +243,7 @@ enum PreviewFixtures {
         [
             MenuBarPanelContent.Action(
                 id: paused ? .resume : .pause,
-                title: paused ? "Resume" : "Pause",
+                title: paused ? "Resume Switching" : "Pause Switching",
                 isEnabled: true,
                 closesPanel: false
             ),
@@ -354,8 +378,8 @@ enum PreviewFixtures {
                     name: "HHKB Professional"
                 )
             ]
-        case .pencilAssignments:
-            return [
+        case .pencilAssignments, .menuAssignments:
+            let facts = [
                 PhysicalKeyboardHardwareFacts(
                     serviceID: 8,
                     identity: PhysicalKeyboardIdentity(
@@ -379,6 +403,7 @@ enum PreviewFixtures {
                     serviceID: 12, identity: "preview.magic", serial: "magic", name: "Magic Keyboard"
                 )
             ]
+            return state == .menuAssignments ? facts.filter { $0.serviceID != 12 } : facts
         case .manyAssignments:
             return (1...6).map { index in
                 makeFacts(
@@ -438,21 +463,22 @@ enum PreviewFixtures {
             switch keyboard.productName {
             case "Keychron K2":
                 model.setPhysicalKeyboardName(
-                    keyboard.id, customName: state == .pencilAssignments ? "Office Keyboard" : "Travel"
+                    keyboard.id,
+                    customName: [.pencilAssignments, .menuAssignments].contains(state) ? "Office Keyboard" : "Travel"
                 )
                 model.setKeyboardAssignment(
                     keyboard.id,
-                    inputSourceIdentifier: state == .pencilAssignments
+                    inputSourceIdentifier: [.pencilAssignments, .menuAssignments].contains(state)
                         ? "com.apple.keylayout.US" : "com.apple.keylayout.Italian"
                 )
             case "HHKB Professional":
-                if state == .pencilAssignments {
+                if [.pencilAssignments, .menuAssignments].contains(state) {
                     model.setPhysicalKeyboardName(keyboard.id, customName: "Travel Keyboard")
                 }
-                if state == .assignmentsPopulated || state == .paused || state == .pencilAssignments {
+                if [.assignmentsPopulated, .paused, .pencilAssignments, .menuAssignments].contains(state) {
                     model.setKeyboardAssignment(
                         keyboard.id,
-                        inputSourceIdentifier: state == .pencilAssignments
+                        inputSourceIdentifier: [.pencilAssignments, .menuAssignments].contains(state)
                             ? "com.apple.keylayout.German" : "com.apple.keylayout.US"
                     )
                 }

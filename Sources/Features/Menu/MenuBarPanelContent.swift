@@ -15,7 +15,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
 
 /// Typed Menu first regions and actions for the live menu-bar panel.
 struct MenuBarPanelContent: Equatable, Sendable {
-    static let panelWidth: CGFloat = 280
+    static let panelWidth: CGFloat = Theme.Menu.width
 
     struct Action: Equatable, Identifiable, Sendable {
         let id: MenuBarPanelActionID
@@ -53,7 +53,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         isSetupComplete: Bool = true
     ) {
         self.switchingStatus = outcome.switchingStatus
-        self.pausedMarker = outcome.switchingStatus == .paused ? "(paused)" : nil
+        self.pausedMarker = outcome.switchingStatus == .paused ? "(Paused)" : nil
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
             physicalKeyboards: physicalKeyboards,
@@ -117,7 +117,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         if outcome.hasAction(.resume) {
             return Action(
                 id: .resume,
-                title: "Resume",
+                title: "Resume Switching",
                 isEnabled: true,
                 closesPanel: false
             )
@@ -125,7 +125,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
         return Action(
             id: .pause,
-            title: "Pause",
+            title: "Pause Switching",
             isEnabled: true,
             closesPanel: false
         )
