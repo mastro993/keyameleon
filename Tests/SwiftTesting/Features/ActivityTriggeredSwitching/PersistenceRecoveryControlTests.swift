@@ -94,3 +94,40 @@ private func retrySelectionReadFailureDoesNotSelect() throws {
     #expect(selector.selectCount == 2)
     #expect(selector.current == "com.example.us")
 }
+
+@Test("Native menu hides an empty failed keyboard list and routes saved-data Retry")
+@MainActor
+private func nativeMenuRetriesPersistenceFailure() throws {
+    let container = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(inMemory: true)
+    var fails = true
+    let session = SwiftDataPersistenceSession(openContainer: {
+        if fails { throw CocoaError(.fileReadUnknown) }
+        return container
+    })
+    let model = SetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        protectedStateProvider: ProtectedStateTestProvider(state: .clear),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
+        designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
+    )
+    startAndCheck(model)
+    #expect(model.hasPersistenceFailure)
+    let controller = MenuBarPanelController(
+        setupModel: model,
+        switching: model.activityTriggeredSwitching,
+        actions: MenuBarPanelActions(openAbout: {}, continueSetup: {}, openSettings: {}, quit: {})
+    )
+    let menu = controller.menu
+    #expect(menu.items.allSatisfy { $0.view == nil })
+    let retry = try #require(menu.items.firstIndex { $0.title == "Retry" })
+    #expect(menu.items[retry].representedObject as? String == MenuBarPanelActionID.retryPersistence.rawValue)
+    #expect(menu.items.first { $0.title == "Retry Now" } == nil)
+
+    fails = false
+    menu.performActionForItem(at: retry)
+    #expect(model.hasPersistenceFailure == false)
+    controller.refresh()
+    #expect(menu.items.filter { $0.view != nil }.count == 1)
+}

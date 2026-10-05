@@ -4,7 +4,6 @@ import SwiftUI
 struct MenuBarAssignmentSection: View {
     let list: MenuBarAssignmentList
     var emphasis: MenuBarAssignmentEmphasis = .standard
-    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
     @ScaledMetric(relativeTo: .body) private var assignmentRowHeight = Theme.Menu.rowHeight
 
     var body: some View {
@@ -18,8 +17,7 @@ struct MenuBarAssignmentSection: View {
             MenuBarAssignmentRows(
                 list: list,
                 rowHeight: assignmentRowHeight,
-                emphasis: emphasis,
-                focusedTarget: focusedTarget
+                emphasis: emphasis
             )
         }
     }
@@ -65,18 +63,12 @@ private struct MenuBarAssignmentRows: View {
     let list: MenuBarAssignmentList
     let rowHeight: CGFloat
     let emphasis: MenuBarAssignmentEmphasis
-    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
 
     var body: some View {
         let stack = LazyVStack(alignment: .leading, spacing: Theme.Menu.rowSpacing) {
             ForEach(list.rows) { row in
                 MenuBarAssignmentPill(row: row, emphasis: emphasis)
                     .frame(minHeight: rowHeight)
-                    .focusable()
-                    .modifier(MenuBarAssignmentFocusBinding(
-                        target: .assignment(id: row.id),
-                        focusedTarget: focusedTarget
-                    ))
             }
         }
 
@@ -95,19 +87,6 @@ private struct MenuBarAssignmentRows: View {
         let visibleRows = CGFloat(MenuBarAssignmentList.visibleRowLimit)
         let spacing = Theme.Menu.rowSpacing * (visibleRows - 1)
         return rowHeight * visibleRows + spacing
-    }
-}
-
-private struct MenuBarAssignmentFocusBinding: ViewModifier {
-    let target: MenuBarPanelAccessibility.FocusTarget
-    var focusedTarget: FocusState<MenuBarPanelAccessibility.FocusTarget?>.Binding?
-
-    func body(content: Content) -> some View {
-        if let focusedTarget {
-            content.focused(focusedTarget, equals: target)
-        } else {
-            content
-        }
     }
 }
 

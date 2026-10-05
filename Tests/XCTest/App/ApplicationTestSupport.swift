@@ -58,30 +58,6 @@ final class ApplicationTestPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscoveri
 }
 
 @MainActor
-final class MenuBarPanelTestAnchorWindow {
-    private let window: NSWindow
-    let positioningView: NSView
-
-    init() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 40, height: 24),
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
-        window.isReleasedWhenClosed = false
-        window.alphaValue = 0
-        window.orderFrontRegardless()
-        self.window = window
-        self.positioningView = window.contentView!
-    }
-
-    func close() {
-        window.close()
-    }
-}
-
-@MainActor
 final class ApplicationTestUpdateChecker: UpdateChecking {
     private(set) var startCallCount = 0
     var canCheckForUpdates = false

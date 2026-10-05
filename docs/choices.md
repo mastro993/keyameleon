@@ -957,3 +957,9 @@ The menu panel uses the existing SwiftUI components in a 320-point native transi
 The header shows `(Paused)` inline. Pause Switching and Resume Switching share Command-P. Settings uses Command-comma, and Quit Keyameleon uses Command-Q. The typed shortcut descriptor supplies both each visible hint and its native binding.
 
 The Input Monitoring required notice prefers Open System Settings when available and closes the panel before opening that external window. Request Permission remains the fallback and keeps the panel open. An unavailable recovery action is omitted. Assignment filtering, ordering, the five-row scroll threshold, Guided Setup continuation, persistence recovery, and focus order remain unchanged.
+
+## 2026-10-05 — Native status menu replaces the custom panel
+
+The status item owns an `NSMenu`. AppKit draws the title, notices, commands, separators, shortcuts, version, tracking, and dismissal. Only Keyboards uses the existing SwiftUI assignment list in `NSHostingView`; its assigned-only order, unavailable-source state, and five-row viewport remain. The controller updates native items from the typed `MenuBarPanelContent` snapshot as models change and before the menu opens. Stable menu items and the keyboard host stay attached during updates, preserving the list's scroll position.
+
+All selected commands close the menu, including Pause, Resume, Request Permission, Retry Now, and saved-data Retry. Saved-data Retry calls `SetupModel.retryPersistenceOperation()` and has its own typed action ID. Native notice subtitles and tooltips retain full detail; the old warning card and popover focus rules no longer apply. Earlier entries describe the superseded panel design.

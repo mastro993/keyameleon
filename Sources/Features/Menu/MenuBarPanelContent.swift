@@ -8,6 +8,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case openSystemSettings
     case checkAgain
     case retryNow
+    case retryPersistence
     case continueSetup
     case settings
     case quit
@@ -21,7 +22,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
         let id: MenuBarPanelActionID
         let title: String
         let isEnabled: Bool
-        let closesPanel: Bool
     }
 
     struct Footer: Equatable, Sendable {
@@ -36,10 +36,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
     let footer: Footer
     let notice: MenuBarPanelNotice?
     let pausedMarker: String?
-
-    var accessibility: MenuBarPanelAccessibility {
-        MenuBarPanelAccessibility(content: self)
-    }
 
     var actionTitles: [String] {
         [footer.about.title] + footer.actions.map(\.title)
@@ -70,8 +66,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             about: Action(
                 id: .about,
                 title: "About Keyameleon",
-                isEnabled: true,
-                closesPanel: true
+                isEnabled: true
             ),
             actions: Self.makeActions(outcome: outcome, isSetupComplete: isSetupComplete)
         )
@@ -101,13 +96,12 @@ struct MenuBarPanelContent: Equatable, Sendable {
             actions.append(Action(
                 id: .continueSetup,
                 title: "Continue Guided Setup",
-                isEnabled: true,
-                closesPanel: true
+                isEnabled: true
             ))
         }
         actions.append(pauseOrResume(outcome: outcome))
-        actions.append(Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true))
-        actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true))
+        actions.append(Action(id: .settings, title: "Settings", isEnabled: true))
+        actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true))
         return actions
     }
 
@@ -118,16 +112,14 @@ struct MenuBarPanelContent: Equatable, Sendable {
             return Action(
                 id: .resume,
                 title: "Resume Switching",
-                isEnabled: true,
-                closesPanel: false
+                isEnabled: true
             )
         }
 
         return Action(
             id: .pause,
             title: "Pause Switching",
-            isEnabled: true,
-            closesPanel: false
+            isEnabled: true
         )
     }
 }

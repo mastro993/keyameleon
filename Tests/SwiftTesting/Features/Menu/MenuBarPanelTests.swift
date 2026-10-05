@@ -65,20 +65,6 @@ func menuBarPanelRecoveryActionsNeverAppear() {
     }
 }
 
-@Test("Pause and Resume keep the panel open; About dismisses it")
-@MainActor
-func menuBarPanelOverflowDismissal() {
-    let ready = makeMenuBarPanelContent(outcome: .readyFixture())
-    #expect(ready.footer.about.closesPanel)
-    #expect(overflow(ready, .pause)?.closesPanel == false)
-
-    let paused = makeMenuBarPanelContent(outcome: .pausedFixture())
-    #expect(overflow(paused, .resume)?.closesPanel == false)
-
-    let permission = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
-    #expect(overflow(permission, .pause)?.closesPanel == false)
-}
-
 @Test("Footer shows Keyameleon from the marketing version and omits the build number")
 @MainActor
 func menuBarPanelFooterShowsMarketingVersion() {
@@ -116,7 +102,6 @@ func menuBarPanelHeaderInfoOpensAbout() {
     #expect(content.footer.about.id == .about)
     #expect(content.footer.about.title == "About Keyameleon")
     #expect(content.footer.about.isEnabled)
-    #expect(content.footer.about.closesPanel)
     #expect(overflowIDs(content).contains(.about) == false)
     #expect(content.actionTitles.contains("About Keyameleon"))
 }
@@ -132,7 +117,6 @@ func menuBarPanelFooterOverflowDefaultActions() {
         "Settings",
         "Quit Keyameleon",
     ])
-    #expect(overflow(content, .settings)?.closesPanel == true)
 }
 
 @Test("About action does not add setup actions")
@@ -158,7 +142,6 @@ func menuBarPanelOffersGuidedSetupContinuation() {
         let complete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: true)
 
         #expect(incomplete.footer.actions.first?.id == .continueSetup)
-        #expect(incomplete.footer.actions.first?.closesPanel == true)
         #expect(incomplete.footer.actions.map(\.title).contains("Continue Guided Setup"))
         #expect(complete.footer.actions.map(\.title).contains("Continue Guided Setup") == false)
         #expect(complete.notice?.title != "Guided setup is not finished")
@@ -483,7 +466,6 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     #expect(content.notice?.tone == .warning)
     #expect(action.id == .openSystemSettings)
     #expect(action.title == "Open System Settings")
-    #expect(action.closesPanel == true)
     #expect(overflowIDs(content) == [.pause, .settings, .quit])
     #expect(content.actionTitles.contains("Open System Settings") == false)
 }
@@ -498,24 +480,17 @@ func menuBarPanelPermissionNoticeFallsBackToRequest() throws {
 
     #expect(action.id == .requestPermission)
     #expect(action.title == "Request Permission")
-    #expect(action.closesPanel == false)
 }
 
-@Test("Displayed menu shortcuts use the same Command keys as their native bindings")
+@Test("Native menu shortcuts map to Command-P, Command-comma, and Command-Q")
 func menuBarPanelCommandShortcutMapping() {
     for id in [MenuBarPanelActionID.pause, .resume] {
-        #expect(id.shortcut?.title == "⌘P")
-        #expect(id.shortcut?.key == KeyEquivalent("p"))
-        #expect(id.shortcut?.modifiers == .command)
+        #expect(id.shortcut?.rawValue == "p")
     }
-    #expect(MenuBarPanelActionID.settings.shortcut?.title == "⌘,")
-    #expect(MenuBarPanelActionID.settings.shortcut?.key == KeyEquivalent(","))
-    #expect(MenuBarPanelActionID.settings.shortcut?.modifiers == .command)
-    #expect(MenuBarPanelActionID.quit.shortcut?.title == "⌘Q")
-    #expect(MenuBarPanelActionID.quit.shortcut?.key == KeyEquivalent("q"))
-    #expect(MenuBarPanelActionID.quit.shortcut?.modifiers == .command)
+    #expect(MenuBarPanelActionID.settings.shortcut?.rawValue == ",")
+    #expect(MenuBarPanelActionID.quit.shortcut?.rawValue == "q")
     for id in [MenuBarPanelActionID.about, .requestPermission, .openSystemSettings,
-               .checkAgain, .retryNow, .continueSetup] {
+               .checkAgain, .retryNow, .retryPersistence, .continueSetup] {
         #expect(id.shortcut == nil)
     }
 }
@@ -751,7 +726,6 @@ func menuBarPanelSelectionFailureNoticeOffersRetryWhenAvailable() throws {
     #expect(content.notice?.detail == "Retry the Keyboard Assignment for Travel.")
     #expect(action.id == .retryNow)
     #expect(action.title == "Retry Now")
-    #expect(action.closesPanel == false)
     #expect(overflowIDs(content) == [.pause, .settings, .quit])
 }
 
