@@ -157,7 +157,6 @@ private func nativeMenuRetriesPersistenceFailure() throws {
     permission.state = .granted
     controller.menuNeedsUpdate(menu)
     #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" } == nil)
-    #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards-heading" } != nil)
     #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" }?.view != nil)
     #expect(menu.items.filter { $0.view != nil }.count == 1)
     #expect(menu.size.width == noticeWidth)

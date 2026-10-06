@@ -13,7 +13,7 @@ import SwiftUI
         ),
         emphasis: .highContrast
     )
-    .padding(.horizontal, Theme.Menu.rowInset)
+    .padding(.horizontal, Theme.Menu.listInset)
     .padding(.vertical, Theme.Menu.sectionInset)
     .frame(width: MenuBarPanelContent.panelWidth)
 }

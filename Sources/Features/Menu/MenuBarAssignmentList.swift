@@ -2,7 +2,6 @@ import Foundation
 
 /// Assigned-only filter/order seam for the menu-bar panel. Actions stay out.
 struct MenuBarAssignmentList: Equatable, Sendable {
-    static let heading = "Keyboards"
     static let emptyTitle = "No assigned keyboards"
     static let emptyDescription = "Open Keyameleon Settings to assign keyboards."
     static let unavailableInputSourceName = "Unavailable Input Source"
@@ -64,7 +63,6 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         }
     }
 
-    let heading: String
     let rows: [Row]
     let emptyTitle: String?
     let emptyDescription: String?
@@ -77,8 +75,6 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource]
     ) {
-        heading = Self.heading
-
         let assigned = physicalKeyboards.filter { $0.keyboardAssignment != nil }
         let ordered = PhysicalKeyboardListOrdering.sorted(assigned)
         rows = ordered.map { physicalKeyboard in

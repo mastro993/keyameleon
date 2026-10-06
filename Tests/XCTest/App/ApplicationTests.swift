@@ -32,6 +32,7 @@ final class ApplicationTests: XCTestCase {
         XCTAssertNil(delegate.menuBarStatusItem?.button?.action)
         XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
         XCTAssertNotNil(menu.items.first { $0.title == "Keyboards" })
+        XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards-heading" })
         XCTAssertNil(menu.items.first { $0.title == "About Keyameleon" })
         XCTAssertNotNil(menu.items.first { $0.title == "Quit Keyameleon" })
         XCTAssertEqual(menu.items.first { $0.title == "Pause Switching" }?.keyEquivalent, "p")
