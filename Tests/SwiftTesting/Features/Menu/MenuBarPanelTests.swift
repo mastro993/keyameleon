@@ -188,13 +188,13 @@ func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throw
     let desk = try #require(list.rows.first { $0.id == "desk" })
 
     #expect(travel.physicalKeyboardName == "Travel")
-    #expect(travel.subtitle == "Keychron K2 - Connected")
+    #expect(travel.connectionMark == .connected)
     #expect(travel.assignedInputSourceName == "Italian")
     #expect(travel.assignedLocaleCode == "IT")
 
     // The name line already carries the product name without a Custom name.
     #expect(desk.physicalKeyboardName == "HHKB Professional")
-    #expect(desk.subtitle == "Connected")
+    #expect(desk.connectionMark == .connected)
     #expect(desk.assignedLocaleCode == "US")
 }
 
@@ -492,8 +492,8 @@ func menuBarPanelCommandShortcutMapping() {
     }
 }
 
-@Test("Assignment subtitles describe built-in, active, and disconnected keyboard states")
-func menuBarPanelAssignmentSubtitlesDescribeState() throws {
+@Test("Assignment rows show one title line and their connection state")
+func menuBarPanelAssignmentRowsShowSingleTitleAndState() throws {
     let builtIn = PhysicalKeyboard(
         id: .builtIn,
         productName: "MacBook Keyboard",
@@ -515,9 +515,11 @@ func menuBarPanelAssignmentSubtitlesDescribeState() throws {
         ],
         assignedInputSources: [:]
     )
-    #expect(list.rows.map(\.subtitle) == [
-        "Built-in", "Keychron K2 - Active", "HHKB Professional - Disconnected"
+    #expect(list.rows.map(\.physicalKeyboardName) == [
+        "MacBook Keyboard", "Office Keyboard", "Travel Keyboard"
     ])
+    #expect(list.rows.map(\.connectionMark) == [.connected, .active, .disconnected])
+    #expect(list.rows.map(\.isDimmed) == [false, false, true])
 }
 
 @Test("Only the Permission Required notice carries the warning tone")

@@ -1,5 +1,33 @@
 # Choices
 
+## 2026-10-06 — Menu keyboard pills are single-line with a locale badge
+
+The menu panel's keyboard pills are one 34 pt line: connection mark, the
+Physical Keyboard Name, an optional warning triangle, and the assigned Input
+Source's locale code. The pill's `@ScaledMetric` frame and the five-row
+scroller share `Theme.Menu.rowHeight` as a row minimum, not a fixed row height:
+a row with taller content clips at the viewport instead of growing it.
+
+### Defaults
+
+- The title is the Physical Keyboard Name, custom name when set and the product
+  name otherwise, in one tail-truncated line. This supersedes the 2026-10-05
+  subtitle sentence and the 2026-09-23 `subtitle` entry.
+- The locale code renders inline in the pill: a filled `Color.primary`
+  rectangle with `.background` text at `Theme.Typography.chip`, at least 24 × 16
+  with radius 4 and a 4 pt horizontal inset, growing for a code longer than two
+  letters instead of truncating.
+- `MenuBarAssignmentList.Row` drops `subtitle` and the stored
+  `showsWarningSymbol`, which is now computed from `warningNote`. The VoiceOver
+  label and value are unchanged.
+- A disconnected pill takes one 0.65 opacity layer across the mark, title, and
+  badge, raised to 0.8 under Increase Contrast. The warning triangle stays
+  undimmed, and no second mute or opacity layer stacks on those elements.
+- `Theme.Menu` drops the now-unused `muted`, `detailGap`, `badgeBorder`, and
+  `strongBadgeBorder` tokens, and `Theme.Typography.chip` is `caption2` bold.
+- No Settings, onboarding, dependency, or private API change. Native pixel parity
+  is not claimed; the reference capture did not show the open menu.
+
 ## 2026-10-06 — About lives only in Settings
 
 The status menu and application menu omit About Keyameleon. The independent

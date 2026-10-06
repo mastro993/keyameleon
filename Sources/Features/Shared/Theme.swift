@@ -32,20 +32,22 @@ enum Theme {
     enum Menu {
         static let accent = Color.accentColor
         static let activeFill = Color.accentColor.opacity(0.18)
-        static let muted = Theme.muted
-        static let badgeBorder = Color.primary.opacity(0.2)
-        static let strongBadgeBorder = Color.primary.opacity(0.5)
         static let width: CGFloat = 320
-        static let rowHeight: CGFloat = 62
+        /// One assignment pill, and the unit five visible rows scroll against.
+        static let rowHeight: CGFloat = 34
         static let rowSpacing: CGFloat = 4
         static let sectionInset: CGFloat = 8
         static let rowRadius: CGFloat = 12
         static let rowInset: CGFloat = 12
         static let rowGap: CGFloat = 14
         static let statusSize: CGFloat = 14
-        static let detailGap: CGFloat = 4
         static let badgeWidth: CGFloat = 24
         static let badgeHeight: CGFloat = 16
+        static let badgeRadius: CGFloat = 4
+        static let badgeInset: CGFloat = 4
+        /// The single opacity layer a disconnected pill's mark, title, and badge take.
+        static let disconnectedOpacity: Double = 0.65
+        static let highContrastDisconnectedOpacity: Double = 0.8
     }
 
     // MARK: Typography
@@ -71,7 +73,7 @@ enum Theme {
         /// `type-title-2`, semibold: a pane's empty state title.
         static let emptyStateTitle = Font.title2.weight(.semibold)
         /// Chip and badge labels.
-        static let chip = Font.subheadline.weight(.medium)
+        static let chip = Font.caption2.weight(.bold)
     }
 
     // MARK: Metrics

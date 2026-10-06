@@ -29,16 +29,21 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
     struct Row: Equatable, Identifiable, Sendable {
         let id: String
+        /// The Physical Keyboard Name. Custom name when set, product name otherwise.
         let physicalKeyboardName: String
-        let subtitle: String
         let assignedInputSourceName: String
         /// Locale code of the assigned Input Source, such as `US` or `IT`.
         /// `nil` when the Input Source is unavailable or reports no language.
         let assignedLocaleCode: String?
         let connectionMark: ConnectionMark
         let isDimmed: Bool
+        /// `nil` when nothing needs action.
         let warningNote: String?
-        let showsWarningSymbol: Bool
+
+        /// Whether the pill draws its warning triangle. Derived from `warningNote`.
+        var showsWarningSymbol: Bool {
+            warningNote != nil
+        }
 
         var accessibilityMark: String {
             connectionMark.accessibilityName
@@ -79,21 +84,14 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         rows = ordered.map { physicalKeyboard in
             let savedSource = assignedInputSources[physicalKeyboard.id]
             let isUnavailable = savedSource == nil
-            let connectionMark = Self.connectionMark(for: physicalKeyboard)
-            let state = physicalKeyboard.isBuiltIn && connectionMark != .disconnected
-                ? "Built-in" : connectionMark.accessibilityName
             return Row(
                 id: physicalKeyboard.id.rawValue,
                 physicalKeyboardName: physicalKeyboard.name,
-                subtitle: physicalKeyboard.customName == nil
-                    ? state
-                    : "\(physicalKeyboard.productName) - \(state)",
                 assignedInputSourceName: savedSource?.name ?? Self.unavailableInputSourceName,
                 assignedLocaleCode: savedSource?.localeCode,
-                connectionMark: connectionMark,
+                connectionMark: Self.connectionMark(for: physicalKeyboard),
                 isDimmed: physicalKeyboard.connectionState == .disconnected,
-                warningNote: isUnavailable ? Self.unavailableNote : nil,
-                showsWarningSymbol: isUnavailable
+                warningNote: isUnavailable ? Self.unavailableNote : nil
             )
         }
         emptyTitle = rows.isEmpty ? Self.emptyTitle : nil
