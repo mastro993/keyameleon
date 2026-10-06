@@ -49,7 +49,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         self.switchingStatus = outcome.switchingStatus
         let trimmedVersion = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let version = trimmedVersion.isEmpty ? "—" : trimmedVersion
-        self.headerTitle = "Keyameleon [\(version)]"
+        self.headerTitle = "Keyameleon v\(version)"
             + (outcome.switchingStatus == .paused ? " (Paused)" : "")
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,

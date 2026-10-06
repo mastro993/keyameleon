@@ -968,7 +968,7 @@ The Input Monitoring required notice prefers Open System Settings when available
 
 The status item owns an `NSMenu`. AppKit draws the title, notices, commands, separators, shortcuts, tracking, and dismissal. Only Keyboards uses the existing SwiftUI assignment list in `NSHostingView`; its assigned-only order, unavailable-source state, and five-row viewport remain. The controller updates native items from the typed `MenuBarPanelContent` snapshot as models change and before the menu opens. Stable menu items and the keyboard host stay attached during updates, preserving the list's scroll position.
 
-The native section header shows `Keyameleon [<marketing version>]` from `CFBundleShortVersionString`, with ` (Paused)` only while switching is paused. A missing or blank version shows `Keyameleon [—]`. The footer has actions only, with Quit Keyameleon last.
+The native section header shows `Keyameleon v<marketing version>` from `CFBundleShortVersionString`, with ` (Paused)` only while switching is paused. A missing or blank version shows `Keyameleon v—`. The footer has actions only, with Quit Keyameleon last.
 
 All selected commands close the menu, including Pause, Resume, Request Permission, Retry Now, and saved-data Retry. Saved-data Retry calls `SetupModel.retryPersistenceOperation()` and has its own typed action ID. Menu rows have no hover tooltips; notice subtitles, visible keyboard warnings, and accessibility text retain the full explanation. The old warning card and popover focus rules no longer apply. Earlier entries describe the superseded panel design.
 

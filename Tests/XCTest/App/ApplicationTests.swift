@@ -22,7 +22,7 @@ final class ApplicationTests: XCTestCase {
         let menu = try XCTUnwrap(delegate.menuBarStatusItem?.menu)
         let version = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let headingTitle = "Keyameleon [\(version.isEmpty ? "—" : version)]"
+        let headingTitle = "Keyameleon v\(version.isEmpty ? "—" : version)"
         let heading = try XCTUnwrap(menu.items.first)
         XCTAssertTrue(menu === controller.menu)
         XCTAssertEqual(heading.identifier?.rawValue, "menu-bar-heading")
