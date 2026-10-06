@@ -1,0 +1,2 @@
+KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY = Apple Development
+#include? "Development.local.xcconfig"

@@ -41,10 +41,10 @@ You need macOS 26 or later, Xcode 26 or later, [XcodeGen](https://github.com/yon
 brew install xcodegen
 ./Scripts/run.sh open      # generate, build a Development-signed Debug app, launch it
 ./Scripts/run.sh test      # safety audit, then Swift Testing and XCTest bundles
-./Scripts/run.sh generate  # regenerate the Xcode project after editing project.yml
+./Scripts/run.sh generate  # select your local certificate and regenerate the Xcode project
 ```
 
-Xcode Run, `run.sh build`, and `run.sh open` require an Apple Development identity for Debug builds. A stable signing identity lets macOS recognize the app across rebuilds and retain its Input Monitoring grant. No personal team or certificate is stored in the project. `run.sh test` explicitly uses ad hoc signing so hosted tests also run on CI without a certificate. Build products from the script land in `./build`.
+Xcode Run, `run.sh build`, and `run.sh open` require an Apple Development identity for Debug builds. A stable signing identity lets macOS recognize the app across rebuilds and retain its Input Monitoring grant. Before the first Xcode Run, use `./Scripts/run.sh generate`. It selects the first installed Apple Development certificate and writes its fingerprint to the ignored `Config/Development.local.xcconfig`. Run it again after changing certificates. No personal team or certificate identity is committed. Generation still works without a certificate for CI; normal Debug builds require one. Official Release signing is unchanged. `run.sh test` explicitly uses ad hoc signing so hosted tests also run on CI without a certificate. Build products from the script land in `./build`.
 
 Tests live in `Tests/SwiftTesting` for domain and model seams, and in `Tests/XCTest` for AppKit shell contracts. [`CONTEXT.md`](CONTEXT.md) holds the product vocabulary, and [`docs/adr`](docs/adr) records the decisions behind the switching rules and the single-instance behavior.
 

@@ -15,7 +15,12 @@ domain and model seams; this repository has no automated UI-test target.
 
 Both Xcode test commands explicitly use ad hoc signing for the hosted app and
 test bundles, so `run.sh test` needs no Apple Development certificate. Normal
-Debug builds, including Xcode Run, require Apple Development signing. Do not use
+Debug builds, including Xcode Run, require Apple Development signing. Run
+`./Scripts/run.sh generate` before the first Xcode Run and after changing
+certificates. It refreshes the ignored `Config/Development.local.xcconfig` with
+the first installed Apple Development certificate fingerprint. Without a
+certificate, generation clears any old local selection and succeeds for CI,
+but normal Debug builds still fail. Official Release signing is unchanged. Do not use
 the ad hoc test product to verify persistent Input Monitoring grants; rebuild
 with Xcode Run or `run.sh open` first. Grant access to that development app in
 System Settings, quit and reopen it, then rebuild and run again. Confirm that

@@ -81,6 +81,14 @@ generate_project
             return next(objects[key]["buildSettings"] for key in configs
                         if objects[key]["name"] == configuration)
 
+        configs = objects[root["buildConfigurationList"]]["buildConfigurations"]
+        debug = next(objects[key] for key in configs if objects[key]["name"] == "Debug")
+        reference = objects[debug["baseConfigurationReference"]]
+        self.assertEqual(reference["path"], "Development.xcconfig")
+        self.assertEqual((ROOT / "Config/Development.xcconfig").read_text(),
+                         'KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY = Apple Development\n'
+                         '#include? "Development.local.xcconfig"\n')
+
         for target_id in root["targets"]:
             target = objects[target_id]
             for configuration, identity, required in (

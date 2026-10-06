@@ -177,6 +177,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00639BAB7E092A3965FE243C /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		03147B54B47BE46EFED9F147 /* AboutLinkLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutLinkLabel.swift; sourceTree = "<group>"; };
 		077A1A619B7B568508D1505F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0D48BF7C05435BF5D4A4CFFB /* PhysicalKeyboardPresentationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardPresentationResolver.swift; sourceTree = "<group>"; };
@@ -523,6 +524,7 @@
 			isa = PBXGroup;
 			children = (
 				E6149CA42BF141280DF159F2 /* Keyameleon-icon.icon */,
+				FF929AB461A5CF5718BE8B66 /* Config */,
 				D958257354866ECFC61FD814 /* Resources */,
 				BF3878F1C20B19C018283AA5 /* Sources */,
 				AA13A857CCEB8354237B20DE /* Tests */,
@@ -710,6 +712,14 @@
 				94FBDEF96365996D36E739AE /* Features */,
 			);
 			path = SwiftTesting;
+			sourceTree = "<group>";
+		};
+		FF929AB461A5CF5718BE8B66 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				00639BAB7E092A3965FE243C /* Development.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1131,6 +1141,7 @@
 		};
 		4315D0892B9A889F3B24E20B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 00639BAB7E092A3965FE243C /* Development.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1163,7 +1174,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGNING_REQUIRED = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "$(KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;

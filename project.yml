@@ -15,6 +15,9 @@ packages:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.6.0
 
+configFiles:
+  Debug: Config/Development.xcconfig
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -31,7 +34,7 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
   configs:
     Debug:
-      CODE_SIGN_IDENTITY: Apple Development
+      CODE_SIGN_IDENTITY: $(KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY)
       CODE_SIGNING_REQUIRED: YES
 
 targets:

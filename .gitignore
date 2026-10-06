@@ -147,3 +147,6 @@ sparkle_private_key
 # Official Release local output
 dist/
 build/official-release/
+
+# Per-user development certificate selection
+/Config/Development.local.xcconfig

@@ -90,6 +90,12 @@ neutralize_legacy_user_build_locations() {
 }
 
 generate_project() {
+    local identity
+    identity="$(development_signing_identity 2>/dev/null || true)"
+    : > Config/Development.local.xcconfig
+    if [[ -n "${identity}" ]]; then
+        print -r -- "KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY = ${identity}" > Config/Development.local.xcconfig
+    fi
     xcodegen generate --spec project.yml
     write_modern_workspace_settings
     neutralize_legacy_user_build_locations
@@ -156,7 +162,7 @@ development_signing_identity() {
     local identity
     identity="$(
         security find-identity -v -p codesigning 2>/dev/null \
-            | awk -F '"' '/Apple Development:/{ print $2; exit }'
+            | awk '/Apple Development:/{ print $2; exit }'
     )"
 
     if [[ -z "${identity}" ]]; then
