@@ -148,5 +148,4 @@ sparkle_private_key
 dist/
 build/official-release/
 
-# Per-user development certificate selection
 /Config/Development.local.xcconfig

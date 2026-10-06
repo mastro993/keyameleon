@@ -101,8 +101,6 @@ generate_project() {
     neutralize_legacy_user_build_locations
 }
 
-# Kill leftover Debug development processes whose executable is under derived data.
-# Does not kill an Official Release or `open` instance outside ./build.
 kill_leftover_derived_data_keyameleon() {
     local pid command
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
