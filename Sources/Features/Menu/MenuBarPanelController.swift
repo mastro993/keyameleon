@@ -69,9 +69,7 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             notice = content.notice
         }
         if let notice {
-            let noticeItem = item(id: "notice") {
-                NSMenuItem(title: "", action: nil, keyEquivalent: "")
-            }
+            let noticeItem = item(for: notice.action, id: "notice")
             updateHostedView(MenuBarPanelNoticeView(notice: notice) { [weak self] id in
                 guard notice.action.isEnabled else { return }
                 self?.close()
@@ -125,8 +123,8 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         item(id: id) { .separator() }
     }
 
-    private func item(for action: MenuBarPanelContent.Action) -> NSMenuItem {
-        let item = item(id: "action-\(action.id.rawValue)") {
+    private func item(for action: MenuBarPanelContent.Action, id: String? = nil) -> NSMenuItem {
+        let item = item(id: id ?? "action-\(action.id.rawValue)") {
             NSMenuItem(title: action.title, action: #selector(performMenuItem(_:)), keyEquivalent: "")
         }
         item.title = action.title

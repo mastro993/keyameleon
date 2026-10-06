@@ -107,13 +107,14 @@ private func nativeMenuRetriesPersistenceFailure() throws {
         return container
     })
     let permission = SetupModelTestListenPermissionProvider(state: .denied)
+    let opener = SetupModelTestSystemSettingsOpener()
     let setupStore = SetupModelTestSetupDecisionStore()
     setupStore.markGuidedSetupCompleted()
     let model = SetupModel(
         permissionProvider: permission,
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        systemSettingsOpener: opener,
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )
@@ -142,12 +143,16 @@ private func nativeMenuRetriesPersistenceFailure() throws {
     let noticeWidth = menu.size.width
 
     fails = false
-    host.rootView.perform(host.rootView.notice.action.id)
+    menu.performActionForItem(at: menu.index(of: item))
     #expect(model.hasPersistenceFailure == false)
     controller.refresh()
     #expect(host.rootView.notice.title == "Input Monitoring required")
     #expect(menu.items.first { $0.title == "Keyboards" } == nil)
     #expect(menu.size.width == noticeWidth)
+    #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" } === item)
+    #expect(item.title == "Open System Settings")
+    menu.performActionForItem(at: menu.index(of: item))
+    #expect(opener.openCount == 1)
 
     permission.state = .granted
     controller.menuNeedsUpdate(menu)
