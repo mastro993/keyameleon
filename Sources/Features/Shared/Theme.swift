@@ -38,7 +38,7 @@ enum Theme {
         static let rowSpacing: CGFloat = 2
         static let sectionInset: CGFloat = 6
         /// The horizontal inset the assignment list keeps from the panel edges.
-        static let listInset: CGFloat = 4
+        static let listInset: CGFloat = 8
         static let rowRadius: CGFloat = 12
         static let rowInset: CGFloat = 8
         static let rowGap: CGFloat = 14

@@ -529,11 +529,11 @@ func menuBarPanelAssignmentRowsShowSingleTitleAndState() throws {
     )
     let list = MenuBarAssignmentList(
         physicalKeyboards: [
-            builtIn,
             makeAssignedPanelKeyboard(name: "Keychron K2", identifier: "office", isActive: true,
                                       customName: "Office Keyboard"),
             makeAssignedPanelKeyboard(name: "HHKB Professional", identifier: "travel",
-                                      connectionState: .disconnected, customName: "Travel Keyboard")
+                                      connectionState: .disconnected, customName: "Travel Keyboard"),
+            builtIn
         ],
         assignedInputSources: [:]
     )

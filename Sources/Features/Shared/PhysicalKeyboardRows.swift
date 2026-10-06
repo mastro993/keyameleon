@@ -4,7 +4,8 @@ import Foundation
 ///
 /// A row keeps its identity while the keyboard it shows connects, disconnects,
 /// gets renamed, or is ignored, so neither flow reorders under the person's
-/// hands. Included and ignored keyboards take the same row.
+/// hands, except that a newly discovered built-in keyboard moves first.
+/// Included and ignored keyboards take the same row.
 struct PhysicalKeyboardRow: Identifiable, Equatable {
     enum SavedRecordSelection: Equatable {
         case matched(SavedPhysicalKeyboardRecord)
@@ -155,6 +156,14 @@ struct PhysicalKeyboardRows: Equatable {
             consumedKeyboardIDs: consumedKeyboardIDs
         )
         reconciledRows += missingExclusionRows(exclusions, from: reconciledRows, savedRecords: savedRecords)
+        if let builtInIndex = reconciledRows.firstIndex(where: { row in
+            if case let .included(keyboard) = row.state {
+                return keyboard.isBuiltIn
+            }
+            return false
+        }), builtInIndex != 0 {
+            reconciledRows.insert(reconciledRows.remove(at: builtInIndex), at: 0)
+        }
         rows = reconciledRows
     }
 

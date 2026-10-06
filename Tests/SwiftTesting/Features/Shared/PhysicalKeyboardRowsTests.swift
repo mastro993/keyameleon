@@ -43,6 +43,34 @@ func subtitleUsesOriginalNameOnlyAfterRename() {
         .subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
 }
 
+@Test("A late built-in keyboard moves first without reordering external or ignored rows")
+@MainActor
+func lateBuiltInKeyboardMovesFirstPreservingOtherRows() {
+    let first = makeOnboardingRowKeyboard(id: "identity:first", name: "First")
+    let second = makeOnboardingRowKeyboard(id: "identity:second", name: "Second")
+    let exclusion = SavedPhysicalKeyboardExclusion(key: "identity:ignored", name: "Ignored")
+    let builtIn = PhysicalKeyboard(
+        id: PhysicalKeyboardRecordID(rawValue: "identity:builtin"),
+        productName: "Built-in Keyboard", customName: nil, transport: .usb,
+        isBuiltIn: true, assignmentState: .unassigned, connectedServiceCount: 1,
+        connectionState: .connected, isActive: false
+    )
+    var rows = PhysicalKeyboardRows(
+        physicalKeyboards: [second, first], exclusions: [exclusion], exclusionKeyFor: { _ in nil }
+    )
+    let originalIDs = rows.rows.map(\.id)
+
+    for _ in 0..<2 {
+        rows.reconcile(
+            physicalKeyboards: [second, builtIn, first],
+            exclusions: [exclusion], exclusionKeyFor: { _ in nil }
+        )
+
+        #expect(rows.rows.first?.state == .included(builtIn))
+        #expect(rows.rows.map(\.id) == [.keyboard(builtIn.id)] + originalIDs)
+    }
+}
+
 @Test("Excluding and restoring preserves row identity and order")
 @MainActor
 func excludingAndRestoringPreservesRowIdentityAndOrder() {

@@ -1,5 +1,15 @@
 # Breadcrumbs
 
+## 2026-10-06 — Built-in keyboard stays first in shared lists
+
+- Guided setup and Settings promote a late-discovered built-in Physical Keyboard
+  to the first row while preserving external and ignored row order and identity.
+  The menu already sorts assigned built-in keyboards first.
+- Both editable and read-only assignment pickers now show `Unassigned`.
+- A regression reconciles external and ignored rows before the built-in keyboard
+  arrives and repeats reconciliation to check stable identities and ordering.
+  The menu test now receives the built-in keyboard last and expects it first.
+
 ## 2026-10-06 — Menu pills are single-line with a filled locale badge
 
 - The menu panel's keyboard pill is one 34 pt line: connection mark, Physical
@@ -104,6 +114,7 @@
 - `OnboardingPhysicalKeyboardRows` reconciles included keyboards with persisted
   exclusions. It preserves row identity and order for the session, appends newly
   discovered keyboards, and removes an unavailable unsaved device after restore.
+  Since 2026-10-06, the built-in keyboard moves first even when discovered later.
 - The onboarding keyboard list scrolls separately from the header and `Continue`
   button. Settings keeps its existing Excluded Devices restore section.
 - Tests cover ordered exclude and restore, repeated toggles, shared hardware keys,

@@ -63,6 +63,9 @@ group, and one Physical Keyboard row.
 - `PhysicalKeyboardRows` and `PhysicalKeyboardRowView` — one reconciled list and
   one row shared by Guided setup and Settings. `reconcile(with:)` reads the setup
   model, so both flows keep row identity, ordering, and ignored rows the same way.
+  The built-in Physical Keyboard stays first, including when discovered after
+  other rows. External and ignored rows retain their relative order and identity.
+  Editable and read-only Input Source pickers show `Unassigned` for no assignment.
 - `SettingsView` — the sidebar and pane shell, with
   `SettingsSidebar`, `GeneralSettingsPane`,
   `KeyboardSettingsPane`, and `AboutSettingsPane`.
@@ -215,7 +218,8 @@ This supersedes the onboarding restore details in the 2026-09-24 exclusion entry
   `Include Again` action in place of assignment controls.
 - Existing row identities and positions stay stable through exclude and restore
   during the current onboarding session. Newly discovered keyboards append in
-  the existing Physical Keyboard order. Saved exclusions without a current row
+  the existing Physical Keyboard order. Since 2026-10-06, a newly discovered
+  built-in keyboard moves first. Saved exclusions without a current row
   append after them.
 - The keyboard list scrolls independently; `Continue` stays reachable when every
   listed keyboard is excluded.
