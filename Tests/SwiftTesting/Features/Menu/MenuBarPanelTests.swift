@@ -31,7 +31,7 @@ func menuBarPanelPausedShowsResume() {
 func menuBarPanelPermissionRequiredOmitsRecoveryActions() {
     let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
 
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.actionTitles.contains("Request Permission") == false)
     #expect(content.actionTitles.contains("Open System Settings") == false)
     #expect(content.actionTitles.contains("Check Again") == false)
@@ -58,7 +58,7 @@ func menuBarPanelRecoveryActionsNeverAppear() {
         .temporarilyUnavailableFixture(),
     ] {
         let content = makeMenuBarPanelContent(outcome: outcome)
-        #expect(overflowIDs(content) == [.pause, .settings, .quit])
+        #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
         #expect(content.actionTitles.contains("Request Permission") == false)
         #expect(content.actionTitles.contains("Open System Settings") == false)
         #expect(content.actionTitles.contains("Check Again") == false)
@@ -106,15 +106,16 @@ func menuBarPanelHeaderInfoOpensAbout() {
     #expect(content.actionTitles.contains("About Keyameleon"))
 }
 
-@Test("Tray actions contain Pause, Settings, and Quit")
+@Test("Tray actions contain Pause, Settings, Check for Updates, and Quit")
 @MainActor
 func menuBarPanelFooterOverflowDefaultActions() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.footer.actions.map(\.title) == [
         "Pause Switching",
         "Settings",
+        "Check for Updates…",
         "Quit Keyameleon",
     ])
 }
@@ -145,6 +146,22 @@ func menuBarPanelOffersGuidedSetupContinuation() {
         #expect(incomplete.footer.actions.map(\.title).contains("Continue Guided Setup"))
         #expect(complete.footer.actions.map(\.title).contains("Continue Guided Setup") == false)
         #expect(complete.notice?.title != "Guided setup is not finished")
+        for canCheckForUpdates in [false, true] {
+            for isSetupComplete in [false, true] {
+                let content = makeMenuBarPanelContent(
+                    outcome: outcome,
+                    isSetupComplete: isSetupComplete,
+                    canCheckForUpdates: canCheckForUpdates
+                )
+                let actions = content.footer.actions
+                let settingsIndex = actions.firstIndex { $0.id == .settings }
+                #expect(settingsIndex != nil)
+                if let settingsIndex {
+                    #expect(actions[settingsIndex + 1].id == .checkForUpdates)
+                    #expect(actions[settingsIndex + 1].isEnabled == canCheckForUpdates)
+                }
+            }
+        }
     }
 }
 
@@ -418,7 +435,7 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     #expect(content.assignmentList.rows.isEmpty)
     #expect(content.footer.about.title == "About Keyameleon")
     #expect(overflow(content, .pause)?.title == "Pause Switching")
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
 @Test("Menu-bar panel assignment rows stay read-only")
@@ -447,7 +464,7 @@ func menuBarPanelReadyWithoutNoticeConditionsHasNoNotice() {
     )
 
     #expect(content.notice == nil)
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
 @Test("Permission notice prefers Open System Settings and closes the panel")
@@ -466,7 +483,7 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     #expect(content.notice?.tone == .warning)
     #expect(action.id == .openSystemSettings)
     #expect(action.title == "Open System Settings")
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.actionTitles.contains("Open System Settings") == false)
 }
 
@@ -490,7 +507,7 @@ func menuBarPanelCommandShortcutMapping() {
     #expect(MenuBarPanelActionID.settings.shortcut?.rawValue == ",")
     #expect(MenuBarPanelActionID.quit.shortcut?.rawValue == "q")
     for id in [MenuBarPanelActionID.about, .requestPermission, .openSystemSettings,
-               .checkAgain, .retryNow, .retryPersistence, .continueSetup] {
+               .checkAgain, .retryNow, .retryPersistence, .continueSetup, .checkForUpdates] {
         #expect(id.shortcut == nil)
     }
 }
@@ -726,7 +743,7 @@ func menuBarPanelSelectionFailureNoticeOffersRetryWhenAvailable() throws {
     #expect(content.notice?.detail == "Retry the Keyboard Assignment for Travel.")
     #expect(action.id == .retryNow)
     #expect(action.title == "Retry Now")
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
 @Test("Selection-failure notice stays without Retry Now when action is unavailable")
@@ -906,14 +923,16 @@ private func makeMenuBarPanelContent(
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:],
     marketingVersion: String? = "0.1.0",
-    isSetupComplete: Bool = true
+    isSetupComplete: Bool = true,
+    canCheckForUpdates: Bool = false
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
         assignedInputSources: assignedInputSources,
         marketingVersion: marketingVersion,
-        isSetupComplete: isSetupComplete
+        isSetupComplete: isSetupComplete,
+        canCheckForUpdates: canCheckForUpdates
     )
 }
 

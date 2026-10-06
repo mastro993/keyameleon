@@ -28,6 +28,7 @@ extension ApplicationDelegate {
         let controller = MenuBarPanelController(
             setupModel: setupModel,
             switching: activityTriggeredSwitching,
+            generalSettingsModel: generalSettingsModel,
             actions: makeMenuBarPanelActions()
         )
         statusItem?.menu = controller.menu
@@ -39,6 +40,7 @@ extension ApplicationDelegate {
             openAbout: { [weak self] in self?.openAbout(nil) },
             continueSetup: { [weak self] in self?.continueSetup(nil) },
             openSettings: { [weak self] in self?.openSettings(nil) },
+            checkForUpdates: { [weak self] in self?.checkForUpdates(nil) },
             quit: { [weak self] in self?.quitKeyameleon(nil) }
         )
     }

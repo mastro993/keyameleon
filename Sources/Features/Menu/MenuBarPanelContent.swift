@@ -11,6 +11,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case retryPersistence
     case continueSetup
     case settings
+    case checkForUpdates
     case quit
 }
 
@@ -46,7 +47,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
         marketingVersion: String?,
-        isSetupComplete: Bool = true
+        isSetupComplete: Bool = true,
+        canCheckForUpdates: Bool
     ) {
         self.switchingStatus = outcome.switchingStatus
         self.pausedMarker = outcome.switchingStatus == .paused ? "(Paused)" : nil
@@ -68,7 +70,11 @@ struct MenuBarPanelContent: Equatable, Sendable {
                 title: "About Keyameleon",
                 isEnabled: true
             ),
-            actions: Self.makeActions(outcome: outcome, isSetupComplete: isSetupComplete)
+            actions: Self.makeActions(
+                outcome: outcome,
+                isSetupComplete: isSetupComplete,
+                canCheckForUpdates: canCheckForUpdates
+            )
         )
     }
 
@@ -89,7 +95,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
     private static func makeActions(
         outcome: ActivityTriggeredSwitchingOutcome,
-        isSetupComplete: Bool
+        isSetupComplete: Bool,
+        canCheckForUpdates: Bool
     ) -> [Action] {
         var actions = [Action]()
         if !isSetupComplete {
@@ -101,6 +108,11 @@ struct MenuBarPanelContent: Equatable, Sendable {
         }
         actions.append(pauseOrResume(outcome: outcome))
         actions.append(Action(id: .settings, title: "Settings", isEnabled: true))
+        actions.append(Action(
+            id: .checkForUpdates,
+            title: "Check for Updates…",
+            isEnabled: canCheckForUpdates
+        ))
         actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true))
         return actions
     }

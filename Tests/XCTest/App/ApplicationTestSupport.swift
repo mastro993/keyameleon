@@ -60,6 +60,7 @@ final class ApplicationTestPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscoveri
 @MainActor
 final class ApplicationTestUpdateChecker: UpdateChecking {
     private(set) var startCallCount = 0
+    private(set) var checkCallCount = 0
     var canCheckForUpdates = false
 
     func start() {
@@ -67,7 +68,10 @@ final class ApplicationTestUpdateChecker: UpdateChecking {
         canCheckForUpdates = true
     }
 
-    func checkForUpdates() {}
+    func checkForUpdates() {
+        checkCallCount += 1
+        canCheckForUpdates = false
+    }
 }
 
 @MainActor

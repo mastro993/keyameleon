@@ -115,14 +115,45 @@ final class ApplicationTests: XCTestCase {
 
     @MainActor
     func testCheckForUpdatesKeepsNativeMenuAttached() throws {
-        let delegate = makeApplicationTestDelegate()
+        let updateChecker = ApplicationTestUpdateChecker()
+        let delegate = makeApplicationTestDelegate(updateChecker: updateChecker)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
         defer { stopApplicationTestSurface(delegate) }
 
+        let controller = try XCTUnwrap(delegate.menuBarPanelController)
         let menu = try XCTUnwrap(delegate.menuBarStatusItem?.menu)
-        delegate.checkForUpdates(nil)
+        let settingsIndex = try XCTUnwrap(menu.items.firstIndex { $0.title == "Settings" })
+        let updateIndex = settingsIndex + 1
+        let updateItem = try XCTUnwrap(menu.item(at: updateIndex))
+        XCTAssertEqual(updateItem.title, "Check for Updates…")
+        XCTAssertLessThan(updateIndex, try XCTUnwrap(menu.items.firstIndex { $0.title == "Quit Keyameleon" }))
+        XCTAssertEqual(updateItem.representedObject as? String, MenuBarPanelActionID.checkForUpdates.rawValue)
+        XCTAssertNil(updateItem.view)
+        XCTAssertNil(updateItem.toolTip)
+        XCTAssertEqual(updateItem.keyEquivalent, "")
+        XCTAssertEqual(updateItem.keyEquivalentModifierMask, [])
+        XCTAssertFalse(updateItem.isEnabled)
+        XCTAssertEqual(updateChecker.checkCallCount, 0)
+
+        updateChecker.canCheckForUpdates = true
+        controller.menuNeedsUpdate(menu)
+        XCTAssertTrue(menu.item(at: updateIndex) === updateItem)
+        XCTAssertTrue(updateItem.isEnabled)
+        XCTAssertEqual(updateChecker.checkCallCount, 0)
+
+        menu.performActionForItem(at: updateIndex)
+        XCTAssertEqual(updateChecker.checkCallCount, 1)
+        XCTAssertFalse(updateItem.isEnabled)
+        XCTAssertTrue(menu.item(at: updateIndex) === updateItem)
+        XCTAssertTrue(delegate.menuBarStatusItem?.menu === menu)
+
+        updateChecker.canCheckForUpdates = true
+        controller.menuNeedsUpdate(menu)
+        XCTAssertTrue(updateItem.isEnabled)
+        XCTAssertEqual(updateChecker.checkCallCount, 1)
+        XCTAssertTrue(menu.item(at: updateIndex) === updateItem)
         XCTAssertTrue(delegate.menuBarStatusItem?.menu === menu)
     }
 

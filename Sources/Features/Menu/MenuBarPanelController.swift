@@ -7,11 +7,18 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
 
     private let setupModel: SetupModel
     private let switching: ActivityTriggeredSwitching
+    private let generalSettingsModel: GeneralSettingsModel
     private let actions: MenuBarPanelActions
 
-    init(setupModel: SetupModel, switching: ActivityTriggeredSwitching, actions: MenuBarPanelActions) {
+    init(
+        setupModel: SetupModel,
+        switching: ActivityTriggeredSwitching,
+        generalSettingsModel: GeneralSettingsModel,
+        actions: MenuBarPanelActions
+    ) {
         self.setupModel = setupModel
         self.switching = switching
+        self.generalSettingsModel = generalSettingsModel
         self.actions = actions
         super.init()
         menu.autoenablesItems = false
@@ -20,6 +27,7 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
+        generalSettingsModel.refresh()
         switching.checkAgain()
         refresh()
     }
@@ -40,7 +48,8 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             physicalKeyboards: keyboards,
             assignedInputSources: assignedInputSources,
             marketingVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
-            isSetupComplete: setupModel.isSetupComplete
+            isSetupComplete: setupModel.isSetupComplete,
+            canCheckForUpdates: generalSettingsModel.canCheckForUpdates
         )
 
         var desired = [NSMenuItem]()
@@ -176,6 +185,7 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         case .retryPersistence: setupModel.retryPersistenceOperation()
         case .continueSetup: actions.continueSetup()
         case .settings: actions.openSettings()
+        case .checkForUpdates: actions.checkForUpdates()
         case .quit: actions.quit()
         }
     }
