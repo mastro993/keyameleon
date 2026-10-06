@@ -101,7 +101,8 @@ kill_leftover_derived_data_keyameleon() {
     local pid command
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
         case "${command}" in
-            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)")
+            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)"|\
+            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev) "*)
                 kill "${pid}" 2>/dev/null || true
                 ;;
         esac
