@@ -57,21 +57,29 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         headingItem.title = content.headerTitle
         desired.append(headingItem)
 
-        if let error = setupModel.persistenceError ?? switching.persistenceError {
-            desired.append(notice(
-                id: "persistence-notice", title: "Saved Physical Keyboards unavailable", detail: error
-            ))
-            desired.append(item(for: .init(id: .retryPersistence, title: "Retry", isEnabled: true)))
+        let notice: MenuBarPanelNotice?
+        if (setupModel.persistenceError ?? switching.persistenceError) != nil {
+            notice = MenuBarPanelNotice(
+                title: "Saved keyboards unavailable",
+                detail: "Retry to recover saved keyboard data.",
+                action: .init(id: .retryPersistence, title: "Retry", isEnabled: true),
+                tone: .warning
+            )
+        } else {
+            notice = content.notice
         }
-        if let notice = content.notice {
-            desired.append(self.notice(id: "switching-notice", title: notice.title, detail: notice.detail))
-            if let action = notice.action {
-                desired.append(item(for: action))
+        if let notice {
+            let noticeItem = item(id: "notice") {
+                NSMenuItem(title: "", action: nil, keyEquivalent: "")
             }
-        }
-
-        desired.append(item(id: "keyboards-heading") { .sectionHeader(title: "Keyboards") })
-        if content.assignmentList.emptyTitle == nil || !setupModel.hasPersistenceFailure {
+            updateHostedView(MenuBarPanelNoticeView(notice: notice) { [weak self] id in
+                guard notice.action.isEnabled else { return }
+                self?.close()
+                self?.perform(id)
+            }, in: noticeItem)
+            desired.append(noticeItem)
+        } else {
+            desired.append(item(id: "keyboards-heading") { .sectionHeader(title: "Keyboards") })
             let section = MenuBarAssignmentSection(
                 list: content.assignmentList,
                 emphasis: NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
@@ -115,16 +123,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
 
     private func separator(id: String) -> NSMenuItem {
         item(id: id) { .separator() }
-    }
-
-    private func notice(id: String, title: String, detail: String) -> NSMenuItem {
-        let notice = item(id: id) {
-            NSMenuItem(title: title, action: nil, keyEquivalent: "")
-        }
-        notice.title = title
-        notice.subtitle = detail
-        notice.isEnabled = false
-        return notice
     }
 
     private func item(for action: MenuBarPanelContent.Action) -> NSMenuItem {

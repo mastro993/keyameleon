@@ -61,7 +61,7 @@ final class ApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testMenuRefreshKeepsKeyboardHostWhileNativeItemsChange() throws {
+    func testMenuNoticesReplaceKeyboardsAndRestoreTheList() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = makeApplicationTestDelegate(
             permissionProvider: permission,
@@ -78,55 +78,118 @@ final class ApplicationTests: XCTestCase {
 
         let panel = try XCTUnwrap(delegate.menuBarPanelController)
         let menu = panel.menu
-        let keyboards = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
-        let hosted = try XCTUnwrap(keyboards.view)
+        let noticeItem = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
+        let noticeHost = try XCTUnwrap(noticeItem.view as? NSHostingView<MenuBarPanelNoticeView>)
         let settings = try XCTUnwrap(menu.items.first { $0.title == "Settings" })
-        XCTAssertGreaterThan(hosted.frame.height, 0)
-        XCTAssertNotNil(menu.items.first { $0.title == "Guided setup is not finished" })
-        XCTAssertNotNil(menu.items.first {
-            $0.representedObject as? String == MenuBarPanelActionID.continueSetup.rawValue
-        })
+        XCTAssertEqual(noticeHost.rootView.notice.title, "Finish Guided Setup")
+        XCTAssertEqual(noticeHost.rootView.notice.action.id, .continueSetup)
+        XCTAssertTrue(noticeHost.rootView.notice.action.isEnabled)
+        XCTAssertGreaterThan(noticeHost.frame.height, 0)
+        XCTAssertEqual(noticeHost.frame.width, Theme.Menu.width)
+        XCTAssertNil(menu.items.first { $0.title == "Keyboards" })
+        XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
 
+        delegate.windowController?.close()
+        noticeHost.rootView.perform(noticeHost.rootView.notice.action.id)
+        XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
         panel.refresh()
-        XCTAssertTrue(keyboards === menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
-        XCTAssertTrue(hosted === keyboards.view)
         XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
 
         delegate.setupModel.completeSetup(destination: .menuBar)
         panel.refresh()
-        XCTAssertNil(menu.items.first { $0.title == "Guided setup is not finished" })
-        XCTAssertNil(menu.items.first {
-            $0.representedObject as? String == MenuBarPanelActionID.continueSetup.rawValue
-        })
+        XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
+        let keyboards = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
+        let hosted = try XCTUnwrap(keyboards.view)
+        let keyboardMenuWidth = menu.size.width
+        panel.refresh()
         XCTAssertTrue(keyboards === menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
         XCTAssertTrue(hosted === keyboards.view)
 
         permission.state = .denied
         panel.menuNeedsUpdate(menu)
-        XCTAssertNotNil(menu.items.first { $0.title == "Input Monitoring required" })
-        let noticeIndex = try XCTUnwrap(menu.items.firstIndex { $0.title == "Input Monitoring required" })
-        let keyboardIndex = try XCTUnwrap(menu.items.firstIndex(of: keyboards))
-        XCTAssertLessThan(noticeIndex, keyboardIndex)
-        XCTAssertTrue(menu.items.contains {
-            guard let action = $0.representedObject as? String else { return false }
-            return action == MenuBarPanelActionID.openSystemSettings.rawValue
-                || action == MenuBarPanelActionID.requestPermission.rawValue
-        })
-        XCTAssertTrue(hosted === keyboards.view)
+        let permissionItem = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
+        let permissionHost = try XCTUnwrap(permissionItem.view as? NSHostingView<MenuBarPanelNoticeView>)
+        XCTAssertEqual(permissionHost.rootView.notice.title, "Input Monitoring required")
+        XCTAssertTrue([MenuBarPanelActionID.openSystemSettings, .requestPermission].contains(
+            permissionHost.rootView.notice.action.id
+        ))
+        XCTAssertNil(menu.items.first { $0.title == "Keyboards" })
+        XCTAssertEqual(menu.size.width, keyboardMenuWidth)
+        XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
 
         permission.state = .granted
         panel.menuNeedsUpdate(menu)
-        XCTAssertNil(menu.items.first { $0.title == "Input Monitoring required" })
+        XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
+        XCTAssertNotNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
+        XCTAssertEqual(menu.size.width, keyboardMenuWidth)
         delegate.activityTriggeredSwitching.pause()
         panel.refresh()
         XCTAssertNotNil(menu.items.first {
             $0.representedObject as? String == MenuBarPanelActionID.resume.rawValue
         })
-        XCTAssertNil(menu.items.first {
-            $0.representedObject as? String == MenuBarPanelActionID.pause.rawValue
-        })
-        XCTAssertTrue(hosted === keyboards.view)
-        XCTAssertGreaterThan(hosted.frame.height, 0)
+        XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
+    }
+
+    @MainActor
+    func testPermissionNoticeButtonOpensSystemSettings() throws {
+        let opener = ApplicationTestSystemSettingsOpener()
+        let delegate = makeApplicationTestDelegate(
+            permissionProvider: ApplicationTestListenPermissionProvider(state: .denied),
+            systemSettingsOpener: opener
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        let panel = try XCTUnwrap(delegate.menuBarPanelController)
+        let item = try XCTUnwrap(panel.menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
+        let host = try XCTUnwrap(item.view as? NSHostingView<MenuBarPanelNoticeView>)
+        host.layoutSubtreeIfNeeded()
+        let button = try XCTUnwrap(noticeButton(in: host))
+        XCTAssertEqual(button.title, "Open System Settings")
+        button.performClick(nil)
+        XCTAssertEqual(opener.openCount, 1)
+
+        let notice = host.rootView.notice
+        var replacementCalls = 0
+        host.rootView = MenuBarPanelNoticeView(
+            notice: MenuBarPanelNotice(
+                title: notice.title,
+                detail: notice.detail,
+                action: .init(id: notice.action.id, title: notice.action.title, isEnabled: false),
+                tone: notice.tone
+            ),
+            perform: { _ in replacementCalls += 1 }
+        )
+        host.layoutSubtreeIfNeeded()
+        let disabledButton = try XCTUnwrap(noticeButton(in: host))
+        disabledButton.performClick(nil)
+        XCTAssertEqual(opener.openCount, 1)
+        XCTAssertEqual(replacementCalls, 0)
+
+        host.rootView = MenuBarPanelNoticeView(
+            notice: notice,
+            perform: { _ in replacementCalls += 1 }
+        )
+        host.layoutSubtreeIfNeeded()
+        let refreshedButton = try XCTUnwrap(noticeButton(in: host))
+        refreshedButton.performClick(nil)
+        XCTAssertEqual(opener.openCount, 1)
+        XCTAssertEqual(replacementCalls, 1)
+    }
+
+    @MainActor
+    private func noticeButton(in view: NSView) -> NSButton? {
+        if let button = view as? NSButton {
+            return button
+        }
+        for subview in view.subviews {
+            if let button = noticeButton(in: subview) {
+                return button
+            }
+        }
+        return nil
     }
 
     @MainActor

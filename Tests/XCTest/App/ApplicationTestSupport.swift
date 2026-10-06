@@ -7,6 +7,7 @@ func makeApplicationTestDelegate(
         state: .granted
     ),
     setupStore: any SetupDecisionStoring = ApplicationTestSetupDecisionStore(),
+    systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
     updateChecker: any UpdateChecking = ApplicationTestUpdateChecker(),
     physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = NoOpPhysicalKeyboardDiscoverer(),
     startsUpdaterOnLaunch: Bool = false,
@@ -15,6 +16,7 @@ func makeApplicationTestDelegate(
     ApplicationDelegate(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
+        systemSettingsOpener: systemSettingsOpener,
         physicalKeyboardDiscoverer: physicalKeyboardDiscoverer,
         physicalKeyboardEventObserver: NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: NoOpInputSourceChangeObserver(),
@@ -132,5 +134,14 @@ final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
 
     func markBuiltInIdentityMigrationEvaluated() {
         hasEvaluatedBuiltInIdentityMigration = true
+    }
+}
+
+@MainActor
+final class ApplicationTestSystemSettingsOpener: SystemSettingsOpening {
+    private(set) var openCount = 0
+
+    func openSystemSettings() {
+        openCount += 1
     }
 }

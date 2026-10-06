@@ -1,7 +1,44 @@
+import AppKit
 import Foundation
 import Testing
 import SwiftUI
 @testable import Keyameleon
+
+@Test("Long notice titles and content wrap without widening the native menu")
+@MainActor
+func menuBarPanelLongNoticeKeepsDefaultWidth() {
+    for tone in [MenuBarPanelNotice.Tone.warning, .neutral] {
+        let action = MenuBarPanelContent.Action(id: .settings, title: "Open Settings", isEnabled: true)
+        let shortHost = NSHostingView(rootView: MenuBarPanelNoticeView(
+            notice: MenuBarPanelNotice(title: "Notice", detail: "Short explanation.", action: action, tone: tone),
+            perform: { _ in }
+        ))
+        let longHost = NSHostingView(rootView: MenuBarPanelNoticeView(
+            notice: MenuBarPanelNotice(
+                title: String(repeating: "Long notice title ", count: 8),
+                detail: String(repeating: "Long explanation that must wrap within the menu. ", count: 12),
+                action: action,
+                tone: tone
+            ),
+            perform: { _ in }
+        ))
+        shortHost.frame.size = shortHost.fittingSize
+        longHost.frame.size = longHost.fittingSize
+        #expect(shortHost.frame.width == Theme.Menu.width)
+        #expect(longHost.frame.width == Theme.Menu.width)
+        #expect(longHost.frame.height > shortHost.frame.height)
+
+        let shortMenu = NSMenu()
+        let shortItem = NSMenuItem()
+        shortItem.view = shortHost
+        shortMenu.addItem(shortItem)
+        let longMenu = NSMenu()
+        let longItem = NSMenuItem()
+        longItem.view = longHost
+        longMenu.addItem(longItem)
+        #expect(longMenu.size.width == shortMenu.size.width)
+    }
+}
 
 @Test("Ready tray has Pause and no recovery actions")
 @MainActor
@@ -127,7 +164,7 @@ func menuBarPanelOffersGuidedSetupContinuation() {
         #expect(incomplete.footer.actions.first?.id == .continueSetup)
         #expect(incomplete.footer.actions.map(\.title).contains("Continue Guided Setup"))
         #expect(complete.footer.actions.map(\.title).contains("Continue Guided Setup") == false)
-        #expect(complete.notice?.title != "Guided setup is not finished")
+        #expect(complete.notice?.title != "Finish Guided Setup")
         for canCheckForUpdates in [false, true] {
             for isSetupComplete in [false, true] {
                 let content = makeMenuBarPanelContent(
@@ -459,7 +496,7 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     let action = try #require(content.notice?.action)
 
     #expect(content.notice?.title == "Input Monitoring required")
-    #expect(content.notice?.detail == "Keyameleon can't detect keyboard activity until you allow access in System Settings.")
+    #expect(content.notice?.detail == "Enable Keyameleon in Input Monitoring.")
     #expect(content.notice?.tone == .warning)
     #expect(action.id == .openSystemSettings)
     #expect(action.title == "Open System Settings")
@@ -537,14 +574,14 @@ func menuBarPanelOnlyPermissionRequiredUsesWarningTone() {
     #expect(makeMenuBarPanelContent(outcome: .readyFixture(), isSetupComplete: false).notice?.tone == .neutral)
 }
 
-@Test("Permission Required notice has no action when unavailable")
+@Test("Permission Required notice opens Settings when recovery actions are unavailable")
 @MainActor
-func menuBarPanelPermissionNoticeOmitsUnavailableRequestAction() {
+func menuBarPanelPermissionNoticeFallsBackToSettings() {
     let outcome = ActivityTriggeredSwitchingOutcome.permissionRequiredFixture(
         availableActions: [.pause]
     )
 
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action == nil)
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action.id == .settings)
 }
 
 @Test("Temporarily Unavailable explains sleeping and keeps Pause in footer")
@@ -552,8 +589,8 @@ func menuBarPanelPermissionNoticeOmitsUnavailableRequestAction() {
 func menuBarPanelTemporarilyUnavailableNoticeExplainsSleeping() {
     let content = makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture())
 
-    #expect(content.notice?.detail == "The Mac is sleeping. Activity-Triggered Switching resumes automatically.")
-    #expect(content.notice?.action == nil)
+    #expect(content.notice?.detail == "The Mac is sleeping. Switching resumes automatically.")
+    #expect(content.notice?.action.id == .settings)
     #expect(overflowIDs(content).contains(.pause))
 }
 
@@ -572,7 +609,7 @@ func menuBarPanelTemporarilyUnavailableNoticeUsesReasonPriority() {
     )
     let content = makeMenuBarPanelContent(outcome: outcome)
 
-    #expect(content.notice?.detail == "The Mac is sleeping. Activity-Triggered Switching resumes automatically.")
+    #expect(content.notice?.detail == "The Mac is sleeping. Switching resumes automatically.")
 }
 
 @Test("Temporarily Unavailable reason copy covers lock, Secure Input, and protected data")
@@ -597,7 +634,7 @@ func menuBarPanelTemporarilyUnavailableNoticeExplainsEveryReason() {
         )
         let content = makeMenuBarPanelContent(outcome: outcome)
 
-        #expect(content.notice?.detail == "\(reason) Activity-Triggered Switching resumes automatically.")
+        #expect(content.notice?.detail == "\(reason) Switching resumes automatically.")
     }
 }
 
@@ -615,7 +652,7 @@ func menuBarPanelTemporarilyUnavailableNoticeWithoutKnownReasonExplainsAutomatic
         availableActions: [.pause]
     )
 
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Activity-Triggered Switching resumes automatically.")
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Switching resumes automatically.")
 }
 
 @Test("Paused panel marks the title and shows no notice")
@@ -657,8 +694,8 @@ func menuBarPanelMismatchNoticeNamesActivePhysicalKeyboard() {
     let notice = makeMenuBarPanelContent(outcome: outcome).notice
 
     #expect(notice?.title == "Input Source differs")
-    #expect(notice?.detail == "The current Input Source is Italian. Travel's Keyboard Assignment is U.S.")
-    #expect(notice?.action == nil)
+    #expect(notice?.detail == "Travel is using Italian instead of U.S.")
+    #expect(notice?.action.id == .settings)
 }
 
 @Test("Input Source differs notice omits a missing Active Physical Keyboard name")
@@ -675,7 +712,7 @@ func menuBarPanelMismatchNoticeOmitsMissingActivePhysicalKeyboardName() {
         availableActions: [.pause]
     )
 
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "The current Input Source is Italian. The Keyboard Assignment is U.S.")
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Using Italian instead of U.S.")
 }
 
 @Test("Input Source differs notice does not double the period in an Input Source name")
@@ -696,7 +733,7 @@ func menuBarPanelMismatchNoticeDoesNotDoublePunctuation() {
         availableActions: [.pause]
     )
 
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "The current Input Source is U.S. Travel's Keyboard Assignment is Italian.")
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Travel is using U.S. instead of Italian.")
 }
 
 @Test("Retry Now is the only selection-failure notice action")
@@ -721,16 +758,16 @@ func menuBarPanelSelectionFailureNoticeOffersRetryWhenAvailable() throws {
     let content = makeMenuBarPanelContent(outcome: outcome)
     let action = try #require(content.notice?.action)
 
-    #expect(content.notice?.title == "Couldn't select the Keyboard Assignment")
-    #expect(content.notice?.detail == "Retry the Keyboard Assignment for Travel.")
+    #expect(content.notice?.title == "Couldn't switch Input Source")
+    #expect(content.notice?.detail == "Try again for Travel.")
     #expect(action.id == .retryNow)
     #expect(action.title == "Retry Now")
     #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
-@Test("Selection-failure notice stays without Retry Now when action is unavailable")
+@Test("Selection-failure notice opens Settings when Retry Now is unavailable")
 @MainActor
-func menuBarPanelSelectionFailureNoticeOmitsUnavailableRetryAction() {
+func menuBarPanelSelectionFailureNoticeFallsBackToSettings() {
     let outcome = ActivityTriggeredSwitchingOutcome(
         switchingStatus: .ready,
         temporarilyUnavailableReasons: [],
@@ -748,11 +785,11 @@ func menuBarPanelSelectionFailureNoticeOmitsUnavailableRetryAction() {
         availableActions: [.pause]
     )
 
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Retry the Keyboard Assignment.")
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action == nil)
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Check the Keyboard Assignment.")
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action.id == .settings)
 }
 
-@Test("Keyboard Assignment needed notice names one unassigned Physical Keyboard")
+@Test("Assign an Input Source notice names one unassigned Physical Keyboard")
 @MainActor
 func menuBarPanelUnassignedNoticeUsesKeyboardName() {
     let content = makeMenuBarPanelContent(
@@ -762,12 +799,12 @@ func menuBarPanelUnassignedNoticeUsesKeyboardName() {
         ]
     )
 
-    #expect(content.notice?.title == "Keyboard Assignment needed")
-    #expect(content.notice?.detail == "Travel has no Keyboard Assignment.")
-    #expect(content.notice?.action == nil)
+    #expect(content.notice?.title == "Assign an Input Source")
+    #expect(content.notice?.detail == "Assign an Input Source to Travel.")
+    #expect(content.notice?.action.id == .settings)
 }
 
-@Test("Keyboard Assignment needed notice preserves Physical Keyboard order")
+@Test("Assign an Input Source notice preserves Physical Keyboard order")
 @MainActor
 func menuBarPanelUnassignedNoticePreservesKeyboardOrder() {
     let content = makeMenuBarPanelContent(
@@ -778,10 +815,10 @@ func menuBarPanelUnassignedNoticePreservesKeyboardOrder() {
         ]
     )
 
-    #expect(content.notice?.detail == "Travel and Desk have no Keyboard Assignment.")
+    #expect(content.notice?.detail == "Assign Input Sources to Travel and Desk.")
 }
 
-@Test("Keyboard Assignment needed notice counts three unassigned Physical Keyboards")
+@Test("Assign an Input Source notice counts three unassigned Physical Keyboards")
 @MainActor
 func menuBarPanelUnassignedNoticeCountsThreePhysicalKeyboards() {
     let content = makeMenuBarPanelContent(
@@ -793,7 +830,7 @@ func menuBarPanelUnassignedNoticeCountsThreePhysicalKeyboards() {
         ]
     )
 
-    #expect(content.notice?.detail == "3 Physical Keyboards have no Keyboard Assignment.")
+    #expect(content.notice?.detail == "Assign Input Sources to 3 Physical Keyboards.")
 }
 
 @Test("Unavailable Keyboard Assignment stays on assignment row without a notice")
@@ -847,7 +884,8 @@ func menuBarPanelNoticePrioritizesSelectionFailure() {
         ]
     )
 
-    #expect(content.notice?.title == "Couldn't select the Keyboard Assignment")
+    #expect(content.notice?.title == "Couldn't switch Input Source")
+    #expect(content.notice?.detail == "Check Travel's Keyboard Assignment.")
 }
 
 @Test("Input Source mismatch notice outranks unassigned and unfinished setup")
@@ -885,7 +923,7 @@ func menuBarPanelNoticePrioritizesUnassignedKeyboardOverSetup() {
         isSetupComplete: false
     )
 
-    #expect(content.notice?.title == "Keyboard Assignment needed")
+    #expect(content.notice?.title == "Assign an Input Source")
 }
 
 @Test("Unfinished Guided setup notice appears when no earlier condition matches")
@@ -896,8 +934,10 @@ func menuBarPanelNoticeExplainsUnfinishedGuidedSetup() {
         isSetupComplete: false
     )
 
-    #expect(content.notice?.title == "Guided setup is not finished")
-    #expect(content.notice?.detail == "Continue Guided Setup to finish.")
+    #expect(content.notice?.title == "Finish Guided Setup")
+    #expect(content.notice?.detail == "Continue where you left off.")
+    #expect(content.notice?.action.id == .continueSetup)
+    #expect(content.notice?.action.title == "Continue Guided Setup")
 }
 
 private func makeMenuBarPanelContent(

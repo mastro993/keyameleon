@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import SwiftUI
 import SwiftData
 import Testing
 @testable import Keyameleon
@@ -95,7 +97,7 @@ private func retrySelectionReadFailureDoesNotSelect() throws {
     #expect(selector.current == "com.example.us")
 }
 
-@Test("Native menu hides an empty failed keyboard list and routes saved-data Retry")
+@Test("Persistence notice replaces keyboards, outranks permission, and keeps the menu width")
 @MainActor
 private func nativeMenuRetriesPersistenceFailure() throws {
     let container = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(inMemory: true)
@@ -104,16 +106,20 @@ private func nativeMenuRetriesPersistenceFailure() throws {
         if fails { throw CocoaError(.fileReadUnknown) }
         return container
     })
+    let permission = SetupModelTestListenPermissionProvider(state: .denied)
+    let setupStore = SetupModelTestSetupDecisionStore()
+    setupStore.markGuidedSetupCompleted()
     let model = SetupModel(
-        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        permissionProvider: permission,
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
-        setupStore: SetupModelTestSetupDecisionStore(),
+        setupStore: setupStore,
         systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )
     startAndCheck(model)
     #expect(model.hasPersistenceFailure)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     let controller = MenuBarPanelController(
         setupModel: model,
         switching: model.activityTriggeredSwitching,
@@ -123,14 +129,31 @@ private func nativeMenuRetriesPersistenceFailure() throws {
         )
     )
     let menu = controller.menu
-    #expect(menu.items.allSatisfy { $0.view == nil })
-    let retry = try #require(menu.items.firstIndex { $0.title == "Retry" })
-    #expect(menu.items[retry].representedObject as? String == MenuBarPanelActionID.retryPersistence.rawValue)
-    #expect(menu.items.first { $0.title == "Retry Now" } == nil)
+    let item = try #require(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
+    let host = try #require(item.view as? NSHostingView<MenuBarPanelNoticeView>)
+    #expect(menu.items.filter { $0.view != nil }.count == 1)
+    #expect(menu.items.first { $0.title == "Keyboards" } == nil)
+    #expect(host.rootView.notice.title == "Saved keyboards unavailable")
+    #expect(host.rootView.notice.tone == .warning)
+    #expect(host.rootView.notice.detail == "Retry to recover saved keyboard data.")
+    #expect(host.rootView.notice.action.id == .retryPersistence)
+    #expect(host.rootView.notice.action.isEnabled)
+    #expect(host.frame.width == Theme.Menu.width)
+    let noticeWidth = menu.size.width
 
     fails = false
-    menu.performActionForItem(at: retry)
+    host.rootView.perform(host.rootView.notice.action.id)
     #expect(model.hasPersistenceFailure == false)
     controller.refresh()
+    #expect(host.rootView.notice.title == "Input Monitoring required")
+    #expect(menu.items.first { $0.title == "Keyboards" } == nil)
+    #expect(menu.size.width == noticeWidth)
+
+    permission.state = .granted
+    controller.menuNeedsUpdate(menu)
+    #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" } == nil)
+    #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards-heading" } != nil)
+    #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" }?.view != nil)
     #expect(menu.items.filter { $0.view != nil }.count == 1)
+    #expect(menu.size.width == noticeWidth)
 }
