@@ -63,8 +63,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                         ? MenuBarPanelContent.Action(
                             id: .retryNow,
                             title: "Retry Now",
-                            isEnabled: true,
-                            closesPanel: false
+                            isEnabled: true
                         )
                         : nil,
                     tone: .neutral
@@ -132,16 +131,14 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             return MenuBarPanelContent.Action(
                 id: .openSystemSettings,
                 title: "Open System Settings",
-                isEnabled: true,
-                closesPanel: true
+                isEnabled: true
             )
         }
         if outcome.hasAction(.requestPermission) {
             return MenuBarPanelContent.Action(
                 id: .requestPermission,
                 title: "Request Permission",
-                isEnabled: true,
-                closesPanel: false
+                isEnabled: true
             )
         }
         return nil

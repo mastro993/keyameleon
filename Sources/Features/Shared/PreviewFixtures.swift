@@ -218,50 +218,6 @@ enum PreviewFixtures {
         }
     }
 
-    static func panelActions() -> MenuBarPanelActions {
-        MenuBarPanelActions(
-            openAbout: {},
-            continueSetup: {},
-            openSettings: {},
-            quit: {},
-            closePanel: {}
-        )
-    }
-
-    static func aboutAction() -> MenuBarPanelContent.Action {
-        MenuBarPanelContent.Action(
-            id: .about,
-            title: "About Keyameleon",
-            isEnabled: true,
-            closesPanel: true
-        )
-    }
-
-    static func panelActionList(
-        paused: Bool = false
-    ) -> [MenuBarPanelContent.Action] {
-        [
-            MenuBarPanelContent.Action(
-                id: paused ? .resume : .pause,
-                title: paused ? "Resume Switching" : "Pause Switching",
-                isEnabled: true,
-                closesPanel: false
-            ),
-            MenuBarPanelContent.Action(
-                id: .settings,
-                title: "Settings",
-                isEnabled: true,
-                closesPanel: true
-            ),
-            MenuBarPanelContent.Action(
-                id: .quit,
-                title: "Quit Keyameleon",
-                isEnabled: true,
-                closesPanel: true
-            )
-        ]
-    }
-
     static func physicalKeyboard(
         name: String = "Keychron K2",
         id: String = "identity:preview.keyboard|anchor:serial:preview-keyboard",

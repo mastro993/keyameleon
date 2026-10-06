@@ -8,8 +8,6 @@ import SwiftUI
 func menuBarPanelReadyShowsPauseWithoutRecovery() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.footer.about.title == "About Keyameleon")
-    #expect(content.footer.about.id == .about)
     #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content).contains(.requestPermission) == false)
     #expect(overflowIDs(content).contains(.checkAgain) == false)
@@ -21,7 +19,6 @@ func menuBarPanelReadyShowsPauseWithoutRecovery() {
 func menuBarPanelPausedShowsResume() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.footer.about.id == .about)
     #expect(overflow(content, .resume)?.title == "Resume Switching")
     #expect(overflowIDs(content).contains(.pause) == false)
 }
@@ -31,7 +28,7 @@ func menuBarPanelPausedShowsResume() {
 func menuBarPanelPermissionRequiredOmitsRecoveryActions() {
     let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
 
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.actionTitles.contains("Request Permission") == false)
     #expect(content.actionTitles.contains("Open System Settings") == false)
     #expect(content.actionTitles.contains("Check Again") == false)
@@ -58,91 +55,61 @@ func menuBarPanelRecoveryActionsNeverAppear() {
         .temporarilyUnavailableFixture(),
     ] {
         let content = makeMenuBarPanelContent(outcome: outcome)
-        #expect(overflowIDs(content) == [.pause, .settings, .quit])
+        #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
         #expect(content.actionTitles.contains("Request Permission") == false)
         #expect(content.actionTitles.contains("Open System Settings") == false)
         #expect(content.actionTitles.contains("Check Again") == false)
     }
 }
 
-@Test("Pause and Resume keep the panel open; About dismisses it")
+@Test("Header shows the marketing version with a v prefix and omits the build number")
 @MainActor
-func menuBarPanelOverflowDismissal() {
-    let ready = makeMenuBarPanelContent(outcome: .readyFixture())
-    #expect(ready.footer.about.closesPanel)
-    #expect(overflow(ready, .pause)?.closesPanel == false)
-
-    let paused = makeMenuBarPanelContent(outcome: .pausedFixture())
-    #expect(overflow(paused, .resume)?.closesPanel == false)
-
-    let permission = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
-    #expect(overflow(permission, .pause)?.closesPanel == false)
-}
-
-@Test("Footer shows Keyameleon from the marketing version and omits the build number")
-@MainActor
-func menuBarPanelFooterShowsMarketingVersion() {
+func menuBarPanelHeaderShowsMarketingVersion() {
     let content = makeMenuBarPanelContent(
         outcome: .readyFixture(),
         marketingVersion: "0.1.0"
     )
 
-    #expect(content.footer.versionText == "Keyameleon 0.1.0")
-    #expect(content.footer.versionText.contains("(") == false)
+    #expect(content.headerTitle == "Keyameleon v0.1.0")
+    #expect(
+        makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: " \n0.1.0\t ")
+            .headerTitle == "Keyameleon v0.1.0"
+    )
 }
 
-@Test("Footer version falls back when the marketing version is missing or blank")
+@Test("Header version falls back when the marketing version is missing or blank")
 @MainActor
-func menuBarPanelFooterVersionFallback() {
+func menuBarPanelHeaderVersionFallback() {
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: nil)
-            .footer.versionText == "Keyameleon —"
+            .headerTitle == "Keyameleon v—"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "   ")
-            .footer.versionText == "Keyameleon —"
+            .headerTitle == "Keyameleon v—"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "")
-            .footer.versionText == "Keyameleon —"
+            .headerTitle == "Keyameleon v—"
+    )
+    #expect(
+        makeMenuBarPanelContent(outcome: .pausedFixture(), marketingVersion: nil)
+            .headerTitle == "Keyameleon v— (Paused)"
     )
 }
 
-@Test("Header info button opens About and is omitted from action rows")
-@MainActor
-func menuBarPanelHeaderInfoOpensAbout() {
-    let content = makeMenuBarPanelContent(outcome: .readyFixture())
-
-    #expect(content.footer.about.id == .about)
-    #expect(content.footer.about.title == "About Keyameleon")
-    #expect(content.footer.about.isEnabled)
-    #expect(content.footer.about.closesPanel)
-    #expect(overflowIDs(content).contains(.about) == false)
-    #expect(content.actionTitles.contains("About Keyameleon"))
-}
-
-@Test("Tray actions contain Pause, Settings, and Quit")
+@Test("Tray actions contain Pause, Settings, Check for Updates, and Quit")
 @MainActor
 func menuBarPanelFooterOverflowDefaultActions() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.footer.actions.map(\.title) == [
         "Pause Switching",
         "Settings",
+        "Check for Updates…",
         "Quit Keyameleon",
     ])
-    #expect(overflow(content, .settings)?.closesPanel == true)
-}
-
-@Test("About action does not add setup actions")
-@MainActor
-func menuBarPanelAboutOmitsSetupActions() {
-    let content = makeMenuBarPanelContent(outcome: .readyFixture())
-
-    #expect(content.footer.about.title == "About Keyameleon")
-    #expect(content.actionTitles.contains("Continue Setup…") == false)
-    #expect(content.actionTitles.contains("Continue Setup") == false)
 }
 
 @Test("Incomplete Guided setup has a continuation in every switching state")
@@ -158,10 +125,25 @@ func menuBarPanelOffersGuidedSetupContinuation() {
         let complete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: true)
 
         #expect(incomplete.footer.actions.first?.id == .continueSetup)
-        #expect(incomplete.footer.actions.first?.closesPanel == true)
         #expect(incomplete.footer.actions.map(\.title).contains("Continue Guided Setup"))
         #expect(complete.footer.actions.map(\.title).contains("Continue Guided Setup") == false)
         #expect(complete.notice?.title != "Guided setup is not finished")
+        for canCheckForUpdates in [false, true] {
+            for isSetupComplete in [false, true] {
+                let content = makeMenuBarPanelContent(
+                    outcome: outcome,
+                    isSetupComplete: isSetupComplete,
+                    canCheckForUpdates: canCheckForUpdates
+                )
+                let actions = content.footer.actions
+                let settingsIndex = actions.firstIndex { $0.id == .settings }
+                #expect(settingsIndex != nil)
+                if let settingsIndex {
+                    #expect(actions[settingsIndex + 1].id == .checkForUpdates)
+                    #expect(actions[settingsIndex + 1].isEnabled == canCheckForUpdates)
+                }
+            }
+        }
     }
 }
 
@@ -206,13 +188,13 @@ func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throw
     let desk = try #require(list.rows.first { $0.id == "desk" })
 
     #expect(travel.physicalKeyboardName == "Travel")
-    #expect(travel.subtitle == "Keychron K2 - Connected")
+    #expect(travel.connectionMark == .connected)
     #expect(travel.assignedInputSourceName == "Italian")
     #expect(travel.assignedLocaleCode == "IT")
 
     // The name line already carries the product name without a Custom name.
     #expect(desk.physicalKeyboardName == "HHKB Professional")
-    #expect(desk.subtitle == "Connected")
+    #expect(desk.connectionMark == .connected)
     #expect(desk.assignedLocaleCode == "US")
 }
 
@@ -433,9 +415,8 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
     #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
-    #expect(content.footer.about.title == "About Keyameleon")
     #expect(overflow(content, .pause)?.title == "Pause Switching")
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
 @Test("Menu-bar panel assignment rows stay read-only")
@@ -451,7 +432,6 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
 
     #expect(row.id == "travel")
     #expect(content.assignmentList.rows.count == 1)
-    #expect(content.footer.about.id == .about)
 }
 
 @Test("Ready panel without notice conditions has no notice")
@@ -464,7 +444,7 @@ func menuBarPanelReadyWithoutNoticeConditionsHasNoNotice() {
     )
 
     #expect(content.notice == nil)
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
 @Test("Permission notice prefers Open System Settings and closes the panel")
@@ -483,8 +463,7 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     #expect(content.notice?.tone == .warning)
     #expect(action.id == .openSystemSettings)
     #expect(action.title == "Open System Settings")
-    #expect(action.closesPanel == true)
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.actionTitles.contains("Open System Settings") == false)
 }
 
@@ -498,30 +477,23 @@ func menuBarPanelPermissionNoticeFallsBackToRequest() throws {
 
     #expect(action.id == .requestPermission)
     #expect(action.title == "Request Permission")
-    #expect(action.closesPanel == false)
 }
 
-@Test("Displayed menu shortcuts use the same Command keys as their native bindings")
+@Test("Native menu shortcuts map to Command-P, Command-comma, and Command-Q")
 func menuBarPanelCommandShortcutMapping() {
     for id in [MenuBarPanelActionID.pause, .resume] {
-        #expect(id.shortcut?.title == "⌘P")
-        #expect(id.shortcut?.key == KeyEquivalent("p"))
-        #expect(id.shortcut?.modifiers == .command)
+        #expect(id.shortcut?.rawValue == "p")
     }
-    #expect(MenuBarPanelActionID.settings.shortcut?.title == "⌘,")
-    #expect(MenuBarPanelActionID.settings.shortcut?.key == KeyEquivalent(","))
-    #expect(MenuBarPanelActionID.settings.shortcut?.modifiers == .command)
-    #expect(MenuBarPanelActionID.quit.shortcut?.title == "⌘Q")
-    #expect(MenuBarPanelActionID.quit.shortcut?.key == KeyEquivalent("q"))
-    #expect(MenuBarPanelActionID.quit.shortcut?.modifiers == .command)
-    for id in [MenuBarPanelActionID.about, .requestPermission, .openSystemSettings,
-               .checkAgain, .retryNow, .continueSetup] {
+    #expect(MenuBarPanelActionID.settings.shortcut?.rawValue == ",")
+    #expect(MenuBarPanelActionID.quit.shortcut?.rawValue == "q")
+    for id in [MenuBarPanelActionID.requestPermission, .openSystemSettings,
+               .checkAgain, .retryNow, .retryPersistence, .continueSetup, .checkForUpdates] {
         #expect(id.shortcut == nil)
     }
 }
 
-@Test("Assignment subtitles describe built-in, active, and disconnected keyboard states")
-func menuBarPanelAssignmentSubtitlesDescribeState() throws {
+@Test("Assignment rows show one title line and their connection state")
+func menuBarPanelAssignmentRowsShowSingleTitleAndState() throws {
     let builtIn = PhysicalKeyboard(
         id: .builtIn,
         productName: "MacBook Keyboard",
@@ -543,9 +515,11 @@ func menuBarPanelAssignmentSubtitlesDescribeState() throws {
         ],
         assignedInputSources: [:]
     )
-    #expect(list.rows.map(\.subtitle) == [
-        "Built-in", "Keychron K2 - Active", "HHKB Professional - Disconnected"
+    #expect(list.rows.map(\.physicalKeyboardName) == [
+        "MacBook Keyboard", "Office Keyboard", "Travel Keyboard"
     ])
+    #expect(list.rows.map(\.connectionMark) == [.connected, .active, .disconnected])
+    #expect(list.rows.map(\.isDimmed) == [false, false, true])
 }
 
 @Test("Only the Permission Required notice carries the warning tone")
@@ -649,18 +623,18 @@ func menuBarPanelTemporarilyUnavailableNoticeWithoutKnownReasonExplainsAutomatic
 func menuBarPanelPausedMarksTitleWithoutNotice() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.pausedMarker == "(Paused)")
+    #expect(content.headerTitle == "Keyameleon v0.1.0 (Paused)")
     #expect(content.notice == nil)
     #expect(overflow(content, .resume)?.title == "Resume Switching")
 }
 
-@Test("Paused marker appears only while switching is paused")
+@Test("Paused suffix appears only while switching is paused")
 @MainActor
-func menuBarPanelPausedMarkerAppearsOnlyWhilePaused() {
-    #expect(makeMenuBarPanelContent(outcome: .readyFixture()).pausedMarker == nil)
-    #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).pausedMarker == nil)
-    #expect(makeMenuBarPanelContent(outcome: .permissionRequiredFixture()).pausedMarker == nil)
-    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).pausedMarker == "(Paused)")
+func menuBarPanelPausedSuffixAppearsOnlyWhilePaused() {
+    #expect(makeMenuBarPanelContent(outcome: .readyFixture()).headerTitle == "Keyameleon v0.1.0")
+    #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).headerTitle == "Keyameleon v0.1.0")
+    #expect(makeMenuBarPanelContent(outcome: .permissionRequiredFixture()).headerTitle == "Keyameleon v0.1.0")
+    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).headerTitle == "Keyameleon v0.1.0 (Paused)")
 }
 
 @Test("Input Source differs notice names the Active Physical Keyboard")
@@ -751,8 +725,7 @@ func menuBarPanelSelectionFailureNoticeOffersRetryWhenAvailable() throws {
     #expect(content.notice?.detail == "Retry the Keyboard Assignment for Travel.")
     #expect(action.id == .retryNow)
     #expect(action.title == "Retry Now")
-    #expect(action.closesPanel == false)
-    #expect(overflowIDs(content) == [.pause, .settings, .quit])
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
 @Test("Selection-failure notice stays without Retry Now when action is unavailable")
@@ -932,14 +905,16 @@ private func makeMenuBarPanelContent(
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:],
     marketingVersion: String? = "0.1.0",
-    isSetupComplete: Bool = true
+    isSetupComplete: Bool = true,
+    canCheckForUpdates: Bool = false
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
         outcome: outcome,
         physicalKeyboards: physicalKeyboards,
         assignedInputSources: assignedInputSources,
         marketingVersion: marketingVersion,
-        isSetupComplete: isSetupComplete
+        isSetupComplete: isSetupComplete,
+        canCheckForUpdates: canCheckForUpdates
     )
 }
 

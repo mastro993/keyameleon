@@ -1,5 +1,41 @@
 # Choices
 
+## 2026-10-06 — Menu keyboard pills are single-line with a locale badge
+
+The menu panel's keyboard pills are one 34 pt line: connection mark, the
+Physical Keyboard Name, an optional warning triangle, and the assigned Input
+Source's locale code. The pill's `@ScaledMetric` frame and the five-row
+scroller share `Theme.Menu.rowHeight` as a row minimum, not a fixed row height:
+a row with taller content clips at the viewport instead of growing it.
+
+### Defaults
+
+- The title is the Physical Keyboard Name, custom name when set and the product
+  name otherwise, in one tail-truncated line. This supersedes the 2026-10-05
+  subtitle sentence and the 2026-09-23 `subtitle` entry.
+- The locale code renders inline in the pill: a filled `Color.primary`
+  rectangle with `.background` text at `Theme.Typography.chip`, at least 24 × 16
+  with radius 4 and a 4 pt horizontal inset, growing for a code longer than two
+  letters instead of truncating.
+- `MenuBarAssignmentList.Row` drops `subtitle` and the stored
+  `showsWarningSymbol`, which is now computed from `warningNote`. The VoiceOver
+  label and value are unchanged.
+- A disconnected pill takes one 0.65 opacity layer across the mark, title, and
+  badge, raised to 0.8 under Increase Contrast. The warning triangle stays
+  undimmed, and no second mute or opacity layer stacks on those elements.
+- `Theme.Menu` drops the now-unused `muted`, `detailGap`, `badgeBorder`, and
+  `strongBadgeBorder` tokens, and `Theme.Typography.chip` is `caption2` bold.
+- No Settings, onboarding, dependency, or private API change. Native pixel parity
+  is not claimed; the reference capture did not show the open menu.
+
+## 2026-10-06 — About lives only in Settings
+
+The status menu and application menu omit About Keyameleon. The independent
+compact About window and its Licenses and Notices button are removed. Settings →
+About remains the home for app identity, credits, bundled licenses, and updates.
+Check for Updates… remains a native status-menu row directly below Settings.
+Earlier references to the compact window describe superseded behavior.
+
 ## 2026-10-05 — Settings is rebuilt from the Pencil design
 
 The Settings window is now the Pencil `Settings / General`, `Settings /
@@ -32,8 +68,8 @@ group, and one Physical Keyboard row.
   `KeyboardSettingsPane`, and `AboutSettingsPane`.
 - `BundledLicense` — the bundled `LICENSE.txt` and
   `Sparkle-LICENSE.txt` the About pane opens for offline reading.
-- `GeneralSettingsModel` is `@MainActor @Observable`. Settings, About,
-  and the compact About window read it without a property wrapper.
+- `GeneralSettingsModel` is `@MainActor @Observable`. Settings and its About
+  pane read it without a property wrapper.
 
 ### Defaults
 
@@ -64,8 +100,6 @@ group, and one Physical Keyboard row.
   path with Open in Finder. License rows open the bundled texts and are disabled
   when the build does not carry them. Updates is disabled while Sparkle cannot
   check. The version is read from the bundle and shows the build number.
-- The compact About window keeps its own presentation and its
-  `Licenses and Notices` button.
 - Settings offers no Forget, Replace Saved Physical Keyboard, or Manual Physical
   Keyboard Designation entry point. Those model seams and their tests remain.
 
@@ -152,7 +186,7 @@ menu and its contents shrink to three items.
   `Rename…`. Keyameleon copy must not use the ellipsis character at all. These
   sites still do and are outstanding: `Assign Input Source…` in
   `KeyboardSettingsRow`, `Check for
-  Updates…` in `AboutSettingsView` and `CompactAboutView`, `Waiting…` in
+  Updates…` in `AboutSettingsView`, `Waiting…` in
   `OnboardingView`, and the `…` truncation marker in `LogFile`.
 - `Forget` is the Physical Keyboard forget, unchanged: it removes the saved
   Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard
@@ -957,3 +991,13 @@ The menu panel uses the existing SwiftUI components in a 320-point native transi
 The header shows `(Paused)` inline. Pause Switching and Resume Switching share Command-P. Settings uses Command-comma, and Quit Keyameleon uses Command-Q. The typed shortcut descriptor supplies both each visible hint and its native binding.
 
 The Input Monitoring required notice prefers Open System Settings when available and closes the panel before opening that external window. Request Permission remains the fallback and keeps the panel open. An unavailable recovery action is omitted. Assignment filtering, ordering, the five-row scroll threshold, Guided Setup continuation, persistence recovery, and focus order remain unchanged.
+
+## 2026-10-05 — Native status menu replaces the custom panel
+
+The status item owns an `NSMenu`. AppKit draws the title, notices, commands, separators, shortcuts, tracking, and dismissal. Only Keyboards uses the existing SwiftUI assignment list in `NSHostingView`; its assigned-only order, unavailable-source state, and five-row viewport remain. The controller updates native items from the typed `MenuBarPanelContent` snapshot as models change and before the menu opens. Stable menu items and the keyboard host stay attached during updates, preserving the list's scroll position.
+
+The native section header shows `Keyameleon v<marketing version>` from `CFBundleShortVersionString`, with ` (Paused)` only while switching is paused. A missing or blank version shows `Keyameleon v—`. The footer has actions only, with Quit Keyameleon last.
+
+All selected commands close the menu, including Pause, Resume, Request Permission, Retry Now, and saved-data Retry. Saved-data Retry calls `SetupModel.retryPersistenceOperation()` and has its own typed action ID. Menu rows have no hover tooltips; notice subtitles, visible keyboard warnings, and accessibility text retain the full explanation. The old warning card and popover focus rules no longer apply. Earlier entries describe the superseded panel design.
+
+Check for Updates… is a native row directly below Settings in every menu state, with no shortcut or tooltip. The row uses the shared General settings availability snapshot, refreshed when the menu opens. Selecting it uses the existing application update command and disables the row while a check is busy; reopening the menu samples readiness again after the check completes.

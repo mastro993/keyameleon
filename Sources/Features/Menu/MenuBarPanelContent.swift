@@ -4,12 +4,13 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case pause
     case resume
     case requestPermission
-    case about
     case openSystemSettings
     case checkAgain
     case retryNow
+    case retryPersistence
     case continueSetup
     case settings
+    case checkForUpdates
     case quit
 }
 
@@ -21,28 +22,20 @@ struct MenuBarPanelContent: Equatable, Sendable {
         let id: MenuBarPanelActionID
         let title: String
         let isEnabled: Bool
-        let closesPanel: Bool
     }
 
     struct Footer: Equatable, Sendable {
-        let versionText: String
-        let versionAccessibilityValue: String
-        let about: Action
         let actions: [Action]
     }
 
+    let headerTitle: String
     let switchingStatus: SwitchingStatus
     let assignmentList: MenuBarAssignmentList
     let footer: Footer
     let notice: MenuBarPanelNotice?
-    let pausedMarker: String?
-
-    var accessibility: MenuBarPanelAccessibility {
-        MenuBarPanelAccessibility(content: self)
-    }
 
     var actionTitles: [String] {
-        [footer.about.title] + footer.actions.map(\.title)
+        footer.actions.map(\.title)
     }
 
     init(
@@ -50,10 +43,14 @@ struct MenuBarPanelContent: Equatable, Sendable {
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
         marketingVersion: String?,
-        isSetupComplete: Bool = true
+        isSetupComplete: Bool = true,
+        canCheckForUpdates: Bool
     ) {
         self.switchingStatus = outcome.switchingStatus
-        self.pausedMarker = outcome.switchingStatus == .paused ? "(Paused)" : nil
+        let trimmedVersion = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let version = trimmedVersion.isEmpty ? "—" : trimmedVersion
+        self.headerTitle = "Keyameleon v\(version)"
+            + (outcome.switchingStatus == .paused ? " (Paused)" : "")
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
             physicalKeyboards: physicalKeyboards,
@@ -63,51 +60,36 @@ struct MenuBarPanelContent: Equatable, Sendable {
             physicalKeyboards: physicalKeyboards,
             assignedInputSources: assignedInputSources
         )
-        let versionParts = Self.versionParts(marketingVersion: marketingVersion)
         self.footer = Footer(
-            versionText: versionParts.visible,
-            versionAccessibilityValue: versionParts.accessibilityValue,
-            about: Action(
-                id: .about,
-                title: "About Keyameleon",
-                isEnabled: true,
-                closesPanel: true
-            ),
-            actions: Self.makeActions(outcome: outcome, isSetupComplete: isSetupComplete)
+            actions: Self.makeActions(
+                outcome: outcome,
+                isSetupComplete: isSetupComplete,
+                canCheckForUpdates: canCheckForUpdates
+            )
         )
-    }
-
-    static func versionText(marketingVersion: String?) -> String {
-        versionParts(marketingVersion: marketingVersion).visible
-    }
-
-    private static func versionParts(
-        marketingVersion: String?
-    ) -> (visible: String, accessibilityValue: String) {
-        let trimmed = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !trimmed.isEmpty else {
-            return ("Keyameleon —", "—")
-        }
-
-        return ("Keyameleon \(trimmed)", trimmed)
     }
 
     private static func makeActions(
         outcome: ActivityTriggeredSwitchingOutcome,
-        isSetupComplete: Bool
+        isSetupComplete: Bool,
+        canCheckForUpdates: Bool
     ) -> [Action] {
         var actions = [Action]()
         if !isSetupComplete {
             actions.append(Action(
                 id: .continueSetup,
                 title: "Continue Guided Setup",
-                isEnabled: true,
-                closesPanel: true
+                isEnabled: true
             ))
         }
         actions.append(pauseOrResume(outcome: outcome))
-        actions.append(Action(id: .settings, title: "Settings", isEnabled: true, closesPanel: true))
-        actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true, closesPanel: true))
+        actions.append(Action(id: .settings, title: "Settings", isEnabled: true))
+        actions.append(Action(
+            id: .checkForUpdates,
+            title: "Check for Updates…",
+            isEnabled: canCheckForUpdates
+        ))
+        actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true))
         return actions
     }
 
@@ -118,16 +100,14 @@ struct MenuBarPanelContent: Equatable, Sendable {
             return Action(
                 id: .resume,
                 title: "Resume Switching",
-                isEnabled: true,
-                closesPanel: false
+                isEnabled: true
             )
         }
 
         return Action(
             id: .pause,
             title: "Pause Switching",
-            isEnabled: true,
-            closesPanel: false
+            isEnabled: true
         )
     }
 }

@@ -32,40 +32,22 @@ enum Theme {
     enum Menu {
         static let accent = Color.accentColor
         static let activeFill = Color.accentColor.opacity(0.18)
-        static let muted = Theme.muted
-        static let warning = Color.orange
-        static let warningFill = Color.yellow.opacity(0.16)
-        static let neutralFill = Color.primary.opacity(0.06)
-        static let hoverFill = Color.primary.opacity(0.08)
-        static let badgeBorder = Color.primary.opacity(0.2)
-        static let strongBadgeBorder = Color.primary.opacity(0.5)
-        static let separatorOpacity = 0.22
         static let width: CGFloat = 320
-        static let outerInset: CGFloat = 6
-        static let bottomInset: CGFloat = 6
-        static let headerHeight: CGFloat = 40
-        static let innerInset: CGFloat = 6
-        static let headerSpacing: CGFloat = 4
-        static let aboutSize: CGFloat = 22
-        static let rowHeight: CGFloat = 62
-        static let rowSpacing: CGFloat = 4
-        static let sectionInset: CGFloat = 8
+        /// One assignment pill, and the unit five visible rows scroll against.
+        static let rowHeight: CGFloat = 34
+        static let rowSpacing: CGFloat = 2
+        static let sectionInset: CGFloat = 6
         static let rowRadius: CGFloat = 12
-        static let rowInset: CGFloat = 12
+        static let rowInset: CGFloat = 8
         static let rowGap: CGFloat = 14
         static let statusSize: CGFloat = 14
-        static let detailGap: CGFloat = 4
         static let badgeWidth: CGFloat = 24
         static let badgeHeight: CGFloat = 16
-        static let actionHeight: CGFloat = 32
-        static let actionIconSize: CGFloat = 16
-        static let actionGap: CGFloat = 11
-        static let actionTopInset: CGFloat = 8
-        static let actionBottomInset: CGFloat = 5
-        static let actionRowInset: CGFloat = 5
-        static let quitSectionInset: CGFloat = 4
-        static let noticeTopInset: CGFloat = 12
-        static let noticeGap: CGFloat = 8
+        static let badgeRadius: CGFloat = 4
+        static let badgeInset: CGFloat = 4
+        /// The single opacity layer a disconnected pill's mark, title, and badge take.
+        static let disconnectedOpacity: Double = 0.45
+        static let highContrastDisconnectedOpacity: Double = 0.8
     }
 
     // MARK: Typography
@@ -82,7 +64,6 @@ enum Theme {
         static let navigationLabelSelected = Font.body.weight(.medium)
         /// `type-body`, semibold: the sidebar mark and other emphasised body text.
         static let bodyStrong = Font.body.weight(.semibold)
-        static let menuHeading = Font.body.bold()
         /// `type-callout`, regular: explanations, help, and credits.
         static let caption = Font.callout
         /// `type-subheadline`, regular: connection status and folder paths.
@@ -92,7 +73,7 @@ enum Theme {
         /// `type-title-2`, semibold: a pane's empty state title.
         static let emptyStateTitle = Font.title2.weight(.semibold)
         /// Chip and badge labels.
-        static let chip = Font.subheadline.weight(.medium)
+        static let chip = Font.caption2.weight(.bold)
     }
 
     // MARK: Metrics

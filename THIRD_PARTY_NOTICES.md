@@ -18,8 +18,9 @@ licenses. The build checks the binary distribution version against
 `Package.resolved` before copying the notices; release verification checks the
 embedded framework version too.
 
-Choose **Licenses and Notices** in either About screen to read these texts
-offline, alongside Keyameleon's MIT license and this index. The repository's
+Open **Settings → About** to read Keyameleon's MIT license and Sparkle's full
+license offline. This index is bundled in `Contents/Resources/Licenses`.
+The repository's
 `LICENSE` and this file are the sources for `LICENSE.txt` and
 `THIRD_PARTY_NOTICES.md` in the same bundled folder.
 

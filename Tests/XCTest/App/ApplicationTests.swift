@@ -10,65 +10,171 @@ final class ApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testStatusItemOpensTransient320PointPanelAndCloses() throws {
+    func testStatusItemUsesNativeMenuAndOnlyKeyboardsHaveAView() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = makeApplicationTestDelegate(permissionProvider: permission)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
-        let anchor = MenuBarPanelTestAnchorWindow()
-        defer {
-            stopApplicationTestSurface(delegate)
-            anchor.close()
-        }
+        defer { stopApplicationTestSurface(delegate) }
 
-        XCTAssertNil(delegate.menuBarStatusItem?.menu)
-        XCTAssertEqual(
-            delegate.menuBarStatusItem?.button?.action,
-            #selector(ApplicationDelegate.toggleMenuBarPanel(_:))
-        )
-        XCTAssertTrue(delegate.menuBarStatusItem?.button?.target === delegate)
-        let panel = try XCTUnwrap(delegate.menuBarPanelController)
-        XCTAssertEqual(panel.behavior, .transient)
-        XCTAssertEqual(panel.panelWidth, 320)
-        XCTAssertFalse(delegate.isMenuBarPanelShown)
+        let controller = try XCTUnwrap(delegate.menuBarPanelController)
+        let menu = try XCTUnwrap(delegate.menuBarStatusItem?.menu)
+        let version = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let headingTitle = "Keyameleon v\(version.isEmpty ? "—" : version)"
+        let heading = try XCTUnwrap(menu.items.first)
+        XCTAssertTrue(menu === controller.menu)
+        XCTAssertEqual(heading.identifier?.rawValue, "menu-bar-heading")
+        XCTAssertEqual(heading.title, headingTitle)
+        XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-version" })
+        XCTAssertEqual(menu.items.last?.title, "Quit Keyameleon")
+        XCTAssertNil(delegate.menuBarStatusItem?.button?.action)
+        XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
+        XCTAssertNotNil(menu.items.first { $0.title == "Keyboards" })
+        XCTAssertNil(menu.items.first { $0.title == "About Keyameleon" })
+        XCTAssertNotNil(menu.items.first { $0.title == "Quit Keyameleon" })
+        XCTAssertEqual(menu.items.first { $0.title == "Pause Switching" }?.keyEquivalent, "p")
+        XCTAssertEqual(menu.items.first { $0.title == "Settings" }?.keyEquivalent, ",")
+        XCTAssertEqual(menu.items.first { $0.title == "Quit Keyameleon" }?.keyEquivalent, "q")
+        XCTAssertTrue(menu.items.filter { !$0.keyEquivalent.isEmpty }.allSatisfy {
+            $0.keyEquivalentModifierMask == [.command]
+        })
 
         let checksAfterLaunch = permission.checkCount
-        panel.show(from: anchor.positioningView)
-
-        XCTAssertTrue(delegate.isMenuBarPanelShown)
+        controller.menuNeedsUpdate(menu)
         XCTAssertGreaterThan(permission.checkCount, checksAfterLaunch)
-        XCTAssertEqual(panel.panelWidth, 320)
-
-        delegate.closeMenuBarPanel()
-        XCTAssertFalse(delegate.isMenuBarPanelShown)
-
-        panel.toggle(from: anchor.positioningView)
-        XCTAssertFalse(delegate.isMenuBarPanelShown)
+        XCTAssertTrue(menu.items.first === heading)
+        XCTAssertEqual(heading.title, headingTitle)
+        menu.performActionForItem(at: try XCTUnwrap(menu.items.firstIndex { $0.title == "Pause Switching" }))
+        XCTAssertTrue(delegate.setupModel.isActivityTriggeredSwitchingPaused)
+        controller.refresh()
+        XCTAssertTrue(menu.items.first === heading)
+        XCTAssertEqual(heading.title, "\(headingTitle) (Paused)")
+        XCTAssertNotNil(menu.items.first { $0.title == "Resume Switching" })
+        menu.performActionForItem(at: try XCTUnwrap(menu.items.firstIndex { $0.title == "Resume Switching" }))
+        XCTAssertFalse(delegate.setupModel.isActivityTriggeredSwitchingPaused)
+        controller.refresh()
+        XCTAssertTrue(menu.items.first === heading)
+        XCTAssertEqual(heading.title, headingTitle)
+        XCTAssertEqual(menu.items.last?.title, "Quit Keyameleon")
     }
 
     @MainActor
-    func testCheckForUpdatesClosesTheMenuBarPanel() throws {
-        let delegate = makeApplicationTestDelegate()
+    func testMenuRefreshKeepsKeyboardHostWhileNativeItemsChange() throws {
+        let permission = ApplicationTestListenPermissionProvider(state: .granted)
+        let delegate = makeApplicationTestDelegate(
+            permissionProvider: permission,
+            setupStore: ApplicationTestSetupDecisionStore(
+                hasStartedGuidedSetup: true,
+                hasCompletedGuidedSetup: false,
+                guidedSetupStep: .ready
+            )
+        )
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
-        let anchor = MenuBarPanelTestAnchorWindow()
-        defer {
-            stopApplicationTestSurface(delegate)
-            anchor.close()
-        }
+        defer { stopApplicationTestSurface(delegate) }
 
         let panel = try XCTUnwrap(delegate.menuBarPanelController)
-        panel.show(from: anchor.positioningView)
-        XCTAssertTrue(delegate.isMenuBarPanelShown)
+        let menu = panel.menu
+        let keyboards = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
+        let hosted = try XCTUnwrap(keyboards.view)
+        let settings = try XCTUnwrap(menu.items.first { $0.title == "Settings" })
+        XCTAssertGreaterThan(hosted.frame.height, 0)
+        XCTAssertNotNil(menu.items.first { $0.title == "Guided setup is not finished" })
+        XCTAssertNotNil(menu.items.first {
+            $0.representedObject as? String == MenuBarPanelActionID.continueSetup.rawValue
+        })
 
-        delegate.checkForUpdates(nil)
-        XCTAssertFalse(delegate.isMenuBarPanelShown)
+        panel.refresh()
+        XCTAssertTrue(keyboards === menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
+        XCTAssertTrue(hosted === keyboards.view)
+        XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
+
+        delegate.setupModel.completeSetup(destination: .menuBar)
+        panel.refresh()
+        XCTAssertNil(menu.items.first { $0.title == "Guided setup is not finished" })
+        XCTAssertNil(menu.items.first {
+            $0.representedObject as? String == MenuBarPanelActionID.continueSetup.rawValue
+        })
+        XCTAssertTrue(keyboards === menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
+        XCTAssertTrue(hosted === keyboards.view)
+
+        permission.state = .denied
+        panel.menuNeedsUpdate(menu)
+        XCTAssertNotNil(menu.items.first { $0.title == "Input Monitoring required" })
+        let noticeIndex = try XCTUnwrap(menu.items.firstIndex { $0.title == "Input Monitoring required" })
+        let keyboardIndex = try XCTUnwrap(menu.items.firstIndex(of: keyboards))
+        XCTAssertLessThan(noticeIndex, keyboardIndex)
+        XCTAssertTrue(menu.items.contains {
+            guard let action = $0.representedObject as? String else { return false }
+            return action == MenuBarPanelActionID.openSystemSettings.rawValue
+                || action == MenuBarPanelActionID.requestPermission.rawValue
+        })
+        XCTAssertTrue(hosted === keyboards.view)
+
+        permission.state = .granted
+        panel.menuNeedsUpdate(menu)
+        XCTAssertNil(menu.items.first { $0.title == "Input Monitoring required" })
+        delegate.activityTriggeredSwitching.pause()
+        panel.refresh()
+        XCTAssertNotNil(menu.items.first {
+            $0.representedObject as? String == MenuBarPanelActionID.resume.rawValue
+        })
+        XCTAssertNil(menu.items.first {
+            $0.representedObject as? String == MenuBarPanelActionID.pause.rawValue
+        })
+        XCTAssertTrue(hosted === keyboards.view)
+        XCTAssertGreaterThan(hosted.frame.height, 0)
     }
 
     @MainActor
-    func testAboutActionShowsIndependentWindowAndPreservesSettingsSelection() throws {
+    func testCheckForUpdatesKeepsNativeMenuAttached() throws {
+        let updateChecker = ApplicationTestUpdateChecker()
+        let delegate = makeApplicationTestDelegate(updateChecker: updateChecker)
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        let controller = try XCTUnwrap(delegate.menuBarPanelController)
+        let menu = try XCTUnwrap(delegate.menuBarStatusItem?.menu)
+        let settingsIndex = try XCTUnwrap(menu.items.firstIndex { $0.title == "Settings" })
+        let updateIndex = settingsIndex + 1
+        let updateItem = try XCTUnwrap(menu.item(at: updateIndex))
+        XCTAssertEqual(updateItem.title, "Check for Updates…")
+        XCTAssertLessThan(updateIndex, try XCTUnwrap(menu.items.firstIndex { $0.title == "Quit Keyameleon" }))
+        XCTAssertEqual(updateItem.representedObject as? String, MenuBarPanelActionID.checkForUpdates.rawValue)
+        XCTAssertNil(updateItem.view)
+        XCTAssertNil(updateItem.toolTip)
+        XCTAssertEqual(updateItem.keyEquivalent, "")
+        XCTAssertEqual(updateItem.keyEquivalentModifierMask, [])
+        XCTAssertFalse(updateItem.isEnabled)
+        XCTAssertEqual(updateChecker.checkCallCount, 0)
+
+        updateChecker.canCheckForUpdates = true
+        controller.menuNeedsUpdate(menu)
+        XCTAssertTrue(menu.item(at: updateIndex) === updateItem)
+        XCTAssertTrue(updateItem.isEnabled)
+        XCTAssertEqual(updateChecker.checkCallCount, 0)
+
+        menu.performActionForItem(at: updateIndex)
+        XCTAssertEqual(updateChecker.checkCallCount, 1)
+        XCTAssertFalse(updateItem.isEnabled)
+        XCTAssertTrue(menu.item(at: updateIndex) === updateItem)
+        XCTAssertTrue(delegate.menuBarStatusItem?.menu === menu)
+
+        updateChecker.canCheckForUpdates = true
+        controller.menuNeedsUpdate(menu)
+        XCTAssertTrue(updateItem.isEnabled)
+        XCTAssertEqual(updateChecker.checkCallCount, 1)
+        XCTAssertTrue(menu.item(at: updateIndex) === updateItem)
+        XCTAssertTrue(delegate.menuBarStatusItem?.menu === menu)
+    }
+
+    @MainActor
+    func testSettingsWindowPreservesAboutSelectionAcrossReopen() throws {
         let delegate = makeApplicationTestDelegate(startsApplicationSurfaceOnLaunch: false)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
@@ -95,64 +201,35 @@ final class ApplicationTests: XCTestCase {
         )
         XCTAssertTrue(settingsWindow.contentView is NSHostingView<SettingsView>)
 
-        delegate.openAbout(nil)
-        let aboutController = try XCTUnwrap(delegate.aboutWindowController)
-        let aboutWindow = try XCTUnwrap(aboutController.window)
-        XCTAssertTrue(settingsWindow.isVisible)
-        XCTAssertTrue(aboutWindow.isVisible)
-        XCTAssertFalse(aboutWindow === settingsWindow)
-        XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
-        XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
-        XCTAssertEqual(aboutWindow.frame.size, NSSize(width: 360, height: 360))
-        XCTAssertTrue(aboutWindow.contentView is NSHostingView<CompactAboutView>)
-        XCTAssertEqual(delegate.settingsSelection.section, .general)
-        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
-
+        delegate.settingsSelection.section = .about
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
+        settingsWindow.close()
         delegate.openSettings(nil)
-        XCTAssertEqual(delegate.settingsSelection.section, .general)
-        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
+        XCTAssertEqual(delegate.settingsSelection.section, .about)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
         XCTAssertTrue(delegate.settingsWindowController?.window === settingsWindow)
-
-        aboutWindow.close()
-        delegate.openAbout(nil)
-        XCTAssertTrue(delegate.aboutWindowController === aboutController)
-        XCTAssertTrue(delegate.aboutWindowController?.window === aboutWindow)
     }
 
     @MainActor
-    func testDismissingTheMenuBarPanelDoesNotMutateProductState() throws {
+    func testCancelingNativeMenuDoesNotMutateProductState() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
         let delegate = makeApplicationTestDelegate(permissionProvider: permission)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
-        let anchor = MenuBarPanelTestAnchorWindow()
-        defer {
-            stopApplicationTestSurface(delegate)
-            anchor.close()
-        }
+        defer { stopApplicationTestSurface(delegate) }
 
-        let panel = try XCTUnwrap(delegate.menuBarPanelController)
-        panel.show(from: anchor.positioningView)
-        XCTAssertTrue(delegate.isMenuBarPanelShown)
-
-        let statusAfterShow = delegate.activityTriggeredSwitching.outcome.switchingStatus
-        let pausedAfterShow = delegate.setupModel.isActivityTriggeredSwitchingPaused
-        let keyboardsAfterShow = delegate.setupModel.physicalKeyboards
-        let checksAfterShow = permission.checkCount
-
+        let controller = try XCTUnwrap(delegate.menuBarPanelController)
+        controller.menuNeedsUpdate(controller.menu)
+        let status = delegate.activityTriggeredSwitching.outcome.switchingStatus
+        let paused = delegate.setupModel.isActivityTriggeredSwitchingPaused
+        let keyboards = delegate.setupModel.physicalKeyboards
+        let checks = permission.checkCount
         delegate.closeMenuBarPanel()
-        XCTAssertFalse(delegate.isMenuBarPanelShown)
-        XCTAssertEqual(
-            delegate.activityTriggeredSwitching.outcome.switchingStatus,
-            statusAfterShow
-        )
-        XCTAssertEqual(
-            delegate.setupModel.isActivityTriggeredSwitchingPaused,
-            pausedAfterShow
-        )
-        XCTAssertEqual(delegate.setupModel.physicalKeyboards, keyboardsAfterShow)
-        XCTAssertEqual(permission.checkCount, checksAfterShow)
+        XCTAssertEqual(delegate.activityTriggeredSwitching.outcome.switchingStatus, status)
+        XCTAssertEqual(delegate.setupModel.isActivityTriggeredSwitchingPaused, paused)
+        XCTAssertEqual(delegate.setupModel.physicalKeyboards, keyboards)
+        XCTAssertEqual(permission.checkCount, checks)
     }
 
     @MainActor
@@ -321,35 +398,20 @@ final class ApplicationTests: XCTestCase {
             delegate.applicationDidFinishLaunching(
                 Notification(name: NSApplication.didFinishLaunchingNotification)
             )
-            let anchor = MenuBarPanelTestAnchorWindow()
             defer {
                 stopApplicationTestSurface(delegate)
                 delegate.windowController?.close()
-                anchor.close()
             }
             XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)
             delegate.windowController?.close()
             XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
 
             let panel = try XCTUnwrap(delegate.menuBarPanelController)
-            panel.show(from: anchor.positioningView)
-            XCTAssertTrue(delegate.isMenuBarPanelShown)
-
-            let content = MenuBarPanelContent(
-                outcome: delegate.activityTriggeredSwitching.outcome,
-                physicalKeyboards: delegate.setupModel.physicalKeyboards,
-                assignedInputSources: [:],
-                marketingVersion: nil,
-                isSetupComplete: delegate.setupModel.isSetupComplete
-            )
-            let action = try XCTUnwrap(content.footer.actions.first { $0.id == .continueSetup })
-            let view = MenuBarPanelView(
-                setupModel: delegate.setupModel,
-                switching: delegate.activityTriggeredSwitching,
-                actions: delegate.makeMenuBarPanelActions()
-            )
-            view.perform(action)
-            XCTAssertFalse(delegate.isMenuBarPanelShown)
+            let item = try XCTUnwrap(panel.menu.items.first { $0.title == "Continue Guided Setup" })
+            XCTAssertEqual(item.representedObject as? String, MenuBarPanelActionID.continueSetup.rawValue)
+            panel.menu.performActionForItem(at: try XCTUnwrap(
+                panel.menu.items.firstIndex { $0.title == "Continue Guided Setup" }
+            ))
             XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
             XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)
             XCTAssertFalse(delegate.setupModel.isSetupComplete)

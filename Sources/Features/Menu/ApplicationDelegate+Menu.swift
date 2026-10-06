@@ -6,22 +6,6 @@ extension ApplicationDelegate {
         statusItem
     }
 
-    var isMenuBarPanelShown: Bool {
-        menuBarPanelController?.isShown ?? false
-    }
-
-    @objc
-    func toggleMenuBarPanel(_ sender: Any?) {
-        guard let button = statusItem?.button else {
-            return
-        }
-
-        if menuBarPanelController == nil {
-            menuBarPanelController = makeMenuBarPanelController()
-        }
-        menuBarPanelController?.toggle(from: button)
-    }
-
     func closeMenuBarPanel() {
         menuBarPanelController?.close()
     }
@@ -36,33 +20,27 @@ extension ApplicationDelegate {
         button.setAccessibilityElement(true)
         button.setAccessibilityRole(.button)
         button.setAccessibilityLabel("Keyameleon")
-        button.target = self
-        button.action = #selector(toggleMenuBarPanel(_:))
         applyMenuBarIcon(to: button)
         return item
     }
 
     func makeMenuBarPanelController() -> MenuBarPanelController {
-        MenuBarPanelController(
-            rootView: MenuBarPanelView(
-                setupModel: setupModel,
-                switching: activityTriggeredSwitching,
-                actions: makeMenuBarPanelActions()
-            ),
-            refresh: { [weak self] in
-                self?.activityTriggeredSwitching.checkAgain()
-                self?.refreshMenuBarPresentation()
-            }
+        let controller = MenuBarPanelController(
+            setupModel: setupModel,
+            switching: activityTriggeredSwitching,
+            generalSettingsModel: generalSettingsModel,
+            actions: makeMenuBarPanelActions()
         )
+        statusItem?.menu = controller.menu
+        return controller
     }
 
     func makeMenuBarPanelActions() -> MenuBarPanelActions {
         MenuBarPanelActions(
-            openAbout: { [weak self] in self?.openAbout(nil) },
             continueSetup: { [weak self] in self?.continueSetup(nil) },
             openSettings: { [weak self] in self?.openSettings(nil) },
-            quit: { [weak self] in self?.quitKeyameleon(nil) },
-            closePanel: { [weak self] in self?.closeMenuBarPanel() }
+            checkForUpdates: { [weak self] in self?.checkForUpdates(nil) },
+            quit: { [weak self] in self?.quitKeyameleon(nil) }
         )
     }
 
@@ -72,6 +50,7 @@ extension ApplicationDelegate {
         }
 
         applyMenuBarIcon(to: button)
+        menuBarPanelController?.refresh()
     }
 
     func observePresentationChanges() {
@@ -79,6 +58,9 @@ extension ApplicationDelegate {
             _ = activityTriggeredSwitching.outcome
             _ = setupModel.physicalKeyboards
             _ = setupModel.isSetupComplete
+            _ = setupModel.eligibleInputSources
+            _ = setupModel.persistenceError
+            _ = activityTriggeredSwitching.persistenceError
             _ = setupModel.physicalKeyboardActionConditions
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in

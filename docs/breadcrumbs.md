@@ -1,5 +1,29 @@
 # Breadcrumbs
 
+## 2026-10-06 — Menu pills are single-line with a filled locale badge
+
+- The menu panel's keyboard pill is one 34 pt line: connection mark, Physical
+  Keyboard Name, optional warning triangle, and the assigned Input Source's
+  locale code. `Theme.Menu.rowHeight` is 34 and is the shared row minimum for
+  the pill's `@ScaledMetric` frame and the five-row scroller; a row with taller
+  content clips at the viewport rather than growing it.
+- `MenuBarAssignmentList.Row` loses `subtitle` and its stored
+  `showsWarningSymbol`, which is now computed from `warningNote`. The VoiceOver
+  label and value are unchanged.
+- The locale code renders inline in `MenuBarAssignmentPill`: a filled
+  `Color.primary` rectangle with `.background` text at `caption2` bold, at least
+  24 × 16 with radius 4 and a 4 pt horizontal inset. A longer code grows instead
+  of truncating.
+- A disconnected pill takes one 0.65 opacity layer across the mark, title, and
+  badge, raised to 0.8 under Increase Contrast. The warning triangle stays
+  outside that dimming.
+- `Theme.Menu` drops the unused `muted`, `detailGap`, `badgeBorder`, and
+  `strongBadgeBorder` tokens; `Theme.Typography.chip` is now `caption2` bold.
+- Tests: the pill row test keeps Custom name, product name, and locale code, the
+  state test now checks the single title and connection state, and the warning
+  and accessibility suites are unchanged.
+- Docs: `docs/choices.md` 2026-10-06 and the menu section of `docs/testing.md`.
+
 ## 2026-10-05 — Settings rebuilt from the Pencil design
 
 - Reported: the Settings window predated the Pencil designs for General,
@@ -40,8 +64,8 @@
   `KeyboardSettingsRowTests`. Forget, Replace Saved Physical Keyboard, and Manual
   Physical Keyboard Designation keep their model seams and tests without a
   Settings entry point.
-- `GeneralSettingsModel` is `@MainActor @Observable`; Settings, About,
-  and the compact About window read it directly.
+- `GeneralSettingsModel` is `@MainActor @Observable`; Settings and About read it
+  directly. The compact About window also read it until its removal on 2026-10-06.
 - Tests: `SettingsSectionTests` covers both symbol variants,
   `PhysicalKeyboardRowsTests` moves to Shared and gains the
   `reconcile(with:)` case, `AppIdentityTests` covers the About version label, and

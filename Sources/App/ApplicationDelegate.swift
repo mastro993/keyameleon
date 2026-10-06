@@ -39,7 +39,6 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     var menuBarPanelController: MenuBarPanelController?
     var windowController: MainWindowController?
     var settingsWindowController: SettingsWindowController?
-    var aboutWindowController: AboutWindowController?
     private let modelContainer: ModelContainer?
 
     override convenience init() {
@@ -234,8 +233,6 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         menuBarPanelController = nil
         settingsWindowController?.close()
         settingsWindowController = nil
-        aboutWindowController?.close()
-        aboutWindowController = nil
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
