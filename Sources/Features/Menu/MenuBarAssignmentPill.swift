@@ -31,9 +31,11 @@ struct MenuBarAssignmentPill: View {
                     .fixedSize(horizontal: true, vertical: false)
                     .padding(.horizontal, Theme.Menu.badgeInset)
                     .frame(minWidth: Theme.Menu.badgeWidth, minHeight: Theme.Menu.badgeHeight)
-                    .background(Color.primary, in: .rect(cornerRadius: Theme.Menu.badgeRadius))
+                    .background(
+                        Color.primary.opacity(contentOpacity),
+                        in: .rect(cornerRadius: Theme.Menu.badgeRadius)
+                    )
                     .accessibilityHidden(true)
-                    .opacity(contentOpacity)
             }
         }
         .modifier(

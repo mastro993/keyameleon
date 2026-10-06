@@ -35,10 +35,10 @@ enum Theme {
         static let width: CGFloat = 320
         /// One assignment pill, and the unit five visible rows scroll against.
         static let rowHeight: CGFloat = 34
-        static let rowSpacing: CGFloat = 4
-        static let sectionInset: CGFloat = 8
+        static let rowSpacing: CGFloat = 2
+        static let sectionInset: CGFloat = 6
         static let rowRadius: CGFloat = 12
-        static let rowInset: CGFloat = 12
+        static let rowInset: CGFloat = 8
         static let rowGap: CGFloat = 14
         static let statusSize: CGFloat = 14
         static let badgeWidth: CGFloat = 24
@@ -46,7 +46,7 @@ enum Theme {
         static let badgeRadius: CGFloat = 4
         static let badgeInset: CGFloat = 4
         /// The single opacity layer a disconnected pill's mark, title, and badge take.
-        static let disconnectedOpacity: Double = 0.65
+        static let disconnectedOpacity: Double = 0.45
         static let highContrastDisconnectedOpacity: Double = 0.8
     }
 
