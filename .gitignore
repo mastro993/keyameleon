@@ -147,3 +147,5 @@ sparkle_private_key
 # Official Release local output
 dist/
 build/official-release/
+
+/Config/Development.local.xcconfig

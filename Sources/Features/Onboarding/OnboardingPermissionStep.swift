@@ -39,7 +39,10 @@ struct OnboardingPermissionStep: View {
             .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(OnboardingPalette.border) }
             VStack(alignment: .leading, spacing: 16) {
                 OnboardingPermissionInstruction(number: 1, message: "Open the macOS permission prompt.")
-                OnboardingPermissionInstruction(number: 2, message: "Enable Keyameleon in Input Monitoring.")
+                OnboardingPermissionInstruction(
+                    number: 2,
+                    message: "Enable \(AppIdentity.current.name) in Input Monitoring."
+                )
                 OnboardingPermissionInstruction(number: 3, message: "Return here. Setup continues automatically.")
             }
             Text("Access can be changed later in System Settings.")

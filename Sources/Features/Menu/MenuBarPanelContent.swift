@@ -43,13 +43,14 @@ struct MenuBarPanelContent: Equatable, Sendable {
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
         marketingVersion: String?,
+        appName: String = AppIdentity.current.name,
         isSetupComplete: Bool = true,
         canCheckForUpdates: Bool
     ) {
         self.switchingStatus = outcome.switchingStatus
         let trimmedVersion = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let version = trimmedVersion.isEmpty ? "—" : trimmedVersion
-        self.headerTitle = "Keyameleon v\(version)"
+        self.headerTitle = "\(appName) v\(version)"
             + (outcome.switchingStatus == .paused ? " (Paused)" : "")
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
@@ -64,7 +65,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
             actions: Self.makeActions(
                 outcome: outcome,
                 isSetupComplete: isSetupComplete,
-                canCheckForUpdates: canCheckForUpdates
+                canCheckForUpdates: canCheckForUpdates,
+                appName: appName
             )
         )
     }
@@ -72,7 +74,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
     private static func makeActions(
         outcome: ActivityTriggeredSwitchingOutcome,
         isSetupComplete: Bool,
-        canCheckForUpdates: Bool
+        canCheckForUpdates: Bool,
+        appName: String
     ) -> [Action] {
         var actions = [Action]()
         if !isSetupComplete {
@@ -89,7 +92,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             title: "Check for Updates…",
             isEnabled: canCheckForUpdates
         ))
-        actions.append(Action(id: .quit, title: "Quit Keyameleon", isEnabled: true))
+        actions.append(Action(id: .quit, title: "Quit \(appName)", isEnabled: true))
         return actions
     }
 

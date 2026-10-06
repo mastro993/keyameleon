@@ -9,9 +9,23 @@ Run the complete local check with:
 This command runs the safety audit, SwiftLint, and the focused automated product
 tests on macOS 26. SwiftLint runs before the Xcode project generation and build.
 The command runs Swift Testing and XCTest bundles serially, then kills
-leftover Keyameleon processes whose executable is under `./build`. Tests should
+leftover Keyameleon (Dev) processes whose executable is under `./build`. Tests should
 protect one distinct user-visible outcome or one critical safety rule. Prefer
 domain and model seams; this repository has no automated UI-test target.
+
+Both Xcode test commands explicitly use ad hoc signing for the hosted app and
+test bundles, so `run.sh test` needs no Apple Development certificate. Normal
+Debug builds, including Xcode Run, require Apple Development signing. Run
+`./Scripts/run.sh generate` before the first Xcode Run and after changing
+certificates. It refreshes the ignored `Config/Development.local.xcconfig` with
+the first installed Apple Development certificate fingerprint. Without a
+certificate, generation clears any old local selection and succeeds for CI,
+but normal Debug builds still fail. Official Release signing is unchanged. Do not use
+the ad hoc test product to verify persistent Input Monitoring grants; rebuild
+with Xcode Run or `run.sh open` first. Grant access to that development app in
+System Settings, quit and reopen it, then rebuild and run again. Confirm that
+the permission remains granted and neither permission prompt returns. A prior
+ad hoc grant may need to be replaced once for the newly signed app.
 
 ## SwiftLint
 
@@ -65,6 +79,17 @@ Hosted app startup and Xcode previews use in-memory SwiftData storage. Store
 relocation and persistence failure tests use disposable directories and must
 never migrate or modify the user's real data.
 
+Debug builds use the `dev.fedemas.keyameleon.development` defaults domain, the
+`Keyameleon (Dev)` SwiftData and logs folders, and a separate keychain service.
+The development store starts empty and never imports production data. Existing
+development preferences remain in the same defaults domain. Production keeps
+its original store and migration. Debug runs must not start Sparkle. To check
+the two live apps, run a stable-signed development build with `./Scripts/run.sh
+open` and launch the production app separately. Confirm that both stay running,
+their menu headings and Input Monitoring entries have distinct names, and a
+second launch of either flavor exits. Input Monitoring grants are separate and
+must be checked in System Settings; store isolation does not grant access.
+
 Saved Physical Keyboard changes are tested through the
 `SavedPhysicalKeyboardChanges` interface with the real SwiftData adapters. The
 tests cover rollback across both stores, exact Retry, blocked competing changes,
@@ -113,6 +138,8 @@ Run `./Scripts/run.sh test` after changes to the Settings panes, the shared keyb
 General should show the `App` heading, the Launch at login switch with its explanation, and the menu-bar line. Turning the switch on and off must persist across a relaunch; a failed change must keep the switch at the real service state and add the Login Items guidance.
 
 Keyboards should show one row per Physical Keyboard, with the ignored ones in place and dimmed: name and connection status, the Input Source picker, and the trailing menu. Rename… an external keyboard and confirm the name and the `product - Connected` status; Ignore it and confirm the picker is disabled, the status appends ` (Ignored)`, and the row stays where it was; Stop ignoring it and confirm its name and assignment return. The built-in keyboard must show no actions menu, and a persistence error must disable the picker and the menu while the notice with Retry stays visible. With no keyboards connected, the pane shows `No keyboards detected` and the connection guidance.
+
+In Guided setup and Settings, confirm the built-in Physical Keyboard is first, including when it appears after external or ignored rows. External and ignored rows must keep their relative order and identity. An editable picker without an assignment and an ignored keyboard’s disabled picker without a saved assignment must both show `Unassigned`. In the menu, confirm an assigned built-in keyboard appears first.
 
 About should show the app icon, name, and tagline, the information rows, the Sparkle acknowledgement, and the creator credit. Version must match the running build. `View on GitHub` and `@fedemas` must open the browser; `Open in Finder` must create and open the two folders; the license rows must open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt`; `Check for Updates…` must be disabled while Sparkle cannot check.
 

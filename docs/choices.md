@@ -63,6 +63,9 @@ group, and one Physical Keyboard row.
 - `PhysicalKeyboardRows` and `PhysicalKeyboardRowView` — one reconciled list and
   one row shared by Guided setup and Settings. `reconcile(with:)` reads the setup
   model, so both flows keep row identity, ordering, and ignored rows the same way.
+  The built-in Physical Keyboard stays first, including when discovered after
+  other rows. External and ignored rows retain their relative order and identity.
+  Editable and read-only Input Source pickers show `Unassigned` for no assignment.
 - `SettingsView` — the sidebar and pane shell, with
   `SettingsSidebar`, `GeneralSettingsPane`,
   `KeyboardSettingsPane`, and `AboutSettingsPane`.
@@ -215,7 +218,8 @@ This supersedes the onboarding restore details in the 2026-09-24 exclusion entry
   `Include Again` action in place of assignment controls.
 - Existing row identities and positions stay stable through exclude and restore
   during the current onboarding session. Newly discovered keyboards append in
-  the existing Physical Keyboard order. Saved exclusions without a current row
+  the existing Physical Keyboard order. Since 2026-10-06, a newly discovered
+  built-in keyboard moves first. Saved exclusions without a current row
   append after them.
 - The keyboard list scrolls independently; `Continue` stays reachable when every
   listed keyboard is excluded.
@@ -1023,3 +1027,13 @@ The icon drags the running application's actual `.app` bundle as a file URL with
 Window Server metadata identifies System Settings by process ID and bundle ID. It follows the visible window on its display, preferring below and falling beside it when space is limited. Coordinates use the primary display's global origin, including displays above or left of it. Placement stays inside the display's visible frame and pauses during the icon drag. No Accessibility or Screen Recording access is requested. Unavailable metadata leaves the guide movable; it is not treated as proof that Settings closed. Initial Settings launch has a five-second grace period before a missing window closes the guide.
 
 One cancellable task checks window placement and the existing IOHID permission provider every 750 milliseconds. An actual grant closes the panel, refreshes Activity-Triggered Switching, and advances incomplete Guided setup. Completing a drag alone never grants access. Dismissal, observed Settings window closure, and application termination stop the task. This also covers recovery after Guided setup is complete.
+
+## 2026-10-06 — Independent development app
+
+Debug builds are named `Keyameleon (Dev)` and retain bundle ID `dev.fedemas.keyameleon.development`. Production remains `Keyameleon`. Each build owns its own singleton lock, defaults domain, SwiftData store, logs folder, and installation integrity keychain service. The two builds can run together, but a duplicate of the same build exits. Debug uses `/dev/zero`; production keeps `/dev/null`.
+
+The development store starts empty at `~/Library/Application Support/Keyameleon (Dev)/default.store`. It does not read or import the production legacy store. Existing development `UserDefaults.standard` values remain under the same bundle ID. Production paths and migration remain unchanged. Development never starts Sparkle or checks for updates. Input Monitoring permission is a separate macOS grant for each build; this change does not grant it.
+
+## 2026-10-06 Stable Debug signing for Xcode Run
+
+Project-level Debug settings require Manual signing and resolve their identity through `Config/Development.xcconfig`, so the app and hosted test bundles inherit the same identity. The generic `Apple Development` class alone makes Xcode require a team or provisioning profile. `run.sh generate` selects the first installed Apple Development certificate fingerprint and writes it to the ignored `Config/Development.local.xcconfig`, which the tracked config optionally includes. Without a certificate, generation clears the local selection and leaves the generic default in place so normal Debug builds fail rather than fall back to ad hoc signing. No personal team or certificate identifier is committed. Xcode Run and script builds no longer default to ad hoc signatures, which can invalidate Input Monitoring grants across rebuilds. `run.sh test` explicitly opts both test build and execution commands into ad hoc signing for certificate-free CI. Release settings are unchanged. `run.sh open` uses the same certificate selection helper and fingerprint. A real grant and rebuild check remains necessary to verify permission retention.

@@ -29,52 +29,54 @@ final class InMemoryInstallationIntegrityKeyProvider: InstallationIntegrityKeyPr
 /// item written before that flag existed; they are read and deleted once, when
 /// the key is migrated.
 enum InstallationIntegrityKeyQuery {
-    static let service = "dev.fedemas.keyameleon.installation-integrity"
     static let account = "manual-physical-keyboard-designation"
 
-    static func dataProtectionCopy() -> [String: Any] {
-        var query = dataProtectionMatch
+    static func dataProtectionCopy(buildIdentity: AppBuildIdentity = .current) -> [String: Any] {
+        var query = dataProtectionMatch(buildIdentity: buildIdentity)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         return query
     }
 
-    static func dataProtectionAdd(data: Data) -> [String: Any] {
-        var query = dataProtectionMatch
+    static func dataProtectionAdd(
+        data: Data,
+        buildIdentity: AppBuildIdentity = .current
+    ) -> [String: Any] {
+        var query = dataProtectionMatch(buildIdentity: buildIdentity)
         query[kSecValueData as String] = data
         query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         return query
     }
 
-    static func dataProtectionDelete() -> [String: Any] {
-        dataProtectionMatch
+    static func dataProtectionDelete(buildIdentity: AppBuildIdentity = .current) -> [String: Any] {
+        dataProtectionMatch(buildIdentity: buildIdentity)
     }
 
-    static func legacyCopy() -> [String: Any] {
-        var query = legacyMatch
+    static func legacyCopy(buildIdentity: AppBuildIdentity = .current) -> [String: Any] {
+        var query = legacyMatch(buildIdentity: buildIdentity)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         return query
     }
 
-    static func legacyDelete() -> [String: Any] {
-        legacyMatch
+    static func legacyDelete(buildIdentity: AppBuildIdentity = .current) -> [String: Any] {
+        legacyMatch(buildIdentity: buildIdentity)
     }
 
-    private static var dataProtectionMatch: [String: Any] {
+    private static func dataProtectionMatch(buildIdentity: AppBuildIdentity) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: buildIdentity.integrityKeyService,
             kSecAttrAccount as String: account,
             kSecUseDataProtectionKeychain as String: true,
             kSecAttrSynchronizable as String: false
         ]
     }
 
-    private static var legacyMatch: [String: Any] {
+    private static func legacyMatch(buildIdentity: AppBuildIdentity) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: buildIdentity.integrityKeyService,
             kSecAttrAccount as String: account
         ]
     }

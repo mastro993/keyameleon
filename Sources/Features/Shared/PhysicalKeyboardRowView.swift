@@ -123,7 +123,7 @@ struct PhysicalKeyboardRowView: View {
             get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
             set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
         )) {
-            Text("No Input Source assigned").tag(nil as String?)
+            Text("Unassigned").tag(nil as String?)
             if let identifier = keyboard.keyboardAssignment?.inputSourceIdentifier,
                !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
                 Text("Unavailable Input Source").tag(Optional(identifier)).disabled(true)
@@ -144,7 +144,7 @@ struct PhysicalKeyboardRowView: View {
             "Input Source for \(record.name)",
             selection: .constant(record.keyboardAssignment?.inputSourceIdentifier)
         ) {
-            Text("No Input Source assigned").tag(nil as String?)
+            Text("Unassigned").tag(nil as String?)
             if let identifier = record.keyboardAssignment?.inputSourceIdentifier,
                !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
                 Text("Unavailable Input Source").tag(Optional(identifier))

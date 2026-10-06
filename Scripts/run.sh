@@ -90,18 +90,23 @@ neutralize_legacy_user_build_locations() {
 }
 
 generate_project() {
+    local identity
+    identity="$(development_signing_identity 2>/dev/null || true)"
+    : > Config/Development.local.xcconfig
+    if [[ -n "${identity}" ]]; then
+        print -r -- "KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY = ${identity}" > Config/Development.local.xcconfig
+    fi
     xcodegen generate --spec project.yml
     write_modern_workspace_settings
     neutralize_legacy_user_build_locations
 }
 
-# Kill leftover Keyameleon processes whose executable is under derived data.
-# Does not kill an Official Release or `open` instance outside ./build.
 kill_leftover_derived_data_keyameleon() {
     local pid command
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
         case "${command}" in
-            "${DERIVED_DATA_PATH}/"*/Keyameleon.app/*)
+            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)"|\
+            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev) "*)
                 kill "${pid}" 2>/dev/null || true
                 ;;
         esac
@@ -126,14 +131,18 @@ run_tests() {
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -derivedDataPath "${DERIVED_DATA_PATH}"
+        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        CODE_SIGN_IDENTITY="-" \
+        CODE_SIGNING_REQUIRED=NO
 
     xcodebuild test-without-building \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -derivedDataPath "${DERIVED_DATA_PATH}"
+        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        CODE_SIGN_IDENTITY="-" \
+        CODE_SIGNING_REQUIRED=NO
     kill_leftover_derived_data_keyameleon
 }
 
@@ -151,7 +160,7 @@ development_signing_identity() {
     local identity
     identity="$(
         security find-identity -v -p codesigning 2>/dev/null \
-            | awk -F '"' '/Apple Development:/{ print $2; exit }'
+            | awk '/Apple Development:/{ print $2; exit }'
     )"
 
     if [[ -z "${identity}" ]]; then
@@ -178,8 +187,8 @@ development_keyameleon_pids() {
 }
 
 open_development_app() {
-    local app="${PRODUCTS_PATH}/Keyameleon.app"
-    local executable="${app}/Contents/MacOS/Keyameleon"
+    local app="${PRODUCTS_PATH}/Keyameleon (Dev).app"
+    local executable="${app}/Contents/MacOS/Keyameleon (Dev)"
     local pid attempt pids
 
     pids="$(development_keyameleon_pids)" || return 1

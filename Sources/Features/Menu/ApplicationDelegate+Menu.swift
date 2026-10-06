@@ -19,7 +19,7 @@ extension ApplicationDelegate {
         button.imagePosition = .imageOnly
         button.setAccessibilityElement(true)
         button.setAccessibilityRole(.button)
-        button.setAccessibilityLabel("Keyameleon")
+        button.setAccessibilityLabel(AppIdentity.current.name)
         applyMenuBarIcon(to: button)
         return item
     }
@@ -90,7 +90,6 @@ extension ApplicationDelegate {
             switchingStatus: outcome.switchingStatus,
             hasItemConditionsNeedingAction: hasItemConditionsNeedingAction
         )
-        // Image accessibilityDescription must stay "Keyameleon" — XCUITest matches that id.
         // One mark for every state; tooltip and accessibility text carry status.
         let image = statusImage(for: mark)
         if button.image !== image {
@@ -102,7 +101,7 @@ extension ApplicationDelegate {
             button.toolTip = toolTip
         }
 
-        button.setAccessibilityLabel("Keyameleon")
+        button.setAccessibilityLabel(AppIdentity.current.name)
     }
 
     /// One status image per state, loaded once. `menu_icon.pdf` is read on the first request only.
@@ -114,7 +113,7 @@ extension ApplicationDelegate {
         if let url = Bundle.main.url(forResource: "menu_icon", withExtension: "pdf"),
            let customImage = NSImage(contentsOf: url) {
             customImage.size = NSSize(width: 18, height: 18)
-            customImage.accessibilityDescription = "Keyameleon"
+            customImage.accessibilityDescription = AppIdentity.current.name
             customImage.isTemplate = true
             menuBarStatusImage = customImage
             return customImage
@@ -126,10 +125,10 @@ extension ApplicationDelegate {
         }
 
         let fallbackImage =
-            NSImage(systemSymbolName: symbolName, accessibilityDescription: "Keyameleon")
+            NSImage(systemSymbolName: symbolName, accessibilityDescription: AppIdentity.current.name)
             ?? NSImage(
                 systemSymbolName: systemSymbolName(for: .ready),
-                accessibilityDescription: "Keyameleon"
+                accessibilityDescription: AppIdentity.current.name
             )
         fallbackImage?.isTemplate = true
         if let fallbackImage {
@@ -157,15 +156,15 @@ extension ApplicationDelegate {
     func menuBarIconAccessibilityDescription(for mark: MenuBarIconMark) -> String {
         switch mark {
         case .ready:
-            "Keyameleon"
+            AppIdentity.current.name
         case .permissionRequired:
-            "Keyameleon — Permission Required"
+            "\(AppIdentity.current.name) — Permission Required"
         case .temporarilyUnavailable:
-            "Keyameleon — Temporarily Unavailable"
+            "\(AppIdentity.current.name) — Temporarily Unavailable"
         case .paused:
-            "Keyameleon — Paused"
+            "\(AppIdentity.current.name) — Paused"
         case .warning:
-            "Keyameleon — Action needed"
+            "\(AppIdentity.current.name) — Action needed"
         }
     }
 }
