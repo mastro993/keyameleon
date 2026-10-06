@@ -44,7 +44,7 @@ brew install xcodegen
 ./Scripts/run.sh generate  # regenerate the Xcode project after editing project.yml
 ```
 
-`run.sh open` signs with your Apple Development identity, because macOS drops Input Monitoring permission when an app's signature changes. Build products land in `./build`.
+Xcode Run, `run.sh build`, and `run.sh open` require an Apple Development identity for Debug builds. A stable signing identity lets macOS recognize the app across rebuilds and retain its Input Monitoring grant. No personal team or certificate is stored in the project. `run.sh test` explicitly uses ad hoc signing so hosted tests also run on CI without a certificate. Build products from the script land in `./build`.
 
 Tests live in `Tests/SwiftTesting` for domain and model seams, and in `Tests/XCTest` for AppKit shell contracts. [`CONTEXT.md`](CONTEXT.md) holds the product vocabulary, and [`docs/adr`](docs/adr) records the decisions behind the switching rules and the single-instance behavior.
 

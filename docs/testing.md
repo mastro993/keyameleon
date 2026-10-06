@@ -13,6 +13,15 @@ leftover Keyameleon (Dev) processes whose executable is under `./build`. Tests s
 protect one distinct user-visible outcome or one critical safety rule. Prefer
 domain and model seams; this repository has no automated UI-test target.
 
+Both Xcode test commands explicitly use ad hoc signing for the hosted app and
+test bundles, so `run.sh test` needs no Apple Development certificate. Normal
+Debug builds, including Xcode Run, require Apple Development signing. Do not use
+the ad hoc test product to verify persistent Input Monitoring grants; rebuild
+with Xcode Run or `run.sh open` first. Grant access to that development app in
+System Settings, quit and reopen it, then rebuild and run again. Confirm that
+the permission remains granted and neither permission prompt returns. A prior
+ad hoc grant may need to be replaced once for the newly signed app.
+
 ## SwiftLint
 
 Install SwiftLint **0.65.1** from its

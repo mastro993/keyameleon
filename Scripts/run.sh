@@ -126,14 +126,18 @@ run_tests() {
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -derivedDataPath "${DERIVED_DATA_PATH}"
+        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        CODE_SIGN_IDENTITY="-" \
+        CODE_SIGNING_REQUIRED=NO
 
     xcodebuild test-without-building \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -derivedDataPath "${DERIVED_DATA_PATH}"
+        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        CODE_SIGN_IDENTITY="-" \
+        CODE_SIGNING_REQUIRED=NO
     kill_leftover_derived_data_keyameleon
 }
 

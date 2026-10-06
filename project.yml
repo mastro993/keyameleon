@@ -29,6 +29,10 @@ settings:
     # Official Release commits MARKETING_VERSION, then verifies both values from its tag.
     MARKETING_VERSION: "0.5.1"
     CURRENT_PROJECT_VERSION: "1"
+  configs:
+    Debug:
+      CODE_SIGN_IDENTITY: Apple Development
+      CODE_SIGNING_REQUIRED: YES
 
 targets:
   Keyameleon:
