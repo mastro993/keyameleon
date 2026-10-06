@@ -62,7 +62,8 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
                 "CFBundleDisplayName": "Keyameleon",
                 "CFBundleShortVersionString": "1.2.3"
             ]
-        )
+        ),
+        buildIdentity: .production
     )
 
     #expect(info.repositoryURL.absoluteString == "https://github.com/mastro993/Keyameleon")
@@ -71,7 +72,9 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
         schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
         isStoredInMemoryOnly: false
     )
-    let productionConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
+    let productionConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration(
+        buildIdentity: .production
+    )
     let expectedStoreURL = legacyConfiguration.url.deletingLastPathComponent()
         .appending(path: "Keyameleon/default.store")
     #expect(productionConfiguration.url == expectedStoreURL)
@@ -79,4 +82,11 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
     #expect(!productionConfiguration.isStoredInMemoryOnly)
     #expect(info.appDataFolderURL == productionConfiguration.url.deletingLastPathComponent())
     #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
+}
+
+@Test("About info points to development data and logs")
+func aboutInfoExposesDevelopmentFolders() {
+    let info = AboutInfo(identity: AppIdentity(infoDictionary: [:]), buildIdentity: .development)
+    #expect(info.appDataFolderURL.lastPathComponent == "Keyameleon (Dev)")
+    #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon (Dev)"))
 }

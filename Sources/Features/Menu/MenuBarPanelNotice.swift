@@ -20,7 +20,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
         case .permissionRequired:
             return MenuBarPanelNotice(
                 title: "Input Monitoring required",
-                detail: "Enable Keyameleon in Input Monitoring.",
+                detail: "Enable \(AppIdentity.current.name) in Input Monitoring.",
                 action: permissionAction(outcome: outcome),
                 tone: .warning
             )

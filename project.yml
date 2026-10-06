@@ -51,17 +51,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon
         PRODUCT_NAME: Keyameleon
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Keyameleon
+        INFOPLIST_KEY_CFBundleDisplayName: $(PRODUCT_NAME)
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_NSInputMonitoringUsageDescription: Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.
       configs:
         Debug:
           PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.development
+          PRODUCT_NAME: Keyameleon (Dev)
+          PRODUCT_MODULE_NAME: Keyameleon
     info:
       path: Sources/App/Info.plist
       properties:
-        CFBundleDisplayName: Keyameleon
+        CFBundleDisplayName: $(PRODUCT_NAME)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
@@ -103,6 +105,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.swift-testing
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          TEST_HOST: $(BUILT_PRODUCTS_DIR)/Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)
     dependencies:
       - target: Keyameleon
 
@@ -115,6 +120,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.tests.xctest
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          TEST_HOST: $(BUILT_PRODUCTS_DIR)/Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)
     dependencies:
       - target: Keyameleon
 

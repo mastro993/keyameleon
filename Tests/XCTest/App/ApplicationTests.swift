@@ -22,22 +22,22 @@ final class ApplicationTests: XCTestCase {
         let menu = try XCTUnwrap(delegate.menuBarStatusItem?.menu)
         let version = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let headingTitle = "Keyameleon v\(version.isEmpty ? "—" : version)"
+        let headingTitle = "\(AppIdentity.current.name) v\(version.isEmpty ? "—" : version)"
         let heading = try XCTUnwrap(menu.items.first)
         XCTAssertTrue(menu === controller.menu)
         XCTAssertEqual(heading.identifier?.rawValue, "menu-bar-heading")
         XCTAssertEqual(heading.title, headingTitle)
         XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-version" })
-        XCTAssertEqual(menu.items.last?.title, "Quit Keyameleon")
+        XCTAssertEqual(menu.items.last?.title, "Quit \(AppIdentity.current.name)")
         XCTAssertNil(delegate.menuBarStatusItem?.button?.action)
         XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
         XCTAssertNotNil(menu.items.first { $0.title == "Keyboards" })
         XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards-heading" })
         XCTAssertNil(menu.items.first { $0.title == "About Keyameleon" })
-        XCTAssertNotNil(menu.items.first { $0.title == "Quit Keyameleon" })
+        XCTAssertNotNil(menu.items.first { $0.title == "Quit \(AppIdentity.current.name)" })
         XCTAssertEqual(menu.items.first { $0.title == "Pause Switching" }?.keyEquivalent, "p")
         XCTAssertEqual(menu.items.first { $0.title == "Settings" }?.keyEquivalent, ",")
-        XCTAssertEqual(menu.items.first { $0.title == "Quit Keyameleon" }?.keyEquivalent, "q")
+        XCTAssertEqual(menu.items.first { $0.title == "Quit \(AppIdentity.current.name)" }?.keyEquivalent, "q")
         XCTAssertTrue(menu.items.filter { !$0.keyEquivalent.isEmpty }.allSatisfy {
             $0.keyEquivalentModifierMask == [.command]
         })
@@ -58,7 +58,7 @@ final class ApplicationTests: XCTestCase {
         controller.refresh()
         XCTAssertTrue(menu.items.first === heading)
         XCTAssertEqual(heading.title, headingTitle)
-        XCTAssertEqual(menu.items.last?.title, "Quit Keyameleon")
+        XCTAssertEqual(menu.items.last?.title, "Quit \(AppIdentity.current.name)")
     }
 
     @MainActor
@@ -208,7 +208,7 @@ final class ApplicationTests: XCTestCase {
         let updateIndex = settingsIndex + 1
         let updateItem = try XCTUnwrap(menu.item(at: updateIndex))
         XCTAssertEqual(updateItem.title, "Check for Updates…")
-        XCTAssertLessThan(updateIndex, try XCTUnwrap(menu.items.firstIndex { $0.title == "Quit Keyameleon" }))
+        XCTAssertLessThan(updateIndex, try XCTUnwrap(menu.items.firstIndex { $0.title == "Quit \(AppIdentity.current.name)" }))
         XCTAssertEqual(updateItem.representedObject as? String, MenuBarPanelActionID.checkForUpdates.rawValue)
         XCTAssertNil(updateItem.view)
         XCTAssertNil(updateItem.toolTip)
@@ -301,11 +301,11 @@ final class ApplicationTests: XCTestCase {
         let delegate = makeApplicationTestDelegate()
         defer { stopApplicationTestSurface(delegate) }
         let expected: [(MenuBarIconMark, String, String)] = [
-            (.ready, "keyboard", "Keyameleon"),
-            (.permissionRequired, "keyboard.badge.ellipsis", "Keyameleon — Permission Required"),
-            (.temporarilyUnavailable, "moon.zzz", "Keyameleon — Temporarily Unavailable"),
-            (.paused, "pause.circle", "Keyameleon — Paused"),
-            (.warning, "exclamationmark.triangle", "Keyameleon — Action needed")
+            (.ready, "keyboard", AppIdentity.current.name),
+            (.permissionRequired, "keyboard.badge.ellipsis", "\(AppIdentity.current.name) — Permission Required"),
+            (.temporarilyUnavailable, "moon.zzz", "\(AppIdentity.current.name) — Temporarily Unavailable"),
+            (.paused, "pause.circle", "\(AppIdentity.current.name) — Paused"),
+            (.warning, "exclamationmark.triangle", "\(AppIdentity.current.name) — Action needed")
         ]
 
         for (mark, symbolName, accessibilityDescription) in expected {
@@ -328,7 +328,7 @@ final class ApplicationTests: XCTestCase {
         let image = try XCTUnwrap(delegate.menuBarStatusItem?.button?.image)
         XCTAssertEqual(image.size, NSSize(width: 18, height: 18))
         XCTAssertTrue(image.isTemplate)
-        XCTAssertEqual(image.accessibilityDescription, "Keyameleon")
+        XCTAssertEqual(image.accessibilityDescription, AppIdentity.current.name)
         XCTAssertNotNil(keyameleonBundle?.url(forResource: "menu_icon", withExtension: "pdf"))
     }
 

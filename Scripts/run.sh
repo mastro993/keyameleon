@@ -95,13 +95,13 @@ generate_project() {
     neutralize_legacy_user_build_locations
 }
 
-# Kill leftover Keyameleon processes whose executable is under derived data.
+# Kill leftover Debug development processes whose executable is under derived data.
 # Does not kill an Official Release or `open` instance outside ./build.
 kill_leftover_derived_data_keyameleon() {
     local pid command
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
         case "${command}" in
-            "${DERIVED_DATA_PATH}/"*/Keyameleon.app/*)
+            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)")
                 kill "${pid}" 2>/dev/null || true
                 ;;
         esac
@@ -178,8 +178,8 @@ development_keyameleon_pids() {
 }
 
 open_development_app() {
-    local app="${PRODUCTS_PATH}/Keyameleon.app"
-    local executable="${app}/Contents/MacOS/Keyameleon"
+    local app="${PRODUCTS_PATH}/Keyameleon (Dev).app"
+    local executable="${app}/Contents/MacOS/Keyameleon (Dev)"
     local pid attempt pids
 
     pids="$(development_keyameleon_pids)" || return 1

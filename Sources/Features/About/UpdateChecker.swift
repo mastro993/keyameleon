@@ -36,7 +36,7 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
     }
 
     func start() {
-        guard !didStart else {
+        guard AppBuildIdentity.current.allowsUpdates, !didStart else {
             return
         }
 

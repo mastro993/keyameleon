@@ -69,13 +69,13 @@ struct AboutInfo: Equatable, Sendable {
 
     static let current = AboutInfo(identity: .current)
 
-    init(identity: AppIdentity) {
+    init(identity: AppIdentity, buildIdentity: AppBuildIdentity = .current) {
         self.init(
             identity: identity,
             repositoryURL: Self.repositoryURL,
-            appDataFolderURL: SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
-                .url.deletingLastPathComponent(),
-            logsFolderURL: Self.defaultLogsFolderURL
+            appDataFolderURL: SwiftDataPhysicalKeyboardRecordStore
+                .makeConfiguration(buildIdentity: buildIdentity).url.deletingLastPathComponent(),
+            logsFolderURL: Self.logsFolderURL(buildIdentity: buildIdentity)
         )
     }
 
@@ -91,12 +91,12 @@ struct AboutInfo: Equatable, Sendable {
         self.logsFolderURL = logsFolderURL
     }
 
-    private static var defaultLogsFolderURL: URL {
+    private static func logsFolderURL(buildIdentity: AppBuildIdentity) -> URL {
         let libraryDirectory = FileManager.default
             .urls(for: .libraryDirectory, in: .userDomainMask)
             .first ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
         return libraryDirectory
             .appendingPathComponent("Logs", isDirectory: true)
-            .appendingPathComponent("Keyameleon", isDirectory: true)
+            .appending(path: buildIdentity.storageFolderName, directoryHint: .isDirectory)
     }
 }

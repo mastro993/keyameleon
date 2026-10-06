@@ -173,6 +173,28 @@ private func migrationTestDirectory() throws -> URL {
     return url
 }
 
+@Test("Development store starts empty and never imports a legacy store")
+@MainActor
+func developmentStoreSkipsLegacyImport() throws {
+    let root = try migrationTestDirectory()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let legacyURL = root.appending(path: "default.store")
+    let developmentURL = root.appending(path: "Keyameleon (Dev)/default.store")
+    let bytes = Data("production legacy store must be ignored".utf8)
+    try bytes.write(to: legacyURL)
+
+    try SwiftDataPhysicalKeyboardRecordStore.prepareStore(
+        from: legacyURL, to: developmentURL, buildIdentity: .development
+    )
+
+    #expect(try Data(contentsOf: legacyURL) == bytes)
+    #expect(!FileManager.default.fileExists(atPath: developmentURL.path))
+    let container = try migrationTestContainer(at: developmentURL)
+    #expect(try ModelContext(container).fetchCount(
+        FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>()
+    ) == 0)
+}
+
 @MainActor
 private func migrationTestContainer(at url: URL) throws -> ModelContainer {
     let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)

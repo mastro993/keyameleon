@@ -54,3 +54,19 @@ func migrationStepPrefersExistingKeys() {
             == .generateNew
     )
 }
+
+@Test("Every keychain query uses the selected build's service")
+func keychainQueriesUseSelectedBuildService() {
+    for identity in [AppBuildIdentity.production, .development] {
+        let queries = [
+            InstallationIntegrityKeyQuery.dataProtectionCopy(buildIdentity: identity),
+            InstallationIntegrityKeyQuery.dataProtectionAdd(data: Data([1]), buildIdentity: identity),
+            InstallationIntegrityKeyQuery.dataProtectionDelete(buildIdentity: identity),
+            InstallationIntegrityKeyQuery.legacyCopy(buildIdentity: identity),
+            InstallationIntegrityKeyQuery.legacyDelete(buildIdentity: identity)
+        ]
+        for query in queries {
+            #expect(query[kSecAttrService as String] as? String == identity.integrityKeyService)
+        }
+    }
+}
