@@ -24,7 +24,7 @@ final class ApplicationTests: XCTestCase {
         XCTAssertNil(delegate.menuBarStatusItem?.button?.action)
         XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
         XCTAssertNotNil(menu.items.first { $0.title == "Keyboards" })
-        XCTAssertNotNil(menu.items.first { $0.title == "About Keyameleon" })
+        XCTAssertNil(menu.items.first { $0.title == "About Keyameleon" })
         XCTAssertNotNil(menu.items.first { $0.title == "Quit Keyameleon" })
         XCTAssertEqual(menu.items.first { $0.title == "Pause Switching" }?.keyEquivalent, "p")
         XCTAssertEqual(menu.items.first { $0.title == "Settings" }?.keyEquivalent, ",")
@@ -64,7 +64,7 @@ final class ApplicationTests: XCTestCase {
         let menu = panel.menu
         let keyboards = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
         let hosted = try XCTUnwrap(keyboards.view)
-        let about = try XCTUnwrap(menu.items.first { $0.title == "About Keyameleon" })
+        let settings = try XCTUnwrap(menu.items.first { $0.title == "Settings" })
         XCTAssertGreaterThan(hosted.frame.height, 0)
         XCTAssertNotNil(menu.items.first { $0.title == "Guided setup is not finished" })
         XCTAssertNotNil(menu.items.first {
@@ -74,7 +74,7 @@ final class ApplicationTests: XCTestCase {
         panel.refresh()
         XCTAssertTrue(keyboards === menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
         XCTAssertTrue(hosted === keyboards.view)
-        XCTAssertTrue(about === menu.items.first { $0.title == "About Keyameleon" })
+        XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
 
         delegate.setupModel.completeSetup(destination: .menuBar)
         panel.refresh()
@@ -158,7 +158,7 @@ final class ApplicationTests: XCTestCase {
     }
 
     @MainActor
-    func testAboutActionShowsIndependentWindowAndPreservesSettingsSelection() throws {
+    func testSettingsWindowPreservesAboutSelectionAcrossReopen() throws {
         let delegate = makeApplicationTestDelegate(startsApplicationSurfaceOnLaunch: false)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
@@ -185,28 +185,13 @@ final class ApplicationTests: XCTestCase {
         )
         XCTAssertTrue(settingsWindow.contentView is NSHostingView<SettingsView>)
 
-        delegate.openAbout(nil)
-        let aboutController = try XCTUnwrap(delegate.aboutWindowController)
-        let aboutWindow = try XCTUnwrap(aboutController.window)
-        XCTAssertTrue(settingsWindow.isVisible)
-        XCTAssertTrue(aboutWindow.isVisible)
-        XCTAssertFalse(aboutWindow === settingsWindow)
-        XCTAssertEqual(aboutWindow.identifier?.rawValue, "keyameleon.about-window")
-        XCTAssertFalse(aboutWindow.styleMask.contains(.resizable))
-        XCTAssertEqual(aboutWindow.frame.size, NSSize(width: 360, height: 360))
-        XCTAssertTrue(aboutWindow.contentView is NSHostingView<CompactAboutView>)
-        XCTAssertEqual(delegate.settingsSelection.section, .general)
-        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
-
+        delegate.settingsSelection.section = .about
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
+        settingsWindow.close()
         delegate.openSettings(nil)
-        XCTAssertEqual(delegate.settingsSelection.section, .general)
-        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
+        XCTAssertEqual(delegate.settingsSelection.section, .about)
+        XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
         XCTAssertTrue(delegate.settingsWindowController?.window === settingsWindow)
-
-        aboutWindow.close()
-        delegate.openAbout(nil)
-        XCTAssertTrue(delegate.aboutWindowController === aboutController)
-        XCTAssertTrue(delegate.aboutWindowController?.window === aboutWindow)
     }
 
     @MainActor

@@ -28,7 +28,7 @@ Every build bundles `Contents/Resources/Licenses/` inside Keyameleon.app:
 `LICENSE.txt` from the repository's `LICENSE`, `THIRD_PARTY_NOTICES.md` from the
 repository index, and `Sparkle-LICENSE.txt` from the resolved Sparkle binary
 artifact's complete `LICENSE`, including its external component licenses.
-**Licenses and Notices** in both About screens opens these texts offline.
+Settings → About opens the bundled project and Sparkle license texts offline.
 
 The Xcode build runs `Scripts/bundle-licenses.py --copy --build-dir "$BUILD_DIR"`
 before code signing. It finds the nearest ancestor containing the resolved

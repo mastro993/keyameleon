@@ -37,7 +37,6 @@ extension ApplicationDelegate {
 
     func makeMenuBarPanelActions() -> MenuBarPanelActions {
         MenuBarPanelActions(
-            openAbout: { [weak self] in self?.openAbout(nil) },
             continueSetup: { [weak self] in self?.continueSetup(nil) },
             openSettings: { [weak self] in self?.openSettings(nil) },
             checkForUpdates: { [weak self] in self?.checkForUpdates(nil) },

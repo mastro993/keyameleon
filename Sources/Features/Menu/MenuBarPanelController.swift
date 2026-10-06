@@ -57,8 +57,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         let headingItem = item(id: "heading") { .sectionHeader(title: heading) }
         headingItem.title = heading
         desired.append(headingItem)
-        desired.append(item(for: content.footer.about))
-        desired.append(separator(id: "after-about"))
 
         if let error = setupModel.persistenceError ?? switching.persistenceError {
             desired.append(notice(
@@ -178,7 +176,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         case .pause: switching.pause()
         case .resume: switching.resume()
         case .requestPermission: setupModel.requestPermission()
-        case .about: actions.openAbout()
         case .openSystemSettings: setupModel.openSystemSettings()
         case .checkAgain: switching.checkAgain()
         case .retryNow: switching.retryNow()

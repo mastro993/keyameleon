@@ -1,5 +1,13 @@
 # Choices
 
+## 2026-10-06 — About lives only in Settings
+
+The status menu and application menu omit About Keyameleon. The independent
+compact About window and its Licenses and Notices button are removed. Settings →
+About remains the home for app identity, credits, bundled licenses, and updates.
+Check for Updates… remains a native status-menu row directly below Settings.
+Earlier references to the compact window describe superseded behavior.
+
 ## 2026-10-05 — Settings is rebuilt from the Pencil design
 
 The Settings window is now the Pencil `Settings / General`, `Settings /
@@ -32,8 +40,8 @@ group, and one Physical Keyboard row.
   `KeyboardSettingsPane`, and `AboutSettingsPane`.
 - `BundledLicense` — the bundled `LICENSE.txt` and
   `Sparkle-LICENSE.txt` the About pane opens for offline reading.
-- `GeneralSettingsModel` is `@MainActor @Observable`. Settings, About,
-  and the compact About window read it without a property wrapper.
+- `GeneralSettingsModel` is `@MainActor @Observable`. Settings and its About
+  pane read it without a property wrapper.
 
 ### Defaults
 
@@ -64,8 +72,6 @@ group, and one Physical Keyboard row.
   path with Open in Finder. License rows open the bundled texts and are disabled
   when the build does not carry them. Updates is disabled while Sparkle cannot
   check. The version is read from the bundle and shows the build number.
-- The compact About window keeps its own presentation and its
-  `Licenses and Notices` button.
 - Settings offers no Forget, Replace Saved Physical Keyboard, or Manual Physical
   Keyboard Designation entry point. Those model seams and their tests remain.
 
@@ -152,7 +158,7 @@ menu and its contents shrink to three items.
   `Rename…`. Keyameleon copy must not use the ellipsis character at all. These
   sites still do and are outstanding: `Assign Input Source…` in
   `KeyboardSettingsRow`, `Check for
-  Updates…` in `AboutSettingsView` and `CompactAboutView`, `Waiting…` in
+  Updates…` in `AboutSettingsView`, `Waiting…` in
   `OnboardingView`, and the `…` truncation marker in `LogFile`.
 - `Forget` is the Physical Keyboard forget, unchanged: it removes the saved
   Physical Keyboard Name, Keyboard Assignment, and Manual Physical Keyboard

@@ -8,8 +8,6 @@ import SwiftUI
 func menuBarPanelReadyShowsPauseWithoutRecovery() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.footer.about.title == "About Keyameleon")
-    #expect(content.footer.about.id == .about)
     #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content).contains(.requestPermission) == false)
     #expect(overflowIDs(content).contains(.checkAgain) == false)
@@ -21,7 +19,6 @@ func menuBarPanelReadyShowsPauseWithoutRecovery() {
 func menuBarPanelPausedShowsResume() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.footer.about.id == .about)
     #expect(overflow(content, .resume)?.title == "Resume Switching")
     #expect(overflowIDs(content).contains(.pause) == false)
 }
@@ -94,18 +91,6 @@ func menuBarPanelFooterVersionFallback() {
     )
 }
 
-@Test("Header info button opens About and is omitted from action rows")
-@MainActor
-func menuBarPanelHeaderInfoOpensAbout() {
-    let content = makeMenuBarPanelContent(outcome: .readyFixture())
-
-    #expect(content.footer.about.id == .about)
-    #expect(content.footer.about.title == "About Keyameleon")
-    #expect(content.footer.about.isEnabled)
-    #expect(overflowIDs(content).contains(.about) == false)
-    #expect(content.actionTitles.contains("About Keyameleon"))
-}
-
 @Test("Tray actions contain Pause, Settings, Check for Updates, and Quit")
 @MainActor
 func menuBarPanelFooterOverflowDefaultActions() {
@@ -118,16 +103,6 @@ func menuBarPanelFooterOverflowDefaultActions() {
         "Check for Updates…",
         "Quit Keyameleon",
     ])
-}
-
-@Test("About action does not add setup actions")
-@MainActor
-func menuBarPanelAboutOmitsSetupActions() {
-    let content = makeMenuBarPanelContent(outcome: .readyFixture())
-
-    #expect(content.footer.about.title == "About Keyameleon")
-    #expect(content.actionTitles.contains("Continue Setup…") == false)
-    #expect(content.actionTitles.contains("Continue Setup") == false)
 }
 
 @Test("Incomplete Guided setup has a continuation in every switching state")
@@ -433,7 +408,6 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
     #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
-    #expect(content.footer.about.title == "About Keyameleon")
     #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
@@ -451,7 +425,6 @@ func menuBarPanelAssignmentRowsStayReadOnly() throws {
 
     #expect(row.id == "travel")
     #expect(content.assignmentList.rows.count == 1)
-    #expect(content.footer.about.id == .about)
 }
 
 @Test("Ready panel without notice conditions has no notice")
@@ -506,7 +479,7 @@ func menuBarPanelCommandShortcutMapping() {
     }
     #expect(MenuBarPanelActionID.settings.shortcut?.rawValue == ",")
     #expect(MenuBarPanelActionID.quit.shortcut?.rawValue == "q")
-    for id in [MenuBarPanelActionID.about, .requestPermission, .openSystemSettings,
+    for id in [MenuBarPanelActionID.requestPermission, .openSystemSettings,
                .checkAgain, .retryNow, .retryPersistence, .continueSetup, .checkForUpdates] {
         #expect(id.shortcut == nil)
     }

@@ -40,8 +40,8 @@
   `KeyboardSettingsRowTests`. Forget, Replace Saved Physical Keyboard, and Manual
   Physical Keyboard Designation keep their model seams and tests without a
   Settings entry point.
-- `GeneralSettingsModel` is `@MainActor @Observable`; Settings, About,
-  and the compact About window read it directly.
+- `GeneralSettingsModel` is `@MainActor @Observable`; Settings and About read it
+  directly. The compact About window also read it until its removal on 2026-10-06.
 - Tests: `SettingsSectionTests` covers both symbol variants,
   `PhysicalKeyboardRowsTests` moves to Shared and gains the
   `reconcile(with:)` case, `AppIdentityTests` covers the About version label, and
