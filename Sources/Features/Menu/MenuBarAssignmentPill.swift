@@ -31,9 +31,6 @@ struct MenuBarAssignmentPill: View {
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(row.isDimmed ? Theme.Menu.muted : Color.secondary)
                     .accessibilityHidden(true)
-                    .ifLet(row.warningNote) { view, warningNote in
-                        view.help(warningNote)
-                    }
             }
 
             if let localeCode = row.assignedLocaleCode {

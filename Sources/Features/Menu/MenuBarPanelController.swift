@@ -92,7 +92,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         }
         version.title = content.footer.versionText
         version.isEnabled = false
-        version.toolTip = content.footer.versionText
         desired.append(version)
 
         let desiredIDs = Set(desired.compactMap(\.identifier))
@@ -125,7 +124,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         }
         notice.title = title
         notice.subtitle = detail
-        notice.toolTip = detail
         notice.isEnabled = false
         return notice
     }
@@ -139,7 +137,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         item.target = self
         item.representedObject = action.id.rawValue
         item.isEnabled = action.isEnabled
-        item.toolTip = action.title
         item.keyEquivalent = action.id.shortcut?.rawValue ?? ""
         item.keyEquivalentModifierMask = action.id.shortcut == nil ? [] : [.command]
         return item

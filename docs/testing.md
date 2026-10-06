@@ -120,7 +120,7 @@ Use the named previews in `Sources/Features/Configuration/SettingsView.swift` to
 
 ## Verify the native menu-bar menu
 
-1. Open the status item in light and dark appearance. Confirm Keyameleon, About, notices, Keyboards, commands, and version use native menu rows. Only the keyboard list uses custom pills; assigned keyboards keep saved order.
+1. Open the status item in light and dark appearance. Confirm Keyameleon, About, notices, Keyboards, commands, and version use native menu rows. Hover the version, notices, commands, and keyboard warning symbol; no tooltip should appear. Only the keyboard list uses custom pills; assigned keyboards keep saved order.
 2. Check active, built-in, disconnected, and unavailable-source keyboards. Confirm their symbols, subtitles, muted treatment, and full VoiceOver names. With six assignments and larger text, scroll the five-row keyboard viewport to the last row.
 3. Choose Pause Switching (Command-P), then reopen the menu. Confirm `(Paused)` and Resume Switching. Choose Resume and reopen. Every selected command, including Retry and Request Permission, closes normally.
 4. Use Command-comma for Settings. On a disposable session, use Command-Q for Quit. Use arrow keys and Return to move through native commands; Escape, an outside click, or a status-item click dismisses the menu without changing switching state.
