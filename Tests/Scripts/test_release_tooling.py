@@ -645,6 +645,21 @@ class PublishReleasePagesTests(unittest.TestCase):
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_producer_cannot_write_repository_or_change_publisher_source(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("\n  produce:\n", workflow)
+        producer = workflow.split("\n  produce:\n", 1)[1].split("\n  publish:\n", 1)[0]
+        publisher = workflow.split("\n  publish:\n", 1)[1]
+        self.assertNotIn("RELEASE_DEPLOY_KEY", producer)
+        self.assertNotIn("contents: write", producer)
+        self.assertIn("persist-credentials: false", producer)
+        self.assertIn("ref: ${{ github.sha }}", publisher)
+        self.assertNotIn("git checkout", publisher)
+        self.assertNotIn("./Scripts/run.sh test", publisher)
+        self.assertNotIn("./Scripts/official-release.sh", publisher)
+        self.assertNotIn("secrets.APPLE_", publisher)
+        self.assertIn('git tag -a "$TAG" "$COMMIT"', publisher)
+
     def test_run_tests_rejects_invalid_pages_publisher(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             scripts = Path(temporary_directory) / "Scripts"
@@ -673,7 +688,7 @@ run_tests
 
     def test_version_commit_installs_pinned_swiftlint_before_tests(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        release = workflow.split("\n  release:\n", maxsplit=1)[1]
+        release = workflow.split("\n  produce:\n", maxsplit=1)[1].split("\n  publish:\n", 1)[0]
         before_tests = release.split("- name: Test version commit", maxsplit=1)[0]
         configuration = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
         version = configuration.split('swiftlint_version: "', maxsplit=1)[1].split('"', maxsplit=1)[0]
@@ -699,33 +714,143 @@ run_tests
         self.assertIn("COMMIT: ${{ steps.bump.outputs.commit }}", workflow)
         self.assertIn('--head "${{ github.sha }}"', workflow)
 
-    def test_single_approval_preserves_artifacts_and_publication_order(self) -> None:
+    def test_batch_approval_preserves_isolated_publication_order(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        release = workflow.split("\n  release:\n", maxsplit=1)[1]
-        self.assertEqual(workflow.count("environment: official-release"), 1)
-        self.assertEqual(release.count("actions/checkout@"), 1)
-        self.assertEqual(release.count("brew install xcodegen"), 1)
-        self.assertIn("needs: verify", release)
-        self.assertIn("actions: read", release)
-        self.assertIn("pull-requests: read", release)
-        steps = (
-            "Restore saved release artifacts on retry", "Prepare version commit",
-            "Test version commit", "Push version commit to main",
-            "Produce signed, notarized, stapled artifacts", "Require complete artifact bundle",
-            "Upload workflow artifacts", "Prepare Official Release tag and notes",
-            "Publish and verify downloadable DMG", "bash Scripts/publish-release-pages.sh",
-            "Verify published feed and enclosure",
-        )
-        self.assertEqual([release.index(step) for step in steps], sorted(release.index(step) for step in steps))
+        self.assertEqual(workflow.count("environment: official-release"), 3)
+        for job in ("bump", "produce", "publish"):
+            body = workflow.split(f"\n  {job}:\n", 1)[1].split("\n  bump:\n", 1)[0].split("\n  produce:\n", 1)[0].split("\n  publish:\n", 1)[0]
+            self.assertIn("needs: verify", body)
+        producer = workflow.split("\n  produce:\n", 1)[1].split("\n  publish:\n", 1)[0]
+        publisher = workflow.split("\n  publish:\n", 1)[1]
+        self.assertLess(producer.index("Test version commit"), producer.index("Upload workflow artifacts"))
         for step in ("Test version commit", "Produce signed, notarized, stapled artifacts", "Upload workflow artifacts"):
-            self.assertIn(f"- name: {step}\n        if: steps.saved.outputs.restored != 'true'", release)
-        self.assertIn('gh run download "${GITHUB_RUN_ID}" --name "${artifact_name}" --dir dist', release)
-        self.assertIn("dist/Keyameleon-${{ needs.verify.outputs.version }}.dmg", release)
-        self.assertIn("dist/appcast.xml", release)
-        self.assertIn("dist/release-evidence.json", release)
-        self.assertIn("releases/${tag}/release-evidence.json", release)
-        self.assertIn('cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json', release)
+            self.assertIn(f"- name: {step}\n        if: steps.saved.outputs.restored != 'true'", producer)
+        steps = ("Wait for saved release artifacts", "Validate published version commit",
+                 "Require complete artifact bundle", "Prepare Official Release tag and notes",
+                 "Publish and verify downloadable DMG", "bash Scripts/publish-release-pages.sh",
+                 "Verify published feed and enclosure")
+        self.assertEqual([publisher.index(step) for step in steps], sorted(publisher.index(step) for step in steps))
+        self.assertIn('cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json', publisher)
         self.assertNotIn("Keyameleon-source-", workflow)
+
+    def test_version_checkpoint_waits_and_rejects_unexpected_main(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        step = workflow.split("- name: Wait for validated version commit", 1)[1].split("\n      - name:", 1)[0]
+        command = "\n".join(line[10:] for line in step.split("        run: |\n", 1)[1].splitlines())
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            fake_bin = directory / "bin"
+            fake_bin.mkdir()
+            git = fake_bin / "git"
+            git.write_text(r'''#!/usr/bin/env bash
+set -euo pipefail
+case "$1" in
+  fetch)
+    test "$CASE" != "api_error"
+    count=0; if [[ -f count ]]; then count="$(cat count)"; fi
+    echo "$((count+1))" > count ;;
+  rev-parse)
+    if [[ "$CASE" == "timeout" || ( "$CASE" == "delayed" && "$(cat count)" == 1 ) ]]; then
+      printf 'source'
+    else printf 'bump'; fi ;;
+  log)
+    if [[ "$3" == "--format=%P" ]]; then
+      if [[ "$CASE" == "wrong_parent" ]]; then printf 'other'; else printf 'source'; fi
+    else
+      if [[ "$CASE" == "wrong_subject" ]]; then printf 'other'; else printf 'chore(release): 1.2.3'; fi
+    fi ;;
+  diff-tree)
+    if [[ "$CASE" == "wrong_files" ]]; then printf 'other\n'; else
+      printf 'Keyameleon.xcodeproj/project.pbxproj\nproject.yml\n'; fi ;;
+  show)
+    if [[ "$CASE" == "wrong_version" ]]; then printf '    MARKETING_VERSION: "9.9.9"\n'; else
+      printf '    MARKETING_VERSION: "1.2.3"\n'; fi ;;
+  *) exit 1 ;;
+esac
+''', encoding="utf-8")
+            sleep = fake_bin / "sleep"
+            sleep.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            git.chmod(0o755)
+            sleep.chmod(0o755)
+            for case in ("present", "delayed", "timeout", "api_error", "wrong_parent", "wrong_subject", "wrong_files", "wrong_version"):
+                with self.subTest(case=case):
+                    working = directory / case
+                    working.mkdir()
+                    output = working / "output"
+                    environment = os.environ | {
+                        "PATH": f"{fake_bin}:{os.environ['PATH']}", "CASE": case,
+                        "GITHUB_OUTPUT": str(output), "DEFAULT_BRANCH": "main",
+                        "SOURCE_SHA": "source", "VERSION": "1.2.3",
+                    }
+                    result = subprocess.run(("bash", "-c", command), cwd=working, env=environment, capture_output=True, text=True)
+                    self.assertEqual(result.returncode == 0, case in ("present", "delayed"), result.stderr)
+                    if result.returncode == 0:
+                        self.assertEqual(output.read_text(), "commit=bump\n")
+                    else:
+                        self.assertFalse(output.exists())
+                    if case == "delayed":
+                        self.assertEqual((working / "count").read_text(), "2\n")
+                    if case == "timeout":
+                        self.assertEqual((working / "count").read_text(), "180\n")
+
+    def test_artifact_checkpoint_waits_for_exact_same_run_bytes(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        step = workflow.split("- name: Wait for saved release artifacts", 1)[1].split("\n      - name:", 1)[0]
+        command = "\n".join(line[10:] for line in step.split("        run: |\n", 1)[1].splitlines())
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            fake_bin = directory / "bin"
+            fake_bin.mkdir()
+            gh = fake_bin / "gh"
+            gh.write_text(r'''#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$1 $2" == "run download" ]]; then
+  test "$3" = "42"
+  test "$4 $5 $6 $7" = "--name official-release-1.2.3 --dir dist"
+  test "$CASE" != "download_error"
+  mkdir dist
+  cp "$SAVED_DMG" dist/Keyameleon-1.2.3.dmg
+else
+  test "$*" = "api --paginate --slurp repos/example/Keyameleon/actions/runs/42/artifacts"
+  test "$CASE" != "api_error"
+  count=0; if [[ -f count ]]; then count="$(cat count)"; fi
+  echo "$((count+1))" > count
+  if [[ "$CASE" == "timeout" || ( "$CASE" == "delayed" && "$count" == 0 ) ]]; then
+    printf '[{"artifacts":[]}]'
+  elif [[ "$CASE" == "expired" ]]; then
+    printf '[{"artifacts":[{"name":"official-release-1.2.3","id":7,"expired":true}]}]'
+  elif [[ "$CASE" == "duplicate" ]]; then
+    printf '[{"artifacts":[{"name":"official-release-1.2.3","id":7,"expired":false},{"name":"official-release-1.2.3","id":8,"expired":false}]}]'
+  else
+    printf '[{"artifacts":[{"name":"official-release-1.2.3","id":7,"expired":false}]}]'
+  fi
+fi
+''', encoding="utf-8")
+            sleep = fake_bin / "sleep"
+            sleep.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            gh.chmod(0o755)
+            sleep.chmod(0o755)
+            saved_dmg = directory / "saved.dmg"
+            saved_dmg.write_bytes(b"original signed bytes")
+            for case in ("present", "delayed", "timeout", "api_error", "expired", "duplicate", "download_error"):
+                with self.subTest(case=case):
+                    working = directory / case
+                    working.mkdir()
+                    environment = os.environ | {
+                        "PATH": f"{fake_bin}:{os.environ['PATH']}", "CASE": case,
+                        "GITHUB_REPOSITORY": "example/Keyameleon", "GITHUB_RUN_ID": "42",
+                        "VERSION": "1.2.3", "SAVED_DMG": str(saved_dmg),
+                    }
+                    result = subprocess.run(("bash", "-c", command), cwd=working, env=environment, capture_output=True, text=True)
+                    self.assertEqual(result.returncode == 0, case in ("present", "delayed"), result.stderr)
+                    if result.returncode == 0:
+                        self.assertEqual((working / "dist/Keyameleon-1.2.3.dmg").read_bytes(), saved_dmg.read_bytes())
+                    else:
+                        self.assertFalse((working / "dist").exists())
+                    if case == "delayed":
+                        self.assertEqual((working / "count").read_text(), "2\n")
+                    if case == "timeout":
+                        self.assertEqual((working / "count").read_text(), "180\n")
 
     def test_same_run_artifact_recovery_fails_closed(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
@@ -791,7 +916,7 @@ if [[ "$CASE" == "tag" ]]; then printf 'sha\trefs/tags/v1.2.3\n'; fi
 
     def test_protected_version_commit_and_tag_use_deploy_key(self) -> None:
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        release = workflow.split("\n  release:\n", maxsplit=1)[1]
+        release = workflow.split("\n  publish:\n", maxsplit=1)[1]
         checkout = release.split("- uses: actions/checkout@v7\n", maxsplit=1)[1].split("\n\n", maxsplit=1)[0]
         self.assertIn("ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}", checkout)
         self.assertIn("environment: official-release", release)

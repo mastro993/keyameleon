@@ -84,20 +84,138 @@ jobs:
         run: |
           ./Scripts/wait-for-ci.sh "${{ github.sha }}"
 
-  release:
-    name: Official Release
+  bump:
+    name: Commit release version
     needs: verify
     runs-on: macos-26
     environment: official-release
     permissions:
       actions: read
-      contents: write
-      pull-requests: read
+      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Prepare version commit
+        id: bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          SOURCE_SHA: ${{ github.sha }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
+          expected_subject="chore(release): ${VERSION}"
+          git fetch origin "${DEFAULT_BRANCH}"
+          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
+
+          if [[ "${remote_sha}" != "${SOURCE_SHA}" ]]; then
+            remote_parent="$(git log -1 --format=%P "${remote_sha}")"
+            remote_subject="$(git log -1 --format=%s "${remote_sha}")"
+            remote_files="$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)"
+            if [[ "${remote_parent}" == "${SOURCE_SHA}" && \
+                  "${remote_subject}" == "${expected_subject}" && \
+                  "${remote_files}" == "${expected_files}" ]]; then
+              git checkout --detach "${remote_sha}"
+              grep -Fxq "    MARKETING_VERSION: \"${VERSION}\"" project.yml
+              echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
+              echo "reused=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "main changed before the release bump; dispatch again from current main" >&2
+            exit 1
+          fi
+
+          artifact_count="$(gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+            | jq --arg name "official-release-${VERSION}" '[.[].artifacts[] | select(.name == $name)] | length')"
+          test "${artifact_count}" = 0
+          remote_tag="$(git ls-remote --tags origin "refs/tags/${TAG}")"
+          test -z "${remote_tag}"
+          release_id="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" \
+            --jq '.[] | select(.tag_name == "'"${TAG}"'") | .id')"
+          test -z "${release_id}"
+
+          calculated="$(python3 Scripts/release-version.py "${RELEASE_TYPE}" --write)"
+          if [[ "${calculated}" != "${VERSION}" ]]; then
+            echo "release version changed: expected ${VERSION}, got ${calculated}" >&2
+            exit 1
+          fi
+
+          xcodegen generate --spec project.yml
+          git diff --check
+          changed_files="$(git diff --name-only | sort)"
+          if [[ "${changed_files}" != "${expected_files}" ]]; then
+            echo "unexpected release-bump files:" >&2
+            printf '%s\n' "${changed_files}" >&2
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add project.yml Keyameleon.xcodeproj/project.pbxproj
+          git commit -m "chore(release): ${VERSION}"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "reused=false" >> "$GITHUB_OUTPUT"
+
+      - name: Push version commit to main
+        if: steps.bump.outputs.reused != 'true'
+        run: git push origin "HEAD:${{ github.event.repository.default_branch }}"
+
+  produce:
+    name: Produce release artifacts
+    needs: verify
+    runs-on: macos-26
+    environment: official-release
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Wait for validated version commit
+        id: bump
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SOURCE_SHA: ${{ github.sha }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
+          for attempt in {1..180}; do
+            git fetch origin "${DEFAULT_BRANCH}"
+            remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
+            if [[ "${remote_sha}" != "${SOURCE_SHA}" ]]; then
+              test "$(git log -1 --format=%P "${remote_sha}")" = "${SOURCE_SHA}"
+              test "$(git log -1 --format=%s "${remote_sha}")" = "chore(release): ${VERSION}"
+              test "$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)" = "${expected_files}"
+              git show "${remote_sha}:project.yml" | grep -Fxq "    MARKETING_VERSION: \"${VERSION}\""
+              echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "attempt ${attempt}: waiting for the release bump on main" >&2
+            sleep 10
+          done
+          echo "timed out waiting for the release bump on main" >&2
+          exit 1
+
+      - name: Checkout validated version commit
+        env:
+          COMMIT: ${{ steps.bump.outputs.commit }}
+        run: git checkout --detach "$COMMIT"
 
       - name: Restore saved release artifacts on retry
         id: saved
@@ -144,74 +262,11 @@ jobs:
           unzip -q "${swiftlint_dir}/swiftlint.zip" -d "${swiftlint_dir}"
           echo "${swiftlint_dir}" >> "${GITHUB_PATH}"
 
-      - name: Prepare version commit
-        id: bump
-        env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          RELEASE_TYPE: ${{ inputs.release_type }}
-          SOURCE_SHA: ${{ github.sha }}
-          VERSION: ${{ needs.verify.outputs.version }}
-          RESTORED: ${{ steps.saved.outputs.restored }}
-        run: |
-          set -euo pipefail
-          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
-          expected_subject="chore(release): ${VERSION}"
-          git fetch origin "${DEFAULT_BRANCH}"
-          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
-
-          if [[ "${remote_sha}" != "${SOURCE_SHA}" ]]; then
-            remote_parent="$(git rev-parse "${remote_sha}^")"
-            remote_subject="$(git log -1 --format=%s "${remote_sha}")"
-            remote_files="$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)"
-            if [[ "${remote_parent}" == "${SOURCE_SHA}" && \
-                  "${remote_subject}" == "${expected_subject}" && \
-                  "${remote_files}" == "${expected_files}" ]]; then
-              git checkout --detach "${remote_sha}"
-              grep -qE "^    MARKETING_VERSION: \"${VERSION}\"$" project.yml
-              echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
-              echo "reused=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            echo "main changed before the release bump; dispatch again from current main" >&2
-            exit 1
-          fi
-
-          if [[ "${RESTORED}" == "true" ]]; then
-            echo "saved artifacts require the pushed release bump commit" >&2
-            exit 1
-          fi
-
-          calculated="$(python3 Scripts/release-version.py "${RELEASE_TYPE}" --write)"
-          if [[ "${calculated}" != "${VERSION}" ]]; then
-            echo "release version changed: expected ${VERSION}, got ${calculated}" >&2
-            exit 1
-          fi
-
-          xcodegen generate --spec project.yml
-          git diff --check
-          changed_files="$(git diff --name-only | sort)"
-          if [[ "${changed_files}" != "${expected_files}" ]]; then
-            echo "unexpected release-bump files:" >&2
-            printf '%s\n' "${changed_files}" >&2
-            exit 1
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add project.yml Keyameleon.xcodeproj/project.pbxproj
-          git commit -m "chore(release): ${VERSION}"
-          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "reused=false" >> "$GITHUB_OUTPUT"
-
       - name: Test version commit
         if: steps.saved.outputs.restored != 'true'
         run: |
           ./Scripts/run.sh test
           git diff --exit-code
-
-      - name: Push version commit to main
-        if: steps.bump.outputs.reused != 'true'
-        run: git push origin "HEAD:${{ github.event.repository.default_branch }}"
 
       - name: Produce signed, notarized, stapled artifacts
         if: steps.saved.outputs.restored != 'true'
@@ -273,6 +328,79 @@ jobs:
             dist/release-evidence.json
           if-no-files-found: error
 
+  publish:
+    name: Publish Official Release
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: official-release
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Wait for saved release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          artifact_name="official-release-${VERSION}"
+          for attempt in {1..180}; do
+            artifact_id="$(gh api --paginate --slurp \
+              "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+              | jq -r --arg name "${artifact_name}" '[.[].artifacts[] | select(.name == $name)] |
+                if length == 0 then ""
+                elif length != 1 or .[0].expired then error("saved release artifact is ambiguous or expired")
+                else .[0].id end')"
+            if [[ -n "${artifact_id}" ]]; then
+              gh run download "${GITHUB_RUN_ID}" --name "${artifact_name}" --dir dist
+              exit 0
+            fi
+            echo "attempt ${attempt}: waiting for the saved release artifact" >&2
+            sleep 30
+          done
+          echo "timed out waiting for the saved release artifact" >&2
+          exit 1
+
+      - name: Validate published version commit
+        id: bump
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SOURCE_SHA: ${{ github.sha }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          git fetch origin "${DEFAULT_BRANCH}"
+          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
+          test "$(git log -1 --format=%P "${remote_sha}")" = "${SOURCE_SHA}"
+          test "$(git log -1 --format=%s "${remote_sha}")" = "chore(release): ${VERSION}"
+          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
+          test "$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)" = "${expected_files}"
+          git show "${remote_sha}:project.yml" | grep -Fxq "    MARKETING_VERSION: \"${VERSION}\""
+          echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Require complete artifact bundle
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          COMMIT: ${{ steps.bump.outputs.commit }}
+        run: |
+          set -euo pipefail
+          test -s "dist/Keyameleon-${VERSION}.dmg"
+          test -s dist/appcast.xml
+          test -s dist/release-evidence.json
+          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["gitCommit"])')" = "$COMMIT"
+          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["tag"])')" = "$TAG"
+          python3 Scripts/verify-release-appcast.py \
+            --appcast dist/appcast.xml --evidence dist/release-evidence.json \
+            --artifact "dist/Keyameleon-${VERSION}.dmg"
+
       - name: Prepare Official Release tag and notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -297,7 +425,7 @@ jobs:
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag -a "$TAG" -m "Keyameleon ${VERSION}"
+            git tag -a "$TAG" "$COMMIT" -m "Keyameleon ${VERSION}"
             git push origin "$TAG"
           fi
 
