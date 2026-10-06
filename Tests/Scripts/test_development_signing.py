@@ -1,5 +1,6 @@
 import json
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -32,6 +33,40 @@ build_app
             self.assertIn("CODE_SIGNING_REQUIRED=NO", command)
         self.assertFalse(any(argument.startswith("CODE_SIGN") for argument in commands[2]))
 
+    def test_generate_selects_a_local_certificate_and_clears_stale_selection(self):
+        functions = ROOT / "Scripts/run.sh"
+        script = r'''
+set -euo pipefail
+source <(sed -n '/^generate_project()/,/^}/p' "$1")
+source <(sed -n '/^development_signing_identity()/,/^}/p' "$1")
+xcodegen() { :; }
+write_modern_workspace_settings() { :; }
+neutralize_legacy_user_build_locations() { :; }
+security() { cat identities; }
+generate_project
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Config").mkdir()
+            fixture = root / "identities"
+            fingerprint = "A" * 40
+            fixture.write_text(
+                '  1) ' + "B" * 40 + ' "Developer ID Application: Fixture"\n'
+                '  2) ' + fingerprint + ' "Apple Development: Fixture"\n'
+                '  3) ' + "C" * 40 + ' "Apple Development: Second"\n'
+            )
+            def generate():
+                subprocess.run(("zsh", "-c", script, "--", str(functions)),
+                               cwd=root, capture_output=True, text=True, check=True)
+            generate()
+            local = root / "Config/Development.local.xcconfig"
+            self.assertTrue(local.exists(), "generation must write the local signing config")
+            self.assertEqual(local.read_text(),
+                             f"KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY = {fingerprint}\n")
+            fixture.write_text("0 valid identities found\n")
+            generate()
+            self.assertEqual(local.read_text(), "")
+
     def test_generated_debug_settings_require_stable_signing_for_every_target(self):
         result = subprocess.run(
             ("plutil", "-convert", "json", "-o", "-", "Keyameleon.xcodeproj/project.pbxproj"),
@@ -49,7 +84,7 @@ build_app
         for target_id in root["targets"]:
             target = objects[target_id]
             for configuration, identity, required in (
-                ("Debug", "Apple Development", "YES"), ("Release", "-", "NO"),
+                ("Debug", "$(KEYAMELEON_DEVELOPMENT_SIGNING_IDENTITY)", "YES"), ("Release", "-", "NO"),
             ):
                 with self.subTest(target=target["name"], configuration=configuration):
                     effective = settings(root, configuration) | settings(target, configuration)
