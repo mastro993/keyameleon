@@ -8,7 +8,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
 
     let title: String
     let detail: String
-    let action: MenuBarPanelContent.Action?
+    let action: MenuBarPanelContent.Action
     let tone: Tone
 
     static func make(
@@ -20,7 +20,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
         case .permissionRequired:
             return MenuBarPanelNotice(
                 title: "Input Monitoring required",
-                detail: "Keyameleon can't detect keyboard activity until you allow access in System Settings.",
+                detail: "Enable Keyameleon in Input Monitoring.",
                 action: permissionAction(outcome: outcome),
                 tone: .warning
             )
@@ -39,33 +39,34 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             }
             let detail: String
             if let reason {
-                detail = "\(reason) Activity-Triggered Switching resumes automatically."
+                detail = "\(reason) Switching resumes automatically."
             } else {
-                detail = "Activity-Triggered Switching resumes automatically."
+                detail = "Switching resumes automatically."
             }
             return MenuBarPanelNotice(
-                title: "Temporarily Unavailable",
+                title: "Switching unavailable",
                 detail: detail,
-                action: nil,
+                action: settingsAction,
                 tone: .neutral
             )
         case .paused:
             return nil
         case .ready:
             if let warning = outcome.warnings.first(where: { $0.category == .selectionFailed }) {
+                let canRetry = outcome.hasAction(.retryNow)
                 let detail = warning.physicalKeyboardName.map {
-                    "Retry the Keyboard Assignment for \($0)."
-                } ?? "Retry the Keyboard Assignment."
+                    canRetry ? "Try again for \($0)." : "Check \($0)'s Keyboard Assignment."
+                } ?? (canRetry ? "Try again." : "Check the Keyboard Assignment.")
                 return MenuBarPanelNotice(
-                    title: "Couldn't select the Keyboard Assignment",
+                    title: "Couldn't switch Input Source",
                     detail: detail,
-                    action: outcome.hasAction(.retryNow)
+                    action: canRetry
                         ? MenuBarPanelContent.Action(
                             id: .retryNow,
                             title: "Retry Now",
                             isEnabled: true
                         )
-                        : nil,
+                        : settingsAction,
                     tone: .neutral
                 )
             }
@@ -74,19 +75,17 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 let detail: String
                 if let keyboardName = outcome.activePhysicalKeyboard?.name {
                     detail = """
-                    The current Input Source is \(sentence(mismatch.currentName)) \
-                    \(keyboardName)'s Keyboard Assignment is \(sentence(mismatch.assignedName))
+                    \(keyboardName) is using \(mismatch.currentName) instead of \(sentence(mismatch.assignedName))
                     """
                 } else {
                     detail = """
-                    The current Input Source is \(sentence(mismatch.currentName)) \
-                    The Keyboard Assignment is \(sentence(mismatch.assignedName))
+                    Using \(mismatch.currentName) instead of \(sentence(mismatch.assignedName))
                     """
                 }
                 return MenuBarPanelNotice(
                     title: "Input Source differs",
                     detail: detail,
-                    action: nil,
+                    action: settingsAction,
                     tone: .neutral
                 )
             }
@@ -98,25 +97,25 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 let detail: String
                 switch unassignedNames.count {
                 case 1:
-                    detail = "\(firstName) has no Keyboard Assignment."
+                    detail = "Assign an Input Source to \(firstName)."
                 case 2:
-                    detail = "\(firstName) and \(unassignedNames[1]) have no Keyboard Assignment."
+                    detail = "Assign Input Sources to \(firstName) and \(unassignedNames[1])."
                 default:
-                    detail = "\(unassignedNames.count) Physical Keyboards have no Keyboard Assignment."
+                    detail = "Assign Input Sources to \(unassignedNames.count) Physical Keyboards."
                 }
                 return MenuBarPanelNotice(
-                    title: "Keyboard Assignment needed",
+                    title: "Assign an Input Source",
                     detail: detail,
-                    action: nil,
+                    action: settingsAction,
                     tone: .neutral
                 )
             }
 
             if !isSetupComplete {
                 return MenuBarPanelNotice(
-                    title: "Guided setup is not finished",
-                    detail: "Continue Guided Setup to finish.",
-                    action: nil,
+                    title: "Finish Guided Setup",
+                    detail: "Continue where you left off.",
+                    action: .init(id: .continueSetup, title: "Continue Guided Setup", isEnabled: true),
                     tone: .neutral
                 )
             }
@@ -126,7 +125,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
 
     private static func permissionAction(
         outcome: ActivityTriggeredSwitchingOutcome
-    ) -> MenuBarPanelContent.Action? {
+    ) -> MenuBarPanelContent.Action {
         if outcome.hasAction(.openSystemSettings) {
             return MenuBarPanelContent.Action(
                 id: .openSystemSettings,
@@ -141,8 +140,14 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 isEnabled: true
             )
         }
-        return nil
+        return settingsAction
     }
+
+    private static let settingsAction = MenuBarPanelContent.Action(
+        id: .settings,
+        title: "Open Settings",
+        isEnabled: true
+    )
 
     private static func sentence(_ name: String) -> String {
         name.hasSuffix(".") ? name : "\(name)."
