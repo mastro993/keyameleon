@@ -1013,3 +1013,13 @@ Resolving the notice restores the keyboard region. Ordinary keyboard refreshes r
 ## 2026-10-06 — Menu-bar keyboard list drops its section label
 
 The keyboard region is the assignment list alone. The native `Keyboards` section header is gone, so the list sits directly under the `Keyameleon v<marketing version>` heading, and `MenuBarAssignmentList` no longer carries the heading copy. The list keeps a 4-point horizontal inset from the panel edges (`Theme.Menu.listInset`), smaller than the shared `rowInset`. Assigned-only order, the five-row scroll viewport, and the notice replacement rules stay the same. Earlier entries describe the superseded heading and full-width list.
+
+## 2026-10-06 — Input Monitoring recovery guide
+
+Open System Settings uses one shared native guide for Guided setup and the menu's permission recovery. After System Settings opens successfully, unknown or denied Input Monitoring access shows a small nonactivating floating panel. It does not request permission, activate Keyameleon, or change the behavior of Request Permission. Repeated opens reuse the same panel. Granted access shows no panel.
+
+The icon drags the running application's actual `.app` bundle as a file URL with a copy operation. Show in Finder provides a keyboard-accessible alternative for locating that same application; Close dismisses the guide. The guide uses the existing Theme and native app icon.
+
+Window Server metadata identifies System Settings by process ID and bundle ID. It follows the visible window on its display, preferring below and falling beside it when space is limited. Coordinates use the primary display's global origin, including displays above or left of it. Placement stays inside the display's visible frame and pauses during the icon drag. No Accessibility or Screen Recording access is requested. Unavailable metadata leaves the guide movable; it is not treated as proof that Settings closed. Initial Settings launch has a five-second grace period before a missing window closes the guide.
+
+One cancellable task checks window placement and the existing IOHID permission provider every 750 milliseconds. An actual grant closes the panel, refreshes Activity-Triggered Switching, and advances incomplete Guided setup. Completing a drag alone never grants access. Dismissal, observed Settings window closure, and application termination stop the task. This also covers recovery after Guided setup is complete.

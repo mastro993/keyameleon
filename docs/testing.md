@@ -129,3 +129,18 @@ Use the named previews in `Sources/Features/Configuration/SettingsView.swift` to
 7. Enable Increase Contrast and Reduce Transparency. Confirm the native background stays readable and the existing keyboard contrast treatment remains visible. While the menu is open, scroll a six-keyboard list, then change a keyboard or recovery state. Confirm ordinary keyboard updates preserve the scroll position. A transition to a notice replaces the list, and resolving it restores the list. Confirm each notice remains readable and its CTA enabled state is respected.
 
 `MenuBarPanelPreviews.swift` previews the custom keyboard region. `MenuBarPanelNoticeView.swift` previews warning, neutral, and long notices in light and dark appearances. Verify complete native menu behavior in the running app.
+
+## Input Monitoring recovery guide
+
+`InputMonitoringGuideTests` verifies the native file-URL drag payload, first-click dragging, primary-display coordinate conversion, placement on displays above and left, beside-window fallback, bounds clamping, successful-launch gating, unknown and denied access, repeated opens, actual-grant completion, setup refresh, launch grace, unavailable metadata, observed window closure, dismissal, and shutdown. Its injected window snapshots, clock, permission provider, and non-presenting panels never open live System Settings or start CoreHID. The named light and dark previews in `InputMonitoringGuideView.swift` cover the guide content.
+
+Verify the actual macOS 26 destination manually using a disposable permission identity or session:
+
+1. With Keyameleon absent from Input Monitoring, use Open System Settings from Permissions. Confirm Settings opens to Input Monitoring and keeps focus while a single guide appears below it. Repeat the action and confirm no duplicate panel. Request Permission must retain its existing behavior and must not automatically open Settings.
+2. Drag the guide's app icon into the Input Monitoring list on the first click. Confirm the guide stays still throughout the drag and macOS adds the running Keyameleon application. Leaving its switch off must keep the guide and permission-required state. Enable the switch; confirm the guide closes and Guided setup advances without Check Again.
+3. After completing setup, revoke access and repeat Open System Settings from the menu notice. Grant access and confirm the guide closes and Activity-Triggered Switching recovers without reopening Keyameleon. Opening Settings when access is already granted must show no guide.
+4. Move Settings between displays, including displays above and left of the primary display. Confirm the guide follows, stays inside the visible display area, and falls beside Settings when there is no room below. Check the movable fallback if window metadata is unavailable; no extra privacy permission should be requested.
+5. Close the guide, close or hide the observed Settings window, and quit Keyameleon in separate attempts. Confirm the guide disappears and waiting stops. Reopen recovery after dismissal to start a fresh guide. A slow initial Settings launch must not dismiss the guide before its launch grace period.
+6. In light and dark appearances, check readable text, the native app icon, keyboard focus, and VoiceOver labels for Show in Finder and Close. Show in Finder must reveal the running application; drag that file into Input Monitoring as the accessible alternative.
+
+A real Settings drop, real TCC grant, display movement, and VoiceOver behavior require these native checks; deterministic unit tests do not prove them.

@@ -26,6 +26,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     let activityTriggeredSwitching: ActivityTriggeredSwitching
     private let updateChecker: any UpdateChecking
     private let lifecycleObserver: any LifecycleObserving
+    private let systemSettingsOpener: any SystemSettingsOpening
     private let singleInstanceLock: SingleInstanceLock?
     private let startsUpdaterOnLaunch: Bool
     private let startsApplicationSurfaceOnLaunch: Bool
@@ -81,7 +82,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         self.init(
             composition: composition,
-            systemSettingsOpener: NSWorkspaceSystemSettingsOpener(),
+            systemSettingsOpener: NSWorkspaceSystemSettingsOpener(permissionProvider: composition.permissionProvider),
             lifecycleObserver: SystemLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
@@ -107,6 +108,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         self.singleInstanceLock = singleInstanceLock
         self.updateChecker = updateChecker
         self.lifecycleObserver = lifecycleObserver
+        self.systemSettingsOpener = systemSettingsOpener
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         self.startsApplicationSurfaceOnLaunch = startsApplicationSurfaceOnLaunch
         self.activityTriggeredSwitching = composition.activityTriggeredSwitching
@@ -128,6 +130,12 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
 
         super.init()
+        if let opener = systemSettingsOpener as? NSWorkspaceSystemSettingsOpener {
+            opener.onPermissionGranted = { [weak setupModel] in
+                setupModel?.activityTriggeredSwitching.checkAgain()
+                setupModel?.advanceIfPermissionGranted()
+            }
+        }
         setupModel.onGuidedSetupCompleted = { [weak self] destination in
             self?.finishGuidedSetup(destination: destination)
         }
@@ -138,7 +146,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
-        systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
+        systemSettingsOpener: (any SystemSettingsOpening)? = nil,
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
             NoOpPhysicalKeyboardDiscoverer(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
@@ -174,7 +182,8 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         self.init(
             composition: composition,
-            systemSettingsOpener: systemSettingsOpener,
+            systemSettingsOpener: systemSettingsOpener
+                ?? NSWorkspaceSystemSettingsOpener(permissionProvider: composition.permissionProvider),
             lifecycleObserver: lifecycleObserver,
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
@@ -224,6 +233,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         Log.debug(.app, "Terminating")
         lifecycleObserver.stop()
+        systemSettingsOpener.stop()
         activityTriggeredSwitching.stop()
         closeMenuBarPanel()
         if let statusItem {

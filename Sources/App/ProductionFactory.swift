@@ -6,6 +6,7 @@ import Foundation
 /// Activity-Triggered Switching use the same discovery and Input Source.
 @MainActor
 struct ActivityTriggeredSwitchingComposition {
+    let permissionProvider: any ListenPermissionProviding
     let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
     let inputSources: InputSourceModule
     let activityTriggeredSwitching: ActivityTriggeredSwitching
@@ -105,6 +106,7 @@ enum ProductionFactory {
         )
 
         return ActivityTriggeredSwitchingComposition(
+            permissionProvider: permissionProvider,
             physicalKeyboardDiscovery: physicalKeyboardDiscovery,
             inputSources: inputSources,
             activityTriggeredSwitching: activityTriggeredSwitching,
