@@ -53,9 +53,8 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         )
 
         var desired = [NSMenuItem]()
-        let heading = content.pausedMarker.map { "Keyameleon \($0)" } ?? "Keyameleon"
-        let headingItem = item(id: "heading") { .sectionHeader(title: heading) }
-        headingItem.title = heading
+        let headingItem = item(id: "heading") { .sectionHeader(title: content.headerTitle) }
+        headingItem.title = content.headerTitle
         desired.append(headingItem)
 
         if let error = setupModel.persistenceError ?? switching.persistenceError {
@@ -94,13 +93,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             }
             desired.append(item(for: action))
         }
-        let version = item(id: "version") {
-            NSMenuItem(title: content.footer.versionText, action: nil, keyEquivalent: "")
-        }
-        version.title = content.footer.versionText
-        version.isEnabled = false
-        desired.append(version)
-
         let desiredIDs = Set(desired.compactMap(\.identifier))
         for existing in menu.items.reversed() where existing.identifier.map({ !desiredIDs.contains($0) }) ?? true {
             menu.removeItem(existing)

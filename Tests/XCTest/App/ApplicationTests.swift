@@ -20,7 +20,15 @@ final class ApplicationTests: XCTestCase {
 
         let controller = try XCTUnwrap(delegate.menuBarPanelController)
         let menu = try XCTUnwrap(delegate.menuBarStatusItem?.menu)
+        let version = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let headingTitle = "Keyameleon [\(version.isEmpty ? "—" : version)]"
+        let heading = try XCTUnwrap(menu.items.first)
         XCTAssertTrue(menu === controller.menu)
+        XCTAssertEqual(heading.identifier?.rawValue, "menu-bar-heading")
+        XCTAssertEqual(heading.title, headingTitle)
+        XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-version" })
+        XCTAssertEqual(menu.items.last?.title, "Quit Keyameleon")
         XCTAssertNil(delegate.menuBarStatusItem?.button?.action)
         XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
         XCTAssertNotNil(menu.items.first { $0.title == "Keyboards" })
@@ -36,12 +44,20 @@ final class ApplicationTests: XCTestCase {
         let checksAfterLaunch = permission.checkCount
         controller.menuNeedsUpdate(menu)
         XCTAssertGreaterThan(permission.checkCount, checksAfterLaunch)
+        XCTAssertTrue(menu.items.first === heading)
+        XCTAssertEqual(heading.title, headingTitle)
         menu.performActionForItem(at: try XCTUnwrap(menu.items.firstIndex { $0.title == "Pause Switching" }))
         XCTAssertTrue(delegate.setupModel.isActivityTriggeredSwitchingPaused)
         controller.refresh()
+        XCTAssertTrue(menu.items.first === heading)
+        XCTAssertEqual(heading.title, "\(headingTitle) (Paused)")
         XCTAssertNotNil(menu.items.first { $0.title == "Resume Switching" })
         menu.performActionForItem(at: try XCTUnwrap(menu.items.firstIndex { $0.title == "Resume Switching" }))
         XCTAssertFalse(delegate.setupModel.isActivityTriggeredSwitchingPaused)
+        controller.refresh()
+        XCTAssertTrue(menu.items.first === heading)
+        XCTAssertEqual(heading.title, headingTitle)
+        XCTAssertEqual(menu.items.last?.title, "Quit Keyameleon")
     }
 
     @MainActor

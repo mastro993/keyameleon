@@ -25,16 +25,14 @@ struct MenuBarPanelContent: Equatable, Sendable {
     }
 
     struct Footer: Equatable, Sendable {
-        let versionText: String
-        let versionAccessibilityValue: String
         let actions: [Action]
     }
 
+    let headerTitle: String
     let switchingStatus: SwitchingStatus
     let assignmentList: MenuBarAssignmentList
     let footer: Footer
     let notice: MenuBarPanelNotice?
-    let pausedMarker: String?
 
     var actionTitles: [String] {
         footer.actions.map(\.title)
@@ -49,7 +47,10 @@ struct MenuBarPanelContent: Equatable, Sendable {
         canCheckForUpdates: Bool
     ) {
         self.switchingStatus = outcome.switchingStatus
-        self.pausedMarker = outcome.switchingStatus == .paused ? "(Paused)" : nil
+        let trimmedVersion = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let version = trimmedVersion.isEmpty ? "—" : trimmedVersion
+        self.headerTitle = "Keyameleon [\(version)]"
+            + (outcome.switchingStatus == .paused ? " (Paused)" : "")
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
             physicalKeyboards: physicalKeyboards,
@@ -59,31 +60,13 @@ struct MenuBarPanelContent: Equatable, Sendable {
             physicalKeyboards: physicalKeyboards,
             assignedInputSources: assignedInputSources
         )
-        let versionParts = Self.versionParts(marketingVersion: marketingVersion)
         self.footer = Footer(
-            versionText: versionParts.visible,
-            versionAccessibilityValue: versionParts.accessibilityValue,
             actions: Self.makeActions(
                 outcome: outcome,
                 isSetupComplete: isSetupComplete,
                 canCheckForUpdates: canCheckForUpdates
             )
         )
-    }
-
-    static func versionText(marketingVersion: String?) -> String {
-        versionParts(marketingVersion: marketingVersion).visible
-    }
-
-    private static func versionParts(
-        marketingVersion: String?
-    ) -> (visible: String, accessibilityValue: String) {
-        let trimmed = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !trimmed.isEmpty else {
-            return ("Keyameleon —", "—")
-        }
-
-        return ("Keyameleon \(trimmed)", trimmed)
     }
 
     private static func makeActions(
