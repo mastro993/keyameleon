@@ -77,12 +77,12 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             }, in: noticeItem)
             desired.append(noticeItem)
         } else {
-            desired.append(item(id: "keyboards-heading") { .sectionHeader(title: "Keyboards") })
             let section = MenuBarAssignmentSection(
                 list: content.assignmentList,
                 emphasis: NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
                     ? .highContrast : .standard
             )
+            .padding(.horizontal, Theme.Menu.listInset)
             .frame(width: MenuBarPanelContent.panelWidth)
             .padding(.vertical, Theme.Menu.sectionInset)
             let keyboardItem = item(id: "keyboards") {

@@ -184,20 +184,6 @@ func menuBarPanelOffersGuidedSetupContinuation() {
     }
 }
 
-@Test("Menu-bar assignment list heading has no app name or assignment count")
-func menuBarAssignmentListUsesCompactHeading() {
-    let list = MenuBarAssignmentList(
-        physicalKeyboards: [
-            makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")
-        ],
-        assignedInputSources: panelNames("travel", "Italian")
-    )
-
-    #expect(list.heading == "Keyboards")
-    #expect(list.heading.contains("Keyameleon") == false)
-    #expect(list.heading.contains("1") == false)
-}
-
 @Test("Menu-bar assignment pill shows Custom name, product name, and locale code")
 func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throws {
     let renamed = makeAssignedPanelKeyboard(
@@ -443,12 +429,11 @@ func menuBarAssignmentListKeepsEveryAssignedRow() {
     #expect(list.scrolls)
 }
 
-@Test("Menu-bar panel content keeps Keyboards heading, empty copy, and Quick Actions")
+@Test("Menu-bar panel content keeps empty copy and Quick Actions")
 @MainActor
 func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
-    #expect(content.assignmentList.heading == "Keyboards")
     #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
     #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
     #expect(content.assignmentList.rows.isEmpty)
