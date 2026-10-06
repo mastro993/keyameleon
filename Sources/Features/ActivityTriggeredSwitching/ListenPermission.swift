@@ -29,10 +29,35 @@ final class SystemListenPermissionProvider: ListenPermissionProviding {
 @MainActor
 protocol SystemSettingsOpening: AnyObject {
     func openSystemSettings()
+    func stop()
+}
+
+extension SystemSettingsOpening {
+    func stop() {}
 }
 
 @MainActor
 final class NSWorkspaceSystemSettingsOpener: SystemSettingsOpening {
+    private let guide: InputMonitoringGuideController
+    private let openURL: (URL) -> Bool
+
+    var onPermissionGranted: (() -> Void)? {
+        get { guide.onPermissionGranted }
+        set { guide.onPermissionGranted = newValue }
+    }
+
+    init(
+        permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider()
+    ) {
+        guide = InputMonitoringGuideController(permissionProvider: permissionProvider)
+        openURL = { NSWorkspace.shared.open($0) }
+    }
+
+    init(guide: InputMonitoringGuideController, openURL: @escaping (URL) -> Bool) {
+        self.guide = guide
+        self.openURL = openURL
+    }
+
     func openSystemSettings() {
         guard let url = URL(
             string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
@@ -40,6 +65,11 @@ final class NSWorkspaceSystemSettingsOpener: SystemSettingsOpening {
             return
         }
 
-        NSWorkspace.shared.open(url)
+        guard openURL(url) else { return }
+        guide.show()
+    }
+
+    func stop() {
+        guide.stop()
     }
 }
