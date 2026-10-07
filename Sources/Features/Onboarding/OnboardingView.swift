@@ -21,41 +21,32 @@ struct OnboardingView: View {
         HStack(spacing: 0) {
             OnboardingSidebar(step: model.guidedSetupStep, hasAssignments: includedAssignmentCount > 0)
             VStack(spacing: 0) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: contentSpacing) {
-                        PersistenceFailureNotice(model: model)
-                        OnboardingProgress(step: model.guidedSetupStep)
-                        Group {
-                        switch model.guidedSetupStep {
-                        case .permission:
-                            OnboardingPermissionStep()
-                        case .assignments:
-                            OnboardingAssignmentsStep(
-                                model: model,
-                                rows: keyboardRows.rows,
-                                onIgnore: { id in
-                                    model.excludePhysicalKeyboard(id)
-                                    reconcileKeyboardRows()
-                                },
-                                onStopIgnoring: { key in
-                                    model.restorePhysicalKeyboard(exclusionKey: key)
-                                    reconcileKeyboardRows()
-                                }
-                            )
-                        case .ready:
-                            OnboardingReadyStep(
-                                assignmentCount: includedAssignmentCount,
-                                switchingStatus: switching.outcome.switchingStatus
-                            )
-                        }
-                        }
+                switch model.guidedSetupStep {
+                case .permission:
+                    OnboardingScrollingStage(model: model, spacing: 28) {
+                        OnboardingPermissionStep()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 37)
-                    .padding(.top, 34)
-                    .padding(.bottom, 24)
+                case .assignments:
+                    OnboardingAssignmentsStep(
+                        model: model,
+                        rows: keyboardRows.rows,
+                        onIgnore: { id in
+                            model.excludePhysicalKeyboard(id)
+                            reconcileKeyboardRows()
+                        },
+                        onStopIgnoring: { key in
+                            model.restorePhysicalKeyboard(exclusionKey: key)
+                            reconcileKeyboardRows()
+                        }
+                    )
+                case .ready:
+                    OnboardingScrollingStage(model: model, spacing: 16) {
+                        OnboardingReadyStep(
+                            assignmentCount: includedAssignmentCount,
+                            switchingStatus: switching.outcome.switchingStatus
+                        )
+                    }
                 }
-                .scrollIndicators(.automatic)
                 OnboardingFooter(model: model)
             }
             .background(OnboardingPalette.background)
@@ -74,44 +65,22 @@ struct OnboardingView: View {
         }.count
     }
 
-    private var contentSpacing: CGFloat {
-        switch model.guidedSetupStep {
-        case .assignments: 20
-        case .permission: 28
-        case .ready: 16
-        }
-    }
-
     private func reconcileKeyboardRows() {
         keyboardRows.reconcile(with: model)
     }
 }
 
 #if DEBUG
-#Preview("Permissions light") {
+#Preview("Permissions") {
     let fixture = PreviewFixtures.setup(.permissionRequired)
     OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
 }
 
-#Preview("Permissions dark") {
-    let fixture = PreviewFixtures.setup(.permissionRequired)
-    OnboardingView(model: fixture.model, switching: fixture.switching)
-        .frame(width: 1000, height: 750)
-        .preferredColorScheme(.dark)
-}
-
-#Preview("Keyboards light") {
+#Preview("Keyboards") {
     let fixture = PreviewFixtures.setup(.pencilAssignments)
     OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
-}
-
-#Preview("Keyboards dark") {
-    let fixture = PreviewFixtures.setup(.pencilAssignments)
-    OnboardingView(model: fixture.model, switching: fixture.switching)
-        .frame(width: 1000, height: 750)
-        .preferredColorScheme(.dark)
 }
 
 #Preview("Keyboards mixed and unsupported") {
@@ -121,17 +90,10 @@ struct OnboardingView: View {
         .preferredColorScheme(.dark)
 }
 
-#Preview("Ready light") {
+#Preview("Ready") {
     let fixture = PreviewFixtures.setup(.readyPopulated)
     OnboardingView(model: fixture.model, switching: fixture.switching)
         .frame(width: 1000, height: 750)
-}
-
-#Preview("Ready dark") {
-    let fixture = PreviewFixtures.setup(.readyEmpty)
-    OnboardingView(model: fixture.model, switching: fixture.switching)
-        .frame(width: 1000, height: 750)
-        .preferredColorScheme(.dark)
 }
 
 #Preview("Keyboards minimum size and large text") {

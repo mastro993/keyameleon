@@ -1,5 +1,57 @@
 # Choices
 
+## 2026-10-07 — One native spacing policy across the Settings panes
+
+General, Keyboards, and About share one grouped-`Form` spacing policy: platform
+content margins, platform row insets, and no per-pane outer padding. The
+Keyboards pane no longer wraps its list in `Theme.Metrics.panePadding`, and its
+duplicated scroll content-margin override is removed. On macOS 26 grouped forms
+`listRowInsets` stays inert, but a `contentMargins` override does move the
+margin, so that override only ever knocked Keyboards out of line with General and
+About; all three panes now use the platform grouped-`Form` defaults. The empty
+and persistence-failure Keyboards states use a 20 pt vertical and 30 pt
+horizontal inset, matching the populated list's header top edge, and a
+persistence failure still hides only the empty state.
+
+The Settings window keeps its 840 × 560 minimum. The window controller already
+sets `contentMinSize`; `SettingsView` now also enforces the same
+`Theme.Metrics.settingsWindowMinimumHeight`, so the SwiftUI content cannot lay
+out shorter than the window's own minimum. This entry refines the spacing in the
+2026-10-07 standard-controls entry.
+
+## 2026-10-07 — Standard SwiftUI controls inside the branded windows
+
+Settings and Guided setup retain their branded sidebar shells, colors, identity,
+and window minimums. Settings navigation uses `List(selection:)` for native
+selection, focus, and accessibility while keeping the existing blue selected row.
+The Guided setup sidebar and informational progress indicator remain unchanged.
+
+General and About use grouped `Form` and `Section`; About values use
+`LabeledContent`. Launch at login owns its title and explanation in the native
+`Toggle` label. Folder paths remain selectable, read-only text with the existing
+Finder action. The About identity and scrolling creator credit remain outside
+the information rows.
+
+Keyboard containers use native sections and scrolling rather than `InsetGroup`
+and manually drawn separators. Guided setup's Keyboards stage has one scrolling
+region containing progress, explanation, keyboard rows, and its note; the footer
+stays reachable below it. Shared keyboard row reconciliation, actions menus,
+rename sheets, and persistence behavior are unchanged. A grouped `Form` draws a
+menu `Picker` borderless and sized to its value, so the Input Source control is a
+bordered `Menu` hosting the inline native `Picker`; it fills one fixed 176-point
+column, so every row's control is the same width in Guided setup and Settings.
+Settings uses `ContentUnavailableView` for no keyboards only when saved data is
+available; a persistence failure still shows Retry without a misleading empty
+state.
+
+Sidebar rows, folder paths, and the setup footer use minimum heights so taller
+content can grow. Link cursors use SwiftUI `pointerStyle`; menu assignment springs
+are disabled under Reduce Motion. Native menu tracking, notice buttons, and the
+permission guide's actual application-file drag payload remain in AppKit.
+Unused alternative keyboard selectors and the unused image-only button helper
+are removed. This entry supersedes the custom group and navigation details of
+the 2026-10-05 Settings entry.
+
 ## 2026-10-06 — Menu keyboard pills are single-line with a locale badge
 
 The menu panel's keyboard pills are one 34 pt line: connection mark, the

@@ -14,8 +14,6 @@ enum Theme {
     static let contentBackground = Color("ContentBackground")
     /// The Settings sidebar the navigation sits on.
     static let sidebarBackground = Color("SidebarBackground")
-    /// The card surface for Settings information rows.
-    static let cardSurface = Color("CardSurface")
     /// The softer surface Guided setup uses behind requirement and preview blocks.
     static let surface = Color("OnboardingSurface")
     static let primary = Color("OnboardingPrimary")
@@ -72,8 +70,6 @@ enum Theme {
         static let subheadline = Font.subheadline
         /// `type-title-2`, medium: the About app name.
         static let screenTitle = Font.title2.weight(.medium)
-        /// `type-title-2`, semibold: a pane's empty state title.
-        static let emptyStateTitle = Font.title2.weight(.semibold)
         /// Chip and badge labels.
         static let chip = Font.caption2.weight(.bold)
     }
@@ -90,32 +86,13 @@ enum Theme {
         /// The Settings content pane's insets, and the spacing between its blocks.
         static let panePadding = EdgeInsets(top: 24, leading: 30, bottom: 24, trailing: 30)
         static let paneSpacing: CGFloat = 20
-        /// Inset group of rows, as the Keyboards list and Guided setup draw it.
-        static let groupRadius: CGFloat = 16
-        /// Inset group of label and value rows, as About draws it.
-        static let informationGroupRadius: CGFloat = 10
         /// The sidebar navigation item and the Input Source picker.
         static let controlRadius: CGFloat = 6
         static let navigationItemHeight: CGFloat = 34
         static let navigationItemSpacing: CGFloat = 4
-        /// Settings rows sit in a tighter group than Guided setup's rows.
+        /// Row padding for a Settings keyboard row drawn outside a grouped Form, such as a preview.
+        /// Settings lists use the platform's own row insets.
         static let settingsKeyboardRowPadding = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
         static let onboardingKeyboardRowPadding = EdgeInsets(top: 18, leading: 22, bottom: 18, trailing: 22)
-        /// The horizontal inset every Settings information row takes, and its design height.
-        static let informationRowInset: CGFloat = 16
-        static let informationRowMinHeight: CGFloat = 39
-    }
-}
-
-extension View {
-    /// Draws the hairline a Pencil group uses between two rows, inset like the rows it separates.
-    func keyameleonGroupSeparator(_ isVisible: Bool, inset: CGFloat) -> some View {
-        overlay(alignment: .top) {
-            if isVisible {
-                Theme.border
-                    .frame(height: 1)
-                    .padding(.leading, inset)
-            }
-        }
     }
 }

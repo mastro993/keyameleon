@@ -13,44 +13,8 @@ struct AboutSettingsPane: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
-                identity
-                information
-                acknowledgements
-                creatorCredit
-            }
-            .padding(Theme.Metrics.panePadding)
-        }
-    }
-
-    private var identity: some View {
-        HStack(spacing: 14) {
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .interpolation(.high)
-                .frame(width: 48, height: 48)
-                .accessibilityLabel("Keyameleon app icon")
-            VStack(alignment: .leading, spacing: 5) {
-                Text(info.identity.name)
-                    .font(Theme.Typography.screenTitle)
-                    .foregroundStyle(Theme.primary)
-                Text("The right layout. On every keyboard.")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.secondary)
-            }
-        }
-    }
-
-    private var information: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Information")
-                .font(Theme.Typography.sectionTitle)
-                .foregroundStyle(Theme.primary)
-            InsetGroup(
-                cornerRadius: Theme.Metrics.informationGroupRadius,
-                fill: Theme.cardSurface
-            ) {
+        Form {
+            Section {
                 AboutInformationRow(label: "Version") {
                     Text(info.identity.aboutVersionLabel)
                         .foregroundStyle(Theme.secondary)
@@ -78,7 +42,7 @@ struct AboutSettingsPane: View {
                     licenseButton(for: .project, title: "MIT")
                         .help("Keyameleon is distributed under MIT.")
                 }
-                AboutInformationRow(label: "Updates", showsSeparator: false) {
+                AboutInformationRow(label: "Updates") {
                     Button(action: model.checkForUpdates) {
                         AboutLinkLabel(title: "Check for Updates…")
                     }
@@ -86,44 +50,26 @@ struct AboutSettingsPane: View {
                     .disabled(!model.canCheckForUpdates)
                     .help("Checks whether a newer Keyameleon version is available.")
                 }
+            } header: {
+                VStack(alignment: .leading, spacing: 16) {
+                    AboutIdentityBlock(info: info)
+                    AboutSectionHeading(title: "Information")
+                }
             }
-        }
-    }
-
-    private var acknowledgements: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Acknowledgements")
-                .font(Theme.Typography.sectionTitle)
-                .foregroundStyle(Theme.primary)
-            InsetGroup(
-                cornerRadius: Theme.Metrics.informationGroupRadius,
-                fill: Theme.cardSurface
-            ) {
-                HStack(spacing: 12) {
-                    Text("Sparkle")
-                        .font(Theme.Typography.body)
-                        .foregroundStyle(Theme.primary)
-                    Spacer(minLength: 12)
+            Section {
+                AboutInformationRow(label: "Sparkle") {
                     licenseButton(for: .sparkle, title: "View full License")
                 }
-                .padding(.vertical, 14)
-                .padding(.horizontal, Theme.Metrics.informationRowInset)
+            } header: {
+                AboutSectionHeading(title: "Acknowledgements")
+            } footer: {
+                AboutCreatorCredit()
             }
         }
-    }
-
-    private var creatorCredit: some View {
-        HStack(spacing: 4) {
-            Text("Made with ❤️ by")
-                .font(Theme.Typography.caption)
-                .foregroundStyle(Theme.secondary)
-            Link(destination: AboutInfo.creatorURL) {
-                Text("@fedemas")
-                    .font(Theme.Typography.caption)
-            }
-            .pointingHandCursor()
-        }
-        .frame(maxWidth: .infinity)
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Theme.contentBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     /// A bundled license text, or a disabled label when the build does not carry it.
@@ -156,7 +102,6 @@ struct AboutSettingsPane: View {
         info: PreviewFixtures.aboutInfo
     )
     .frame(width: 620, height: 620)
-    .background(Theme.contentBackground)
 }
 
 #Preview("About pane updates disabled") {
@@ -165,7 +110,6 @@ struct AboutSettingsPane: View {
         info: PreviewFixtures.aboutInfo
     )
     .frame(width: 620, height: 620)
-    .background(Theme.contentBackground)
     .preferredColorScheme(.dark)
 }
 

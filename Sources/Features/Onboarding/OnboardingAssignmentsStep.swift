@@ -11,52 +11,53 @@ struct OnboardingAssignmentsStep: View {
         + "Initial key presses may still use the previous Input Source."
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("An Input Source for every keyboard.")
-                .font(.title)
-                .bold()
-                .foregroundStyle(OnboardingPalette.primary)
-            Text("Connect the keyboards you use with this Mac. "
-                 + "Turn off devices that aren’t keyboards. "
-                 + "They stay in the list, so you can turn them back on any time.")
-                .font(.body)
-                .lineSpacing(2)
-                .padding(.vertical, 1)
-                .foregroundStyle(OnboardingPalette.secondary)
-            InsetGroup {
+        Form {
+            Section {
                 if rows.isEmpty {
                     Text(!model.hasPersistenceFailure
                         ? "Connect a Physical Keyboard to add a Keyboard Assignment."
                         : "Retry to load saved Physical Keyboards.")
                         .foregroundStyle(OnboardingPalette.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(20)
+                        .listRowInsets(EdgeInsets(top: 20, leading: 22, bottom: 20, trailing: 22))
+                        .listRowBackground(OnboardingPalette.background)
+                } else {
+                    ForEach(rows) { row in
+                        PhysicalKeyboardRowView(
+                            row: row,
+                            model: model,
+                            rowPadding: EdgeInsets(),
+                            onIgnore: onIgnore,
+                            onStopIgnoring: onStopIgnoring
+                        )
+                        .listRowInsets(Theme.Metrics.onboardingKeyboardRowPadding)
+                        .listRowBackground(OnboardingPalette.background)
+                    }
                 }
-                ForEach(rows) { row in
-                    PhysicalKeyboardRowView(
-                        row: row,
-                        model: model,
-                        rowPadding: Theme.Metrics.onboardingKeyboardRowPadding,
-                        onIgnore: onIgnore,
-                        onStopIgnoring: onStopIgnoring
-                    )
-                    .keyameleonGroupSeparator(
-                        row.id != rows.first?.id,
-                        inset: Theme.Metrics.onboardingKeyboardRowPadding.leading
-                    )
-                }
+            } header: {
+                OnboardingAssignmentsHeader(model: model)
+            } footer: {
+                Text(Self.switchingNote)
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(OnboardingPalette.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Text(Self.switchingNote)
-                .font(.callout)
-                .foregroundStyle(OnboardingPalette.muted)
         }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .contentMargins(
+            .all,
+            EdgeInsets(top: 34, leading: 37, bottom: 24, trailing: 37),
+            for: .scrollContent
+        )
     }
 }
 
 #if DEBUG
-#Preview("Assignment table") {
-    let fixture = PreviewFixtures.setup(.assignmentsPopulated)
-    OnboardingAssignmentsStep(
+@MainActor
+private func onboardingAssignmentsPreview(_ state: PreviewSetupState) -> some View {
+    let fixture = PreviewFixtures.setup(state)
+    return OnboardingAssignmentsStep(
         model: fixture.model,
         rows: PhysicalKeyboardRows(
             physicalKeyboards: fixture.model.physicalKeyboards,
@@ -67,6 +68,19 @@ struct OnboardingAssignmentsStep: View {
         onIgnore: { _ in },
         onStopIgnoring: { _ in }
     )
-    .frame(width: 630)
+    .frame(width: 705)
+}
+
+#Preview("Assignment table") {
+    onboardingAssignmentsPreview(.assignmentsPopulated)
+}
+
+#Preview("Assignment table empty") {
+    onboardingAssignmentsPreview(.assignmentsEmpty)
+}
+
+#Preview("Assignment table large text") {
+    onboardingAssignmentsPreview(.manyAssignments)
+        .environment(\.dynamicTypeSize, .xxxLarge)
 }
 #endif

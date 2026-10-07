@@ -51,7 +51,7 @@ struct OnboardingFooter: View {
         .controlSize(.large)
         .buttonBorderShape(.roundedRectangle(radius: 6))
         .padding(.horizontal, 37)
-        .frame(height: 67)
+        .frame(minHeight: 67)
         .frame(maxWidth: .infinity)
         .overlay(alignment: .top) { OnboardingPalette.border.frame(height: 1) }
     }

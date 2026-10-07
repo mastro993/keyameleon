@@ -29,12 +29,14 @@ struct SettingsView: View {
                 pane
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            // The design starts the pane at the window top and keeps its own 24 pt inset,
-            // so the pane does not take the title bar's safe area on top of that.
+            // The pane fills under the transparent title bar and supplies its own top inset.
             .ignoresSafeArea(edges: .top)
             .background(Theme.contentBackground, ignoresSafeAreaEdges: .all)
         }
-        .frame(minWidth: Theme.Metrics.settingsWindowMinimumWidth)
+        .frame(
+            minWidth: Theme.Metrics.settingsWindowMinimumWidth,
+            minHeight: Theme.Metrics.settingsWindowMinimumHeight
+        )
         .onAppear(perform: model.refresh)
     }
 

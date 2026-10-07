@@ -135,6 +135,12 @@ Run `./Scripts/run.sh test` after changes to setup state, assignment controls, o
 
 Use the named previews in `Sources/Features/Onboarding/OnboardingView.swift` to compare the three stages in light and dark appearances, including empty assignments, unavailable sources, exclusions, permission recovery, and persistence failures. Check the 840 × 640 previews: long content must scroll while the footer remains reachable. The fixture stores are isolated from saved user data. A live Input Monitoring grant still needs a manual check in System Settings.
 
+At Keyboards, scroll a many-keyboard fixture through the last row and the switching
+note. Progress, explanation, rows, and note must share one scrolling region; the
+footer must stay visible. Compare the sidebar against Permissions and Ready to
+confirm its artwork, colors, and layout are retained. Repeat with larger text and
+dark appearance, checking that the footer grows without clipping its controls.
+
 ### Settings
 
 Run `./Scripts/run.sh test` after changes to the Settings panes, the shared keyboard row, or the Settings window. Open Settings from the menu bar and from the end of Guided setup, and check that reopening it returns to the pane that was showing. The three panes are General, Keyboards, and About in that order.
@@ -149,6 +155,17 @@ About should show the app icon, name, and tagline, the information rows, the Spa
 
 Use the named previews in `Sources/Features/Configuration/SettingsView.swift` to compare all three panes and the Keyboards empty state in light and dark appearances, and at 840 × 560 with large text and many keyboards. Compare them against the Pencil `Settings / General`, `Settings / Keyboards`, `Settings / About`, and `Settings / Keyboards / Empty` frames. Check keyboard navigation and VoiceOver: the sidebar items must report their selected state, and each keyboard row must read its name, status, Input Source, and menu.
 
+All three panes must share one spacing policy: the same left edge for the section header and its rows, the same native row insets, and the same outer content margin. Compare General, Keyboards, and About at 840 × 560; the Keyboards empty and persistence-failure header top edges must line up with the populated list's header. Resize the window and confirm it does not shrink below 840 × 560.
+
+Select each native sidebar row, then use arrow keys to move between panes. Confirm
+the existing blue selection, filled icon, keycap identity, and sidebar surface in
+active and inactive windows. Check General's switch label includes its explanation;
+About label/value rows keep selectable paths and reachable Finder actions. About's
+identity must sit on the pane background and its final credit must scroll into
+view. Larger text must not clip sidebar labels or folder paths. With an empty
+fixture, check the native `No keyboards detected` state; with a persistence-failure
+fixture, check Retry remains visible and that empty state is absent.
+
 ## Verify the native menu-bar menu
 
 1. Open the status item in light and dark appearance. Confirm the native heading shows `Keyameleon v<marketing version>`, there is no version footer row, and Quit Keyameleon is last. Confirm the heading and commands use native menu rows, with no About Keyameleon row, and no Keyboards section label above the list. Confirm the application menu also has no About Keyameleon command. Hover the heading, notices, commands, and keyboard warning symbol; no tooltip should appear. The middle region shows either custom keyboard pills or one custom notice, never both. Assigned keyboards keep saved order. The menu keeps its usual width when a notice has a long title or explanation.
@@ -158,6 +175,11 @@ Use the named previews in `Sources/Features/Configuration/SettingsView.swift` to
 5. Deny Input Monitoring. Confirm the yellow notice replaces the keyboard list, with its full explanation and a full-width Open System Settings button when available, or Request Permission when that is the available action. Click Open System Settings and confirm the menu closes and System Settings opens to Input Monitoring. Click the available Request Permission fallback and confirm the menu closes before requesting access. If neither recovery action is available, the button opens Settings. Check neutral temporarily unavailable, mismatch, and selection-failure notices. Their full-width button opens Settings, except selection failure offers Retry Now when available.
 6. Check no assignments, unfinished Guided Setup, and saved-data failure. Each notice replaces the entire keyboard region. Unassigned keyboards offer Open Settings, and unfinished setup offers Continue Guided Setup. A yellow saved-data failure notice takes precedence over switching notices and offers Retry. Persistence Retry is distinct from switching Retry Now. Use arrow keys to select the notice and Return to activate its action; verify saved-data Retry without clicking the button. If recovery reveals a permission notice, repeat keyboard activation and verify it opens System Settings. Resolve a notice and confirm the keyboard region returns.
 7. Enable Increase Contrast and Reduce Transparency. Confirm the native background stays readable and the existing keyboard contrast treatment remains visible. While the menu is open, scroll a six-keyboard list, then change a keyboard or recovery state. Confirm ordinary keyboard updates preserve the scroll position. A transition to a notice replaces the list, and resolving it restores the list. Confirm each notice remains readable and its CTA enabled state is respected.
+
+Enable Reduce Motion and change the active keyboard. The assignment pill must
+update without its spring transition; turn Reduce Motion off to check the existing
+transition returns. Hover enabled and disabled links/buttons to check their native
+pointer treatment without a stuck hand cursor.
 
 With U.S. already selected, assign two Physical Keyboards to U.S. Press a key on the first keyboard, then the second, then the first again. Reopen the menu after each press and confirm only that keyboard has the active accent border and background while U.S. stays selected. `menuBarPanelActivatesKeyboardWithCurrentInputSource` covers this sequence through production discovery and menu content, including no further Input Source selection after the first activation.
 
