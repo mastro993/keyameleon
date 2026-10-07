@@ -7,6 +7,18 @@ licensed under the same terms. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
 License obligations are tracked by those two files; CI does not run a separate
 license scanner.
 
+## Before you open a pull request
+
+- Small pull requests for quick fixes and small changes are welcome. Open them
+  directly.
+- For larger changes, new features, or UI changes, open an issue first so the
+  approach can be agreed before you write the code. Use the
+  [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or
+  [feature request](.github/ISSUE_TEMPLATE/feature_request.yml) template, and
+  link the issue from your pull request with `Closes #123`.
+- Report security issues privately, as described in `SECURITY.md`, not in a
+  public issue.
+
 ## Pull requests required
 
 Changes land on `main` only through pull requests. Direct pushes to `main` are
