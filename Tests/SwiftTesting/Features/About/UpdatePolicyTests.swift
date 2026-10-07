@@ -8,7 +8,8 @@ func keylessBuildUpdaterDoesNotStart() throws {
     try #require(Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") == nil)
     let checker = SparkleUpdateChecker()
     checker.start()
-    #expect(checker.canCheckForUpdates == false)
+    checker.checkForUpdates()
+    #expect(!checker.canCheckForUpdates)
 }
 
 @Test("Update policy bounds checks and forbids auto-install tracking")

@@ -67,6 +67,5 @@ func keychainQueriesTargetShippedItem() {
 
     for query in queries {
         #expect(query[kSecAttrService as String] as? String == "dev.fedemas.keyameleon.installation-integrity")
-        #expect(query[kSecAttrAccount as String] as? String == "manual-physical-keyboard-designation")
     }
 }

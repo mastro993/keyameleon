@@ -97,6 +97,6 @@ struct AboutInfo: Equatable, Sendable {
             .first ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
         return libraryDirectory
             .appendingPathComponent("Logs", isDirectory: true)
-            .appendingPathComponent("Keyameleon", isDirectory: true)
+            .appending(path: "Keyameleon", directoryHint: .isDirectory)
     }
 }

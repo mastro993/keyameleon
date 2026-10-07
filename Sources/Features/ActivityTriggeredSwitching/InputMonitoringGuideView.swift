@@ -10,10 +10,12 @@ struct InputMonitoringGuideView: View {
             AppBundleDragSource(bundleURL: bundleURL, draggingChanged: draggingChanged)
                 .frame(width: 64, height: 64)
             VStack(alignment: .leading, spacing: Theme.Metrics.navigationItemSpacing) {
-                Text("Drag Keyameleon into Input Monitoring")
+                Text("Drag \(AppIdentity.current.name) into Input Monitoring")
                     .font(Theme.Typography.bodyStrong)
                     .foregroundStyle(Theme.primary)
-                Text("If Keyameleon is missing, drag this icon into the Input Monitoring list. Then enable its switch.")
+                Text(
+                    "If \(AppIdentity.current.name) is missing, drag this icon into the list. Enable its switch."
+                )
                     .font(Theme.Typography.caption)
                     .foregroundStyle(Theme.secondary)
                     .fixedSize(horizontal: false, vertical: true)

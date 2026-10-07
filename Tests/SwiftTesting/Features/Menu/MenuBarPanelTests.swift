@@ -107,10 +107,10 @@ func menuBarPanelHeaderShowsMarketingVersion() {
         marketingVersion: "0.1.0"
     )
 
-    #expect(content.headerTitle == "Keyameleon v0.1.0")
+    #expect(content.headerTitle == "\(AppIdentity.current.name) v0.1.0")
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: " \n0.1.0\t ")
-            .headerTitle == "Keyameleon v0.1.0"
+            .headerTitle == "\(AppIdentity.current.name) v0.1.0"
     )
 }
 
@@ -119,19 +119,19 @@ func menuBarPanelHeaderShowsMarketingVersion() {
 func menuBarPanelHeaderVersionFallback() {
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: nil)
-            .headerTitle == "Keyameleon v—"
+            .headerTitle == "\(AppIdentity.current.name) v—"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "   ")
-            .headerTitle == "Keyameleon v—"
+            .headerTitle == "\(AppIdentity.current.name) v—"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .readyFixture(), marketingVersion: "")
-            .headerTitle == "Keyameleon v—"
+            .headerTitle == "\(AppIdentity.current.name) v—"
     )
     #expect(
         makeMenuBarPanelContent(outcome: .pausedFixture(), marketingVersion: nil)
-            .headerTitle == "Keyameleon v— (Paused)"
+            .headerTitle == "\(AppIdentity.current.name) v— (Paused)"
     )
 }
 
@@ -145,7 +145,7 @@ func menuBarPanelFooterOverflowDefaultActions() {
         "Pause Switching",
         "Settings",
         "Check for Updates…",
-        "Quit Keyameleon",
+        "Quit \(AppIdentity.current.name)",
     ])
 }
 
@@ -481,7 +481,7 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     let action = try #require(content.notice?.action)
 
     #expect(content.notice?.title == "Input Monitoring required")
-    #expect(content.notice?.detail == "Enable Keyameleon in Input Monitoring.")
+    #expect(content.notice?.detail == "Enable \(AppIdentity.current.name) in Input Monitoring.")
     #expect(content.notice?.tone == .warning)
     #expect(action.id == .openSystemSettings)
     #expect(action.title == "Open System Settings")
@@ -645,7 +645,7 @@ func menuBarPanelTemporarilyUnavailableNoticeWithoutKnownReasonExplainsAutomatic
 func menuBarPanelPausedMarksTitleWithoutNotice() {
     let content = makeMenuBarPanelContent(outcome: .pausedFixture())
 
-    #expect(content.headerTitle == "Keyameleon v0.1.0 (Paused)")
+    #expect(content.headerTitle == "\(AppIdentity.current.name) v0.1.0 (Paused)")
     #expect(content.notice == nil)
     #expect(overflow(content, .resume)?.title == "Resume Switching")
 }
@@ -653,10 +653,10 @@ func menuBarPanelPausedMarksTitleWithoutNotice() {
 @Test("Paused suffix appears only while switching is paused")
 @MainActor
 func menuBarPanelPausedSuffixAppearsOnlyWhilePaused() {
-    #expect(makeMenuBarPanelContent(outcome: .readyFixture()).headerTitle == "Keyameleon v0.1.0")
-    #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).headerTitle == "Keyameleon v0.1.0")
-    #expect(makeMenuBarPanelContent(outcome: .permissionRequiredFixture()).headerTitle == "Keyameleon v0.1.0")
-    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).headerTitle == "Keyameleon v0.1.0 (Paused)")
+    #expect(makeMenuBarPanelContent(outcome: .readyFixture()).headerTitle == "\(AppIdentity.current.name) v0.1.0")
+    #expect(makeMenuBarPanelContent(outcome: .temporarilyUnavailableFixture()).headerTitle == "\(AppIdentity.current.name) v0.1.0")
+    #expect(makeMenuBarPanelContent(outcome: .permissionRequiredFixture()).headerTitle == "\(AppIdentity.current.name) v0.1.0")
+    #expect(makeMenuBarPanelContent(outcome: .pausedFixture()).headerTitle == "\(AppIdentity.current.name) v0.1.0 (Paused)")
 }
 
 @Test("Input Source differs notice names the Active Physical Keyboard")
