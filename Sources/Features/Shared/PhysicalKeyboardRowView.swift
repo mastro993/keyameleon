@@ -47,12 +47,9 @@ struct PhysicalKeyboardRowView: View {
                 HStack(spacing: 8) {
                     switch savedRecord {
                     case let .matched(record):
-                        savedAssignmentPicker(for: record)
+                        savedAssignmentPicker(for: record, name: record.name)
                     case .missing, .ambiguous:
-                        Text("Assignment unavailable")
-                            .font(Theme.Typography.subheadline)
-                            .foregroundStyle(Theme.muted)
-                            .frame(width: 176, alignment: .leading)
+                        savedAssignmentPicker(for: nil, name: exclusion.name)
                     }
                     Menu {
                         if case let .matched(record) = savedRecord,
@@ -138,14 +135,14 @@ struct PhysicalKeyboardRowView: View {
         .disabled(model.eligibleInputSources.isEmpty || hasPersistenceError)
     }
 
-    /// An ignored keyboard keeps its saved assignment on screen, read-only.
-    private func savedAssignmentPicker(for record: SavedPhysicalKeyboardRecord) -> some View {
+    /// An ignored keyboard shows its saved assignment, or Unassigned, read-only.
+    private func savedAssignmentPicker(for record: SavedPhysicalKeyboardRecord?, name: String) -> some View {
         Picker(
-            "Input Source for \(record.name)",
-            selection: .constant(record.keyboardAssignment?.inputSourceIdentifier)
+            "Input Source for \(name)",
+            selection: .constant(record?.keyboardAssignment?.inputSourceIdentifier)
         ) {
             Text("Unassigned").tag(nil as String?)
-            if let identifier = record.keyboardAssignment?.inputSourceIdentifier,
+            if let identifier = record?.keyboardAssignment?.inputSourceIdentifier,
                !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
                 Text("Unavailable Input Source").tag(Optional(identifier))
             }
@@ -155,6 +152,7 @@ struct PhysicalKeyboardRowView: View {
         }
         .labelsHidden()
         .pickerStyle(.menu)
+        .foregroundStyle(Theme.muted)
         .frame(width: 176)
         .disabled(true)
     }
