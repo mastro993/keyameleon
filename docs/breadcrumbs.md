@@ -14,6 +14,10 @@
   fails when it changes anything besides `project.yml` and `project.pbxproj`.
 - The workflow now runs every protected stage in one job without polling
   (choices 2026-10-07).
+- Review of #162 found the publication step could tag a version commit that
+  `main` had already left. The step now requires `main` to still point at the
+  version commit, pushes `main` and the tag in one atomic push, and removes the
+  tag it created when a concurrent push advanced `main` in flight.
 
 ## 2026-10-06 — Built-in keyboard stays first in shared lists
 

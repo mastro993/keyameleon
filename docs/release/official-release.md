@@ -78,16 +78,21 @@ python3 Scripts/bundle-licenses.py \
    is not retained.
 7. After the artifact upload, `release` checks out the dispatch commit again
    with `RELEASE_DEPLOY_KEY`. Its publication scripts come from that fresh
-   checkout, not the build checkout. It pushes the version commit to `main`,
-   then creates and pushes the annotated tag on that commit. It publishes the
-   GitHub Release and verifies the public DMG download. It then publishes the
-   appcast and versioned evidence to GitHub Pages and verifies the served feed,
-   evidence, and enclosure.
+   checkout, not the build checkout. It requires `main` to still point at the
+   version commit and pushes that commit to `main` with the annotated tag in
+   one atomic push. It then re-reads `main` and removes the tag it just created
+   when a concurrent push advanced `main` while the tag was in flight. It
+   publishes the GitHub Release and verifies the public DMG download. It then
+   publishes the appcast and versioned evidence to GitHub Pages and verifies
+   the served feed, evidence, and enclosure.
 
 A failed step stops every later step of the job, and a failed `verify` skips
-`release`. A failure before the publication push leaves `main`, tags, Releases,
-and the feed unchanged. The build checkout keeps no token or deploy key in its
-Git configuration, and only the signing step receives the signing secrets.
+`release`. A failure before or during the publication push leaves `main`, tags,
+Releases, and the feed unchanged: a `main` that already advanced rejects the
+tag before anything is published, and a tag the step created while `main`
+advanced in flight is removed before the job fails. The build checkout keeps no
+token or deploy key in its Git configuration, and only the signing step
+receives the signing secrets.
 
 A human tag push does **not** start the workflow. Do not `git push` Official
 Release tags. A new dispatch for an existing version fails; retry the original
@@ -305,6 +310,13 @@ The retry takes the version commit from `main`:
   identity, so the same source produces the same commit.
 - If `main` points at the exact expected version commit, the retry reuses it.
 - Any other `main` stops the retry.
+
+Publication checks `main` before it looks for the tag, so a retry fails without
+publishing when `main` has moved past the version commit, whether or not the
+tag exists yet. A tag the step created while a concurrent push advanced `main`
+in flight is removed before the step fails. Only an advance that lands after
+this step's check, while the run is already publishing, is a normal later merge
+and does not stop the run.
 
 When the workflow artifact exists, the retry restores those exact signed bytes
 and skips tests, signing, and the upload. Their evidence must name the version

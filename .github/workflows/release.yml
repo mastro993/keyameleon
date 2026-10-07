@@ -298,6 +298,7 @@ jobs:
           COMMIT: ${{ steps.bump.outputs.commit }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           PUSHED: ${{ steps.bump.outputs.pushed }}
+          SOURCE_SHA: ${{ github.sha }}
           TAG: ${{ needs.verify.outputs.tag }}
           VERSION: ${{ needs.verify.outputs.version }}
         run: |
@@ -305,6 +306,22 @@ jobs:
           git fetch --no-tags "${GITHUB_WORKSPACE}" HEAD
           if [[ "$(git rev-parse FETCH_HEAD)" != "${COMMIT}" ]]; then
             echo "workspace HEAD is not version commit ${COMMIT}" >&2
+            exit 1
+          fi
+
+          # A stale main stops the publication before any ref or asset exists.
+          # The atomic push below rejects a main that advanced before it was
+          # sent; a main that advanced after the ref advertisement, when git
+          # may send only the tag, is caught by the post-push read.
+          git fetch --no-tags origin "refs/heads/${DEFAULT_BRANCH}"
+          remote_main="$(git rev-parse FETCH_HEAD)"
+          if [[ "${PUSHED}" == "true" ]]; then
+            expected_main="${COMMIT}"
+          else
+            expected_main="${SOURCE_SHA}"
+          fi
+          if [[ "${remote_main}" != "${expected_main}" && "${remote_main}" != "${COMMIT}" ]]; then
+            echo "main moved to ${remote_main} before the release push; dispatch again from current main" >&2
             exit 1
           fi
 
@@ -322,11 +339,25 @@ jobs:
             push_tag=true
           fi
 
-          if [[ "${PUSHED}" != "true" ]]; then
-            git push origin "${COMMIT}:refs/heads/${DEFAULT_BRANCH}"
-          fi
           if [[ "${push_tag}" == "true" ]]; then
-            git push origin "refs/tags/${TAG}"
+            git push --atomic origin "${COMMIT}:refs/heads/${DEFAULT_BRANCH}" "refs/tags/${TAG}"
+            # The atomic push sends the main update with the tag, so a main that
+            # advanced before the push rejects both. A concurrent push can still
+            # advance main after the ref advertisement, when git may send only
+            # the tag; re-read main and remove the tag this step created when
+            # main no longer points at the version commit.
+            git fetch --no-tags origin "refs/heads/${DEFAULT_BRANCH}"
+            published_main="$(git rev-parse FETCH_HEAD)"
+            if [[ "${published_main}" != "${COMMIT}" ]]; then
+              git fetch --no-tags origin "+refs/tags/${TAG}:refs/tags/${TAG}"
+              if [[ "$(git rev-parse "refs/tags/${TAG}^{commit}")" == "${COMMIT}" ]]; then
+                git push origin ":refs/tags/${TAG}"
+              fi
+              echo "main moved to ${published_main} while pushing the release tag" >&2
+              exit 1
+            fi
+          elif [[ "${PUSHED}" != "true" && "${remote_main}" != "${COMMIT}" ]]; then
+            git push origin "${COMMIT}:refs/heads/${DEFAULT_BRANCH}"
           fi
 
       - name: Publish and verify downloadable DMG

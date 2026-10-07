@@ -7,7 +7,11 @@ then commits the updated marketing version on the runner, tests it, and
 produces and saves the signed artifacts. Only after that does it push the
 commit to `main` and create the annotated `vMAJOR.MINOR.PATCH` tag on it. A
 human tag push does not publish, so a pushed tag cannot skip environment
-approval or the release tests.
+approval or the release tests. The version commit and the tag reach `main` in
+one atomic push. The step checks `main` before it looks for the tag and re-reads
+`main` after the push: a `main` that has already left the version commit stops
+the release before the tag or any asset exists, and an advance that lands after
+the step's check, while the run is already publishing, is a normal later merge.
 
 GitHub asks required reviewers to approve each job that references a protected
 environment. Separate protected jobs for the version commit, the artifacts, and

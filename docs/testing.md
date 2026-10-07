@@ -120,7 +120,10 @@ and do not edit the generated files by hand. `Tests/Scripts/test_release_workflo
 runs the Official Release version-commit step with XcodeGen on the files in the
 Git index. The test fails when that step would change any file other than
 `project.yml` and `Keyameleon.xcodeproj/project.pbxproj`, such as a hand-edited
-scheme.
+scheme. The same file runs the `Push version commit and tag` step against a
+temporary bare remote. Those tests fail when a `main` that advanced past the
+version commit still receives a tag, including an advance injected during the
+push itself.
 
 Keep these rules as hard failures:
 

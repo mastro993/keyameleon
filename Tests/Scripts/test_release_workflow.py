@@ -450,7 +450,8 @@ class PublishVersionCommitTests(unittest.TestCase):
             before(publisher)
         return run_step(
             "Push version commit and tag", publisher, COMMIT=commit or self.commit, DEFAULT_BRANCH="main",
-            GITHUB_WORKSPACE=str(self.workspace), PUSHED=pushed, TAG="v1.2.3", VERSION="1.2.3",
+            GITHUB_WORKSPACE=str(self.workspace), PUSHED=pushed, SOURCE_SHA=self.source, TAG="v1.2.3",
+            VERSION="1.2.3",
         )
 
     def remote_refs(self) -> str:
@@ -524,20 +525,29 @@ class PublishVersionCommitTests(unittest.TestCase):
 
         self.assertNotEqual(rejected.returncode, 0, rejected.stdout)
         self.assertEqual(self.remote_main(), advanced)
-        self.assertEqual(self.remote_tags(), "")
+        self.assertNotIn("refs/tags/v1.2.3", self.remote_tags())
         self.assertEqual(self.remote_refs(), refs)
 
-    def test_main_advance_between_validation_and_push_rejects_the_tag(self) -> None:
-        # The step reads remote main before it prepares the tag. This hook lets a
-        # concurrent push advance main after that read and before the tag push,
-        # which is where a separate tag push would publish a stale tag.
-        git(self.workspace, "push", "-q", "origin", f"{self.commit}:refs/heads/main")
-        editor = checkout(self.origin, self.commit, self.directory / "editor-race")
+    def test_retry_with_existing_tag_rejects_main_advanced_past_the_version_commit(self) -> None:
+        published = self.publish()
+        self.assertEqual(published.returncode, 0, published.stderr)
+        advanced = self.advance_main()
+        refs = self.remote_refs()
+
+        rejected = self.publish(pushed="true")
+
+        self.assertNotEqual(rejected.returncode, 0, rejected.stdout)
+        self.assertIn("before the release push", rejected.stderr)
+        self.assertEqual(self.remote_main(), advanced)
+        self.assertEqual(git(self.origin, "rev-parse", "v1.2.3^{commit}"), self.commit)
+        self.assertEqual(self.remote_refs(), refs)
+
+    def hook_advancing_main(self, parent: str, name: str) -> tuple[Callable[[Path], None], str]:
+        editor = checkout(self.origin, parent, self.directory / name)
         (editor / "project.yml").write_text("unrelated\n", encoding="utf-8")
         git(editor, "commit", "-qam", "fix: unrelated change")
-        advanced = git(editor, "rev-parse", "HEAD")
 
-        def advance_before_send(publisher: Path) -> None:
+        def install(publisher: Path) -> None:
             hook = publisher / ".git" / "hooks" / "pre-push"
             hook.write_text(
                 "#!/usr/bin/env bash\nset -euo pipefail\n"
@@ -546,11 +556,31 @@ class PublishVersionCommitTests(unittest.TestCase):
             )
             hook.chmod(0o755)
 
+        return install, git(editor, "rev-parse", "HEAD")
+
+    def test_main_advance_between_validation_and_push_rejects_the_tag(self) -> None:
+        # The step reads remote main before it prepares the tag. This hook lets a
+        # concurrent push advance main after that read and before the tag push,
+        # which is where a separate tag push would publish a stale tag.
+        git(self.workspace, "push", "-q", "origin", f"{self.commit}:refs/heads/main")
+        advance_before_send, advanced = self.hook_advancing_main(self.commit, "editor-race")
+
         rejected = self.publish(pushed="true", before=advance_before_send)
 
         self.assertNotEqual(rejected.returncode, 0, rejected.stdout)
+        self.assertIn("while pushing the release tag", rejected.stderr)
         self.assertEqual(self.remote_main(), advanced)
-        self.assertEqual(self.remote_tags(), "")
+        self.assertNotIn("refs/tags/v1.2.3", self.remote_tags())
+
+    def test_fresh_push_rejects_main_advanced_while_pushing_the_tag(self) -> None:
+        advance_before_send, advanced = self.hook_advancing_main(self.source, "editor-fresh-race")
+
+        rejected = self.publish(before=advance_before_send)
+
+        self.assertNotEqual(rejected.returncode, 0, rejected.stdout)
+        self.assertIn("atomic transaction failed", rejected.stderr)
+        self.assertEqual(self.remote_main(), advanced)
+        self.assertNotIn("refs/tags/v1.2.3", self.remote_tags())
 
 
 if __name__ == "__main__":

@@ -14,8 +14,21 @@ approval of three protected jobs.
   `./Scripts/run.sh test` on the version commit before signing.
   `Scripts/wait-for-ci.sh` is deleted.
 - The version commit stays on the runner until the signed artifacts are saved.
-  Then `release` pushes it to `main` and pushes the annotated tag. A failed
-  test or signing step changes nothing on GitHub.
+  Then `release` pushes it to `main` with the annotated tag in one atomic push,
+  requires `main` to still point at the version commit, and re-reads `main`
+  after the push. A failed test or signing step changes nothing on GitHub.
+- Publication fails closed when `main` advances. The pre-push read runs before
+  the tag lookup, so a retry stops when `main` has moved past the version commit
+  whether or not the tag exists yet. The atomic push carries the version commit
+  and the tag together, so a `main` that advanced before the push rejects both.
+  When a concurrent push advances `main` after the ref advertisement, when git
+  may send only the tag, the step removes the tag it just created and fails
+  before any Release, asset, or feed step. The pre-push read is an earlier,
+  clearer failure; the atomic push and the post-push read are the guard. `main`
+  may still advance after the publication push, which is a normal later merge
+  because the tag already names the version commit. The tests exercise the push
+  against a local bare remote, not the live repository ruleset; a rejected
+  atomic push fails closed.
 - The version commit uses the dispatch commit's committer date and the
   `github-actions[bot]` identity. A retry before the push recreates the commit
   that the saved evidence names.
