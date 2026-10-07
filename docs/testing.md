@@ -33,7 +33,7 @@ Install SwiftLint **0.65.1** from its
 [official release](https://github.com/realm/SwiftLint/releases/tag/0.65.1).
 The portable macOS archive has SHA-256
 `c1e429b0599cf1b516f369a2d9ec04eaf0e436f3c12b637df8851fa52ff694d0`.
-CI and the Official Release version-commit job download that archive and verify
+CI and the Official Release job download that archive and verify
 its checksum before running the test command.
 
 Run the source check without an Xcode build:
@@ -114,6 +114,13 @@ requires `Required CI gate` from GitHub Actions for pull-request merges. Do not
 require the conditional `Build and test` job: skipped jobs can satisfy a required
 check even when the aggregate gate fails. Repository administrators retain the
 emergency override.
+
+XcodeGen generates `Keyameleon.xcodeproj` from `project.yml`. Commit its output
+and do not edit the generated files by hand. `Tests/Scripts/test_release_workflow.py`
+runs the Official Release version-commit step with XcodeGen on the files in the
+Git index. The test fails when that step would change any file other than
+`project.yml` and `Keyameleon.xcodeproj/project.pbxproj`, such as a hand-edited
+scheme.
 
 Keep these rules as hard failures:
 

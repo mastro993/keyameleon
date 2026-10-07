@@ -1,5 +1,20 @@
 # Breadcrumbs
 
+## 2026-10-07 — Release bump rejected the committed Xcode scheme
+
+- Run 37526360772 on `17cc16d`: `verify` passed, then `bump` failed with
+  `unexpected release-bump files:` and listed `project.pbxproj`,
+  `Keyameleon.xcscheme`, and `project.yml`. `produce` then polled `main` for
+  about 30 minutes and `publish` polled artifacts for about 90 minutes.
+- Cause: #157 committed a hand-edited scheme (scheme version 1.3 and
+  `Keyameleon (Dev).app` buildable names). XcodeGen 2.45.4 and 2.46.0 both
+  regenerate the scheme from before #157, so every release bump changed it.
+- Fix: commit the XcodeGen scheme. `Tests/Scripts/test_release_workflow.py`
+  runs the release version-commit step with XcodeGen on the indexed project and
+  fails when it changes anything besides `project.yml` and `project.pbxproj`.
+- The workflow now runs every protected stage in one job without polling
+  (choices 2026-10-07).
+
 ## 2026-10-06 — Built-in keyboard stays first in shared lists
 
 - Guided setup and Settings promote a late-discovered built-in Physical Keyboard

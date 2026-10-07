@@ -1,5 +1,31 @@
 # Choices
 
+## 2026-10-07 — Official Release runs in one protected job
+
+The Release workflow has two jobs. `verify` checks the dispatch from `main` and
+the target version without a protected environment. `release` needs `verify`
+and runs every protected stage as an ordered step after one approval. This
+supersedes the CI wait in the 2026-08-14 and 2026-08-16 entries and the batch
+approval of three protected jobs.
+
+### Defaults
+
+- `verify` does not wait for **Required CI gate**. `release` runs
+  `./Scripts/run.sh test` on the version commit before signing.
+  `Scripts/wait-for-ci.sh` is deleted.
+- The version commit stays on the runner until the signed artifacts are saved.
+  Then `release` pushes it to `main` and pushes the annotated tag. A failed
+  test or signing step changes nothing on GitHub.
+- The version commit uses the dispatch commit's committer date and the
+  `github-actions[bot]` identity. A retry before the push recreates the commit
+  that the saved evidence names.
+- The deploy key arrives with a second checkout of the dispatch commit after
+  the artifact upload. Publication scripts run from that checkout. Only the
+  signing step receives the signing secrets.
+- No step polls for another job. The only retry loop waits for GitHub Pages to
+  serve the published feed.
+- See ADR 0004.
+
 ## 2026-10-06 — Menu keyboard pills are single-line with a locale badge
 
 The menu panel's keyboard pills are one 34 pt line: connection mark, the

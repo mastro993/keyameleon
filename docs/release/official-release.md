@@ -57,46 +57,42 @@ python3 Scripts/bundle-licenses.py \
 
 ## Start an Official Release
 
-1. Ensure the intended commit is on `main` and CI is green for that commit.
+1. Ensure the intended commit is on `main`.
 2. Run **Actions → Release → Run workflow** on `main`.
 3. Select **release type**: `patch`, `minor`, or `major`. From `v0.2.3`, these
    produce `0.2.4`, `0.3.0`, and `1.0.0` respectively.
-4. Job `verify` checks current default branch, calculates from the latest
-   Official Release tag, rejects an existing target tag or Release, and waits
-   for successful CI on the selected commit.
-5. Wait until `bump`, `produce`, and `publish` are all pending review for
-   `official-release`. Select that environment and approve the pending jobs
-   together. They all depend on `verify`, so none waits for another job before
-   requesting approval. Approving before all three jobs are pending can
-   require another approval. Approval does not carry over to jobs that become
-   pending later.
-6. `bump` updates `MARKETING_VERSION`, regenerates the Xcode project, commits
-   `chore(release): X.Y.Z`, and pushes it to `main`. The version commit reaches
-   `main` before producer tests run. If those tests fail, the bump remains on
-   `main`, but no tag, Release, or feed is published.
-7. `produce` waits for that exact bump, then tests, builds, signs, notarizes,
-   staples, and verifies the Sparkle signature on a fresh macOS runner. Its
-   token is read-only and its checkout has no deploy key. It saves the DMG,
-   `appcast.xml`, and `release-evidence.json` as one immutable workflow artifact.
-   A transient ZIP may be used for app notarization only. It is not retained.
-8. `publish` waits for the same run's artifact on a fresh Ubuntu runner. Its
-   scripts come from the dispatch commit, not the producer checkout. It checks
-   the evidence against the pushed bump, creates the annotated tag at that
-   commit, publishes the GitHub Release, and verifies the public DMG download.
-   It then publishes the appcast and versioned evidence to GitHub Pages and
-   verifies the served feed, evidence, and enclosure.
+4. Job `verify` checks the current default branch, calculates from the latest
+   Official Release tag, and rejects an existing target tag or Release. It uses
+   no protected environment and does not wait for CI.
+5. Job `release` needs `verify` and is the only job in `official-release`.
+   Approve it once when it is pending review. GitHub asks reviewers to approve
+   each job that references the environment, so every protected stage runs as
+   a step of this one job.
+6. `release` updates `MARKETING_VERSION`, regenerates the Xcode project, and
+   commits `chore(release): X.Y.Z` on the runner. The commit may change only
+   `project.yml` and `Keyameleon.xcodeproj/project.pbxproj`. The job runs
+   `./Scripts/run.sh test` on that commit and requires a clean tree. Then it
+   builds, signs, notarizes, staples, and verifies the Sparkle signature. It
+   saves the DMG, `appcast.xml`, and `release-evidence.json` as one immutable
+   workflow artifact. A transient ZIP may be used for app notarization only. It
+   is not retained.
+7. After the artifact upload, `release` checks out the dispatch commit again
+   with `RELEASE_DEPLOY_KEY`. Its publication scripts come from that fresh
+   checkout, not the build checkout. It pushes the version commit to `main`,
+   then creates and pushes the annotated tag on that commit. It publishes the
+   GitHub Release and verifies the public DMG download. It then publishes the
+   appcast and versioned evidence to GitHub Pages and verifies the served feed,
+   evidence, and enclosure.
 
-The producer polls `main` up to 180 times at 10-second intervals, a 30-minute
-wait. The publisher polls artifacts up to 180 times at 30-second intervals, a
-90-minute wait. API requests can extend elapsed runtime. Missing checkpoints
-wait until those limits. API errors, unexpected `main`, and ambiguous or
-expired artifacts fail immediately. Failure before artifact upload leaves the
-publisher waiting until its limit without publishing anything.
+A failed step stops every later step of the job, and a failed `verify` skips
+`release`. A failure before the publication push leaves `main`, tags, Releases,
+and the feed unchanged. The build checkout keeps no token or deploy key in its
+Git configuration, and only the signing step receives the signing secrets.
 
 A human tag push does **not** start the workflow. Do not `git push` Official
 Release tags. A new dispatch for an existing version fails; retry the original
-run as described below. If `main` advances during verification, the run fails
-before pushing and must be dispatched again.
+run as described below. If `main` advances before the publication push, the
+run fails without pushing and must be dispatched again.
 
 Release notes use categorized change sections, a separator, and a `Changelog`
 section with the full comparison and linked commit list. The notes are
@@ -169,7 +165,7 @@ signed updates for existing Official Release binaries.
 Already created. Settings → Environments → `official-release`:
 
 1. **Deployment branches and tags** → Selected branches → `main` only.
-   The protected jobs run on `workflow_dispatch` from `main`.
+   The protected `release` job runs on `workflow_dispatch` from `main`.
 2. **Required reviewers** → `mastro993` (lead maintainer). Allow self-review so
    the sole maintainer can approve their own dispatch. Disable administrator
    bypass so approval cannot be skipped.
@@ -265,15 +261,19 @@ The release workflow needs one narrow exception to the pull-request-only rule:
 
 GitHub does not allow its first-party Actions app as a bypass actor on this
 personal repository. The deploy key is repository-scoped and available only to
-the protected release environment. The `bump` and `publish` jobs use it for
-normal pushes. The `produce` job runs the full test suite without the deploy
-key after the version push. No job force-pushes.
+the protected release environment. The `release` job adds it to the runner only
+in its publisher checkout, after tests, signing, and the artifact upload. It
+uses the key for normal pushes of the version commit, the tag, and `gh-pages`.
+The full test suite runs earlier in the build checkout, without the key. The
+workflow never force-pushes.
 
-### 7. Check CI before dispatch
+### 7. Tests before signing
 
-`verify` uses a 45-minute polling deadline for **Required CI gate** on the
-selected commit. API requests and the final 20-second wait can extend elapsed
-runtime. If CI fails, `verify` fails. If CI never starts, `verify` times out.
+`verify` does not wait for **Required CI gate**. The `release` job runs
+`./Scripts/run.sh test` on the version commit before it signs anything. That
+command runs SwiftLint, the safety audit, the script tests, and the product
+tests. Pull requests still need **Required CI gate** before they merge into
+`main`.
 
 ### 8. Negative checks (optional, no tag created)
 
@@ -283,7 +283,6 @@ From **Actions → Release → Run workflow**:
 | --- | --- | --- |
 | feature branch | `patch` | `verify` fails: not default branch |
 | stale `main` selection | `patch` | `verify` fails because remote `main` advanced |
-| `main` while CI is running | `patch` | `verify` waits; continues when **Required CI gate** succeeds |
 | `main` when target tag exists | any | `verify` fails without changing `main` |
 
 ### 9. Publish an Official Release
@@ -293,15 +292,28 @@ Follow [Start an Official Release](#start-an-official-release).
 There is no dry-run dispatch. `SKIP_NOTARIZE=1` local builds are not an
 Official Release.
 
-If a release job fails, fix the cause and re-run **failed jobs** on the same run
-(`gh run rerun RUN_ID --failed`), not a new dispatch or all jobs. A retry may
-require a new deployment approval. It reuses only the exact expected bump
-commit while that commit remains the tip of `main`. When the workflow artifact
-exists, the retry restores and validates those exact signed bytes, skipping
-production and re-upload. An unreadable, ambiguous, expired, or invalid
-artifact stops the retry. Missing artifacts permit rebuilding only before a
-tag or GitHub Release exists; after publication begins, investigate manually
-rather than regenerate signed bytes.
+If the `release` job fails, fix the cause and re-run **failed jobs** on the same
+run (`gh run rerun RUN_ID --failed`), not a new dispatch or all jobs. The retry
+needs a new deployment approval. A fix that changes code advances `main`, so
+dispatch again instead. A failed run's version commit reaches `main` only at
+the publication push.
+
+The retry takes the version commit from `main`:
+
+- If `main` still points at the dispatch commit, the retry creates the version
+  commit again. The commit uses the dispatch commit's date and the bot
+  identity, so the same source produces the same commit.
+- If `main` points at the exact expected version commit, the retry reuses it.
+- Any other `main` stops the retry.
+
+When the workflow artifact exists, the retry restores those exact signed bytes
+and skips tests, signing, and the upload. Their evidence must name the version
+commit and tag. An unreadable, ambiguous, expired, or mismatched artifact stops
+the retry. If XcodeGen output changed since the first attempt, the new version
+commit differs from the saved evidence and the retry stops; dispatch again.
+Missing artifacts permit rebuilding only before a tag or GitHub Release exists;
+after publication begins, investigate manually rather than regenerate signed
+bytes.
 
 Publication reuses a matching tag and asset, or uploads a missing asset from
 that workflow artifact. If an upload left an empty `starter` asset, it deletes
@@ -376,8 +388,8 @@ the workflows exist but the “protected” acceptance criteria are not enforced
 - Required reviewer: `mastro993`; self-review allowed; administrator bypass
   disabled. These settings require an explicit approval while allowing the
   sole maintainer to dispatch an Official Release.
-- Deployment branches: default branch only (`main`). The protected jobs run
-  from `workflow_dispatch` on `main`
+- Deployment branches: default branch only (`main`). The protected `release`
+  job runs from `workflow_dispatch` on `main`
 - Secrets listed below exist only as environment or repository secrets — never in git
 
 The repository is public, so GitHub supports required environment reviewers.
@@ -386,8 +398,8 @@ and confirm `required_reviewers` lists `mastro993`, `prevent_self_review` is
 `false`, and `can_admins_bypass` is `false`. Check
 `gh api repos/mastro993/Keyameleon/environments/official-release/deployment-branch-policies`
 and confirm `main` is the only branch. To check the gate without changing
-`main`, dispatch Release, confirm all three protected jobs wait for review, and cancel without
-approving it. Approving this gate can push a real version commit.
+`main`, dispatch Release, confirm the `Official Release` job waits for review, and cancel without
+approving it. Approving this gate starts a real Official Release.
 
 ### GitHub Pages (Settings → Pages)
 
@@ -397,7 +409,7 @@ approving it. Approving this gate can push a real version commit.
 
 The release workflow writes the latest signed `appcast.xml` and retains each
 version's `releases/<tag>/release-evidence.json` on that branch. It uses the
-`RELEASE_DEPLOY_KEY` from the protected `publish` checkout for a normal push.
+`RELEASE_DEPLOY_KEY` from the `release` job's publisher checkout for a normal push.
 GitHub Pages branch deployment does not start from a `GITHUB_TOKEN` push,
 as described in [GitHub's publishing-source documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 Older evidence files are preserved; a retry cannot overwrite changed bytes.
