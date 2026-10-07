@@ -105,8 +105,8 @@ kill_leftover_derived_data_keyameleon() {
     local pid command
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
         case "${command}" in
-            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev)"|\
-            "${DERIVED_DATA_PATH}/"*/"Keyameleon (Dev).app/Contents/MacOS/Keyameleon (Dev) "*)
+            "${PRODUCTS_PATH}/Keyameleon.app/Contents/MacOS/Keyameleon"|\
+            "${PRODUCTS_PATH}/Keyameleon.app/Contents/MacOS/Keyameleon "*)
                 kill "${pid}" 2>/dev/null || true
                 ;;
         esac
@@ -181,33 +181,45 @@ build_development_app() {
         CODE_SIGNING_REQUIRED=YES
 }
 
-development_keyameleon_pids() {
+# Prints one "PID<TAB>bundle path" line for each running Keyameleon of this user.
+running_keyameleon_apps() {
     /usr/bin/osascript -l JavaScript -e \
-        'ObjC.import("AppKit"); $.NSRunningApplication.runningApplicationsWithBundleIdentifier("dev.fedemas.keyameleon.development").js.map(app => app.processIdentifier).join("\n")'
+        'ObjC.import("AppKit"); $.NSRunningApplication.runningApplicationsWithBundleIdentifier("dev.fedemas.keyameleon").js.map(app => app.processIdentifier + "\t" + app.bundleURL.path.js).join("\n")'
 }
 
+# Replaces only this checkout's Debug app. Any other running Keyameleon, such as an
+# installed release, holds the single-instance lock and is never stopped here.
 open_development_app() {
-    local app="${PRODUCTS_PATH}/Keyameleon (Dev).app"
-    local executable="${app}/Contents/MacOS/Keyameleon (Dev)"
-    local pid attempt pids
+    local app="${PRODUCTS_PATH}/Keyameleon.app"
+    local executable="${app}/Contents/MacOS/Keyameleon"
+    local pid bundle attempt running
+    local -a pids
 
-    pids="$(development_keyameleon_pids)" || return 1
-    while read -r pid; do
+    running="$(running_keyameleon_apps)" || return 1
+    while IFS=$'\t' read -r pid bundle; do
         [[ -n "${pid}" ]] || continue
-        if ! kill "${pid}" 2>/dev/null && [[ -n "$(/bin/ps -p "${pid}" -o pid=)" ]]; then
-            print -u2 "Could not stop Development Build PID ${pid}."
+        if [[ "${bundle}" != "${app}" ]]; then
+            print -u2 "Keyameleon is already running from ${bundle}. Quit it, then try again."
             return 1
         fi
-    done <<< "${pids}"
+        pids+=("${pid}")
+    done <<< "${running}"
+
+    for pid in "${pids[@]}"; do
+        if ! kill "${pid}" 2>/dev/null && [[ -n "$(/bin/ps -p "${pid}" -o pid=)" ]]; then
+            print -u2 "Could not stop the Debug app PID ${pid}."
+            return 1
+        fi
+    done
 
     for (( attempt = 0; attempt < 50; attempt++ )); do
-        pids="$(development_keyameleon_pids)" || return 1
-        [[ -z "${pids}" ]] && break
+        running="$(running_keyameleon_apps)" || return 1
+        [[ -z "${running}" ]] && break
         sleep 0.2
     done
-    pids="$(development_keyameleon_pids)" || return 1
-    if [[ -n "${pids}" ]]; then
-        print -u2 'Existing Development Build did not exit.'
+    running="$(running_keyameleon_apps)" || return 1
+    if [[ -n "${running}" ]]; then
+        print -u2 'A Keyameleon process is still running.'
         return 1
     fi
 
@@ -219,7 +231,7 @@ open_development_app() {
         fi
         sleep 0.2
     done
-    print -u2 "Development Build did not start from ${executable}."
+    print -u2 "The Debug app did not start from ${executable}."
     return 1
 }
 

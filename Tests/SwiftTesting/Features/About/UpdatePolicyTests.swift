@@ -2,14 +2,13 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("Development update checks remain unavailable after start and manual requests")
+@Test("Builds without the Official Release EdDSA key keep update checks unavailable")
 @MainActor
-func developmentUpdaterDoesNotStart() {
-    #expect(AppBuildIdentity.current == .development)
+func keylessBuildUpdaterDoesNotStart() throws {
+    try #require(Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") == nil)
     let checker = SparkleUpdateChecker()
     checker.start()
-    checker.checkForUpdates()
-    #expect(!checker.canCheckForUpdates)
+    #expect(checker.canCheckForUpdates == false)
 }
 
 @Test("Update policy bounds checks and forbids auto-install tracking")

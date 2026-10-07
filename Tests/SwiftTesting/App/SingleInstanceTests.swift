@@ -2,6 +2,11 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
+@Test("Every build locks the shipped device")
+func defaultLockIsShippedDevice() {
+    #expect(SingleInstanceLock.defaultLockURL.path == "/dev/null")
+}
+
 @Test("Single-instance ownership rejects a second holder")
 func singleInstanceOwnershipRejectsSecondHolder() throws {
     let path = FileManager.default.temporaryDirectory

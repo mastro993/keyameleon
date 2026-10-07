@@ -19,7 +19,7 @@ extension ApplicationDelegate {
         button.imagePosition = .imageOnly
         button.setAccessibilityElement(true)
         button.setAccessibilityRole(.button)
-        button.setAccessibilityLabel(AppIdentity.current.name)
+        button.setAccessibilityLabel("Keyameleon")
         applyMenuBarIcon(to: button)
         return item
     }
@@ -101,7 +101,7 @@ extension ApplicationDelegate {
             button.toolTip = toolTip
         }
 
-        button.setAccessibilityLabel(AppIdentity.current.name)
+        button.setAccessibilityLabel("Keyameleon")
     }
 
     /// One status image per state, loaded once. `menu_icon.pdf` is read on the first request only.
@@ -113,7 +113,7 @@ extension ApplicationDelegate {
         if let url = Bundle.main.url(forResource: "menu_icon", withExtension: "pdf"),
            let customImage = NSImage(contentsOf: url) {
             customImage.size = NSSize(width: 18, height: 18)
-            customImage.accessibilityDescription = AppIdentity.current.name
+            customImage.accessibilityDescription = "Keyameleon"
             customImage.isTemplate = true
             menuBarStatusImage = customImage
             return customImage
@@ -125,10 +125,10 @@ extension ApplicationDelegate {
         }
 
         let fallbackImage =
-            NSImage(systemSymbolName: symbolName, accessibilityDescription: AppIdentity.current.name)
+            NSImage(systemSymbolName: symbolName, accessibilityDescription: "Keyameleon")
             ?? NSImage(
                 systemSymbolName: systemSymbolName(for: .ready),
-                accessibilityDescription: AppIdentity.current.name
+                accessibilityDescription: "Keyameleon"
             )
         fallbackImage?.isTemplate = true
         if let fallbackImage {
@@ -156,15 +156,15 @@ extension ApplicationDelegate {
     func menuBarIconAccessibilityDescription(for mark: MenuBarIconMark) -> String {
         switch mark {
         case .ready:
-            AppIdentity.current.name
+            "Keyameleon"
         case .permissionRequired:
-            "\(AppIdentity.current.name) — Permission Required"
+            "Keyameleon — Permission Required"
         case .temporarilyUnavailable:
-            "\(AppIdentity.current.name) — Temporarily Unavailable"
+            "Keyameleon — Temporarily Unavailable"
         case .paused:
-            "\(AppIdentity.current.name) — Paused"
+            "Keyameleon — Paused"
         case .warning:
-            "\(AppIdentity.current.name) — Action needed"
+            "Keyameleon — Action needed"
         }
     }
 }

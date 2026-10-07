@@ -9,7 +9,9 @@ Run the complete local check with:
 This command runs the safety audit, SwiftLint, and the focused automated product
 tests on macOS 26. SwiftLint runs before the Xcode project generation and build.
 The command runs Swift Testing and XCTest bundles serially, then kills
-leftover Keyameleon (Dev) processes whose executable is under `./build`. Tests should
+leftover Keyameleon processes whose executable is the Debug app under `./build`.
+Hosted tests launch Keyameleon itself, so quit any running Keyameleon first. A
+second instance exits under the single-instance lock. Tests should
 protect one distinct user-visible outcome or one critical safety rule. Prefer
 domain and model seams; this repository has no automated UI-test target.
 
@@ -22,7 +24,7 @@ the first installed Apple Development certificate fingerprint. Without a
 certificate, generation clears any old local selection and succeeds for CI,
 but normal Debug builds still fail. Official Release signing is unchanged. Do not use
 the ad hoc test product to verify persistent Input Monitoring grants; rebuild
-with Xcode Run or `run.sh open` first. Grant access to that development app in
+with Xcode Run or `run.sh open` first. Grant access to that Debug build in
 System Settings, quit and reopen it, then rebuild and run again. Confirm that
 the permission remains granted and neither permission prompt returns. A prior
 ad hoc grant may need to be replaced once for the newly signed app.
@@ -79,16 +81,18 @@ Hosted app startup and Xcode previews use in-memory SwiftData storage. Store
 relocation and persistence failure tests use disposable directories and must
 never migrate or modify the user's real data.
 
-Debug builds use the `dev.fedemas.keyameleon.development` defaults domain, the
-`Keyameleon (Dev)` SwiftData and logs folders, and a separate keychain service.
-The development store starts empty and never imports production data. Existing
-development preferences remain in the same defaults domain. Production keeps
-its original store and migration. Debug runs must not start Sparkle. To check
-the two live apps, run a stable-signed development build with `./Scripts/run.sh
-open` and launch the production app separately. Confirm that both stay running,
-their menu headings and Input Monitoring entries have distinct names, and a
-second launch of either flavor exits. Input Monitoring grants are separate and
-must be checked in System Settings; store isolation does not grant access.
+Debug and Release builds are one app. Both use bundle ID `dev.fedemas.keyameleon`,
+the name `Keyameleon`, its defaults domain, the `Keyameleon` SwiftData and logs
+folders, and the `dev.fedemas.keyameleon.installation-integrity` keychain item.
+A Debug build on a Mac with an installed release reads and changes that
+release's settings and saved Physical Keyboards. Only one of them runs at a
+time. `./Scripts/run.sh open` replaces only this checkout's Debug app. It stops
+with an error while another Keyameleon runs and never quits that app. Builds
+without the Official Release `SUPublicEDKey`, including Debug and CI builds,
+never start Sparkle. Data left by the former `Keyameleon (Dev)` app stays in its
+own folders, defaults domain, and keychain item; Keyameleon neither imports nor
+deletes it. The release and Debug builds have different signatures. After
+switching between them, check Input Monitoring in System Settings.
 
 Saved Physical Keyboard changes are tested through the
 `SavedPhysicalKeyboardChanges` interface with the real SwiftData adapters. The

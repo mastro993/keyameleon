@@ -7,8 +7,7 @@ Inspected 2026-08-17. Native macOS 26 LSUIElement menu-bar app (Swift 6 + AppKit
 - Audit: `./Scripts/run.sh audit`
 - Generate after `project.yml` edits: `./Scripts/run.sh generate`
 - Official Release (not local): `./Scripts/official-release.sh` with `RELEASE_TAG=vX.Y.Z`. `SKIP_NOTARIZE=1` is not Official.
-- Debug bundle id: `dev.fedemas.keyameleon.development`
-- Release bundle id: `dev.fedemas.keyameleon`
+- Bundle id (Debug and Release): `dev.fedemas.keyameleon`
 - Derived data: `./build`
 - Scheme: `Keyameleon` — app + `KeyameleonSwiftTesting` + `KeyameleonXCTest`
 - Single-instance lock (ADR 0002). LSUIElement agent, no Dock. Quit the running instance before relaunch.

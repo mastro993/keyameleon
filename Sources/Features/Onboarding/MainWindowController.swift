@@ -15,7 +15,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = AppIdentity.current.name
+        window.title = "Keyameleon"
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.main-window")
         window.isRestorable = false
         window.isReleasedWhenClosed = false

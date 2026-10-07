@@ -55,18 +55,18 @@ func migrationStepPrefersExistingKeys() {
     )
 }
 
-@Test("Every keychain query uses the selected build's service")
-func keychainQueriesUseSelectedBuildService() {
-    for identity in [AppBuildIdentity.production, .development] {
-        let queries = [
-            InstallationIntegrityKeyQuery.dataProtectionCopy(buildIdentity: identity),
-            InstallationIntegrityKeyQuery.dataProtectionAdd(data: Data([1]), buildIdentity: identity),
-            InstallationIntegrityKeyQuery.dataProtectionDelete(buildIdentity: identity),
-            InstallationIntegrityKeyQuery.legacyCopy(buildIdentity: identity),
-            InstallationIntegrityKeyQuery.legacyDelete(buildIdentity: identity)
-        ]
-        for query in queries {
-            #expect(query[kSecAttrService as String] as? String == identity.integrityKeyService)
-        }
+@Test("Every keychain query targets the shipped installation integrity item")
+func keychainQueriesTargetShippedItem() {
+    let queries = [
+        InstallationIntegrityKeyQuery.dataProtectionCopy(),
+        InstallationIntegrityKeyQuery.dataProtectionAdd(data: Data([0x01])),
+        InstallationIntegrityKeyQuery.dataProtectionDelete(),
+        InstallationIntegrityKeyQuery.legacyCopy(),
+        InstallationIntegrityKeyQuery.legacyDelete()
+    ]
+
+    for query in queries {
+        #expect(query[kSecAttrService as String] as? String == "dev.fedemas.keyameleon.installation-integrity")
+        #expect(query[kSecAttrAccount as String] as? String == "manual-physical-keyboard-designation")
     }
 }

@@ -36,7 +36,9 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
     }
 
     func start() {
-        guard AppBuildIdentity.current.allowsUpdates, !didStart else {
+        // Sparkle would start a signed build without the Official Release EdDSA key and trust
+        // Apple code signing alone. Keyameleon updates only builds that carry the key.
+        guard !didStart, Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") != nil else {
             return
         }
 
@@ -49,8 +51,7 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
             try controller.updater.start()
             didStart = true
         } catch {
-            // Missing EdDSA key or feed is expected before Official Release tooling lands.
-            // Keep the process alive; manual checks stay unavailable until configuration is complete.
+            // An invalid key or feed keeps the process alive; manual checks stay unavailable.
             didStart = false
         }
     }

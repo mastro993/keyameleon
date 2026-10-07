@@ -14,7 +14,7 @@ struct OnboardingSidebar: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 28, height: 28)
-                Text(AppIdentity.current.name)
+                Text("Keyameleon")
                     .font(.title2.weight(.semibold))
             }
             .padding(.top, 52)
