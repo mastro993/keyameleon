@@ -1030,9 +1030,7 @@ One cancellable task checks window placement and the existing IOHID permission p
 
 ## 2026-10-06 — Independent development app
 
-Debug builds are named `Keyameleon (Dev)` and retain bundle ID `dev.fedemas.keyameleon.development`. Production remains `Keyameleon`. Each build owns its own singleton lock, defaults domain, SwiftData store, logs folder, and installation integrity keychain service. The two builds can run together, but a duplicate of the same build exits. Debug uses `/dev/zero`; production keeps `/dev/null`.
-
-The development store starts empty at `~/Library/Application Support/Keyameleon (Dev)/default.store`. It does not read or import the production legacy store. Existing development `UserDefaults.standard` values remain under the same bundle ID. Production paths and migration remain unchanged. Development never starts Sparkle or checks for updates. Input Monitoring permission is a separate macOS grant for each build; this change does not grant it.
+Superseded 2026-10-07. Debug now shares the shipped identity: bundle ID `dev.fedemas.keyameleon`, name `Keyameleon`, the shipped defaults domain, SwiftData store and legacy store migration, logs folder, installation integrity keychain item, and the `/dev/null` lock (ADR 0002). Data from `Keyameleon (Dev)` stays at `~/Library/Application Support/Keyameleon (Dev)/default.store` and its defaults domain, logs folder, and keychain item remain untouched; Keyameleon does not import, overwrite, or delete them. Debug and CI builds never start Sparkle because they lack the Official Release `SUPublicEDKey`. `run.sh open` stops only this checkout's Debug app and refuses to stop another running Keyameleon; `run.sh test` cleanup stops only the Debug app under `./build`.
 
 ## 2026-10-06 Stable Debug signing for Xcode Run
 

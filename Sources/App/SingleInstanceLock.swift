@@ -3,7 +3,9 @@ import Foundation
 
 /// Holds a machine-wide advisory lock for the lifetime of the Keyameleon process.
 final class SingleInstanceLock {
-    static var defaultLockURL: URL { AppBuildIdentity.current.singletonURL }
+    static let defaultLockURL = URL(
+        fileURLWithPath: "/dev/null"
+    )
     static let blockedLaunchExitCode: Int32 = 75
 
     private let fileDescriptor: Int32
@@ -14,7 +16,7 @@ final class SingleInstanceLock {
 
     /// Acquires the machine-wide lock from a stable kernel device inode.
     ///
-    /// The selected kernel device is available to every local user and cannot be replaced by
+    /// `/dev/null` is available to every local user and cannot be replaced by
     /// deleting an app-owned lock file while the process is running.
     static func acquire() -> SingleInstanceLock? {
         let fileDescriptor = open(defaultLockURL.path, O_RDWR | O_CLOEXEC)

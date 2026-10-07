@@ -125,29 +125,26 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
     }
 
     nonisolated static func makeConfiguration(
-        inMemory: Bool = false,
-        buildIdentity: AppBuildIdentity = .current
+        inMemory: Bool = false
     ) -> ModelConfiguration {
         let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
         let legacyConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         guard !inMemory else { return legacyConfiguration }
         let storeURL = legacyConfiguration.url.deletingLastPathComponent()
-            .appending(path: buildIdentity.storageFolderName, directoryHint: .isDirectory)
+            .appending(path: "Keyameleon", directoryHint: .isDirectory)
             .appending(path: legacyConfiguration.url.lastPathComponent)
         return ModelConfiguration(schema: schema, url: storeURL)
     }
 
     static func makeContainer(
-        inMemory: Bool = false,
-        buildIdentity: AppBuildIdentity = .current
+        inMemory: Bool = false
     ) throws -> ModelContainer {
         let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
-        let configuration = makeConfiguration(inMemory: inMemory, buildIdentity: buildIdentity)
+        let configuration = makeConfiguration(inMemory: inMemory)
         if !inMemory {
-            try prepareStore(
+            try PhysicalKeyboardStoreMigration.prepareStore(
                 from: ModelConfiguration(schema: schema).url,
-                to: configuration.url,
-                buildIdentity: buildIdentity
+                to: configuration.url
             )
         }
         return try ModelContainer(
@@ -155,21 +152,6 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
             migrationPlan: PhysicalKeyboardMigrationPlan.self,
             configurations: [configuration]
         )
-    }
-
-    static func prepareStore(
-        from legacyURL: URL,
-        to storeURL: URL,
-        buildIdentity: AppBuildIdentity
-    ) throws {
-        if buildIdentity.importsLegacyStore {
-            try PhysicalKeyboardStoreMigration.prepareStore(from: legacyURL, to: storeURL)
-        } else {
-            try FileManager.default.createDirectory(
-                at: storeURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-        }
     }
 
     func record(forIdentityKey identityKey: String) throws -> SavedPhysicalKeyboardRecord? {

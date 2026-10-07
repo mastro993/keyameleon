@@ -5,8 +5,7 @@ import XCTest
 
 final class ApplicationTests: XCTestCase {
     private var keyameleonBundle: Bundle? {
-        Bundle(identifier: "dev.fedemas.keyameleon.development")
-            ?? Bundle(identifier: "dev.fedemas.keyameleon")
+        Bundle(identifier: "dev.fedemas.keyameleon")
     }
 
     @MainActor
