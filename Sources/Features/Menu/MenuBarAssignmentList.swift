@@ -35,6 +35,7 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         /// `nil` when the Input Source is unavailable or reports no language.
         let assignedLocaleCode: String?
         let connectionMark: ConnectionMark
+        let matchesCurrentInputSource: Bool
         let isDimmed: Bool
         /// `nil` when nothing needs action.
         let warningNote: String?
@@ -53,7 +54,12 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         }
 
         var accessibilityValue: String {
-            [assignedInputSourceName, accessibilityMark, warningNote]
+            [
+                assignedInputSourceName,
+                accessibilityMark,
+                matchesCurrentInputSource ? "Current Input Source" : nil,
+                warningNote
+            ]
                 .compactMap { $0 }
                 .joined(separator: ", ")
         }
@@ -73,7 +79,8 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
     init(
         physicalKeyboards: [PhysicalKeyboard],
-        assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource]
+        assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
+        currentInputSourceIdentifier: String? = nil
     ) {
         let assigned = physicalKeyboards.filter { $0.keyboardAssignment != nil }
         let ordered = PhysicalKeyboardListOrdering.sorted(assigned)
@@ -86,6 +93,9 @@ struct MenuBarAssignmentList: Equatable, Sendable {
                 assignedInputSourceName: savedSource?.name ?? Self.unavailableInputSourceName,
                 assignedLocaleCode: savedSource?.localeCode,
                 connectionMark: Self.connectionMark(for: physicalKeyboard),
+                matchesCurrentInputSource: currentInputSourceIdentifier.map {
+                    physicalKeyboard.keyboardAssignment?.inputSourceIdentifier == $0
+                } ?? false,
                 isDimmed: physicalKeyboard.connectionState == .disconnected,
                 warningNote: isUnavailable ? Self.unavailableNote : nil
             )

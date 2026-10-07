@@ -42,6 +42,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
         assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
+        currentInputSourceIdentifier: String? = nil,
         marketingVersion: String?,
         appName: String = AppIdentity.current.name,
         isSetupComplete: Bool = true,
@@ -59,7 +60,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
         )
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
-            assignedInputSources: assignedInputSources
+            assignedInputSources: assignedInputSources,
+            currentInputSourceIdentifier: currentInputSourceIdentifier
         )
         self.footer = Footer(
             actions: Self.makeActions(

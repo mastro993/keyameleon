@@ -1,5 +1,6 @@
 import Carbon.HIToolbox
 import Foundation
+import Observation
 
 @MainActor
 protocol InputSourceProviding: AnyObject {
@@ -45,12 +46,8 @@ final class NoOpInputSourceSelector: InputSourceSelecting {
     }
 }
 
-/// Shared internal Input Source module.
-///
-/// It owns catalog refresh, current-source observation, exact selection, and
-/// exact readback. Callers receive product values; platform identifiers stay
-/// inside this module and Activity-Triggered Switching.
 @MainActor
+@Observable
 final class InputSourceModule {
     private let provider: any InputSourceProviding
     private let selector: any InputSourceSelecting
