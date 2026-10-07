@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 import textwrap
 import unittest
+from collections.abc import Callable
 from itertools import takewhile
 from pathlib import Path
 
@@ -437,9 +438,16 @@ class PublishVersionCommitTests(unittest.TestCase):
         self.commit = git(self.workspace, "rev-parse", "HEAD")
         self.runs = 0
 
-    def publish(self, commit: str | None = None, pushed: str = "false") -> subprocess.CompletedProcess[str]:
+    def publish(
+        self,
+        commit: str | None = None,
+        pushed: str = "false",
+        before: Callable[[Path], None] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
         self.runs += 1
         publisher = checkout(self.origin, self.source, self.directory / f"publisher-{self.runs}")
+        if before is not None:
+            before(publisher)
         return run_step(
             "Push version commit and tag", publisher, COMMIT=commit or self.commit, DEFAULT_BRANCH="main",
             GITHUB_WORKSPACE=str(self.workspace), PUSHED=pushed, TAG="v1.2.3", VERSION="1.2.3",
@@ -447,6 +455,20 @@ class PublishVersionCommitTests(unittest.TestCase):
 
     def remote_refs(self) -> str:
         return git(self.origin, "for-each-ref", "--format=%(refname) %(objecttype) %(objectname)")
+
+    def remote_main(self) -> str:
+        return git(self.origin, "rev-parse", "main")
+
+    def remote_tags(self) -> str:
+        return git(self.origin, "for-each-ref", "--format=%(refname)", "refs/tags")
+
+    def advance_main(self) -> str:
+        self.runs += 1
+        editor = checkout(self.origin, self.commit, self.directory / f"editor-{self.runs}")
+        (editor / "project.yml").write_text("unrelated\n", encoding="utf-8")
+        git(editor, "commit", "-qam", "fix: unrelated change")
+        git(editor, "push", "-q", "origin", "HEAD:refs/heads/main")
+        return git(editor, "rev-parse", "HEAD")
 
     def test_push_publishes_commit_then_annotated_tag_and_retry_reuses_them(self) -> None:
         published = self.publish()
@@ -492,6 +514,43 @@ class PublishVersionCommitTests(unittest.TestCase):
         rejected = self.publish()
         self.assertNotEqual(rejected.returncode, 0)
         self.assertEqual(self.remote_refs(), refs)
+
+    def test_retry_rejects_tag_when_main_advanced_past_the_version_commit(self) -> None:
+        git(self.workspace, "push", "-q", "origin", f"{self.commit}:refs/heads/main")
+        advanced = self.advance_main()
+        refs = self.remote_refs()
+
+        rejected = self.publish(pushed="true")
+
+        self.assertNotEqual(rejected.returncode, 0, rejected.stdout)
+        self.assertEqual(self.remote_main(), advanced)
+        self.assertEqual(self.remote_tags(), "")
+        self.assertEqual(self.remote_refs(), refs)
+
+    def test_main_advance_between_validation_and_push_rejects_the_tag(self) -> None:
+        # The step reads remote main before it prepares the tag. This hook lets a
+        # concurrent push advance main after that read and before the tag push,
+        # which is where a separate tag push would publish a stale tag.
+        git(self.workspace, "push", "-q", "origin", f"{self.commit}:refs/heads/main")
+        editor = checkout(self.origin, self.commit, self.directory / "editor-race")
+        (editor / "project.yml").write_text("unrelated\n", encoding="utf-8")
+        git(editor, "commit", "-qam", "fix: unrelated change")
+        advanced = git(editor, "rev-parse", "HEAD")
+
+        def advance_before_send(publisher: Path) -> None:
+            hook = publisher / ".git" / "hooks" / "pre-push"
+            hook.write_text(
+                "#!/usr/bin/env bash\nset -euo pipefail\n"
+                f'git -C {editor} push -q {self.origin} HEAD:refs/heads/main\n',
+                encoding="utf-8",
+            )
+            hook.chmod(0o755)
+
+        rejected = self.publish(pushed="true", before=advance_before_send)
+
+        self.assertNotEqual(rejected.returncode, 0, rejected.stdout)
+        self.assertEqual(self.remote_main(), advanced)
+        self.assertEqual(self.remote_tags(), "")
 
 
 if __name__ == "__main__":
