@@ -221,6 +221,60 @@ func menuBarAssignmentPillUsesPhysicalKeyboardNameAndAssignedInputSource() throw
     #expect(desk.assignedLocaleCode == "US")
 }
 
+@Test("Menu follows Active Physical Keyboard when its assigned Input Source is already selected")
+@MainActor
+func menuBarPanelActivatesKeyboardWithCurrentInputSource() throws {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "us")
+    let source = EligibleInputSource(identifier: "us", name: "U.S.", localeCode: "US")
+    let model = SetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [source]),
+        inputSourceSelector: selector
+    )
+    startAndCheck(model)
+    defer { model.activityTriggeredSwitching.stop() }
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 901)))
+    let firstID = try #require(model.physicalKeyboards.first?.id)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(
+        serviceID: 902, identity: "macos.keyboard.second", serialNumber: "keyboard-b"
+    )))
+    let secondID = try #require(model.physicalKeyboards.first { $0.id != firstID }?.id)
+    for keyboard in model.physicalKeyboards {
+        model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: source.identifier)
+    }
+    #expect(model.activePhysicalKeyboardID == nil)
+    #expect(selector.currentInputSourceIdentifier() == source.identifier)
+
+    let discovery = model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery
+    let activities: [(serviceID: UInt64, keyboardID: PhysicalKeyboardRecordID)] = [
+        (901, firstID), (902, secondID), (901, firstID)
+    ]
+    var selectionsAfterFirstActivity = 0
+    for (index, activity) in activities.enumerated() {
+        discovery.handlePhysicalKeyboardEventForTesting(
+            PhysicalKeyboardEvent(serviceID: activity.serviceID, kind: .press)
+        )
+        if index == 0 {
+            selectionsAfterFirstActivity = selector.selectCount
+        }
+        let content = MenuBarPanelContent(
+            outcome: model.activityTriggeredSwitching.outcome,
+            physicalKeyboards: model.physicalKeyboards,
+            assignedInputSources: [firstID: source, secondID: source],
+            marketingVersion: nil,
+            canCheckForUpdates: false
+        )
+        #expect(model.activePhysicalKeyboardID == activity.keyboardID)
+        #expect(content.assignmentList.rows.filter(\.isActive).map(\.id) == [activity.keyboardID.rawValue])
+        #expect(selector.currentInputSourceIdentifier() == source.identifier)
+        #expect(selector.selectCount == selectionsAfterFirstActivity)
+    }
+}
+
 @Test("Menu-bar assignment list shows only Physical Keyboards with Keyboard Assignments")
 func menuBarAssignmentListShowsOnlyAssignedPhysicalKeyboards() throws {
     let assigned = makeAssignedPanelKeyboard(name: "Travel", identifier: "travel")

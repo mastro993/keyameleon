@@ -47,7 +47,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             outcome: switching.outcome,
             physicalKeyboards: keyboards,
             assignedInputSources: assignedInputSources,
-            currentInputSourceIdentifier: setupModel.currentInputSourceIdentifier,
             marketingVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
             isSetupComplete: setupModel.isSetupComplete,
             canCheckForUpdates: generalSettingsModel.canCheckForUpdates

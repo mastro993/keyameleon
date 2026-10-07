@@ -32,7 +32,6 @@ enum Theme {
     enum Menu {
         static let accent = Color.accentColor
         static let activeFill = Color.accentColor.opacity(0.18)
-        static let inputSourceDash: [CGFloat] = [4, 3]
         static let width: CGFloat = 320
         /// One assignment pill, and the unit five visible rows scroll against.
         static let rowHeight: CGFloat = 34

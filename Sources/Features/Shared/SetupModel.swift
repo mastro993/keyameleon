@@ -110,9 +110,6 @@ final class SetupModel {
     private(set) var excludedPhysicalKeyboards: [SavedPhysicalKeyboardExclusion] = []
     private(set) var savedPhysicalKeyboardRecords: [SavedPhysicalKeyboardRecord] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
-    var currentInputSourceIdentifier: String? {
-        inputSources.currentInputSourceIdentifier
-    }
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
     private(set) var isWaitingForListenPermission = false
 

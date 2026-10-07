@@ -59,7 +59,6 @@ extension ApplicationDelegate {
             _ = setupModel.physicalKeyboards
             _ = setupModel.isSetupComplete
             _ = setupModel.eligibleInputSources
-            _ = setupModel.currentInputSourceIdentifier
             _ = setupModel.persistenceError
             _ = activityTriggeredSwitching.persistenceError
             _ = setupModel.physicalKeyboardActionConditions

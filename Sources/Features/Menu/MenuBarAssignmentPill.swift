@@ -41,7 +41,6 @@ struct MenuBarAssignmentPill: View {
         .modifier(
             MenuBarAssignmentPillStyle(
                 connectionMark: row.connectionMark,
-                matchesCurrentInputSource: row.matchesCurrentInputSource,
                 emphasis: emphasis
             )
         )
@@ -85,7 +84,6 @@ private struct MenuBarConnectionMark: View {
 
 private struct MenuBarAssignmentPillStyle: ViewModifier {
     let connectionMark: MenuBarAssignmentList.ConnectionMark
-    let matchesCurrentInputSource: Bool
     let emphasis: MenuBarAssignmentEmphasis
     @ScaledMetric(relativeTo: .body) private var rowHeight = Theme.Menu.rowHeight
 
@@ -99,14 +97,6 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             .overlay {
                 if connectionMark == .active {
                     shape.strokeBorder(Theme.Menu.accent, lineWidth: emphasis == .highContrast ? 2 : 1)
-                } else if matchesCurrentInputSource {
-                    shape.strokeBorder(
-                        Theme.Menu.accent,
-                        style: StrokeStyle(
-                            lineWidth: emphasis == .highContrast ? 2 : 1,
-                            dash: Theme.Menu.inputSourceDash
-                        )
-                    )
                 }
             }
     }
@@ -121,7 +111,6 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             assignedInputSourceName: "German",
             assignedLocaleCode: "DE",
             connectionMark: .active,
-            matchesCurrentInputSource: true,
             isDimmed: false,
             warningNote: nil
         )
@@ -138,7 +127,6 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             assignedInputSourceName: "German",
             assignedLocaleCode: "DE",
             connectionMark: .connected,
-            matchesCurrentInputSource: false,
             isDimmed: false,
             warningNote: nil
         )
@@ -155,7 +143,6 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
             assignedInputSourceName: "German",
             assignedLocaleCode: "DE",
             connectionMark: .disconnected,
-            matchesCurrentInputSource: false,
             isDimmed: true,
             warningNote: nil
         )
@@ -163,49 +150,5 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
     .frame(width: MenuBarPanelContent.panelWidth)
     .padding()
     .preferredColorScheme(.dark)
-}
-#Preview("Current source matches light") {
-    MenuBarCurrentSourcePreview()
-        .preferredColorScheme(.light)
-}
-
-#Preview("Current source matches dark") {
-    MenuBarCurrentSourcePreview()
-        .preferredColorScheme(.dark)
-}
-
-#Preview("Current source matches increased contrast") {
-    MenuBarCurrentSourcePreview(emphasis: .highContrast)
-        .preferredColorScheme(.light)
-}
-
-private struct MenuBarCurrentSourcePreview: View {
-    var emphasis: MenuBarAssignmentEmphasis = .standard
-
-    var body: some View {
-        let source = EligibleInputSource(identifier: "us", name: "U.S.", localeCode: "US")
-        MenuBarAssignmentSection(
-            list: MenuBarAssignmentList(
-                physicalKeyboards: [
-                    PreviewFixtures.physicalKeyboard(
-                        name: "Active Keyboard", id: "active", assignment: "us", isActive: true
-                    ),
-                    PreviewFixtures.physicalKeyboard(name: "Desk Keyboard", id: "desk", assignment: "us"),
-                    PreviewFixtures.physicalKeyboard(
-                        name: "Travel Keyboard", id: "travel", assignment: "us", connection: .disconnected
-                    )
-                ],
-                assignedInputSources: [
-                    PhysicalKeyboardRecordID(rawValue: "active"): source,
-                    PhysicalKeyboardRecordID(rawValue: "desk"): source,
-                    PhysicalKeyboardRecordID(rawValue: "travel"): source
-                ],
-                currentInputSourceIdentifier: source.identifier
-            ),
-            emphasis: emphasis
-        )
-        .frame(width: MenuBarPanelContent.panelWidth)
-        .padding()
-    }
 }
 #endif
