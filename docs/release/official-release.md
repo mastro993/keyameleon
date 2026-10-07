@@ -293,8 +293,9 @@ gh secret set HOMEBREW_TAP_DEPLOY_KEY --repo mastro993/Keyameleon \
 Then delete both local key files. The tap has no branch rules; the key pushes
 to `main` directly.
 
-The cask uses `auto_updates true`, so Sparkle stays the updater and
-`brew upgrade` skips Keyameleon. `livecheck` reads the Sparkle feed.
+The cask uses `auto_updates true`, so Sparkle stays the updater. `brew upgrade`
+upgrades the cask only when the installed app's `CFBundleShortVersionString` is
+older than the tap version. `livecheck` reads the Sparkle feed.
 
 ### 8. Check CI before dispatch
 

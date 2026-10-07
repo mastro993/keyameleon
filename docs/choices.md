@@ -6,7 +6,7 @@
 
 - One public tap for every product: `mastro993/homebrew-tap`. Install with `brew install --cask mastro993/tap/keyameleon`.
 - The cask downloads the same Official Release DMG. No extra release asset.
-- `auto_updates true`: Sparkle stays the updater, so `brew upgrade` skips the cask.
+- `auto_updates true`: Sparkle stays the updater. `brew upgrade` upgrades the cask only when the installed app's `CFBundleShortVersionString` is older than the tap version.
 - `publish` updates the cask only after the GitHub Release, feed, and evidence are verified.
 - The tap push uses its own write deploy key (`HOMEBREW_TAP_DEPLOY_KEY`), scoped to the tap. Each product gets its own key on the tap.
 - Official `homebrew/cask` waits until the repository passes Homebrew's notability audit.
