@@ -29,15 +29,15 @@ Keyameleon is monitor-only: it observes Physical Keyboard Events through CoreHID
 
 ## Install
 
-Download the DMG from the [latest release](https://github.com/mastro993/Keyameleon/releases/latest), open it, and drag Keyameleon into Applications. The app lives in the menu bar: closing its window does not quit it, and you quit from the menu bar. On first launch, Guided setup asks for Input Monitoring, lets you assign Input Sources to Physical Keyboards, and ends on a Ready screen. You can finish without assignments and add them later in Settings. If Input Monitoring is already granted, setup advances automatically. Closing the setup window saves your place; the menu bar keeps running. To run your own build instead, see [Development setup](#development-setup).
-
 With [Homebrew](https://brew.sh):
 
 ```sh
 brew install --cask mastro993/tap/keyameleon
 ```
 
-The cask installs the same DMG. Keyameleon keeps updating itself, so `brew upgrade` leaves it alone.
+Or download the DMG from the [latest release](https://github.com/mastro993/Keyameleon/releases/latest), open it, and drag Keyameleon into Applications. Both install the same app, and Keyameleon keeps updating itself, so `brew upgrade` leaves it alone. To run your own build instead, see [Development setup](#development-setup).
+
+The app lives in the menu bar: closing its window does not quit it, and you quit from the menu bar. On first launch, Guided setup asks for Input Monitoring, lets you assign Input Sources to Physical Keyboards, and ends on a Ready screen. You can finish without assignments and add them later in Settings. If Input Monitoring is already granted, setup advances automatically. Closing the setup window saves your place; the menu bar keeps running.
 
 ## Development setup
 

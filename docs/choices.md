@@ -656,7 +656,7 @@ Sparkle gentle reminders.
 - No user-persona glossary term. README uses prose only.
 - Screenshot later at `assets/screenshot.png`: menu-bar icon + open panel, heading Keyboards, ≥2 assigned pills, one Active, Switching Status Ready.
 - Install: Official Release zip primary. Source-build secondary. No Homebrew until a cask exists.
-  - 2026-10-07: the cask exists. README lists Homebrew after the DMG.
+  - 2026-10-07: the cask exists. README lists Homebrew first, then the DMG.
 - Screenshot: placeholder + intended-shot description. No image file in this pass.
 - Features: full user-visible surface, short bullets.
 - Privacy: own README section.
