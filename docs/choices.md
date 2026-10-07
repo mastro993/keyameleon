@@ -87,11 +87,12 @@ group, and one Physical Keyboard row.
   connection status, the native Input Source picker, and one actions menu holding
   `Rename…` and then `Ignore` or `Stop ignoring`. Rename keeps its sheet and
   product-name placeholder. Ignore and Stop ignoring write through the model
-  immediately and keep the row in place; an ignored row keeps its saved Input
-  Source with the picker disabled. The built-in keyboard reserves the menu column
-  without offering actions. Missing or ambiguous saved records read `Assignment
-  unavailable`, unsupported identities keep their reason, and a persistence error
-  disables the picker and the menu.
+  immediately and keep the row in place; an ignored row mutes its name, connection
+  status, and Input Source text, keeping its saved Input Source with the native
+  picker disabled. Missing or ambiguous saved records show `Unassigned` in the
+  same disabled picker. The built-in keyboard reserves the menu column without
+  offering actions. Unsupported identities keep their reason, and a persistence
+  error disables the picker and the menu.
 - The Keyboards empty state is the design's keyboard symbol, `No keyboards
   detected`, and its connection guidance. While either store is unreadable —
   `SetupModel.hasPersistenceFailure` covers the record and switching stores — the
