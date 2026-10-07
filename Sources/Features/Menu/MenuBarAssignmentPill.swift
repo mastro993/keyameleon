@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuBarAssignmentPill: View {
     let row: MenuBarAssignmentList.Row
     var emphasis: MenuBarAssignmentEmphasis = .standard
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(alignment: .center, spacing: Theme.Menu.rowGap) {
@@ -44,7 +45,7 @@ struct MenuBarAssignmentPill: View {
                 emphasis: emphasis
             )
         )
-        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: row.connectionMark)
+        .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.86), value: row.connectionMark)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(row.accessibilityValue)

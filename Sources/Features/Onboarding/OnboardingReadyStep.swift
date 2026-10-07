@@ -42,8 +42,6 @@ struct OnboardingReadyStep: View {
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: 631)
-                .frame(height: 439, alignment: .top)
-                .clipped()
                 .accessibilityLabel("Illustration showing Keyameleon in the menu bar")
             Text("Find Keyameleon in your menu bar.")
                 .font(.body.weight(.semibold))

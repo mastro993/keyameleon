@@ -6,59 +6,31 @@ struct GeneralSettingsPane: View {
     let model: GeneralSettingsModel
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("App")
-                        .font(Theme.Typography.sectionTitle)
-                        .foregroundStyle(Theme.primary)
-
-                    launchAtLoginSetting
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Keyameleon runs quietly in your menu bar.")
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.secondary)
-
-                    if model.launchAtLoginError != nil {
-                        Text(
-                            """
-                            Could not change Launch at Login. Open System Settings → General → \
-                            Login Items if macOS requires approval.
-                            """
-                        )
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(.red)
+        Form {
+            Section {
+                Toggle(isOn: launchAtLoginBinding) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Launch at login")
+                            .font(Theme.Typography.rowTitle)
+                            .foregroundStyle(Theme.primary)
+                        Text("Start Keyameleon automatically when you log in.")
+                            .font(Theme.Typography.caption)
+                            .foregroundStyle(Theme.secondary)
                     }
                 }
+                .toggleStyle(.switch)
+            } header: {
+                Text("App")
+                    .font(Theme.Typography.sectionTitle)
+                    .foregroundStyle(Theme.primary)
+            } footer: {
+                LaunchAtLoginFooter(hasError: model.launchAtLoginError != nil)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(Theme.Metrics.panePadding)
         }
-    }
-
-    private var launchAtLoginSetting: some View {
-        InsetGroup(
-            cornerRadius: Theme.Metrics.informationGroupRadius,
-            fill: Theme.cardSurface
-        ) {
-            HStack(spacing: 20) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Launch at login")
-                        .font(Theme.Typography.rowTitle)
-                        .foregroundStyle(Theme.primary)
-                    Text("Start Keyameleon automatically when you log in.")
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.secondary)
-                }
-                Spacer(minLength: 0)
-                Toggle("Launch at login", isOn: launchAtLoginBinding)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-            }
-            .padding(16)
-        }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Theme.contentBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var launchAtLoginBinding: Binding<Bool> {
@@ -75,7 +47,6 @@ struct GeneralSettingsPane: View {
         model: PreviewFixtures.general(launchAtLoginEnabled: true)
     )
     .frame(width: 620, height: 400)
-    .background(Theme.contentBackground)
 }
 
 #Preview("General pane launch error") {
@@ -83,7 +54,6 @@ struct GeneralSettingsPane: View {
         model: PreviewFixtures.general(launchAtLoginFailure: true)
     )
     .frame(width: 620, height: 400)
-    .background(Theme.contentBackground)
     .preferredColorScheme(.dark)
 }
 #endif

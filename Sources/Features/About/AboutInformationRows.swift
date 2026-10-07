@@ -1,28 +1,16 @@
 import SwiftUI
 
-/// One label and its trailing value or action on the About pane's information card.
 @MainActor
 struct AboutInformationRow<Content: View>: View {
     let label: String
-    var showsSeparator = true
     @ViewBuilder var content: Content
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(label)
-                .font(Theme.Typography.body)
-                .foregroundStyle(Theme.primary)
-            Spacer(minLength: 12)
+        LabeledContent(label) {
             content
         }
-        .padding(.vertical, 11)
-        .frame(minHeight: Theme.Metrics.informationRowMinHeight)
-        .overlay(alignment: .bottom) {
-            if showsSeparator {
-                Theme.border.frame(height: 1)
-            }
-        }
-        .padding(.horizontal, Theme.Metrics.informationRowInset)
+        .font(Theme.Typography.body)
+        .foregroundStyle(Theme.primary)
     }
 }
 
@@ -31,7 +19,6 @@ struct AboutInformationRow<Content: View>: View {
 struct AboutFolderRow: View {
     let label: String
     let url: URL
-    var showsSeparator = true
     let openFolder: (URL) -> Void
 
     var body: some View {
@@ -47,7 +34,8 @@ struct AboutFolderRow: View {
                     .textSelection(.enabled)
                     .help(url.path)
                     .padding(.horizontal, 8)
-                    .frame(height: 28)
+                    .padding(.vertical, 4)
+                    .frame(minHeight: 28)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Theme.windowBackground, in: .rect(cornerRadius: 5))
                     .overlay {
@@ -62,35 +50,29 @@ struct AboutFolderRow: View {
                 .buttonStyle(.plain)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 7)
-        .overlay(alignment: .bottom) {
-            if showsSeparator {
-                Theme.border.frame(height: 1)
-            }
-        }
-        .padding(.horizontal, Theme.Metrics.informationRowInset)
     }
 }
 
 #if DEBUG
 #Preview("About information rows") {
-    InsetGroup(
-        cornerRadius: Theme.Metrics.informationGroupRadius,
-        fill: Theme.cardSurface
-    ) {
-        AboutInformationRow(label: "Version") {
-            Text("9.9.9 (1)").foregroundStyle(Theme.secondary)
+    Form {
+        Section {
+            AboutInformationRow(label: "Version") {
+                Text("9.9.9 (1)").foregroundStyle(Theme.secondary)
+            }
+            AboutInformationRow(label: "Source code") {
+                AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+            }
+            AboutFolderRow(
+                label: "Logs folder",
+                url: URL(fileURLWithPath: "/tmp/Keyameleon/PreviewLogs", isDirectory: true),
+                openFolder: { _ in }
+            )
         }
-        AboutInformationRow(label: "Source code") {
-            AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
-        }
-        AboutFolderRow(
-            label: "Logs folder",
-            url: URL(fileURLWithPath: "/tmp/Keyameleon/PreviewLogs", isDirectory: true),
-            openFolder: { _ in }
-        )
     }
-    .padding(14)
-    .background(Theme.contentBackground)
+    .formStyle(.grouped)
+    .frame(width: 620, height: 260)
 }
 #endif

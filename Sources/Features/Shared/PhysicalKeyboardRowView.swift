@@ -2,8 +2,8 @@ import SwiftUI
 
 /// One Physical Keyboard row, shared by Guided setup and Settings.
 ///
-/// The row draws the name and connection status, the native Input Source
-/// picker, and the keyboard's actions menu. Ignoring and restoring write
+/// The row draws the name and connection status, the Input Source
+/// menu, and the keyboard's actions menu. Ignoring and restoring write
 /// straight through the model, so both flows behave the same way.
 @MainActor
 struct PhysicalKeyboardRowView: View {
@@ -116,44 +116,25 @@ struct PhysicalKeyboardRowView: View {
     }
 
     private func assignmentPicker(for keyboard: PhysicalKeyboard) -> some View {
-        Picker("Input Source for \(keyboard.name)", selection: Binding(
-            get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
-            set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
-        )) {
-            Text("Unassigned").tag(nil as String?)
-            if let identifier = keyboard.keyboardAssignment?.inputSourceIdentifier,
-               !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
-                Text("Unavailable Input Source").tag(Optional(identifier)).disabled(true)
-            }
-            ForEach(model.eligibleInputSources) { source in
-                Text(source.name).tag(Optional(source.identifier))
-            }
-        }
-        .labelsHidden()
-        .pickerStyle(.menu)
-        .frame(width: 176)
+        InputSourceMenu(
+            title: "Input Source for \(keyboard.name)",
+            selection: Binding(
+                get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
+                set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
+            ),
+            inputSources: model.eligibleInputSources
+        )
         .disabled(model.eligibleInputSources.isEmpty || hasPersistenceError)
     }
 
     /// An ignored keyboard shows its saved assignment, or Unassigned, read-only.
     private func savedAssignmentPicker(for record: SavedPhysicalKeyboardRecord?, name: String) -> some View {
-        Picker(
-            "Input Source for \(name)",
-            selection: .constant(record?.keyboardAssignment?.inputSourceIdentifier)
-        ) {
-            Text("Unassigned").tag(nil as String?)
-            if let identifier = record?.keyboardAssignment?.inputSourceIdentifier,
-               !model.eligibleInputSources.contains(where: { $0.identifier == identifier }) {
-                Text("Unavailable Input Source").tag(Optional(identifier))
-            }
-            ForEach(model.eligibleInputSources) { source in
-                Text(source.name).tag(Optional(source.identifier))
-            }
-        }
-        .labelsHidden()
-        .pickerStyle(.menu)
+        InputSourceMenu(
+            title: "Input Source for \(name)",
+            selection: .constant(record?.keyboardAssignment?.inputSourceIdentifier),
+            inputSources: model.eligibleInputSources
+        )
         .foregroundStyle(Theme.muted)
-        .frame(width: 176)
         .disabled(true)
     }
 
@@ -220,6 +201,7 @@ struct PhysicalKeyboardRowView: View {
 }
 
 #if DEBUG
+
 #Preview("Physical keyboard row included") {
     let fixture = PreviewFixtures.setup(.pencilAssignments)
     if let keyboard = fixture.model.physicalKeyboards.first(where: { $0.isAssignable }) {
