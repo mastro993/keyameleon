@@ -1,5 +1,16 @@
 # Breadcrumbs
 
+## 2026-10-07 — Homebrew cask
+
+- Created public tap `mastro993/homebrew-tap` for all products, with
+  `Casks/keyameleon.rb` at 0.6.1. `brew audit --cask --online` and
+  `brew livecheck` pass; `--new` fails only on notability, which own taps skip.
+- `publish` checks out the tap with `HOMEBREW_TAP_DEPLOY_KEY` after the feed is
+  verified, then `Scripts/publish-homebrew-cask.sh` sets `version` and `sha256`
+  from the verified public DMG and pushes `keyameleon X.Y.Z` to the tap's `main`.
+  Retries are no-ops; a different checksum for the same version or an older
+  version stops without pushing.
+
 ## 2026-10-06 — Built-in keyboard stays first in shared lists
 
 - Guided setup and Settings promote a late-discovered built-in Physical Keyboard
@@ -508,6 +519,7 @@
 - Glossary: **Channel** (not Track). Official Release belongs to one Channel and is not replaced.
 - V1 Channel = Stable only. Dispatch on green `main`.
 - Homebrew descoped for this workflow. Agreed later shape (not built): own tap `mastro993/homebrew-keyameleon`, cask inside tap, Sparkle `auto_updates`.
+  - 2026-10-07: built as the shared tap `mastro993/homebrew-tap`.
 - Notes = `git log` since previous Official Release tag.
 
 ## 2026-08-14 — Issue #51 accessible panel

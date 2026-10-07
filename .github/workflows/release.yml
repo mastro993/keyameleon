@@ -479,3 +479,19 @@ jobs:
           done
           echo "feed ${feed_url} does not serve verified ${VERSION} enclosure" >&2
           exit 1
+
+      # The tap deploy key can write only to mastro993/homebrew-tap.
+      - name: Check out Homebrew tap
+        uses: actions/checkout@v7
+        with:
+          repository: mastro993/homebrew-tap
+          path: homebrew-tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+
+      - name: Publish Homebrew cask
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          bash Scripts/publish-homebrew-cask.sh homebrew-tap "$VERSION" \
+            "$RUNNER_TEMP/release-asset/Keyameleon-${VERSION}.dmg"

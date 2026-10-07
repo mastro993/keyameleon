@@ -15,6 +15,7 @@ publishes for users. It is:
 | Stapled | `stapler staple` on the app and final DMG |
 | Updates | Sparkle `appcast.xml` EdDSA-signed; feed URL in Info.plist |
 | Channel | Stable. GitHub Release has one DMG; appcast and permanent versioned evidence are on GitHub Pages |
+| Homebrew | Cask `keyameleon` in [`mastro993/homebrew-tap`](https://github.com/mastro993/homebrew-tap) points at the same DMG |
 
 The latest Official Release is the only **Supported Release** (`SECURITY.md`).
 The DMG's universal app supports Apple silicon and Intel Macs on macOS 26 or later.
@@ -84,7 +85,11 @@ python3 Scripts/bundle-licenses.py \
    the evidence against the pushed bump, creates the annotated tag at that
    commit, publishes the GitHub Release, and verifies the public DMG download.
    It then publishes the appcast and versioned evidence to GitHub Pages and
-   verifies the served feed, evidence, and enclosure.
+   verifies the served feed, evidence, and enclosure. Last, it checks out
+   `mastro993/homebrew-tap` with `HOMEBREW_TAP_DEPLOY_KEY` and runs
+   `Scripts/publish-homebrew-cask.sh`, which sets the cask's `version` and
+   `sha256` from the verified public DMG and pushes `keyameleon X.Y.Z` to the
+   tap's `main`.
 
 The producer polls `main` up to 180 times at 10-second intervals, a 30-minute
 wait. The publisher polls artifacts up to 180 times at 30-second intervals, a
@@ -189,6 +194,8 @@ Already created. Settings → Environments → `official-release`:
    gh secret set SPARKLE_PUBLIC_ED_KEY --env official-release
    gh secret set RELEASE_DEPLOY_KEY --env official-release \
      < keyameleon-release-workflow
+   gh secret set HOMEBREW_TAP_DEPLOY_KEY --env official-release \
+     < keyameleon-homebrew-tap
    ```
 
    Password / ID secrets: `gh secret set NAME --env official-release` then paste
@@ -203,7 +210,7 @@ Confirm names only (values stay hidden):
 gh secret list --env official-release
 ```
 
-Expect the nine names above. Then delete the local p12, p8, and key copies
+Expect the ten names above. Then delete the local p12, p8, and key copies
 from the working tree (`trash`, not git). Keep offline backups.
 
 ### 5. Tag ruleset
@@ -269,13 +276,33 @@ the protected release environment. The `bump` and `publish` jobs use it for
 normal pushes. The `produce` job runs the full test suite without the deploy
 key after the version push. No job force-pushes.
 
-### 7. Check CI before dispatch
+### 7. Homebrew tap deploy key
+
+`mastro993/homebrew-tap` is a separate public repository that holds casks for
+several products. Each product's release workflow gets its own write deploy key
+on the tap, so revoking one product's key does not affect the others.
+
+```sh
+ssh-keygen -t ed25519 -N "" -C "Keyameleon Release workflow" -f keyameleon-homebrew-tap
+gh repo deploy-key add keyameleon-homebrew-tap.pub --repo mastro993/homebrew-tap \
+  --title "Keyameleon Release workflow" --allow-write
+gh secret set HOMEBREW_TAP_DEPLOY_KEY --repo mastro993/Keyameleon \
+  --env official-release < keyameleon-homebrew-tap
+```
+
+Then delete both local key files. The tap has no branch rules; the key pushes
+to `main` directly.
+
+The cask uses `auto_updates true`, so Sparkle stays the updater and
+`brew upgrade` skips Keyameleon. `livecheck` reads the Sparkle feed.
+
+### 8. Check CI before dispatch
 
 `verify` uses a 45-minute polling deadline for **Required CI gate** on the
 selected commit. API requests and the final 20-second wait can extend elapsed
 runtime. If CI fails, `verify` fails. If CI never starts, `verify` times out.
 
-### 8. Negative checks (optional, no tag created)
+### 9. Negative checks (optional, no tag created)
 
 From **Actions → Release → Run workflow**:
 
@@ -286,7 +313,7 @@ From **Actions → Release → Run workflow**:
 | `main` while CI is running | `patch` | `verify` waits; continues when **Required CI gate** succeeds |
 | `main` when target tag exists | any | `verify` fails without changing `main` |
 
-### 9. Publish an Official Release
+### 10. Publish an Official Release
 
 Follow [Start an Official Release](#start-an-official-release).
 
@@ -307,11 +334,14 @@ Publication reuses a matching tag and asset, or uploads a missing asset from
 that workflow artifact. If an upload left an empty `starter` asset, it deletes
 that asset by ID before retrying. It never replaces an uploaded asset or changes
 published evidence for the same tag. An identical Pages retry makes no commit.
-A mismatched tag, asset, or evidence stops for manual investigation. Failure
+A mismatched tag, asset, or evidence stops for manual investigation.
+The cask step makes no commit when the cask already has the same version and
+checksum. A different checksum for the same version, or a cask already at a
+newer version, stops without pushing. Failure
 before the GitHub Release leaves the previous feed intact; failure after the
 Release but before Pages leaves a downloadable DMG available for retry.
 
-### 10. Verify an Official Release
+### 11. Verify an Official Release
 
 ```sh
 TAG=v1.2.3
@@ -329,6 +359,7 @@ test -L /tmp/keyameleon-mounted/Applications
 xcrun stapler validate /tmp/keyameleon-mounted/Keyameleon.app
 hdiutil detach /tmp/keyameleon-mounted
 git rev-parse "${TAG}^{commit}"   # compare with evidence.gitCommit
+brew update && brew info --cask mastro993/tap/keyameleon   # expect VERSION
 ```
 
 Download durable evidence from Pages, then verify its hash:
@@ -415,6 +446,7 @@ Older evidence files are preserved; a retry cannot overwrite changed bytes.
 | `SPARKLE_PRIVATE_ED_KEY` | Sparkle EdDSA private key (generate_appcast / sign_update) |
 | `SPARKLE_PUBLIC_ED_KEY` | Sparkle EdDSA public key embedded as `SUPublicEDKey` at release build |
 | `RELEASE_DEPLOY_KEY` | Private half of the repository-scoped release write key |
+| `HOMEBREW_TAP_DEPLOY_KEY` | Private half of the write deploy key on `mastro993/homebrew-tap` |
 
 Optional variable: `CODESIGN_IDENTITY` (defaults to `Developer ID Application`).
 

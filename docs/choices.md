@@ -1,5 +1,16 @@
 # Choices
 
+## 2026-10-07 — Homebrew cask in a shared tap
+
+### Defaults
+
+- One public tap for every product: `mastro993/homebrew-tap`. Install with `brew install --cask mastro993/tap/keyameleon`.
+- The cask downloads the same Official Release DMG. No extra release asset.
+- `auto_updates true`: Sparkle stays the updater, so `brew upgrade` skips the cask.
+- `publish` updates the cask only after the GitHub Release, feed, and evidence are verified.
+- The tap push uses its own write deploy key (`HOMEBREW_TAP_DEPLOY_KEY`), scoped to the tap. Each product gets its own key on the tap.
+- Official `homebrew/cask` waits until the repository passes Homebrew's notability audit.
+
 ## 2026-10-07 — One native spacing policy across the Settings panes
 
 General, Keyboards, and About share one grouped-`Form` spacing policy: platform
@@ -601,6 +612,7 @@ Sparkle gentle reminders.
 - Tag stays `vMAJOR.MINOR.PATCH`. Dispatch `version` is SemVer core (`1.2.3`). Inject marketing and build numbers at Official Release build. Do not commit a version bump.
 - Official Release is immutable. Fail if the tag already exists. Do not `--clobber` the zip.
 - Homebrew descoped. No tap, no cask, no brew job. README stays zip primary, source-build secondary.
+  - 2026-10-07: superseded. The release workflow updates the cask in `mastro993/homebrew-tap`.
 - Notes: `git log` since previous Official Release tag. Subjects only. No merge commits. No author names. No dispatch `notes`. First Official Release body starts with `Initial Official Release`. Empty range (new version, same commit): `No source changes since <previous tag>`.
 - Same `main` SHA may receive a new Official Release version. Same version may not.
 - Dispatch inputs: `version` only (SemVer core). `ref` is `main`.
@@ -644,6 +656,7 @@ Sparkle gentle reminders.
 - No user-persona glossary term. README uses prose only.
 - Screenshot later at `assets/screenshot.png`: menu-bar icon + open panel, heading Keyboards, ≥2 assigned pills, one Active, Switching Status Ready.
 - Install: Official Release zip primary. Source-build secondary. No Homebrew until a cask exists.
+  - 2026-10-07: the cask exists. README lists Homebrew after the DMG.
 - Screenshot: placeholder + intended-shot description. No image file in this pass.
 - Features: full user-visible surface, short bullets.
 - Privacy: own README section.
