@@ -24,7 +24,7 @@ struct RootView: View {
                     Text("Keyameleon is ready")
                         .font(.title.weight(.semibold))
                         .accessibilityAddTraits(.isHeader)
-                    Text("Guided setup is complete. Keyameleon stays in the menu bar.")
+                    Text("Setup is complete. Keyameleon runs in the menu bar.")
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }

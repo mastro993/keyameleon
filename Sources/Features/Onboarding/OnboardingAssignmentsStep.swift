@@ -8,16 +8,15 @@ struct OnboardingAssignmentsStep: View {
     let onIgnore: (PhysicalKeyboardRecordID) -> Void
     let onStopIgnoring: (String) -> Void
 
-    static let switchingNote = "Switching follows keyboard activity. "
-        + "Initial key presses may still use the previous Input Source."
+    static let switchingNote = "Switching starts when you type, so the first keys may use the previous input source."
 
     var body: some View {
         Form {
             Section {
                 if rows.isEmpty {
                     Text(!model.hasPersistenceFailure
-                        ? "Connect a Physical Keyboard to add a Keyboard Assignment."
-                        : "Retry to load saved Physical Keyboards.")
+                        ? "Connect a keyboard to choose its input source."
+                        : "Click Retry to load your saved keyboards.")
                         .foregroundStyle(OnboardingPalette.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .listRowInsets(EdgeInsets(top: 20, leading: 22, bottom: 20, trailing: 22))

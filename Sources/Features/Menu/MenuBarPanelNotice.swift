@@ -50,10 +50,10 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             if let warning = outcome.warnings.first(where: { $0.category == .selectionFailed }) {
                 let canRetry = outcome.hasAction(.retryNow)
                 let detail = warning.physicalKeyboardName.map {
-                    canRetry ? "Try again for \($0)." : "Check \($0)'s Keyboard Assignment."
-                } ?? (canRetry ? "Try again." : "Check the Keyboard Assignment.")
+                    canRetry ? "Try again for \($0)." : "Check \($0)’s input source in Settings."
+                } ?? (canRetry ? "Try again." : "Check the input source in Settings.")
                 return MenuBarPanelNotice(
-                    title: "Couldn't switch Input Source",
+                    title: "Couldn’t switch input source",
                     detail: detail,
                     action: canRetry
                         ? MenuBarPanelContent.Action(
@@ -78,7 +78,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                     """
                 }
                 return MenuBarPanelNotice(
-                    title: "Input Source differs",
+                    title: "Input source differs",
                     detail: detail,
                     action: settingsAction,
                     tone: .neutral
@@ -92,14 +92,14 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 let detail: String
                 switch unassignedNames.count {
                 case 1:
-                    detail = "Assign an Input Source to \(firstName)."
+                    detail = "Choose an input source for \(firstName)."
                 case 2:
-                    detail = "Assign Input Sources to \(firstName) and \(unassignedNames[1])."
+                    detail = "Choose input sources for \(firstName) and \(unassignedNames[1])."
                 default:
-                    detail = "Assign Input Sources to \(unassignedNames.count) Physical Keyboards."
+                    detail = "Choose input sources for \(unassignedNames.count) keyboards."
                 }
                 return MenuBarPanelNotice(
-                    title: "Assign an Input Source",
+                    title: unassignedNames.count == 1 ? "Keyboard not assigned" : "Keyboards not assigned",
                     detail: detail,
                     action: settingsAction,
                     tone: .neutral
@@ -108,9 +108,9 @@ struct MenuBarPanelNotice: Equatable, Sendable {
 
             if !isSetupComplete {
                 return MenuBarPanelNotice(
-                    title: "Finish Guided Setup",
+                    title: "Finish setup",
                     detail: "Continue where you left off.",
-                    action: .init(id: .continueSetup, title: "Continue Guided Setup", isEnabled: true),
+                    action: .init(id: .continueSetup, title: "Continue Setup", isEnabled: true),
                     tone: .neutral
                 )
             }
@@ -125,7 +125,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
         if outcome.hasAction(.openSystemSettings) {
             return MenuBarPanelNotice(
                 title: "Input Monitoring is off",
-                detail: "Turn on \(name) in Input Monitoring. If it is already on, restart \(name).",
+                detail: "Turn on \(name) in Input Monitoring. Already on? Restart \(name).",
                 action: .init(id: .openSystemSettings, title: "Open System Settings", isEnabled: true),
                 tone: .warning
             )

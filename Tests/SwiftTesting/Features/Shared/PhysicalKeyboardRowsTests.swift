@@ -15,7 +15,7 @@ func subtitleUsesOriginalNameOnlyAfterRename() {
         connectedServiceCount: 0, connectionState: .disconnected, isActive: false
     )
     #expect(PhysicalKeyboardRow(physicalKeyboard: renamed, exclusionKey: nil)
-        .subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Disconnected")
+        .subtitle(connectedExcludedKeys: []) == "Magic Keyboard · Disconnected")
 
     let exclusion = SavedPhysicalKeyboardExclusion(key: "identity:magic", name: "Desk Keyboard")
     let saved = SavedPhysicalKeyboardRecord(
@@ -24,9 +24,9 @@ func subtitleUsesOriginalNameOnlyAfterRename() {
     )
     let hidden = PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(saved))
     #expect(PhysicalKeyboardRow(physicalKeyboard: unrenamed.applying(savedRecord: saved), exclusionKey: nil)
-        .subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Connected")
-    #expect(hidden.subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
-    #expect(hidden.subtitle(connectedExcludedKeys: []) == "Magic Keyboard - Disconnected (Ignored)")
+        .subtitle(connectedExcludedKeys: []) == "Magic Keyboard · Connected")
+    #expect(hidden.subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard · Connected (Ignored)")
+    #expect(hidden.subtitle(connectedExcludedKeys: []) == "Magic Keyboard · Disconnected (Ignored)")
     #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .missing)
         .subtitle(connectedExcludedKeys: [exclusion.key]) == "Connected (Ignored)")
     #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .ambiguous)
@@ -40,7 +40,7 @@ func subtitleUsesOriginalNameOnlyAfterRename() {
         identityKey: saved.identityKey, productName: saved.productName, customName: saved.productName
     )
     #expect(PhysicalKeyboardRow(exclusion: exclusion, savedRecord: .matched(sameName))
-        .subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard - Connected (Ignored)")
+        .subtitle(connectedExcludedKeys: [exclusion.key]) == "Magic Keyboard · Connected (Ignored)")
 }
 
 @Test("A late built-in keyboard moves first without reordering external or ignored rows")

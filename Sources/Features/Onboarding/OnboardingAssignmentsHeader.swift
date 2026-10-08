@@ -8,13 +8,11 @@ struct OnboardingAssignmentsHeader: View {
         VStack(alignment: .leading, spacing: 20) {
             PersistenceFailureNotice(model: model)
             OnboardingProgress(step: model.guidedSetupStep)
-            Text("An Input Source for every keyboard.")
+            Text("An input source for every keyboard.")
                 .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
-            Text("Connect the keyboards you use with this Mac. "
-                 + "Turn off devices that aren’t keyboards. "
-                 + "They stay in the list, so you can turn them back on any time.")
+            Text("Pick an input source for each keyboard. Not a keyboard? Choose Ignore from its ⋯ menu.")
                 .font(.body)
                 .lineSpacing(2)
                 .padding(.vertical, 1)

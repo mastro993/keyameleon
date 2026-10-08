@@ -44,6 +44,7 @@ struct UnsupportedPhysicalKeyboardsSection: View {
                 .buttonStyle(.plain)
                 .textCase(nil)
                 .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+                .help("Keyameleon can’t tell these devices apart reliably, so they can’t have an input source.")
                 .accessibilityIdentifier("unsupported-devices")
             }
         }

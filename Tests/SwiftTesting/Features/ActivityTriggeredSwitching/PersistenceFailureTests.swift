@@ -151,11 +151,11 @@ private func modelRetriesFailedRenameWithoutFalseSuccess(initiallySaved: Bool) t
     if initiallySaved { model.setPhysicalKeyboardName(keyboard.id, customName: "Studio") }
     fails = true
     model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
-    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(model.persistenceError?.contains("wasn’t saved") == true)
     #expect(model.physicalKeyboards.first?.name == (initiallySaved ? "Studio" : "Test Keyboard"))
     model.activityTriggeredSwitching.checkAgain()
     discoverer.emit(.disconnected(serviceID: 901))
-    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(model.persistenceError?.contains("wasn’t saved") == true)
     #expect(model.physicalKeyboards.map(\.name) == (initiallySaved ? ["Studio"] : []))
     fails = false
     model.retryPersistenceOperation()
@@ -210,13 +210,13 @@ private func compoundForgetRollsBackBothStores() throws {
 
     fails = true
     model.forgetPhysicalKeyboard(keyboard.id)
-    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(model.persistenceError?.contains("wasn’t saved") == true)
     #expect(model.physicalKeyboards.map(\.name) == ["Studio"])
     #expect(changes == 0)
 
     model.setPhysicalKeyboardName(keyboard.id, customName: "Must not replace pending forget")
     model.retryPersistenceOperation()
-    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(model.persistenceError?.contains("wasn’t saved") == true)
     #expect(changes == 0)
     let readerContext = ModelContext(try makePersistenceFailureContainer(at: url))
     let recordReader = SwiftDataPhysicalKeyboardRecordStore(modelContext: readerContext)
@@ -344,7 +344,7 @@ private func designationCancellationKeepsUnrelatedRetry() throws {
     model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
     model.cancelManualDesignation()
     #expect(model.manualDesignationPhase == .idle)
-    #expect(model.persistenceError?.contains("not saved") == true)
+    #expect(model.persistenceError?.contains("wasn’t saved") == true)
     fails = false
     model.retryPersistenceOperation()
     #expect(model.persistenceError == nil)

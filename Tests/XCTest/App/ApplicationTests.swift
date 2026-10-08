@@ -81,7 +81,7 @@ final class ApplicationTests: XCTestCase {
         let noticeItem = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
         let noticeHost = try XCTUnwrap(noticeItem.view as? NSHostingView<MenuBarPanelNoticeView>)
         let settings = try XCTUnwrap(menu.items.first { $0.title == "Settings" })
-        XCTAssertEqual(noticeHost.rootView.notice.title, "Finish Guided Setup")
+        XCTAssertEqual(noticeHost.rootView.notice.title, "Finish setup")
         XCTAssertEqual(noticeHost.rootView.notice.action.id, .continueSetup)
         XCTAssertTrue(noticeHost.rootView.notice.action.isEnabled)
         XCTAssertGreaterThan(noticeHost.frame.height, 0)
@@ -475,10 +475,10 @@ final class ApplicationTests: XCTestCase {
             XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
 
             let panel = try XCTUnwrap(delegate.menuBarPanelController)
-            let item = try XCTUnwrap(panel.menu.items.first { $0.title == "Continue Guided Setup" })
+            let item = try XCTUnwrap(panel.menu.items.first { $0.title == "Continue Setup" })
             XCTAssertEqual(item.representedObject as? String, MenuBarPanelActionID.continueSetup.rawValue)
             panel.menu.performActionForItem(at: try XCTUnwrap(
-                panel.menu.items.firstIndex { $0.title == "Continue Guided Setup" }
+                panel.menu.items.firstIndex { $0.title == "Continue Setup" }
             ))
             XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
             XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)

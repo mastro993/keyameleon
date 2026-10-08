@@ -4,10 +4,10 @@ import SwiftUI
 struct KeyboardSettingsHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Keyboard layouts")
+            Text("Input sources")
                 .font(Theme.Typography.sectionTitle)
                 .foregroundStyle(Theme.primary)
-            Text("Choose a layout for each keyboard. Keyameleon switches when you type.")
+            Text("Keyameleon switches to a keyboard’s input source when you type on it.")
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.secondary)
         }

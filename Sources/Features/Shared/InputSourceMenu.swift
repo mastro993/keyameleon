@@ -17,7 +17,7 @@ struct InputSourceMenu: View {
             Picker(title, selection: $selection) {
                 Text("Unassigned").tag(nil as String?)
                 if let selection, unavailable {
-                    Text("Unavailable Input Source").tag(Optional(selection)).disabled(true)
+                    Text("Unavailable").tag(Optional(selection)).disabled(true)
                 }
                 ForEach(inputSources) { source in
                     Text(source.name).tag(Optional(source.identifier))
@@ -35,6 +35,9 @@ struct InputSourceMenu: View {
         .frame(width: 176)
         .accessibilityLabel(title)
         .accessibilityValue(selectedName)
+        .help(selection != nil && unavailable
+            ? "This input source is no longer in macOS. Choose another, or add it back in System Settings › Keyboard."
+            : "")
     }
 
     private var unavailable: Bool {
@@ -43,7 +46,7 @@ struct InputSourceMenu: View {
 
     private var selectedName: String {
         guard let selection else { return "Unassigned" }
-        return inputSources.first { $0.identifier == selection }?.name ?? "Unavailable Input Source"
+        return inputSources.first { $0.identifier == selection }?.name ?? "Unavailable"
     }
 }
 

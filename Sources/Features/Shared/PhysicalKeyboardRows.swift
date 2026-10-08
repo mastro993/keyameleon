@@ -46,7 +46,7 @@ struct PhysicalKeyboardRow: Identifiable, Equatable {
         if case .excluded = state {
             status += " (Ignored)"
         }
-        return productName.map { "\($0) - \(status)" } ?? status
+        return productName.map { "\($0) · \(status)" } ?? status
     }
 
     var physicalKeyboardID: PhysicalKeyboardRecordID? {

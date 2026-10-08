@@ -51,7 +51,7 @@ struct PhysicalKeyboardRowView: View {
                                 presentRename(for: .restored(from: record))
                             }
                         }
-                        Button("Stop ignoring", systemImage: "eye") {
+                        Button("Stop Ignoring", systemImage: "eye") {
                             onStopIgnoring(exclusion.key)
                         }
                     } label: {
@@ -105,6 +105,7 @@ struct PhysicalKeyboardRowView: View {
                 .font(Theme.Typography.subheadline)
                 .foregroundStyle(Theme.muted)
         }
+        .help("Ignored devices never switch the input source. Use ⋯ to stop ignoring.")
     }
 
     private func assignmentPicker(for keyboard: PhysicalKeyboard) -> some View {
@@ -155,6 +156,7 @@ struct PhysicalKeyboardRowView: View {
         Label("Keyboard actions", systemImage: "ellipsis")
             .labelStyle(.iconOnly)
             .frame(width: 28, height: 28)
+            .help("Keyboard actions")
     }
 
     /// The built-in keyboard reserves the actions column without offering actions.

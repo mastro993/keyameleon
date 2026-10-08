@@ -32,14 +32,14 @@ func menuBarAssignmentRowVoiceOverAvoidsDuplicateSpeech() throws {
     #expect(desk.accessibilityValue == "US, Connected")
     #expect(studio.accessibilityValue == "French, Disconnected")
     #expect(broken.accessibilityLabel == "Broken")
-    #expect(broken.accessibilityValue == "Unavailable Input Source, Connected, Unavailable Keyboard Assignment")
+    #expect(broken.accessibilityValue == "Input source unavailable, Connected, Choose another in Settings")
 }
 
 @Test("Empty keyboard list retains its native accessibility copy")
 func menuBarAssignmentEmptyStateVoiceOverIsCombined() {
     let list = MenuBarAssignmentList(physicalKeyboards: [], assignedInputSources: [:])
     #expect(list.emptyTitle == "No assigned keyboards")
-    #expect(list.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
+    #expect(list.emptyDescription == "Assign keyboards in Settings.")
 }
 
 @Test("Long Physical Keyboard Names stay complete in speech at the 320 pt panel width")

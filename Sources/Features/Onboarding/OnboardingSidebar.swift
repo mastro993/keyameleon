@@ -74,8 +74,8 @@ struct OnboardingSidebar: View {
         case .assignments: "Assignments stay on this Mac. Change them any time in Settings."
         case .ready:
             hasAssignments
-                ? "Your assignments are saved. Keyameleon works from the menu bar."
-                : "Add Keyboard Assignments any time in Settings."
+                ? "Your assignments are saved. Keyameleon runs in the menu bar."
+                : "Assign keyboards any time in Settings."
         }
     }
 }

@@ -136,7 +136,7 @@ private func nativeMenuRetriesPersistenceFailure() throws {
     #expect(menu.items.first { $0.title == "Keyboards" } == nil)
     #expect(host.rootView.notice.title == "Saved keyboards unavailable")
     #expect(host.rootView.notice.tone == .warning)
-    #expect(host.rootView.notice.detail == "Retry to recover saved keyboard data.")
+    #expect(host.rootView.notice.detail == "Click Retry to try again.")
     #expect(host.rootView.notice.action.id == .retryPersistence)
     #expect(host.rootView.notice.action.isEnabled)
     #expect(host.frame.width == Theme.Menu.width)

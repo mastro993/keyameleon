@@ -9,14 +9,9 @@ struct GeneralSettingsPane: View {
         Form {
             Section {
                 Toggle(isOn: launchAtLoginBinding) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Launch at login")
-                            .font(Theme.Typography.rowTitle)
-                            .foregroundStyle(Theme.primary)
-                        Text("Start Keyameleon automatically when you log in.")
-                            .font(Theme.Typography.caption)
-                            .foregroundStyle(Theme.secondary)
-                    }
+                    Text("Launch at login")
+                        .font(Theme.Typography.rowTitle)
+                        .foregroundStyle(Theme.primary)
                 }
                 .toggleStyle(.switch)
             } header: {

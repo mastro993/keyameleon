@@ -2,17 +2,16 @@ import SwiftUI
 
 @MainActor
 struct OnboardingPermissionStep: View {
+    /// Whether macOS already lists Keyameleon in Input Monitoring, so the
+    /// footer offers Open System Settings instead of Allow Input Monitoring.
+    let isListed: Bool
+
     var body: some View {
         VStack(alignment: .leading, spacing: 28) {
-            Text("Let Keyameleon recognise your keyboards.")
+            Text("Let Keyameleon recognize your keyboards.")
                 .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
-            Text("Input Monitoring lets Keyameleon detect keyboard activity and select the assigned Input Source.")
-                .font(.body)
-                .lineSpacing(2)
-                .padding(.vertical, 1)
-                .foregroundStyle(OnboardingPalette.secondary)
             HStack(spacing: 20) {
                 Image(systemName: "shield.fill")
                     .resizable()
@@ -21,7 +20,7 @@ struct OnboardingPermissionStep: View {
                     .foregroundStyle(OnboardingPalette.accent)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Input Monitoring").font(.body).bold()
-                    Text("Required for automatic switching")
+                    Text("Tells Keyameleon which keyboard you’re typing on")
                         .font(.callout)
                         .foregroundStyle(OnboardingPalette.secondary)
                 }
@@ -40,7 +39,9 @@ struct OnboardingPermissionStep: View {
             VStack(alignment: .leading, spacing: 16) {
                 OnboardingPermissionInstruction(
                     number: 1,
-                    message: "Choose Allow Input Monitoring, then Open System Settings in the macOS alert."
+                    message: isListed
+                        ? "Click Open System Settings."
+                        : "Click Allow Input Monitoring, then Open System Settings."
                 )
                 OnboardingPermissionInstruction(
                     number: 2,
@@ -48,19 +49,21 @@ struct OnboardingPermissionStep: View {
                 )
                 OnboardingPermissionInstruction(
                     number: 3,
-                    message: "If macOS asks, choose Quit & Reopen. Setup continues automatically."
+                    message: "If asked, click Quit & Reopen. Setup continues automatically."
                 )
             }
-            Text("Access can be changed later in System Settings.")
-                .font(.callout)
-                .foregroundStyle(OnboardingPalette.muted)
         }
     }
 }
 
 #if DEBUG
 #Preview("Permission instructions") {
-    OnboardingPermissionStep()
+    OnboardingPermissionStep(isListed: false)
+        .frame(width: 630)
+}
+
+#Preview("Permission instructions after macOS asked") {
+    OnboardingPermissionStep(isListed: true)
         .frame(width: 630)
 }
 #endif

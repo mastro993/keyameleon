@@ -696,8 +696,7 @@ final class SetupModel {
             if !savedPhysicalKeyboardChanges.hasPendingChange { persistenceError = nil }
         } catch {
             if !savedPhysicalKeyboardChanges.hasPendingChange {
-                persistenceError = "Saved Physical Keyboards are unavailable. "
-                    + "Check available disk space and access to your user Library, then retry."
+                persistenceError = "Check free disk space and access to your Library folder, then click Retry."
             }
         }
     }
@@ -817,8 +816,8 @@ final class SetupModel {
             }
             publishPhysicalKeyboards()
         case .failed:
-            persistenceError = "Your change was not saved. Previous saved records are unchanged. "
-                + "Check available disk space and access to your user Library, then retry."
+            persistenceError = "Your last change wasn’t saved. "
+                + "Check free disk space and access to your Library folder, then click Retry."
         case .blocked, .nothingPending:
             break
         }
