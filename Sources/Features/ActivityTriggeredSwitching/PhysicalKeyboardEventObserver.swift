@@ -90,8 +90,8 @@ final class SystemPhysicalKeyboardEventObserver: PhysicalKeyboardEventObserving 
                 }
 
                 // Never call seizeDevice. Listen-only public observation only.
-                let elements = await client.elements.filter { element in
-                    Self.isSupportedActivationElement(element)
+                let elements = await client.elements.filter {
+                    PhysicalKeyboardHIDInspection.isKeyInputElement($0)
                 }
 
                 guard !elements.isEmpty else {
@@ -173,22 +173,6 @@ final class SystemPhysicalKeyboardEventObserver: PhysicalKeyboardEventObserving 
     private func stopMonitoring(serviceID: UInt64) {
         deviceTasks[serviceID]?.cancel()
         deviceTasks[serviceID] = nil
-    }
-
-    /// Normal, modifier, function, media, lock, and exposed special keys.
-    private static func isSupportedActivationElement(_ element: HIDElement) -> Bool {
-        guard element.type == .input else {
-            return false
-        }
-
-        switch element.usage {
-        case .keyboardOrKeypad:
-            return true
-        case .consumer:
-            return true
-        default:
-            return false
-        }
     }
 }
 

@@ -4,6 +4,27 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-08 — Recognize and group 2.4 GHz receivers
+
+- Reported: a NuPhy Halo75 V2 2.4 GHz dongle is not listed. No hardware was
+  available to capture its HID usages, so recognition was widened to match what
+  the event observer already monitors.
+- `PhysicalKeyboardHIDInspection.isKeyInputElement` is now the single element
+  rule for recognition and Activation Activity observation (keyboard, keypad,
+  and consumer input). `isKeyInputUsage` also accepts keyboard-page and consumer
+  usages, so a receiver that exposes only a media-key collection is still listed.
+- Expected false positives (headsets, displays with media controls) are handled
+  by Ignore.
+- Follow-up report: the dongle showed as two `Unsupported` rows. It has no USB
+  serial, so each HID interface fell back to its own CoreHID unique ID (or its
+  own `service:` row). `PhysicalKeyboardIdentity` now anchors serial-less,
+  address-less external devices on vendor and product IDs (`hardware:<vid>:<pid>`),
+  which groups the interfaces into one assignable row. Different `locationID`s
+  under that anchor mean identical devices, reported as `sharedIdentity`.
+- An Ignore saved for such a device under its old key (`hardware:<vid>:<pid>:<model>`
+  or a unique-ID identity) no longer matches; the device reappears once and can
+  be ignored again.
+
 ## 2026-10-07 — Homebrew cask
 
 - Created public tap `mastro993/homebrew-tap` for all products, with
