@@ -3,7 +3,8 @@ import SwiftUI
 /// One Physical Keyboard row, shared by Guided setup and Settings.
 ///
 /// The row draws the name and connection status, the Input Source
-/// menu, and the keyboard's actions menu. Ignoring and restoring write
+/// menu, and the keyboard's actions menu. Unsupported keyboards never
+/// get a row; `UnsupportedPhysicalKeyboardsSection` lists them. Ignoring and restoring write
 /// straight through the model, so both flows behave the same way.
 @MainActor
 struct PhysicalKeyboardRowView: View {
@@ -24,16 +25,7 @@ struct PhysicalKeyboardRowView: View {
                 includedLabels(for: keyboard)
                 Spacer(minLength: 0)
                 HStack(spacing: 8) {
-                    if keyboard.isAssignable {
-                        assignmentPicker(for: keyboard)
-                    } else {
-                        Text("Unsupported")
-                            .font(Theme.Typography.subheadline)
-                            .foregroundStyle(Theme.secondary)
-                            .frame(width: 176, alignment: .leading)
-                            .help(unsupportedReason(for: keyboard))
-                            .accessibilityValue(unsupportedReason(for: keyboard))
-                    }
+                    assignmentPicker(for: keyboard)
                     if model.canExcludePhysicalKeyboard(keyboard.id) {
                         actionsMenu(for: keyboard)
                     } else {
@@ -140,7 +132,7 @@ struct PhysicalKeyboardRowView: View {
 
     private func actionsMenu(for keyboard: PhysicalKeyboard) -> some View {
         Menu {
-            if keyboard.isAssignable && keyboard.id.isIdentityBased {
+            if keyboard.id.isIdentityBased {
                 Button("Rename…", systemImage: "pencil") {
                     presentRename(for: keyboard)
                 }
@@ -187,16 +179,6 @@ struct PhysicalKeyboardRowView: View {
     ) -> String {
         if case let .matched(record) = savedRecord { return record.name }
         return exclusion.name
-    }
-
-    private func unsupportedReason(for keyboard: PhysicalKeyboard) -> String {
-        guard case let .unsupported(reason) = keyboard.assignmentState else { return "Unsupported" }
-        return switch reason {
-        case .missingIdentity: "Identity unavailable"
-        case .unstableIdentity: "Identity unstable"
-        case .sharedIdentity: "Identity shared"
-        case .ambiguousIdentity: "Identity ambiguous"
-        }
     }
 }
 

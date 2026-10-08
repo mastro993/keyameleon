@@ -4,12 +4,19 @@ import SwiftUI
 struct KeyboardSettingsList: View {
     let model: SetupModel
     let rows: [PhysicalKeyboardRow]
+    let unsupportedKeyboards: [PhysicalKeyboard]
     let onIgnore: (PhysicalKeyboardRecordID) -> Void
     let onStopIgnoring: (String) -> Void
 
     var body: some View {
         Form {
             Section {
+                if rows.isEmpty {
+                    Text("No supported keyboards connected.")
+                        .foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .listRowBackground(Theme.windowBackground)
+                }
                 ForEach(rows) { row in
                     PhysicalKeyboardRowView(
                         row: row,
@@ -31,6 +38,8 @@ struct KeyboardSettingsList: View {
                 .foregroundStyle(Theme.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            UnsupportedPhysicalKeyboardsSection(keyboards: unsupportedKeyboards)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
@@ -40,14 +49,16 @@ struct KeyboardSettingsList: View {
 #if DEBUG
 #Preview("Keyboard settings list") {
     let fixture = PreviewFixtures.setup(.pencilAssignments)
+    let rows = PhysicalKeyboardRows(
+        physicalKeyboards: fixture.model.physicalKeyboards,
+        exclusions: fixture.model.excludedPhysicalKeyboards,
+        savedRecords: fixture.model.savedPhysicalKeyboardRecords,
+        exclusionKeyFor: fixture.model.exclusionKey(for:)
+    )
     KeyboardSettingsList(
         model: fixture.model,
-        rows: PhysicalKeyboardRows(
-            physicalKeyboards: fixture.model.physicalKeyboards,
-            exclusions: fixture.model.excludedPhysicalKeyboards,
-            savedRecords: fixture.model.savedPhysicalKeyboardRecords,
-            exclusionKeyFor: fixture.model.exclusionKey(for:)
-        ).rows,
+        rows: rows.rows,
+        unsupportedKeyboards: rows.unsupportedKeyboards + [PreviewFixtures.unsupportedPhysicalKeyboard()],
         onIgnore: { _ in },
         onStopIgnoring: { _ in }
     )

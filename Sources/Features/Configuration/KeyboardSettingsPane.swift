@@ -18,7 +18,7 @@ struct KeyboardSettingsPane: View {
 
     var body: some View {
         Group {
-            if rows.rows.isEmpty {
+            if rows.rows.isEmpty && rows.unsupportedKeyboards.isEmpty {
                 VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
                     KeyboardSettingsHeader()
 
@@ -32,6 +32,7 @@ struct KeyboardSettingsPane: View {
                 KeyboardSettingsList(
                     model: model,
                     rows: rows.rows,
+                    unsupportedKeyboards: rows.unsupportedKeyboards,
                     onIgnore: { id in
                         model.excludePhysicalKeyboard(id)
                         rows.reconcile(with: model)

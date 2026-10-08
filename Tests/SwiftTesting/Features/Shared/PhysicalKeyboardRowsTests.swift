@@ -237,6 +237,33 @@ func persistedExclusionsAppearAndUnavailableDevicesDisappearOnRestore() {
     #expect(rows.rows.isEmpty)
 }
 
+@Test("Unsupported keyboards stay out of the rows and are listed apart")
+@MainActor
+func unsupportedKeyboardsStayOutOfRows() {
+    let supported = makeOnboardingRowKeyboard(id: "identity:supported", name: "Supported")
+    let unsupported = PhysicalKeyboard(
+        id: PhysicalKeyboardRecordID(rawValue: "service:unsupported"),
+        productName: "Receiver", customName: nil, transport: .usb, isBuiltIn: false,
+        assignmentState: .unsupported(.sharedIdentity), connectedServiceCount: 1,
+        connectionState: .connected, isActive: false
+    )
+    var rows = PhysicalKeyboardRows(
+        physicalKeyboards: [supported, unsupported], exclusionKeyFor: { _ in nil }
+    )
+
+    #expect(rows.rows.map(\.id) == [.keyboard(supported.id)])
+    #expect(rows.unsupportedKeyboards == [unsupported])
+
+    let ignored = SavedPhysicalKeyboardExclusion(key: "hardware:unsupported", name: "Receiver")
+    rows.reconcile(
+        physicalKeyboards: [supported, unsupported], exclusions: [ignored],
+        exclusionKeyFor: { $0 == unsupported.id ? ignored.key : nil }
+    )
+
+    #expect(rows.unsupportedKeyboards.isEmpty)
+    #expect(rows.rows.map(\.id) == [.keyboard(supported.id), .exclusion(ignored.key)])
+}
+
 private func makeOnboardingRowKeyboard(id: String, name: String) -> PhysicalKeyboard {
     PhysicalKeyboard(
         id: PhysicalKeyboardRecordID(rawValue: id),
