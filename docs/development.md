@@ -19,6 +19,7 @@ Everything goes through `Scripts/run.sh`. Every command runs the [safety audit](
 | `./Scripts/run.sh test` | SwiftLint, then generate, then script tests, Swift Testing, and XCTest (the default command) |
 | `./Scripts/run.sh generate` | Select your signing certificate and regenerate `Keyameleon.xcodeproj` |
 | `./Scripts/run.sh build` | Generate and build the Debug app without launching it |
+| `./Scripts/run.sh reset` | Quit every Keyameleon and erase its local state for a first-run test (see [Resetting local state](#resetting-local-state)) |
 | `./Scripts/run.sh lint` | SwiftLint only |
 | `./Scripts/run.sh audit` | Safety audit only |
 | `./Scripts/run.sh release-tag vX.Y.Z` | Validate an Official Release tag name |
@@ -48,6 +49,20 @@ Debug builds are the same app as the installed release: same bundle ID `dev.fede
 - Only one of them runs at a time. `run.sh open` replaces this checkout's Debug app, but stops with an error if another Keyameleon is running and never quits it.
 - Debug and CI builds lack the release `SUPublicEDKey`, so they never start Sparkle.
 - The two builds have different signatures. After switching between them, check Input Monitoring in System Settings.
+
+### Resetting local state
+
+Every build you launch, in any worktree, DerivedData folder, mounted DMG or the Trash, stays registered with LaunchServices under the same bundle ID. When you change Input Monitoring, System Settings offers **Quit & Reopen**, which reopens Keyameleon by bundle ID, not by path. LaunchServices then picks one of the registered copies, which may not be the build you were testing.
+
+`./Scripts/run.sh reset` returns the Mac to a never-installed state:
+
+- Quits every running Keyameleon, including an installed release.
+- Unregisters every registered copy from LaunchServices, and stops if one fails. The next copy you launch registers itself again, so Quit & Reopen finds it.
+- Resets Keyameleon's privacy permissions (`tccutil reset All dev.fedemas.keyameleon`).
+- Deletes its preferences, the saved keyboards in `~/Library/Application Support/Keyameleon`, and `~/Library/Logs/Keyameleon`.
+- Deletes the pre-0.4.6 store at `~/Library/Application Support/default.store`, which launch would otherwise copy back. Other apps can use that path, so it is deleted only when it holds Keyameleon's keyboard table and no tables other than Keyameleon's and Core Data's own. If it holds both, the reset keeps the file, fails, and says the next launch will copy those keyboards back.
+
+It keeps the Keychain integrity key, as a real uninstall would, and the Launch at Login item. Launch at Login can open a different copy than the one you test, so turn it off first.
 
 Data from the retired `Keyameleon (Dev)` app stays in its own folders, preferences domain, and Keychain item. Keyameleon neither imports nor deletes it.
 

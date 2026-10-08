@@ -6,6 +6,8 @@ cd "${script_dir}/.."
 
 DERIVED_DATA_PATH="${PWD}/build"
 PRODUCTS_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug"
+BUNDLE_ID='dev.fedemas.keyameleon'
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
 audit_sources() {
     local forbidden_pattern='HIDVirtualDevice|IOHIDUserDevice|IOHIDEventSystem|IOHIDPostEvent|IOHIDEvent|seizeDevice[[:space:]]*\(|kIOHIDRequestTypePostEvent|CGEvent(Post|Create|Tap)?|CGRequest(Post|Preflight)EventAccess|CGS[A-Za-z]|sendEvent[[:space:]]*\(|NSEvent[[:space:]]*\.[[:space:]]*(keyEvent|mouseEvent)|URLSession|URLRequest|NSURLConnection|URLProtocol|uploadTask|dataTask|Analytics|Telemetry|Sentry|Crashlytics|MetricKit|PLCrashReporter|diagnosticUpload|crashReportUpload|print[[:space:]]*\(|NSLog[[:space:]]*\(|os_log[[:space:]]*\('
@@ -187,6 +189,90 @@ running_keyameleon_apps() {
         'ObjC.import("AppKit"); $.NSRunningApplication.runningApplicationsWithBundleIdentifier("dev.fedemas.keyameleon").js.map(app => app.processIdentifier + "\t" + app.bundleURL.path.js).join("\n")'
 }
 
+wait_until_no_keyameleon_runs() {
+    local attempt running
+    for (( attempt = 0; attempt < 50; attempt++ )); do
+        running="$(running_keyameleon_apps)" || return 1
+        [[ -z "${running}" ]] && return 0
+        sleep 0.2
+    done
+    print -u2 'A Keyameleon process is still running.'
+    return 1
+}
+
+# Prints every bundle path LaunchServices has registered for the bundle ID.
+# macOS's Quit & Reopen (offered after an Input Monitoring change) relaunches by
+# bundle ID, so with stale copies registered it can open a different Keyameleon.
+registered_keyameleon_apps() {
+    "${LSREGISTER}" -dump 2>/dev/null | awk '
+        /^path:/ { sub(/^path:[[:space:]]+/, ""); sub(/ \(0x[0-9a-f]+\)$/, ""); path = $0 }
+        /^identifier:[[:space:]]+dev\.fedemas\.keyameleon$/ { print path }
+    ' | sort -u
+}
+
+# Returns this Mac to a never-installed state for Keyameleon, so the next launch
+# is a first run. Quits every running copy, including an installed release.
+# The Keychain integrity key stays, as it would after a real uninstall; it only
+# signs data this reset deletes.
+reset_local_state() {
+    local pid bundle app running
+
+    running="$(running_keyameleon_apps)" || return 1
+    while IFS=$'\t' read -r pid bundle; do
+        [[ -n "${pid}" ]] || continue
+        print "Quitting Keyameleon PID ${pid} at ${bundle}"
+        kill "${pid}" 2>/dev/null || true
+    done <<< "${running}"
+    wait_until_no_keyameleon_runs || return 1
+
+    # The next launched copy registers itself again and becomes the one
+    # Quit & Reopen finds. Records for deleted copies are never launched.
+    registered_keyameleon_apps | while IFS= read -r app; do
+        [[ -d "${app}" ]] || continue
+        print "Unregistering ${app}"
+        if ! "${LSREGISTER}" -u "${app}"; then
+            print -u2 "Could not unregister ${app}; Quit & Reopen may still open it."
+            return 1
+        fi
+    done || return 1
+
+    tccutil reset All "${BUNDLE_ID}"
+    defaults delete "${BUNDLE_ID}" 2>/dev/null || true
+    rm -rf "${HOME}/Library/Application Support/Keyameleon" "${HOME}/Library/Logs/Keyameleon"
+
+    # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
+    # copies it into the Keyameleon folder again. Other apps may use that path, so
+    # delete it only when Keyameleon's keyboard table is there and every other
+    # table is Keyameleon's or Core Data's own. A store that also holds any other
+    # table is never edited; the reset fails instead.
+    local legacy_store="${HOME}/Library/Application Support/default.store"
+    local legacy_store_query="
+        SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
+            || EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name NOT GLOB 'sqlite_*'
+                AND name NOT IN (
+                    'ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL',
+                    'Z_PRIMARYKEY', 'Z_METADATA', 'Z_MODELCACHE',
+                    'ACHANGE', 'ATRANSACTION', 'ATRANSACTIONSTRING'))"
+    local legacy_store_tables=''
+    if [[ -f "${legacy_store}" ]] \
+        && ! legacy_store_tables="$(sqlite3 -readonly "${legacy_store}" "${legacy_store_query}")"; then
+        print -u2 "Could not inspect ${legacy_store}, so it was kept. The next launch may copy its keyboards back."
+        return 1
+    fi
+    case "${legacy_store_tables}" in
+        10)
+            print "Deleting legacy store ${legacy_store}"
+            rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
+            ;;
+        11)
+            print -u2 "${legacy_store} holds Keyameleon's keyboards and another app's data, so it was kept."
+            print -u2 'The next launch copies those keyboards back. Remove them by hand for a first run.'
+            return 1
+            ;;
+    esac
+    print 'Keyameleon local state reset.'
+}
+
 # Replaces only this checkout's Debug app. Any other running Keyameleon, such as an
 # installed release, holds the single-instance lock and is never stopped here.
 open_development_app() {
@@ -212,16 +298,7 @@ open_development_app() {
         fi
     done
 
-    for (( attempt = 0; attempt < 50; attempt++ )); do
-        running="$(running_keyameleon_apps)" || return 1
-        [[ -z "${running}" ]] && break
-        sleep 0.2
-    done
-    running="$(running_keyameleon_apps)" || return 1
-    if [[ -n "${running}" ]]; then
-        print -u2 'A Keyameleon process is still running.'
-        return 1
-    fi
+    wait_until_no_keyameleon_runs || return 1
 
     open -n -a "${app}"
     for (( attempt = 0; attempt < 50; attempt++ )); do
@@ -255,6 +332,9 @@ case "${1:-test}" in
         generate_project
         run_tests
         ;;
+    reset)
+        reset_local_state
+        ;;
     open)
         generate_project
         build_development_app
@@ -265,7 +345,7 @@ case "${1:-test}" in
         exec "${0:A:h}/verify-official-release-tag.sh" "$@"
         ;;
     *)
-        print -u2 'usage: run.sh audit|lint|generate|build|test|open|release-tag'
+        print -u2 'usage: run.sh audit|lint|generate|build|test|open|reset|release-tag'
         exit 64
         ;;
 esac
