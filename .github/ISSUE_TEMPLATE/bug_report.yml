@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a problem in Keyameleon
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report security vulnerabilities privately, as described in [SECURITY.md](https://github.com/mastro993/Keyameleon/blob/main/SECURITY.md). Do not open a public issue for them.
+
+  - type: input
+    id: version
+    attributes:
+      label: Keyameleon version
+      description: Shown on the About page.
+      placeholder: "0.6.1"
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "macOS 26.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Keyboard connection
+      description: How the Physical Keyboards involved are connected.
+      options:
+        - Built-in
+        - USB
+        - Bluetooth
+        - Multiple / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: keyboards
+    attributes:
+      label: Physical Keyboards and Input Sources
+      description: Keyboard models involved and the Input Source assigned to each.
+      placeholder: "Apple Magic Keyboard (US), Logitech MX Keys (Italian)"
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines from `~/Library/Logs/Keyameleon` (the About page opens that folder). Remove anything you do not want to share.
+      render: text

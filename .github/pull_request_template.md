@@ -1,14 +1,19 @@
+<!-- Larger changes, new features, and UI changes need an issue first. See CONTRIBUTING.md. -->
 <!-- If the PR closes an issue add it here. E.g. "Closes #123" -->
 
-## Summary
+## Description
 
-<!-- What does this PR do, and why? Keep it brief. -->
+<!-- What does this PR do, and why? One or two sentences. -->
 
-## Changes
+## Proposed changes
 
-<!-- List the main changes in detail. One bullet per meaningful change. -->
+<!-- One bullet per meaningful change. -->
 
 -
+
+## Preview
+
+<!-- UI changes: before/after screenshots. Motion or timing: a short video. Delete this section if not applicable. -->
 
 ## How to test
 
