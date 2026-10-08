@@ -1,5 +1,9 @@
 # Breadcrumbs
 
+A chronological work log, newest first: what changed, how it was diagnosed, and
+what was tried. Entries are history and may describe behavior that has since
+been replaced. For current behavior, read [`choices.md`](choices.md).
+
 ## 2026-10-07 — Homebrew cask
 
 - Created public tap `mastro993/homebrew-tap` for all products, with
@@ -110,6 +114,11 @@
   Stop ignoring removes that marker and restores the assignment controls.
 - Onboarding uses semantic type styles across the sidebar, steps, rows, and
   footer. The Ready step uses the updated light and dark menu artwork.
+
+## 2026-10-01 — License
+
+- Change the project license from `GPL-3.0-only` to `MIT`, including contribution
+  terms, About, release evidence, bundled-license checks, and release documentation.
 
 ## 2026-09-28 — Closed Guided setup can resume from the menu bar
 
@@ -716,8 +725,3 @@
 - Model: merge connected catalog + saved disconnected; active ID; forget/replace; no Input Source request on disconnect.
 - UI: connection/active labels; Replace picker + confirm; Forget confirm.
 - Follow-on: #5 wires Activation Activity into event observer and real selection.
-
-## 2026-10-01 License
-
-- Change the project license from `GPL-3.0-only` to `MIT`, including contribution
-  terms, About, release evidence, bundled-license checks, and release documentation.
