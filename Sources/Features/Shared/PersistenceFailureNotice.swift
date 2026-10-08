@@ -34,7 +34,7 @@ struct PersistenceFailureNotice: View {
             hasStartedGuidedSetup: true, hasCompletedGuidedSetup: true,
             guidedSetupStep: .assignments, isPaused: false
         ),
-        systemSettingsOpener: PreviewSystemSettingsOpener(),
+        inputMonitoringRecovery: PreviewInputMonitoringRecovery(),
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )

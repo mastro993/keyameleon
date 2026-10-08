@@ -111,7 +111,6 @@ final class SetupModel {
     private(set) var savedPhysicalKeyboardRecords: [SavedPhysicalKeyboardRecord] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
     private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
-    private(set) var isWaitingForListenPermission = false
 
     private(set) var persistenceError: String?
     /// True while either store cannot be read or written, which is what every
@@ -127,7 +126,7 @@ final class SetupModel {
     let activityTriggeredSwitching: ActivityTriggeredSwitching
 
     private let setupStore: any SetupDecisionStoring
-    private let systemSettingsOpener: any SystemSettingsOpening
+    private let inputMonitoringRecovery: any InputMonitoringRecovering
     private let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
     private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
@@ -138,12 +137,11 @@ final class SetupModel {
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var discoveryObserverID: UUID?
     private var inputSourceObserverID: UUID?
-    private var permissionPollTask: Task<Void, Never>?
 
     init(
         activityTriggeredSwitching: ActivityTriggeredSwitching,
         setupStore: any SetupDecisionStoring,
-        systemSettingsOpener: any SystemSettingsOpening,
+        inputMonitoringRecovery: any InputMonitoringRecovering,
         physicalKeyboardDiscovery: PhysicalKeyboardDiscovery,
         inputSources: InputSourceModule,
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
@@ -155,7 +153,7 @@ final class SetupModel {
         self.savedPhysicalKeyboardChanges = savedPhysicalKeyboardChanges
         self.activityTriggeredSwitching = activityTriggeredSwitching
         self.setupStore = setupStore
-        self.systemSettingsOpener = systemSettingsOpener
+        self.inputMonitoringRecovery = inputMonitoringRecovery
         self.physicalKeyboardDiscovery = physicalKeyboardDiscovery
         self.inputSources = inputSources
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
@@ -189,6 +187,7 @@ final class SetupModel {
 
         publishPhysicalKeyboards()
         eligibleInputSources = inputSources.eligibleInputSources
+        followSwitchingOutcome()
     }
 
     /// Composition initializer for focused adapter tests.
@@ -197,7 +196,7 @@ final class SetupModel {
         permissionProvider: any ListenPermissionProviding,
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring,
-        systemSettingsOpener: any SystemSettingsOpening,
+        inputMonitoringRecovery: any InputMonitoringRecovering,
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
             NoOpPhysicalKeyboardDiscoverer(),
         inputSourceProvider: any InputSourceProviding = NoOpInputSourceProvider(),
@@ -232,7 +231,7 @@ final class SetupModel {
         self.init(
             activityTriggeredSwitching: composition.activityTriggeredSwitching,
             setupStore: composition.setupStore,
-            systemSettingsOpener: systemSettingsOpener,
+            inputMonitoringRecovery: inputMonitoringRecovery,
             physicalKeyboardDiscovery: composition.physicalKeyboardDiscovery,
             inputSources: composition.inputSources,
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
@@ -282,18 +281,11 @@ final class SetupModel {
             guidedSetupStep = setupStore.guidedSetupStep
         }
         activityTriggeredSwitching.checkAgain()
-        startPermissionWaitIfNeeded()
         advanceIfPermissionGranted()
     }
 
-    func endGuidedSetupPresentation() {
-        stopPermissionWait()
-    }
-
     func requestPermission() {
-        isWaitingForListenPermission = true
         activityTriggeredSwitching.requestPermission()
-        startPermissionWaitIfNeeded()
         advanceIfPermissionGranted()
     }
 
@@ -311,8 +303,6 @@ final class SetupModel {
     func continueToAssignments() {
         guard !isSetupComplete, guidedSetupStep == .permission,
               activityTriggeredSwitching.outcome.switchingStatus != .permissionRequired else { return }
-        stopPermissionWait()
-        isWaitingForListenPermission = false
         setupStore.markGuidedSetupStep(.assignments)
         hasStartedGuidedSetup = true
         guidedSetupStep = .assignments
@@ -335,20 +325,17 @@ final class SetupModel {
     func completeSetup(destination: GuidedSetupCompletionDestination) {
         guard !isSetupComplete, guidedSetupStep == .ready,
               persistenceError == nil, activityTriggeredSwitching.persistenceError == nil else { return }
-        stopPermissionWait()
-        isWaitingForListenPermission = false
         setupStore.markGuidedSetupCompleted()
         isSetupComplete = true
         onGuidedSetupCompleted?(destination)
     }
 
-    func checkPermissionAgain() {
-        activityTriggeredSwitching.checkAgain()
-        advanceIfPermissionGranted()
+    func openSystemSettings() {
+        inputMonitoringRecovery.openSystemSettings()
     }
 
-    func openSystemSettings() {
-        systemSettingsOpener.openSystemSettings()
+    func relaunch() {
+        inputMonitoringRecovery.relaunch()
     }
 
     func setPhysicalKeyboardName(
@@ -837,36 +824,16 @@ final class SetupModel {
         }
     }
 
-    private func startPermissionWaitIfNeeded() {
-        guard !isSetupComplete, guidedSetupStep == .permission else {
-            stopPermissionWait()
-            return
-        }
-        guard permissionPollTask == nil else {
-            return
-        }
-
-        // ponytail: IOHIDCheckAccess has no change notification. 1s poll while
-        // the permission step is visible; subscribe if Apple adds a callback.
-        permissionPollTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                do {
-                    try await Task.sleep(for: .seconds(1))
-                } catch {
-                    return
-                }
-                guard let self, !Task.isCancelled else {
-                    return
-                }
-
-                self.activityTriggeredSwitching.checkAgain()
-                self.advanceIfPermissionGranted()
+    /// Activity-Triggered Switching watches permission while it is missing.
+    /// Guided setup advances as soon as that outcome reports a grant.
+    private func followSwitchingOutcome() {
+        withObservationTracking {
+            _ = activityTriggeredSwitching.outcome.switchingStatus
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.advanceIfPermissionGranted()
+                self?.followSwitchingOutcome()
             }
         }
-    }
-
-    private func stopPermissionWait() {
-        permissionPollTask?.cancel()
-        permissionPollTask = nil
     }
 }

@@ -12,7 +12,7 @@ func permissionRevocationStopsObservationAndLaterInputSourceRequests() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         inputSourceSelector: selector,
         physicalKeyboardEventObserver: eventObserver
     )
@@ -38,7 +38,7 @@ func sleepAndLockStopObservationWakeAndUnlockResumeAutomatically() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardEventObserver: eventObserver
     )
@@ -73,7 +73,7 @@ func wakeRestoresSavedPhysicalKeyboardRecordsAfterLifecycleStop() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore
     )
@@ -115,7 +115,7 @@ func positiveSecureInputEvidenceSetsTemporarilyUnavailableAndResumesWithoutRetry
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: protectedStateProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         inputSourceSelector: selector,
         physicalKeyboardEventObserver: eventObserver
     )
@@ -150,7 +150,7 @@ func missingActivityDoesNotCreateTemporarilyUnavailable() {
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: protectedStateProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     startAndCheck(model)
@@ -169,7 +169,7 @@ func protectedLifecycleRecoveryKeepsPausedStatusUntilUserResumes() {
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: protectedStateProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardEventObserver: eventObserver
     )
 

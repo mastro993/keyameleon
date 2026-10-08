@@ -5,7 +5,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case resume
     case requestPermission
     case openSystemSettings
-    case checkAgain
+    case relaunch
     case retryNow
     case retryPersistence
     case continueSetup
@@ -86,6 +86,9 @@ struct MenuBarPanelContent: Equatable, Sendable {
             ))
         }
         actions.append(pauseOrResume(outcome: outcome))
+        if outcome.hasAction(.relaunch) {
+            actions.append(Action(id: .relaunch, title: "Restart \(appName)", isEnabled: true))
+        }
         actions.append(Action(id: .settings, title: "Settings", isEnabled: true))
         actions.append(Action(
             id: .checkForUpdates,

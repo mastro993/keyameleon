@@ -44,31 +44,26 @@ struct ActivityTriggeredSwitchingWarning: Identifiable, Equatable, Hashable, Sen
 }
 
 enum ActivityTriggeredSwitchingAction: Hashable, Sendable {
+    /// Never asked: the macOS alert adds Keyameleon to Input Monitoring.
     case requestPermission
+    /// Asked before: the person turns Keyameleon on in Input Monitoring.
     case openSystemSettings
-    case checkAgain
+    /// Asked before: a grant made while running needs a fresh process.
+    case relaunch
     case pause
     case resume
     case retryNow
 
     static func available(
         for status: SwitchingStatus,
+        listenPermission: ListenPermissionState,
         warnings: [ActivityTriggeredSwitchingWarning],
         isPaused: Bool
     ) -> Set<ActivityTriggeredSwitchingAction> {
-        var actions: Set<ActivityTriggeredSwitchingAction>
-        switch status {
-        case .ready:
-            actions = [
-                .openSystemSettings,
-                .checkAgain
-            ]
-        case .permissionRequired:
-            actions = [.requestPermission, .openSystemSettings, .checkAgain]
-        case .paused:
-            actions = [.requestPermission, .openSystemSettings, .checkAgain]
-        case .temporarilyUnavailable:
-            actions = []
+        var actions: Set<ActivityTriggeredSwitchingAction> = switch listenPermission {
+        case .granted: []
+        case .unknown: [.requestPermission]
+        case .denied: [.openSystemSettings, .relaunch]
         }
 
         if isPaused {
@@ -106,7 +101,7 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
         currentInputSourceName: nil,
         mismatch: nil,
         warnings: [],
-        availableActions: [.requestPermission, .openSystemSettings, .checkAgain]
+        availableActions: [.requestPermission]
     )
 
     func hasAction(_ action: ActivityTriggeredSwitchingAction) -> Bool {
@@ -116,6 +111,7 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
     func replacing(
         status: SwitchingStatus? = nil,
         reasons: [SwitchingUnavailableReason]? = nil,
+        listenPermission: ListenPermissionState,
         isPaused: Bool
     ) -> ActivityTriggeredSwitchingOutcome {
         ActivityTriggeredSwitchingOutcome(
@@ -127,7 +123,10 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
             mismatch: mismatch,
             warnings: warnings,
             availableActions: ActivityTriggeredSwitchingAction.available(
-                for: status ?? switchingStatus, warnings: warnings, isPaused: isPaused
+                for: status ?? switchingStatus,
+                listenPermission: listenPermission,
+                warnings: warnings,
+                isPaused: isPaused
             )
         )
     }

@@ -20,7 +20,7 @@ func rapidABAAssignedActivityConvergesToNewestKeyboardAssignment() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
@@ -75,7 +75,7 @@ func eachWantedGenerationReceivesOneSelectionRequestAndOneReadback() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
@@ -110,7 +110,7 @@ func newerAssignedActivationActivityDiscardsStaleSelectionResult() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
@@ -166,7 +166,7 @@ func repeatedActivityCoalescesWhenWantedKeyboardAssignmentAlreadyVerified() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector
@@ -208,7 +208,7 @@ func externalInputSourceChangeStaysUntilLaterAssignedActivationActivity() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(
             inputSources: [
@@ -272,7 +272,7 @@ func permissionRequiredStopsInputSourceChangeObservation() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         inputSourceChangeObserver: changeObserver
     )
 
@@ -292,7 +292,7 @@ func serialConsumerProcessesActivationActivityInObservationOrderUnderRapidLoad()
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: makeConvergeEligibleInputSources(),
         inputSourceSelector: selector

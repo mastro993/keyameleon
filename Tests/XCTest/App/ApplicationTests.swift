@@ -109,10 +109,8 @@ final class ApplicationTests: XCTestCase {
         panel.menuNeedsUpdate(menu)
         let permissionItem = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
         let permissionHost = try XCTUnwrap(permissionItem.view as? NSHostingView<MenuBarPanelNoticeView>)
-        XCTAssertEqual(permissionHost.rootView.notice.title, "Input Monitoring required")
-        XCTAssertTrue([MenuBarPanelActionID.openSystemSettings, .requestPermission].contains(
-            permissionHost.rootView.notice.action.id
-        ))
+        XCTAssertEqual(permissionHost.rootView.notice.title, "Input Monitoring is off")
+        XCTAssertEqual(permissionHost.rootView.notice.action.id, .openSystemSettings)
         XCTAssertNil(menu.items.first { $0.title == "Keyboards" })
         XCTAssertEqual(menu.size.width, keyboardMenuWidth)
         XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
@@ -132,10 +130,10 @@ final class ApplicationTests: XCTestCase {
 
     @MainActor
     func testPermissionNoticeButtonOpensSystemSettings() throws {
-        let opener = ApplicationTestSystemSettingsOpener()
+        let opener = ApplicationTestInputMonitoringRecovery()
         let delegate = makeApplicationTestDelegate(
             permissionProvider: ApplicationTestListenPermissionProvider(state: .denied),
-            systemSettingsOpener: opener
+            inputMonitoringRecovery: opener
         )
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
@@ -150,6 +148,13 @@ final class ApplicationTests: XCTestCase {
         XCTAssertEqual(button.title, "Open System Settings")
         button.performClick(nil)
         XCTAssertEqual(opener.openCount, 1)
+
+        let restart = try XCTUnwrap(panel.menu.items.first {
+            $0.representedObject as? String == MenuBarPanelActionID.relaunch.rawValue
+        })
+        XCTAssertEqual(restart.title, "Restart \(AppIdentity.current.name)")
+        panel.menu.performActionForItem(at: panel.menu.index(of: restart))
+        XCTAssertEqual(opener.relaunchCount, 1)
 
         let notice = host.rootView.notice
         var replacementCalls = 0

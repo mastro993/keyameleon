@@ -258,7 +258,7 @@ func reconcilingFromTheSetupModelKeepsOneList() throws {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: InMemoryPhysicalKeyboardRecordStore(),
         exclusionStore: InMemoryPhysicalKeyboardExclusionStore()

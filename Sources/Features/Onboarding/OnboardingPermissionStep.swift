@@ -38,12 +38,18 @@ struct OnboardingPermissionStep: View {
             .background(OnboardingPalette.surface, in: .rect(cornerRadius: 16))
             .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(OnboardingPalette.border) }
             VStack(alignment: .leading, spacing: 16) {
-                OnboardingPermissionInstruction(number: 1, message: "Open the macOS permission prompt.")
+                OnboardingPermissionInstruction(
+                    number: 1,
+                    message: "Choose Allow Input Monitoring, then Open System Settings in the macOS alert."
+                )
                 OnboardingPermissionInstruction(
                     number: 2,
-                    message: "Enable \(AppIdentity.current.name) in Input Monitoring."
+                    message: "Turn on \(AppIdentity.current.name) in Input Monitoring."
                 )
-                OnboardingPermissionInstruction(number: 3, message: "Return here. Setup continues automatically.")
+                OnboardingPermissionInstruction(
+                    number: 3,
+                    message: "If macOS asks, choose Quit & Reopen. Setup continues automatically."
+                )
             }
             Text("Access can be changed later in System Settings.")
                 .font(.callout)

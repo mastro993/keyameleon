@@ -33,6 +33,7 @@ final class ActivityTriggeredSwitching {
     private var observedCurrentInputSourceIdentifier: String?
     private var lastActivePhysicalKeyboard: PhysicalKeyboard?
 
+    private let permissionWatch = ListenPermissionWatch()
     private var discoveryObserverID: UUID?
     private var discoveryRecordObserverID: UUID?
     private var inputSourceObserverID: UUID?
@@ -198,6 +199,7 @@ final class ActivityTriggeredSwitching {
         self.discoveryRecordObserverID = nil
         self.inputSourceObserverID = nil
         isStarted = false
+        updatePermissionWatch(for: outcome.switchingStatus)
         rebuildOutcome()
     }
 
@@ -231,7 +233,7 @@ final class ActivityTriggeredSwitching {
             isPaused: setupStore.isActivityTriggeredSwitchingPaused
         )
         recordStatusChange(from: previousStatus, to: status)
-        outcome = outcome.replacing(status: status, isPaused: setupStore.isActivityTriggeredSwitchingPaused)
+        outcome = replacingOutcome(status: status)
         updateObservation(for: status)
         rebuildOutcome()
     }
@@ -467,6 +469,7 @@ final class ActivityTriggeredSwitching {
     }
 
     private func updateObservation(for status: SwitchingStatus) {
+        updatePermissionWatch(for: status)
         guard isStarted else {
             return
         }
@@ -708,7 +711,7 @@ final class ActivityTriggeredSwitching {
             return
         }
 
-        outcome = outcome.replacing(reasons: orderedReasons, isPaused: setupStore.isActivityTriggeredSwitchingPaused)
+        outcome = replacingOutcome(reasons: orderedReasons)
     }
 
     private func reconcileProtectedState() {
@@ -725,10 +728,7 @@ final class ActivityTriggeredSwitching {
             reasons.remove(.protectedDataUnavailable)
         }
 
-        outcome = outcome.replacing(
-            reasons: SwitchingUnavailableReason.priority.filter { reasons.contains($0) },
-            isPaused: setupStore.isActivityTriggeredSwitchingPaused
-        )
+        outcome = replacingOutcome(reasons: SwitchingUnavailableReason.priority.filter { reasons.contains($0) })
     }
 
     @discardableResult
@@ -843,10 +843,7 @@ final class ActivityTriggeredSwitching {
             )
         }
 
-        let availableActions = ActivityTriggeredSwitchingAction.available(
-            for: outcome.switchingStatus, warnings: warnings,
-            isPaused: setupStore.isActivityTriggeredSwitchingPaused
-        )
+        let availableActions = availableActions(warnings: warnings)
         let newOutcome = ActivityTriggeredSwitchingOutcome(
             switchingStatus: outcome.switchingStatus,
             temporarilyUnavailableReasons: outcome.temporarilyUnavailableReasons,
@@ -924,4 +921,45 @@ final class ActivityTriggeredSwitching {
         inputSources.eligibleInputSources.first { $0.identifier == identifier }?.name
     }
 
+}
+
+// MARK: - Input Monitoring
+
+extension ActivityTriggeredSwitching {
+    /// Actions depend on the Input Monitoring decision, not only on status:
+    /// an unknown decision is requested, a denied one is fixed in Settings.
+    private func availableActions(
+        warnings: [ActivityTriggeredSwitchingWarning]
+    ) -> Set<ActivityTriggeredSwitchingAction> {
+        ActivityTriggeredSwitchingAction.available(
+            for: outcome.switchingStatus,
+            listenPermission: lastKnownListenPermission,
+            warnings: warnings,
+            isPaused: setupStore.isActivityTriggeredSwitchingPaused
+        )
+    }
+
+    private func replacingOutcome(
+        status: SwitchingStatus? = nil,
+        reasons: [SwitchingUnavailableReason]? = nil
+    ) -> ActivityTriggeredSwitchingOutcome {
+        outcome.replacing(
+            status: status,
+            reasons: reasons,
+            listenPermission: lastKnownListenPermission,
+            isPaused: setupStore.isActivityTriggeredSwitchingPaused
+        )
+    }
+
+    /// Polls permission only while it is missing, and refreshes the outcome
+    /// when the decision changes (alert answered, or grant applied).
+    private func updatePermissionWatch(for status: SwitchingStatus) {
+        guard isStarted, status == .permissionRequired else {
+            return permissionWatch.stop()
+        }
+        permissionWatch.start { [weak self] in
+            guard let self, permissionProvider.checkListenPermission() != lastKnownListenPermission else { return }
+            checkAgain()
+        }
+    }
 }

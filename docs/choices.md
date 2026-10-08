@@ -61,7 +61,7 @@ A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device
 
 ## Activity-Triggered Switching
 
-`ActivityTriggeredSwitching` is the single switching module. It exposes one immutable outcome and seven operations: start, stop, request permission, check again, pause, resume, and retry now. Discovery, Input Source selection, and record storage stay behind their own modules.
+`ActivityTriggeredSwitching` is the single switching module. It exposes one immutable outcome and seven operations: start, stop, request permission, check again, pause, resume, and retry now. Its permission actions depend on the Input Monitoring decision: unknown offers Request Permission; denied offers Open System Settings and Relaunch. Discovery, Input Source selection, and record storage stay behind their own modules.
 
 ### Switching
 
@@ -89,12 +89,13 @@ A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device
 ## Input Monitoring permission
 
 - `Info.plist` must include `NSInputMonitoringUsageDescription`; without it, `IOHIDRequestAccess` fails silently with no prompt.
-- **Request Permission** activates the app, requests listen access, and opens **System Settings → Input Monitoring** only if access is still missing.
-- **Open System Settings** opens Input Monitoring and, when access is unknown or denied, shows a small non-activating guide panel. Guided setup and the menu notice share it. The guide:
-  - offers the running app's `.app` bundle as a draggable file, with **Show in Finder** as the keyboard-accessible alternative;
-  - follows the System Settings window (found by process and bundle ID in Window Server metadata) on its display, below it or beside it when there is no room, across multi-display layouts, without requesting Accessibility or Screen Recording access; if metadata is unavailable it stays movable;
-  - checks placement and permission every 750 ms in one cancellable task, with a five-second grace period for System Settings to launch;
-  - closes on an actual grant (a drag alone is not a grant), then refreshes switching and advances Guided setup. Dismissal, closing System Settings, or quitting stops it.
+- The UI follows the real decision from `IOHIDCheckAccess`, not a flag Keyameleon keeps:
+  - **Unknown** (never asked, or the row was removed or reset): the only action is **Allow Input Monitoring**. `IOHIDRequestAccess` shows the macOS alert and adds Keyameleon to the Input Monitoring list, switched off. Opening System Settings first would show a list without Keyameleon.
+  - **Denied** (the row exists): **Open System Settings** opens Privacy & Security → Input Monitoring (`x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_ListenEvent`, verified on macOS 26.6), and **Restart Keyameleon** is offered next to it.
+- macOS posts no change notification. While permission is missing and switching is started, `ListenPermissionWatch` reads the decision once a second and refreshes the outcome when it changes. Guided setup advances from that outcome. App activation and menu opening also recheck.
+- macOS applies a grant only to processes started after it, so turning Keyameleon on usually triggers the system's **Quit & Reopen** prompt. **Restart Keyameleon** does the same for anyone who chose Later: it starts a small `/bin/sh` relauncher that waits for this process to exit (releasing the single-instance lock) and reopens the bundle. If the relauncher cannot start, Keyameleon does not quit.
+- **Stale decisions.** A row saved for a different signature, for example after reinstalling a differently signed build, shows the switch on while the new process reads denied. A restart cannot fix that. Restart saves `keyameleon.inputMonitoring.relaunchedForGrant`, and the next launch reads the flag once: if the fresh process still reads denied, Keyameleon runs `tccutil reset ListenEvent <bundle id>` (only its own row, no password) and requests again, so macOS lists this build and the person only turns it on. An ordinary launch never resets anything.
+- There is no drag-to-add guide and no tracking of the System Settings window: requesting first always creates the row.
 
 ## Persistence
 
@@ -108,10 +109,10 @@ A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device
 
 Guided setup has three saved stages: **Permissions**, **Keyboards**, and **Ready**.
 
-- Permission is checked when the window opens, and a grant advances Permissions automatically. An unsuccessful request leaves controls to open System Settings or check again.
+- Permission is checked when the window opens, and a grant advances Permissions automatically. Before macOS has asked, the footer offers **Allow Input Monitoring**; afterwards it offers **Open System Settings** and **Restart Keyameleon**.
 - Keyboards saves each assignment and exclusion immediately. Continue and Set Up Later both reach Ready, even with no assignments. Back returns to Keyboards without losing changes. The step is one scrolling region (progress, explanation, rows, note) above a footer that stays reachable.
 - Ready reports the number of assignments and the current switching state, including paused, unavailable, and missing permission. **Finish** closes setup and leaves the menu bar app running; **Open Settings** closes setup, then opens Settings. Completion is saved first and handled once.
-- Closing the window stops permission polling and keeps the saved stage. While setup is incomplete, the menu offers **Continue Guided Setup** in every state.
+- Closing the window keeps the saved stage. While setup is incomplete, the menu offers **Continue Guided Setup** in every state.
 
 ## Menu bar menu
 
@@ -121,7 +122,7 @@ The status item owns a native `NSMenu`. AppKit draws the heading, notices, comma
 - **Middle region:** either the keyboard list or one notice, never both.
   - The keyboard list is SwiftUI hosted in the menu, showing assigned keyboards only: the built-in keyboard first, then connected, then disconnected, alphabetical within each group. It has no section label, a 4 pt inset, and a five-row scrolling viewport. Ordinary updates reuse the host to keep the scroll position.
   - Each pill is one line: connection mark (`circle.fill`, `circle`, or `circle.dashed`), the Physical Keyboard Name, an optional warning triangle, and a filled locale-code badge (such as `US` or `IT`, resolved from the layout's primary language and its canonical region). The active keyboard gets an accent fill and border. Disconnected pills are dimmed (more opaque under Increase Contrast), except the warning triangle.
-  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow and offers Open System Settings, then Request Permission, then Open Settings, whichever is available first. Selection failure offers Retry Now when available. Other notices are neutral and open Settings or Continue Guided Setup. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
+  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. Other notices are neutral and open Settings or Continue Guided Setup. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
 - **Commands:** Pause or Resume Switching (<kbd>⌘</kbd><kbd>P</kbd>), Settings (<kbd>⌘</kbd><kbd>,</kbd>), Check for Updates… directly below Settings, and Quit Keyameleon (<kbd>⌘</kbd><kbd>Q</kbd>) last. Every command closes the menu. There are no tooltips and no About item; About lives in Settings.
 - The menu refreshes permission, Input Sources, and status before it opens.
 

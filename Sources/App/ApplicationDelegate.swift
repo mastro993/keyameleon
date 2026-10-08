@@ -26,7 +26,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     let activityTriggeredSwitching: ActivityTriggeredSwitching
     private let updateChecker: any UpdateChecking
     private let lifecycleObserver: any LifecycleObserving
-    private let systemSettingsOpener: any SystemSettingsOpening
+    private let inputMonitoringRecovery: any InputMonitoringRecovering
     private let singleInstanceLock: SingleInstanceLock?
     private let startsUpdaterOnLaunch: Bool
     private let startsApplicationSurfaceOnLaunch: Bool
@@ -82,7 +82,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         self.init(
             composition: composition,
-            systemSettingsOpener: NSWorkspaceSystemSettingsOpener(permissionProvider: composition.permissionProvider),
+            inputMonitoringRecovery: SystemInputMonitoringRecovery(permissionProvider: composition.permissionProvider),
             lifecycleObserver: SystemLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
             updateChecker: SparkleUpdateChecker(),
@@ -95,7 +95,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
 
     private init(
         composition: ActivityTriggeredSwitchingComposition,
-        systemSettingsOpener: any SystemSettingsOpening,
+        inputMonitoringRecovery: any InputMonitoringRecovering,
         lifecycleObserver: any LifecycleObserving,
         launchAtLoginController: any LaunchAtLoginControlling,
         updateChecker: any UpdateChecking,
@@ -108,14 +108,14 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         self.singleInstanceLock = singleInstanceLock
         self.updateChecker = updateChecker
         self.lifecycleObserver = lifecycleObserver
-        self.systemSettingsOpener = systemSettingsOpener
+        self.inputMonitoringRecovery = inputMonitoringRecovery
         self.startsUpdaterOnLaunch = startsUpdaterOnLaunch
         self.startsApplicationSurfaceOnLaunch = startsApplicationSurfaceOnLaunch
         self.activityTriggeredSwitching = composition.activityTriggeredSwitching
         setupModel = SetupModel(
             activityTriggeredSwitching: composition.activityTriggeredSwitching,
             setupStore: composition.setupStore,
-            systemSettingsOpener: systemSettingsOpener,
+            inputMonitoringRecovery: inputMonitoringRecovery,
             physicalKeyboardDiscovery: composition.physicalKeyboardDiscovery,
             inputSources: composition.inputSources,
             physicalKeyboardRecordStore: composition.physicalKeyboardRecordStore,
@@ -130,12 +130,6 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
 
         super.init()
-        if let opener = systemSettingsOpener as? NSWorkspaceSystemSettingsOpener {
-            opener.onPermissionGranted = { [weak setupModel] in
-                setupModel?.activityTriggeredSwitching.checkAgain()
-                setupModel?.advanceIfPermissionGranted()
-            }
-        }
         setupModel.onGuidedSetupCompleted = { [weak self] destination in
             self?.finishGuidedSetup(destination: destination)
         }
@@ -146,7 +140,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         permissionProvider: any ListenPermissionProviding = SystemListenPermissionProvider(),
         protectedStateProvider: any ProtectedStateProviding = SystemProtectedStateProvider(),
         setupStore: any SetupDecisionStoring = UserDefaultsSetupDecisionStore(),
-        systemSettingsOpener: (any SystemSettingsOpening)? = nil,
+        inputMonitoringRecovery: (any InputMonitoringRecovering)? = nil,
         physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering =
             NoOpPhysicalKeyboardDiscoverer(),
         physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring = InMemoryPhysicalKeyboardRecordStore(),
@@ -182,8 +176,8 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         self.init(
             composition: composition,
-            systemSettingsOpener: systemSettingsOpener
-                ?? NSWorkspaceSystemSettingsOpener(permissionProvider: composition.permissionProvider),
+            inputMonitoringRecovery: inputMonitoringRecovery
+                ?? SystemInputMonitoringRecovery(permissionProvider: composition.permissionProvider),
             lifecycleObserver: lifecycleObserver,
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
@@ -201,6 +195,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
                 self?.activityTriggeredSwitching.handleLifecycleEvent(event)
             }
             activityTriggeredSwitching.start()
+            requestAgainIfGrantWasStale()
             statusItem = makeStatusItem()
             menuBarPanelController = makeMenuBarPanelController()
             refreshMenuBarPresentation()
@@ -233,7 +228,6 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         Log.debug(.app, "Terminating")
         lifecycleObserver.stop()
-        systemSettingsOpener.stop()
         activityTriggeredSwitching.stop()
         closeMenuBarPanel()
         if let statusItem {
@@ -243,6 +237,18 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         menuBarPanelController = nil
         settingsWindowController?.close()
         settingsWindowController = nil
+    }
+
+    /// A relaunch for Input Monitoring that still reads denied means the
+    /// saved decision belongs to another build. Reset it and ask again, so
+    /// macOS lists this build and the person only has to turn it on.
+    private func requestAgainIfGrantWasStale() {
+        Task { [weak self] in
+            guard let self,
+                  await inputMonitoringRecovery.resetStaleGrantAfterRelaunch() else { return }
+            activityTriggeredSwitching.checkAgain()
+            activityTriggeredSwitching.requestPermission()
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

@@ -14,10 +14,10 @@ private func persistenceFailureKeepsStatusControlsResponsive() {
     let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
     let eventObserver = SetupModelTestPhysicalKeyboardEventObserver()
     let model = SetupModel(
-        permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .unknown),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         physicalKeyboardEventObserver: eventObserver,
@@ -63,7 +63,7 @@ private func retrySelectionReadFailureDoesNotSelect() throws {
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
             EligibleInputSource(identifier: "com.example.us", name: "U.S."),
@@ -107,14 +107,14 @@ private func nativeMenuRetriesPersistenceFailure() throws {
         return container
     })
     let permission = SetupModelTestListenPermissionProvider(state: .denied)
-    let opener = SetupModelTestSystemSettingsOpener()
+    let opener = SetupModelTestInputMonitoringRecovery()
     let setupStore = SetupModelTestSetupDecisionStore()
     setupStore.markGuidedSetupCompleted()
     let model = SetupModel(
         permissionProvider: permission,
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: setupStore,
-        systemSettingsOpener: opener,
+        inputMonitoringRecovery: opener,
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     )
@@ -146,7 +146,7 @@ private func nativeMenuRetriesPersistenceFailure() throws {
     menu.performActionForItem(at: menu.index(of: item))
     #expect(model.hasPersistenceFailure == false)
     controller.refresh()
-    #expect(host.rootView.notice.title == "Input Monitoring required")
+    #expect(host.rootView.notice.title == "Input Monitoring is off")
     #expect(menu.items.first { $0.title == "Keyboards" } == nil)
     #expect(menu.size.width == noticeWidth)
     #expect(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" } === item)
