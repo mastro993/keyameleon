@@ -9,7 +9,7 @@ func physicalKeyboardNameDefaultsToProductNameAndAcceptsCustomValue() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore
     )
@@ -37,7 +37,7 @@ func duplicatePhysicalKeyboardNamesStayValidAndLeaveIdentityUnchanged() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore
     )
@@ -81,7 +81,7 @@ func keyboardAssignmentSavesExactInputSourceIdentifierImmediatelyWithoutSelectio
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(
             inputSources: [
@@ -115,7 +115,7 @@ func searchableAssignmentPickerFiltersByInputSourceNameOnly() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         inputSourceProvider: SetupModelTestInputSourceProvider(
             inputSources: [
                 EligibleInputSource(identifier: "com.apple.keylayout.Italian", name: "Italian"),

@@ -18,12 +18,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
     ) -> MenuBarPanelNotice? {
         switch outcome.switchingStatus {
         case .permissionRequired:
-            return MenuBarPanelNotice(
-                title: "Input Monitoring required",
-                detail: "Enable \(AppIdentity.current.name) in Input Monitoring.",
-                action: permissionAction(outcome: outcome),
-                tone: .warning
-            )
+            return permissionNotice(outcome: outcome)
         case .temporarilyUnavailable:
             let reason: String?
             if outcome.temporarilyUnavailableReasons.contains(.sleeping) {
@@ -123,24 +118,26 @@ struct MenuBarPanelNotice: Equatable, Sendable {
         }
     }
 
-    private static func permissionAction(
-        outcome: ActivityTriggeredSwitchingOutcome
-    ) -> MenuBarPanelContent.Action {
+    /// Never asked: the macOS alert lists Keyameleon. Asked before: the
+    /// person turns it on in System Settings; Restart sits in the commands.
+    private static func permissionNotice(outcome: ActivityTriggeredSwitchingOutcome) -> MenuBarPanelNotice {
+        let name = AppIdentity.current.name
         if outcome.hasAction(.openSystemSettings) {
-            return MenuBarPanelContent.Action(
-                id: .openSystemSettings,
-                title: "Open System Settings",
-                isEnabled: true
+            return MenuBarPanelNotice(
+                title: "Input Monitoring is off",
+                detail: "Turn on \(name) in Input Monitoring. If it is already on, restart \(name).",
+                action: .init(id: .openSystemSettings, title: "Open System Settings", isEnabled: true),
+                tone: .warning
             )
         }
-        if outcome.hasAction(.requestPermission) {
-            return MenuBarPanelContent.Action(
-                id: .requestPermission,
-                title: "Request Permission",
-                isEnabled: true
-            )
-        }
-        return settingsAction
+        return MenuBarPanelNotice(
+            title: "Input Monitoring required",
+            detail: "\(name) needs it to tell which keyboard you type on.",
+            action: outcome.hasAction(.requestPermission)
+                ? .init(id: .requestPermission, title: "Allow Input Monitoring…", isEnabled: true)
+                : settingsAction,
+            tone: .warning
+        )
     }
 
     private static let settingsAction = MenuBarPanelContent.Action(

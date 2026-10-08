@@ -7,7 +7,7 @@ func makeApplicationTestDelegate(
         state: .granted
     ),
     setupStore: any SetupDecisionStoring = ApplicationTestSetupDecisionStore(),
-    systemSettingsOpener: any SystemSettingsOpening = NSWorkspaceSystemSettingsOpener(),
+    inputMonitoringRecovery: any InputMonitoringRecovering = ApplicationTestInputMonitoringRecovery(),
     updateChecker: any UpdateChecking = ApplicationTestUpdateChecker(),
     physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = NoOpPhysicalKeyboardDiscoverer(),
     startsUpdaterOnLaunch: Bool = false,
@@ -16,7 +16,7 @@ func makeApplicationTestDelegate(
     ApplicationDelegate(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: systemSettingsOpener,
+        inputMonitoringRecovery: inputMonitoringRecovery,
         physicalKeyboardDiscoverer: physicalKeyboardDiscoverer,
         physicalKeyboardEventObserver: NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: NoOpInputSourceChangeObserver(),
@@ -138,10 +138,17 @@ final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
 }
 
 @MainActor
-final class ApplicationTestSystemSettingsOpener: SystemSettingsOpening {
+final class ApplicationTestInputMonitoringRecovery: InputMonitoringRecovering {
     private(set) var openCount = 0
+    private(set) var relaunchCount = 0
 
     func openSystemSettings() {
         openCount += 1
     }
+
+    func relaunch() {
+        relaunchCount += 1
+    }
+
+    func resetStaleGrantAfterRelaunch() async -> Bool { false }
 }

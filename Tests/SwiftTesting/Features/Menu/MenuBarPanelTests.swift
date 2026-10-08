@@ -47,7 +47,7 @@ func menuBarPanelReadyShowsPauseWithoutRecovery() {
 
     #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content).contains(.requestPermission) == false)
-    #expect(overflowIDs(content).contains(.checkAgain) == false)
+    #expect(overflowIDs(content).contains(.relaunch) == false)
     #expect(content.actionTitles.contains("Continue Setup…") == false)
 }
 
@@ -68,7 +68,7 @@ func menuBarPanelPermissionRequiredOmitsRecoveryActions() {
     #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
     #expect(content.actionTitles.contains("Request Permission") == false)
     #expect(content.actionTitles.contains("Open System Settings") == false)
-    #expect(content.actionTitles.contains("Check Again") == false)
+    #expect(content.actionTitles.contains("Restart \(AppIdentity.current.name)") == false)
     #expect(overflow(content, .pause)?.id == .pause)
 }
 
@@ -80,7 +80,7 @@ func menuBarPanelTemporarilyUnavailableHasNoRecoveryActions() {
     #expect(overflow(content, .pause)?.id == .pause)
     #expect(overflowIDs(content).contains(.requestPermission) == false)
     #expect(overflowIDs(content).contains(.openSystemSettings) == false)
-    #expect(overflowIDs(content).contains(.checkAgain) == false)
+    #expect(overflowIDs(content).contains(.relaunch) == false)
 }
 
 @Test("Recovery actions never appear in the menu")
@@ -95,7 +95,7 @@ func menuBarPanelRecoveryActionsNeverAppear() {
         #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
         #expect(content.actionTitles.contains("Request Permission") == false)
         #expect(content.actionTitles.contains("Open System Settings") == false)
-        #expect(content.actionTitles.contains("Check Again") == false)
+        #expect(content.actionTitles.contains("Restart \(AppIdentity.current.name)") == false)
     }
 }
 
@@ -230,7 +230,7 @@ func menuBarPanelActivatesKeyboardWithCurrentInputSource() throws {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [source]),
         inputSourceSelector: selector
@@ -523,9 +523,9 @@ func menuBarPanelReadyWithoutNoticeConditionsHasNoNotice() {
     #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
 }
 
-@Test("Permission notice prefers Open System Settings and closes the panel")
+@Test("An unasked permission notice offers the macOS alert")
 @MainActor
-func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
+func menuBarPanelUnaskedPermissionNoticeRequestsAccess() throws {
     let content = makeMenuBarPanelContent(
         outcome: .permissionRequiredFixture(),
         physicalKeyboards: [
@@ -535,24 +535,25 @@ func menuBarPanelPermissionNoticeKeepsRecoveryActionOutOfFooter() throws {
     let action = try #require(content.notice?.action)
 
     #expect(content.notice?.title == "Input Monitoring required")
-    #expect(content.notice?.detail == "Enable \(AppIdentity.current.name) in Input Monitoring.")
+    #expect(content.notice?.tone == .warning)
+    #expect(action.id == .requestPermission)
+    #expect(action.title == "Allow Input Monitoring…")
+    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
+}
+
+@Test("A denied permission notice opens System Settings and offers Restart")
+@MainActor
+func menuBarPanelDeniedPermissionNoticeOpensSettingsAndOffersRestart() throws {
+    let content = makeMenuBarPanelContent(outcome: .permissionDeniedFixture())
+    let action = try #require(content.notice?.action)
+
+    #expect(content.notice?.title == "Input Monitoring is off")
     #expect(content.notice?.tone == .warning)
     #expect(action.id == .openSystemSettings)
     #expect(action.title == "Open System Settings")
-    #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
+    #expect(overflowIDs(content) == [.pause, .relaunch, .settings, .checkForUpdates, .quit])
+    #expect(overflow(content, .relaunch)?.title == "Restart \(AppIdentity.current.name)")
     #expect(content.actionTitles.contains("Open System Settings") == false)
-}
-
-@Test("Permission notice falls back to Request Permission without a Settings action")
-@MainActor
-func menuBarPanelPermissionNoticeFallsBackToRequest() throws {
-    let content = makeMenuBarPanelContent(
-        outcome: .permissionRequiredFixture(availableActions: [.pause, .requestPermission])
-    )
-    let action = try #require(content.notice?.action)
-
-    #expect(action.id == .requestPermission)
-    #expect(action.title == "Request Permission")
 }
 
 @Test("Native menu shortcuts map to Command-P, Command-comma, and Command-Q")
@@ -563,7 +564,7 @@ func menuBarPanelCommandShortcutMapping() {
     #expect(MenuBarPanelActionID.settings.shortcut?.rawValue == ",")
     #expect(MenuBarPanelActionID.quit.shortcut?.rawValue == "q")
     for id in [MenuBarPanelActionID.requestPermission, .openSystemSettings,
-               .checkAgain, .retryNow, .retryPersistence, .continueSetup, .checkForUpdates] {
+               .relaunch, .retryNow, .retryPersistence, .continueSetup, .checkForUpdates] {
         #expect(id.shortcut == nil)
     }
 }
@@ -1001,7 +1002,7 @@ private extension ActivityTriggeredSwitchingOutcome {
     static func readyFixture() -> ActivityTriggeredSwitchingOutcome {
         fixture(
             switchingStatus: .ready,
-            availableActions: [.pause, .openSystemSettings, .checkAgain]
+            availableActions: [.pause]
         )
     }
 
@@ -1010,14 +1011,16 @@ private extension ActivityTriggeredSwitchingOutcome {
     }
 
     static func permissionRequiredFixture(
-        availableActions: Set<ActivityTriggeredSwitchingAction> = [
-            .pause, .requestPermission, .openSystemSettings, .checkAgain,
-        ]
+        availableActions: Set<ActivityTriggeredSwitchingAction> = [.pause, .requestPermission]
     ) -> ActivityTriggeredSwitchingOutcome {
         fixture(
             switchingStatus: .permissionRequired,
             availableActions: availableActions
         )
+    }
+
+    static func permissionDeniedFixture() -> ActivityTriggeredSwitchingOutcome {
+        permissionRequiredFixture(availableActions: [.pause, .openSystemSettings, .relaunch])
     }
 
     static func temporarilyUnavailableFixture() -> ActivityTriggeredSwitchingOutcome {

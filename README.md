@@ -54,7 +54,7 @@ Both install the same signed and notarized app, and Keyameleon updates itself ei
 
 Guided setup opens on first launch:
 
-1. **Permissions.** Grant Input Monitoring. If you need to add Keyameleon in System Settings yourself, choose **Open System Settings**: a small guide appears next to the Input Monitoring list so you can drag the app icon into it. Setup continues by itself once access is granted.
+1. **Permissions.** Choose **Allow Input Monitoring**, then turn Keyameleon on in System Settings. If macOS asks, choose **Quit & Reopen**. Setup continues by itself once access is granted.
 2. **Keyboards.** Pick an Input Source for each keyboard. You can skip this and assign layouts later in Settings.
 3. **Ready.** Finish, and Keyameleon stays in the menu bar.
 
@@ -91,6 +91,7 @@ Keyameleon stores data locally:
 ## Troubleshooting
 
 - **Keyameleon does not switch layouts.** Open the menu. A notice explains what is wrong (missing permission, paused, unavailable layout) and offers the fix.
+- **Input Monitoring is on, but Keyameleon says it is off.** Choose **Restart Keyameleon** in the menu. This often happens after reinstalling. If it is still off after the restart, Keyameleon clears its old entry and asks again, so you only have to turn it back on.
 - **Something else went wrong.** Attach the relevant lines from `~/Library/Logs/Keyameleon/keyameleon.log` to a [bug report](https://github.com/mastro993/Keyameleon/issues/new/choose).
 
 ## Uninstall

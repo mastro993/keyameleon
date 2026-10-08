@@ -175,7 +175,7 @@ private func makePersistenceFailureModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: records,
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
@@ -271,7 +271,7 @@ private func switchingReadFailurePreservesAssignment() throws {
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
             EligibleInputSource(identifier: "com.example.us", name: "U.S."),

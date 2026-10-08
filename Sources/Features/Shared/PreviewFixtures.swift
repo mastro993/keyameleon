@@ -5,7 +5,7 @@ import Foundation
 
 enum PreviewSetupState: Equatable {
     case permissionRequired
-    case permissionWaiting
+    case permissionDenied
     case assignmentsEmpty
     case assignmentsPopulated
     case pencilAssignments
@@ -77,7 +77,7 @@ enum PreviewFixtures {
         menuCompleted: Bool = false,
         menuPaused: Bool = false
     ) -> PreviewSetupFixture {
-        let requiresPermission = state == .permissionRequired || state == .permissionWaiting
+        let requiresPermission = state == .permissionRequired || state == .permissionDenied
         let isCompleted = state == .completed || (menuCompleted && requiresPermission)
         let isPaused = menuPaused || state == .paused || state == .readyPaused
         let step = guidedStep(for: state)
@@ -87,10 +87,12 @@ enum PreviewFixtures {
             guidedSetupStep: step,
             isPaused: isPaused
         )
-        let permissionProvider = PreviewListenPermissionProvider(
-            state: requiresPermission ? .denied : .granted,
-            grantsOnRequest: state != .permissionWaiting
-        )
+        let permission: ListenPermissionState = switch state {
+        case .permissionRequired: .unknown
+        case .permissionDenied: .denied
+        default: .granted
+        }
+        let permissionProvider = PreviewListenPermissionProvider(state: permission)
         let discoverer = PreviewPhysicalKeyboardDiscoverer()
         let inMemoryRecordStore = InMemoryPhysicalKeyboardRecordStore()
         seedDisconnectedRecord(into: inMemoryRecordStore, state: state)
@@ -100,7 +102,7 @@ enum PreviewFixtures {
             permissionProvider: permissionProvider,
             protectedStateProvider: PreviewProtectedStateProvider(),
             setupStore: setupStore,
-            systemSettingsOpener: PreviewSystemSettingsOpener(),
+            inputMonitoringRecovery: PreviewInputMonitoringRecovery(),
             physicalKeyboardDiscoverer: discoverer,
             inputSourceProvider: PreviewInputSourceProvider(),
             inputSourceSelector: PreviewInputSourceSelector(current: "com.apple.keylayout.US"),
@@ -117,9 +119,6 @@ enum PreviewFixtures {
         }
         let switching = model.activityTriggeredSwitching
         switching.start()
-        if state == .permissionWaiting {
-            model.requestPermission()
-        }
 
         guard !requiresPermission, state != .assignmentsEmpty, state != .readyEmpty,
               state != .persistenceFailure, !isCompleted else {
@@ -212,7 +211,7 @@ enum PreviewFixtures {
 
     private static func guidedStep(for state: PreviewSetupState) -> GuidedSetupStep {
         switch state {
-        case .permissionRequired, .permissionWaiting: .permission
+        case .permissionRequired, .permissionDenied: .permission
         case .readyEmpty, .readyPopulated, .readyPaused: .ready
         default: .assignments
         }
@@ -406,7 +405,7 @@ enum PreviewFixtures {
                     vendorID: 200
                 )
             ]
-        case .permissionRequired, .permissionWaiting, .assignmentsEmpty, .readyEmpty, .persistenceFailure, .completed:
+        case .permissionRequired, .permissionDenied, .assignmentsEmpty, .readyEmpty, .persistenceFailure, .completed:
             return []
         }
     }
@@ -535,11 +534,9 @@ final class PreviewUpdateChecker: UpdateChecking {
 @MainActor
 final class PreviewListenPermissionProvider: ListenPermissionProviding {
     private(set) var state: ListenPermissionState
-    private let grantsOnRequest: Bool
 
-    init(state: ListenPermissionState, grantsOnRequest: Bool = true) {
+    init(state: ListenPermissionState) {
         self.state = state
-        self.grantsOnRequest = grantsOnRequest
     }
 
     func checkListenPermission() -> ListenPermissionState {
@@ -547,10 +544,8 @@ final class PreviewListenPermissionProvider: ListenPermissionProviding {
     }
 
     func requestListenPermission() -> Bool {
-        if grantsOnRequest {
-            state = .granted
-        }
-        return grantsOnRequest
+        state = .granted
+        return true
     }
 }
 
@@ -562,8 +557,10 @@ final class PreviewProtectedStateProvider: ProtectedStateProviding {
 }
 
 @MainActor
-final class PreviewSystemSettingsOpener: SystemSettingsOpening {
+final class PreviewInputMonitoringRecovery: InputMonitoringRecovering {
     func openSystemSettings() {}
+    func relaunch() {}
+    func resetStaleGrantAfterRelaunch() async -> Bool { false }
 }
 
 @MainActor

@@ -165,7 +165,7 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         case .resume: switching.resume()
         case .requestPermission: setupModel.requestPermission()
         case .openSystemSettings: setupModel.openSystemSettings()
-        case .checkAgain: switching.checkAgain()
+        case .relaunch: setupModel.relaunch()
         case .retryNow: switching.retryNow()
         case .retryPersistence: setupModel.retryPersistenceOperation()
         case .continueSetup: actions.continueSetup()

@@ -10,7 +10,7 @@ extension MenuBarPanelActionID {
         case .pause, .resume: .switching
         case .settings: .settings
         case .quit: .quit
-        case .requestPermission, .openSystemSettings, .checkAgain,
+        case .requestPermission, .openSystemSettings, .relaunch,
              .retryNow, .retryPersistence, .continueSetup, .checkForUpdates: nil
         }
     }

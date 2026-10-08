@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class MainWindowController: NSWindowController, NSWindowDelegate {
+final class MainWindowController: NSWindowController {
     private let model: SetupModel
     init(
         model: SetupModel,
@@ -31,7 +31,6 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         )
 
         super.init(window: window)
-        window.delegate = self
     }
 
     @available(*, unavailable)
@@ -48,9 +47,5 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         model.beginGuidedSetup()
         super.showWindow(sender)
         window.makeKeyAndOrderFront(sender)
-    }
-
-    func windowWillClose(_ notification: Notification) {
-        model.endGuidedSetupPresentation()
     }
 }

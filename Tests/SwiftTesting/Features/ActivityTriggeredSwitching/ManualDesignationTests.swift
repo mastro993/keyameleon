@@ -499,7 +499,7 @@ private func makeDesignationModel(
     SetupModel(
         permissionProvider: DesignationTestListenPermissionProvider(state: .granted),
         setupStore: DesignationTestSetupDecisionStore(),
-        systemSettingsOpener: DesignationTestSystemSettingsOpener(),
+        inputMonitoringRecovery: DesignationTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore,
         designationStore: designationStore,
@@ -625,6 +625,8 @@ private final class DesignationTestSetupDecisionStore: SetupDecisionStoring {
 }
 
 @MainActor
-private final class DesignationTestSystemSettingsOpener: SystemSettingsOpening {
+private final class DesignationTestInputMonitoringRecovery: InputMonitoringRecovering {
     func openSystemSettings() {}
+    func relaunch() {}
+    func resetStaleGrantAfterRelaunch() async -> Bool { false }
 }

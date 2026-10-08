@@ -118,7 +118,7 @@ struct OnboardingView: View {
 }
 
 #Preview("Permission recovery minimum size") {
-    let fixture = PreviewFixtures.setup(.permissionWaiting)
+    let fixture = PreviewFixtures.setup(.permissionDenied)
     RootView(model: fixture.model, switching: fixture.switching)
         .frame(width: 840, height: 640)
 }

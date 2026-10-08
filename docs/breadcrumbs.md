@@ -4,6 +4,39 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-08 — Input Monitoring check rebuilt
+
+- Reported: after uninstalling and reinstalling, Open System Settings in the
+  menu "does not work".
+- Diagnosis: the menu always preferred Open System Settings, even when macOS had
+  never been asked. When an uninstaller or reset removed the TCC row, Settings
+  opened on a list without Keyameleon. Two more cases looked the same: macOS
+  applies a grant only to processes started after it, and a row saved for
+  another signature shows the switch on while the new build reads denied.
+- Verified on macOS 26.6.2: both the legacy
+  `com.apple.preference.security?Privacy_ListenEvent` and the current
+  `com.apple.settings.PrivacySecurity.extension?Privacy_ListenEvent` deep links
+  open Input Monitoring, cold or with System Settings already open, so the
+  deep link was not the fault. `tccutil reset ListenEvent <bundle id>` works
+  without sudo.
+- Actions now follow `IOHIDCheckAccess`: unknown offers Request Permission
+  (the alert creates the row), denied offers Open System Settings and Relaunch.
+  The menu notice and the Guided setup footer use them; Check Again is gone.
+- `ListenPermissionWatch` polls once a second only while permission is missing
+  and started. It replaces both the Guided setup poll and the guide's 750 ms
+  poll; Guided setup advances by observing the outcome.
+- `SystemInputMonitoringRecovery` replaces `NSWorkspaceSystemSettingsOpener`:
+  it opens Settings, relaunches through a `/bin/sh` waiter (it never quits if
+  the waiter cannot start), and after a relaunch that still reads denied it
+  resets only Keyameleon's row and requests again. The relauncher marks the
+  reopened process with a launch argument instead of a saved flag, so a later
+  manual launch can never reset a denial (CodeRabbit on #171).
+- Removed the drag guide (`InputMonitoringGuide*`, `InputMonitoringSettingsWindow`,
+  `AppBundleDrag*`) and its tests: requesting first always lists the app.
+- Tests: `InputMonitoringRecoveryTests` (actions, deep link, relaunch guard,
+  one-time reset) and SetupModel tests for a grant arriving through the watch.
+  Real TCC behavior is manual; see `docs/testing.md`.
+
 ## 2026-10-08 — Recognize and group 2.4 GHz receivers
 
 - Reported: a NuPhy Halo75 V2 2.4 GHz dongle is not listed. No hardware was

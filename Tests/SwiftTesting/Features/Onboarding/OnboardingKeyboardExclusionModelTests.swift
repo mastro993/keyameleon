@@ -182,7 +182,7 @@ private func makeOnboardingExclusionModel(
     SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore,
         exclusionStore: exclusionStore
@@ -278,7 +278,7 @@ func failedHiddenRenamePreservesStateUntilRetry() throws {
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: records,
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session)

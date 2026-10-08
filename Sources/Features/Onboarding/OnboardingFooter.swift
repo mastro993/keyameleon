@@ -8,15 +8,20 @@ struct OnboardingFooter: View {
         HStack(spacing: 28) {
             switch model.guidedSetupStep {
             case .permission:
-                Text(model.isWaitingForListenPermission
-                    ? "Waiting for Input Monitoring permission."
-                    : "macOS will ask for permission.")
+                // Denied means macOS already lists Keyameleon, so the person
+                // only has to turn it on; unknown means macOS has to ask first.
+                let isListed = model.activityTriggeredSwitching.outcome.hasAction(.openSystemSettings)
+                Text(isListed ? "Already on? Restart to apply it." : "macOS will ask for permission.")
                     .font(.callout)
                     .foregroundStyle(OnboardingPalette.secondary)
                 Spacer()
-                if model.isWaitingForListenPermission {
+                if isListed {
+                    Button("Restart \(AppIdentity.current.name)") { model.relaunch() }
                     Button("Open System Settings") { model.openSystemSettings() }
-                    Button("Check Again") { model.checkPermissionAgain() }
+                        .buttonStyle(.borderedProminent)
+                        .tint(OnboardingPalette.button)
+                        .keyboardShortcut(.defaultAction)
+                        .accessibilityIdentifier("open-system-settings")
                 } else {
                     Button("Allow Input Monitoring") { model.requestPermission() }
                         .buttonStyle(.borderedProminent)

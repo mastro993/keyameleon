@@ -17,7 +17,7 @@ func hiddenConnectionUpdatesDespiteSavedRecordReadFailure() throws {
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         protectedStateProvider: ProtectedStateTestProvider(state: .clear),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: session),
         designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: session),
@@ -38,7 +38,7 @@ func firstLaunchChecksListenPermissionWithoutRequestingIt() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     #expect(permissionProvider.checkCount == 1)
@@ -57,11 +57,11 @@ func requestPermissionKeepsDeniedStatusAndDoesNotCompleteSetup() {
         stateAfterRequest: .denied
     )
     let setupStore = SetupModelTestSetupDecisionStore()
-    let settingsOpener = SetupModelTestSystemSettingsOpener()
+    let settingsOpener = SetupModelTestInputMonitoringRecovery()
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: settingsOpener
+        inputMonitoringRecovery: settingsOpener
     )
 
     model.activityTriggeredSwitching.start()
@@ -73,7 +73,9 @@ func requestPermissionKeepsDeniedStatusAndDoesNotCompleteSetup() {
     #expect(setupStore.hasCompletedGuidedSetup == false)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(model.guidedSetupStep == .permission)
-    #expect(model.isWaitingForListenPermission)
+    let actions = model.activityTriggeredSwitching.outcome.availableActions
+    #expect(actions.isSuperset(of: [.openSystemSettings, .relaunch]))
+    #expect(!actions.contains(.requestPermission))
 }
 
 @Test("Request Permission never opens System Settings")
@@ -83,11 +85,11 @@ func requestPermissionDoesNotOpenSystemSettingsWhenListenPermissionIsGranted() {
         state: .unknown,
         stateAfterRequest: .granted
     )
-    let settingsOpener = SetupModelTestSystemSettingsOpener()
+    let settingsOpener = SetupModelTestInputMonitoringRecovery()
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: settingsOpener
+        inputMonitoringRecovery: settingsOpener
     )
 
     model.activityTriggeredSwitching.start()
@@ -126,7 +128,7 @@ func checkAgainRefreshesPermissionWithoutRequestingIt() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     permissionProvider.state = .granted
@@ -147,7 +149,7 @@ func permissionCannotBeSkippedWithoutAccess() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     model.beginGuidedSetup()
@@ -167,7 +169,7 @@ func completingSetupWithoutAssignmentsRecordsCompletion() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     model.beginGuidedSetup()
@@ -186,7 +188,7 @@ func beginGuidedSetupAdvancesWhenListenPermissionIsGranted() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     model.beginGuidedSetup()
@@ -194,7 +196,6 @@ func beginGuidedSetupAdvancesWhenListenPermissionIsGranted() {
     #expect(setupStore.hasStartedGuidedSetup)
     #expect(model.guidedSetupStep == .assignments)
     #expect(model.isSetupComplete == false)
-    #expect(model.isWaitingForListenPermission == false)
 }
 
 @Test("Relaunch after listen permission grant resumes at assignments")
@@ -205,7 +206,7 @@ func relaunchAfterListenPermissionGrantResumesAtAssignments() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     model.beginGuidedSetup()
@@ -222,7 +223,7 @@ func checkAgainAdvancesGuidedSetupWhenListenPermissionIsGranted() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     model.beginGuidedSetup()
@@ -243,7 +244,7 @@ func completingSetupNotifiesOnce() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
     model.onGuidedSetupCompleted = { _ in
         completionCount += 1
@@ -281,7 +282,7 @@ func interruptedSetupRestoresCompletedDecisionsAndResumesIncompleteStep() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(
             inputSources: [EligibleInputSource(identifier: "com.example.us", name: "U.S.")]
@@ -387,12 +388,19 @@ final class SetupModelTestSetupDecisionStore: SetupDecisionStoring {
 }
 
 @MainActor
-final class SetupModelTestSystemSettingsOpener: SystemSettingsOpening {
+final class SetupModelTestInputMonitoringRecovery: InputMonitoringRecovering {
     private(set) var openCount = 0
+    private(set) var relaunchCount = 0
 
     func openSystemSettings() {
         openCount += 1
     }
+
+    func relaunch() {
+        relaunchCount += 1
+    }
+
+    func resetStaleGrantAfterRelaunch() async -> Bool { false }
 }
 
 @MainActor
@@ -435,7 +443,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: firstStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
     model.beginGuidedSetup()
     model.continueToReady()
@@ -444,7 +452,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
     let resumed = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
         setupStore: UserDefaultsSetupDecisionStore(defaults: defaults),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
     resumed.beginGuidedSetup()
     #expect(resumed.guidedSetupStep == .ready)
@@ -454,7 +462,7 @@ func readyPersistsAcrossUserDefaultsStore() throws {
     let historical = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .denied),
         setupStore: UserDefaultsSetupDecisionStore(defaults: defaults),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
     #expect(historical.isSetupComplete)
     #expect(historical.guidedSetupStep == .ready)
@@ -468,7 +476,7 @@ func readyBackKeepsAssignmentsAndCompletesOnce() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(inputSources: [
             EligibleInputSource(identifier: "com.example.us", name: "U.S.")
@@ -495,24 +503,44 @@ func readyBackKeepsAssignmentsAndCompletesOnce() {
     #expect(model.isSetupComplete)
 }
 
-@Test("Closing permission presentation stops checks until reopening")
+@Test("A grant made in System Settings advances setup without another request")
 @MainActor
-func closingPermissionPresentationStopsPolling() async throws {
-    let permission = SetupModelTestListenPermissionProvider(
-        state: .denied, stateAfterRequest: .denied
-    )
+func grantInSystemSettingsAdvancesSetup() async throws {
+    let permission = SetupModelTestListenPermissionProvider(state: .denied)
     let model = SetupModel(
         permissionProvider: permission,
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
+    model.activityTriggeredSwitching.start()
+    defer { model.activityTriggeredSwitching.stop() }
     model.beginGuidedSetup()
-    model.requestPermission()
-    model.endGuidedSetupPresentation()
-    let countAfterClose = permission.checkCount
-    try await Task.sleep(for: .milliseconds(1_100))
-    #expect(permission.checkCount == countAfterClose)
+    #expect(model.guidedSetupStep == .permission)
+
     permission.state = .granted
-    model.beginGuidedSetup()
+    for _ in 0..<30 where model.guidedSetupStep == .permission {
+        try await Task.sleep(for: .milliseconds(100))
+    }
+
     #expect(model.guidedSetupStep == .assignments)
+    #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
+    #expect(permission.requestCount == 0)
+}
+
+@Test("Permission watch stops once switching stops")
+@MainActor
+func permissionWatchStopsWithSwitching() async throws {
+    let permission = SetupModelTestListenPermissionProvider(state: .denied)
+    let model = SetupModel(
+        permissionProvider: permission,
+        setupStore: SetupModelTestSetupDecisionStore(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
+    )
+    model.activityTriggeredSwitching.start()
+    model.activityTriggeredSwitching.stop()
+    let countAfterStop = permission.checkCount
+
+    try await Task.sleep(for: .milliseconds(1_200))
+
+    #expect(permission.checkCount == countAfterStop)
 }

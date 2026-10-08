@@ -35,8 +35,8 @@ struct MenuBarPanelNoticeView: View {
 #Preview("Warning light") {
     MenuBarPanelNoticeView(
         notice: MenuBarPanelNotice(
-            title: "Input Monitoring required",
-            detail: "Enable Keyameleon in Input Monitoring.",
+            title: "Input Monitoring is off",
+            detail: "Turn on Keyameleon in Input Monitoring. If it is already on, restart Keyameleon.",
             action: .init(id: .openSystemSettings, title: "Open System Settings", isEnabled: true),
             tone: .warning
         ),
@@ -48,8 +48,8 @@ struct MenuBarPanelNoticeView: View {
 #Preview("Warning dark") {
     MenuBarPanelNoticeView(
         notice: MenuBarPanelNotice(
-            title: "Input Monitoring required",
-            detail: "Enable Keyameleon in Input Monitoring.",
+            title: "Input Monitoring is off",
+            detail: "Turn on Keyameleon in Input Monitoring. If it is already on, restart Keyameleon.",
             action: .init(id: .openSystemSettings, title: "Open System Settings", isEnabled: true),
             tone: .warning
         ),

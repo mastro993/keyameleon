@@ -97,7 +97,7 @@ func pauseStopsKeyContentObservationAndInputSourceRequests() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceSelector: selector,
         physicalKeyboardEventObserver: eventObserver
@@ -148,7 +148,7 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         physicalKeyboardRecordStore: recordStore
     )
@@ -166,7 +166,7 @@ func pausePersistsAcrossRestartActivePhysicalKeyboardDoesNot() {
     let restarted = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: SetupModelTestPhysicalKeyboardDiscoverer(),
         physicalKeyboardRecordStore: recordStore
     )
@@ -187,7 +187,7 @@ func resumeRechecksListenPermissionBeforeObservationStarts() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardEventObserver: eventObserver
     )
 
@@ -223,7 +223,7 @@ func resumeFromPausedWithPermissionStartsObservation() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardEventObserver: eventObserver
     )
 
@@ -249,7 +249,7 @@ func permissionRequiredBeatsPauseAfterResumeDenial() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: setupStore,
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener()
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery()
     )
 
     startAndCheck(model)
@@ -270,7 +270,7 @@ func menuFirstActionItemsListUnassignedAndUnavailableAssignments() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(
             inputSources: [EligibleInputSource(identifier: "com.example.us", name: "U.S.")]
@@ -319,7 +319,7 @@ func activeKeyboardAssignmentAndCurrentInputSourceMenuValues() {
     let model = SetupModel(
         permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
         setupStore: SetupModelTestSetupDecisionStore(),
-        systemSettingsOpener: SetupModelTestSystemSettingsOpener(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: SetupModelTestInputSourceProvider(
             inputSources: [

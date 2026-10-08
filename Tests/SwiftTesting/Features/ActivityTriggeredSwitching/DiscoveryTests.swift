@@ -456,7 +456,7 @@ func readySwitchingStatusStartsDiscoveryAndPublishesConfigurationChoices() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: DiscoveryTestSetupDecisionStore(),
-        systemSettingsOpener: DiscoveryTestSystemSettingsOpener(),
+        inputMonitoringRecovery: DiscoveryTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: inputSourceProvider
     )
@@ -478,7 +478,7 @@ func permissionRequiredStopsPhysicalKeyboardDiscovery() {
     let model = SetupModel(
         permissionProvider: permissionProvider,
         setupStore: DiscoveryTestSetupDecisionStore(),
-        systemSettingsOpener: DiscoveryTestSystemSettingsOpener(),
+        inputMonitoringRecovery: DiscoveryTestInputMonitoringRecovery(),
         physicalKeyboardDiscoverer: discoverer,
         inputSourceProvider: TestInputSourceProvider(inputSources: [])
     )
@@ -698,6 +698,8 @@ private final class DiscoveryTestSetupDecisionStore: SetupDecisionStoring {
 }
 
 @MainActor
-private final class DiscoveryTestSystemSettingsOpener: SystemSettingsOpening {
+private final class DiscoveryTestInputMonitoringRecovery: InputMonitoringRecovering {
     func openSystemSettings() {}
+    func relaunch() {}
+    func resetStaleGrantAfterRelaunch() async -> Bool { false }
 }
