@@ -24,7 +24,9 @@ struct OnboardingView: View {
                 switch model.guidedSetupStep {
                 case .permission:
                     OnboardingScrollingStage(model: model, spacing: 28) {
-                        OnboardingPermissionStep()
+                        OnboardingPermissionStep(
+                            isListed: switching.outcome.hasAction(.openSystemSettings)
+                        )
                     }
                 case .assignments:
                     OnboardingAssignmentsStep(

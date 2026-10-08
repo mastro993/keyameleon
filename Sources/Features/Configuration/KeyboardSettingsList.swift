@@ -31,8 +31,7 @@ struct KeyboardSettingsList: View {
                 KeyboardSettingsHeader()
             } footer: {
                 Text(
-                    "New keyboards appear here when connected. "
-                        + "Disconnected keyboards keep their saved layout."
+                    "New keyboards appear when connected. Disconnected ones keep their input source."
                 )
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.secondary)

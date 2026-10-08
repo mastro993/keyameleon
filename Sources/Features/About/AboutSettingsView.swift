@@ -18,7 +18,6 @@ struct AboutSettingsPane: View {
                 AboutInformationRow(label: "Version") {
                     Text(info.identity.aboutVersionLabel)
                         .foregroundStyle(Theme.secondary)
-                        .help("Installed Keyameleon version.")
                 }
                 AboutInformationRow(label: "Source code") {
                     Link(destination: info.repositoryURL) {
@@ -40,7 +39,7 @@ struct AboutSettingsPane: View {
                 .help("Contains Keyameleon's local log files.")
                 AboutInformationRow(label: "License") {
                     licenseButton(for: .project, title: "MIT")
-                        .help("Keyameleon is distributed under MIT.")
+                        .help("Opens the MIT License.")
                 }
                 AboutInformationRow(label: "Updates") {
                     Button(action: model.checkForUpdates) {
@@ -58,7 +57,7 @@ struct AboutSettingsPane: View {
             }
             Section {
                 AboutInformationRow(label: "Sparkle") {
-                    licenseButton(for: .sparkle, title: "View full License")
+                    licenseButton(for: .sparkle, title: "View License")
                 }
             } header: {
                 AboutSectionHeading(title: "Acknowledgements")

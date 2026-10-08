@@ -11,7 +11,7 @@ struct OnboardingReadyStep: View {
                 .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
-            Text("Start typing on a keyboard. Keyameleon selects its assigned Input Source after it detects activity.")
+            Text("Start typing on any keyboard and Keyameleon switches to its input source.")
                 .font(.body)
                 .lineSpacing(2)
                 .padding(.vertical, 1)
@@ -23,9 +23,7 @@ struct OnboardingReadyStep: View {
                     .frame(width: 20, height: 20)
                     .foregroundStyle(assignmentCount > 0
                         ? OnboardingPalette.success : OnboardingPalette.muted)
-                Text(assignmentCount == 0
-                    ? "No Keyboard Assignments yet"
-                    : "\(assignmentCount) Keyboard Assignment\(assignmentCount == 1 ? "" : "s") saved")
+                Text(summary)
                     .foregroundStyle(assignmentCount > 0
                         ? OnboardingPalette.successText : OnboardingPalette.secondary)
             }
@@ -49,15 +47,21 @@ struct OnboardingReadyStep: View {
         }
     }
 
+    private var summary: LocalizedStringKey {
+        assignmentCount == 0
+            ? "No keyboards assigned yet"
+            : "^[\(assignmentCount) keyboard](inflect: true) assigned"
+    }
+
     private var warning: String {
         switch switchingStatus {
         case .ready: ""
         case .permissionRequired:
-            "Input Monitoring is off. Automatic switching will resume after you allow access in System Settings."
+            "Input Monitoring is off. Turn it on in System Settings to start switching."
         case .paused:
-            "Automatic switching is paused. Resume it from the menu bar when you are ready."
+            "Switching is paused. Resume it from the menu bar."
         case .temporarilyUnavailable:
-            "Automatic switching is temporarily unavailable. Check the menu bar for recovery options."
+            "Switching is temporarily unavailable and resumes automatically."
         }
     }
 }

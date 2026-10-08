@@ -26,7 +26,7 @@ struct OnboardingScrollingStage<Content: View>: View {
 #Preview("Onboarding scrolling stage") {
     let fixture = PreviewFixtures.setup(.permissionRequired)
     OnboardingScrollingStage(model: fixture.model, spacing: 28) {
-        OnboardingPermissionStep()
+        OnboardingPermissionStep(isListed: false)
     }
     .environment(fixture.model)
     .frame(width: 705)

@@ -60,10 +60,7 @@ private struct KeyboardEmptyState: View {
             Label("No keyboards detected", systemImage: "keyboard")
         } description: {
             Text(
-                """
-                Plug in a USB keyboard or connect one via Bluetooth.
-                Your keyboard will appear here when detected.
-                """
+                "Connect a USB or Bluetooth keyboard. It appears here automatically."
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -7,7 +7,7 @@ struct PersistenceFailureNotice: View {
     var body: some View {
         if let message = model.persistenceError ?? model.activityTriggeredSwitching.persistenceError {
             VStack(alignment: .leading) {
-                Text("Saved Physical Keyboards unavailable")
+                Text("Saved keyboards unavailable")
                     .font(.headline)
                 Text(message)
                     .font(.callout)

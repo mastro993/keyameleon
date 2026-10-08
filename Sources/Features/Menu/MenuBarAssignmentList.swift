@@ -3,9 +3,9 @@ import Foundation
 /// Assigned-only filter/order seam for the menu-bar panel. Actions stay out.
 struct MenuBarAssignmentList: Equatable, Sendable {
     static let emptyTitle = "No assigned keyboards"
-    static let emptyDescription = "Open Keyameleon Settings to assign keyboards."
-    static let unavailableInputSourceName = "Unavailable Input Source"
-    static let unavailableNote = "Unavailable Keyboard Assignment"
+    static let emptyDescription = "Assign keyboards in Settings."
+    static let unavailableInputSourceName = "Input source unavailable"
+    static let unavailableNote = "Choose another in Settings"
     /// Visible pill viewport. The list itself is unbounded.
     static let visibleRowLimit = 5
 

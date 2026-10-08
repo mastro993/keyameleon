@@ -81,7 +81,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
         if !isSetupComplete {
             actions.append(Action(
                 id: .continueSetup,
-                title: "Continue Guided Setup",
+                title: "Continue Setup",
                 isEnabled: true
             ))
         }

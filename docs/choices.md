@@ -27,7 +27,7 @@ Recognition is separate from assignment: a device can be recognized without bein
 A **Keyboard Assignment** requires a stable, unique **Physical Keyboard Identity**.
 
 - **External keyboards** use their USB serial number, or for Bluetooth LE keyboards without one, their Bluetooth device address. A device with neither, such as a 2.4 GHz receiver, falls back to its vendor and product IDs, so every HID interface of the receiver forms one row that survives reconnects and port changes. CoreHID's software IDs change on reconnect and differ per interface, so they are not used for these fallbacks.
-- The vendor and product fallback names a model, not one device. When more than one serial-less device of the same model is connected at once (seen as different USB `locationID`s), they share one entry marked unsupported as `Identity shared` rather than Keyameleon guessing which is which.
+- The vendor and product fallback names a model, not one device. When more than one serial-less device of the same model is connected at once (seen as different USB `locationID`s), they share one entry marked unsupported as `Shared ID` rather than Keyameleon guessing which is which.
 - A keyboard without any stable, unique identity, including one whose vendor or product ID is zero, is unsupported and appears only under `Unsupported devices`, with the reason shown.
 - **The built-in keyboard** is one fixed identity covering every CoreHID service macOS marks as built-in, independent of software or hardware identifiers ([ADR 0003](adr/0003-built-in-physical-keyboard-identity.md)). Its default name is the shared macOS product name, or `Built-in Keyboard` when services disagree.
 - When an identity changes, Keyameleon does not move or delete saved names, assignments, or designations automatically. The one exception is the one-time built-in migration in ADR 0003.
@@ -45,7 +45,7 @@ These exist in the model, with tests, but **have no UI entry point** since Setti
 A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device as not a keyboard.
 
 - It is keyed by the device rather than a CoreHID service: the identity value without its anchor, or the vendor, product, and model when there is no identity. The built-in keyboard has no key, so it can never be ignored, even by a stale saved value.
-- Ignoring is a filter, not a deletion. The saved name, assignment, and designation survive and come back on Stop ignoring.
+- Ignoring is a filter, not a deletion. The saved name, assignment, and designation survive and come back on Stop Ignoring.
 - An ignored device produces no Activation Activity, never becomes the Active Physical Keyboard, raises no warning, and cannot be retried; ignoring clears any pending assignment and selection warning for it.
 - It persists across disconnect, restart, and the catalog reset that sleep, lock, and pause perform. Nothing removes it automatically, because every disconnect signal also fires for sleep, lock, and pause.
 - Exclusions are stored as JSON in UserDefaults under `keyameleon.excludedPhysicalKeyboards`, so the SwiftData schema did not change.
@@ -54,10 +54,10 @@ A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device
 
 - Guided setup and Settings share one keyboard list (`PhysicalKeyboardRows`) and row view. Ignored keyboards stay in place, dimmed, with their saved Input Source shown in a disabled picker.
 - The built-in keyboard is always first, even when it is discovered after other rows. Other rows keep their order and identity for the session; new keyboards are appended.
-- A row shows the **Physical Keyboard Name** (the custom name, or the product name) and its connection status: `Connected` or `Disconnected`, prefixed by `<product> - ` when a custom name hides the product name, with ` (Ignored)` appended for ignored rows.
+- A row shows the **Physical Keyboard Name** (the custom name, or the product name) and its connection status: `Connected` or `Disconnected`, prefixed by `<product> · ` when a custom name hides the product name, with ` (Ignored)` appended for ignored rows.
 - Pickers show `Unassigned` when there is no assignment. Missing or ambiguous saved records show a disabled `Unassigned` picker rather than an assignment borrowed from another record.
-- The row's trailing menu offers **Rename…** (when the identity is safe) and **Ignore**, or **Rename…** and **Stop ignoring** for an exact ignored record. Missing or ambiguous ignored records offer only Stop ignoring. The built-in keyboard reserves the menu space but offers nothing. Changes save immediately; a persistence failure disables the picker and menu.
-- Renaming uses a sheet with the product name as the placeholder; clearing the field restores the product name.
+- The row's trailing menu offers **Rename…** (when the identity is safe) and **Ignore**, or **Rename…** and **Stop Ignoring** for an exact ignored record. Missing or ambiguous ignored records offer only Stop Ignoring. Hovering an ignored row explains that it never switches. The built-in keyboard reserves the menu space but offers nothing. Changes save immediately; a persistence failure disables the picker and menu.
+- Renaming uses a **Rename Keyboard** sheet with the product name as the placeholder; clearing the field restores the product name.
 
 ## Activity-Triggered Switching
 
@@ -112,7 +112,7 @@ Guided setup has three saved stages: **Permissions**, **Keyboards**, and **Ready
 - Permission is checked when the window opens, and a grant advances Permissions automatically. Before macOS has asked, the footer offers **Allow Input Monitoring**; afterward it offers **Open System Settings** and **Restart Keyameleon**.
 - Keyboards saves each assignment and exclusion immediately. Continue and Set Up Later both reach Ready, even with no assignments. Back returns to Keyboards without losing changes. The step is one scrolling region (progress, explanation, rows, note) above a footer that stays reachable.
 - Ready reports the number of assignments and the current switching state, including paused, unavailable, and missing permission. **Finish** closes setup and leaves the menu bar app running; **Open Settings** closes setup, then opens Settings. Completion is saved first and handled once.
-- Closing the window keeps the saved stage. While setup is incomplete, the menu offers **Continue Guided Setup** in every state.
+- Closing the window keeps the saved stage. While setup is incomplete, the menu offers **Continue Setup** in every state.
 
 ## Menu bar menu
 
@@ -122,7 +122,7 @@ The status item owns a native `NSMenu`. AppKit draws the heading, notices, comma
 - **Middle region:** either the keyboard list or one notice, never both.
   - The keyboard list is SwiftUI hosted in the menu, showing assigned keyboards only: the built-in keyboard first, then connected, then disconnected, alphabetical within each group. It has no section label, a 4 pt inset, and a five-row scrolling viewport. Ordinary updates reuse the host to keep the scroll position.
   - Each pill is one line: connection mark (`circle.fill`, `circle`, or `circle.dashed`), the Physical Keyboard Name, an optional warning triangle, and a filled locale-code badge (such as `US` or `IT`, resolved from the layout's primary language and its canonical region). The active keyboard gets an accent fill and border. Disconnected pills are dimmed (more opaque under Increase Contrast), except the warning triangle.
-  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. Other notices are neutral and open Settings or Continue Guided Setup. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
+  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. Other notices are neutral and open Settings or Continue Setup. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
 - **Commands:** Pause or Resume Switching (<kbd>⌘</kbd><kbd>P</kbd>), Settings (<kbd>⌘</kbd><kbd>,</kbd>), Check for Updates… directly below Settings, and Quit Keyameleon (<kbd>⌘</kbd><kbd>Q</kbd>) last. Every command closes the menu. There are no tooltips and no About item; About lives in Settings.
 - The menu refreshes permission, Input Sources, and status before it opens.
 
@@ -131,8 +131,8 @@ The status item owns a native `NSMenu`. AppKit draws the heading, notices, comma
 Settings is a branded window with a sidebar and three panes: **General**, **Keyboards**, and **About**. It reopens on the last pane and has an 840 × 560 minimum size, enforced by both the window and the SwiftUI content.
 
 - The sidebar is a native `List(selection:)` with the keycap mark from the official logo. Panes use grouped `Form` and `Section` with platform margins and row insets, and no per-pane padding.
-- **General:** Launch at login (via `SMAppService.mainApp`) as a native toggle whose label includes the explanation. If a change fails, the toggle shows the real service state and adds Login Items guidance.
-- **Keyboards:** the shared keyboard list. The Input Source control is a bordered menu hosting a native picker in a fixed 176 pt column so every row lines up. With no keyboards, a native `ContentUnavailableView` reads `No keyboards detected`, unless saved data is unreadable, in which case only the Retry notice shows.
+- **General:** Launch at login (via `SMAppService.mainApp`) as a native toggle. If a change fails, the toggle shows the real service state and the footer offers **Open Login Items**.
+- **Keyboards:** the shared keyboard list under an `Input sources` heading. The Input Source control is a bordered menu hosting a native picker in a fixed 176 pt column so every row lines up. An Unavailable Keyboard Assignment reads `Unavailable`, with a tooltip on how to fix it. With no keyboards, a native `ContentUnavailableView` reads `No keyboards detected`, unless saved data is unreadable, in which case only the Retry notice shows.
 - **About:** app icon, name, and tagline; rows for version (with build number), source code, app data folder, logs folder, license, and updates; the Sparkle acknowledgement; and the creator credit, which scrolls with the pane. Folder paths are selectable and open in Finder. License rows open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt` and are disabled if the build lacks them.
 
 Guided setup and Settings share `Theme` for colors and type, so the two windows cannot drift. Links use SwiftUI `pointerStyle`, and the menu's pill animation is disabled under Reduce Motion.

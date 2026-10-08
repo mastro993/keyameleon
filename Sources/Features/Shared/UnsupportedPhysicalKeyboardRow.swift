@@ -27,7 +27,7 @@ struct UnsupportedPhysicalKeyboardRow: View {
 
     private var subtitle: String {
         let status = keyboard.connectionState == .connected ? "Connected" : "Disconnected"
-        return "\(keyboard.connectionTypeName) - \(status)"
+        return "\(keyboard.connectionTypeName) · \(status)"
     }
 
     private var reason: (title: String, explanation: String) {
@@ -36,13 +36,13 @@ struct UnsupportedPhysicalKeyboardRow: View {
         }
         return switch reason {
         case .missingIdentity:
-            ("Identity unavailable", "This device reports no serial number or other stable ID.")
+            ("No stable ID", "This device reports no serial number or other stable ID.")
         case .unstableIdentity:
-            ("Identity unstable", "This device’s ID changes when it reconnects.")
+            ("ID changes", "This device’s ID changes when it reconnects.")
         case .sharedIdentity:
-            ("Identity shared", "Several connected devices of this model report the same ID.")
+            ("Shared ID", "Several connected devices of this model report the same ID.")
         case .ambiguousIdentity:
-            ("Identity ambiguous", "This device reports a different ID on each of its interfaces.")
+            ("Inconsistent ID", "This device reports a different ID on each of its interfaces.")
         }
     }
 }

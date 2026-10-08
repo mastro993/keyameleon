@@ -9,18 +9,16 @@ struct PhysicalKeyboardNameSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Physical Keyboard Name")
+            Text("Rename Keyboard")
                 .font(.title2)
                 .accessibilityAddTraits(.isHeader)
 
-            Text(
-                "Keyameleon shows this name instead of the macOS product name. Clear it to use \(productName) again."
-            )
+            Text("Leave empty to use “\(productName)”.")
             .foregroundStyle(.secondary)
 
             TextField(productName, text: $nameDraft)
                 .textFieldStyle(.roundedBorder)
-                .accessibilityLabel("Physical Keyboard Name")
+                .accessibilityLabel("Name")
 
             HStack {
                 Spacer()

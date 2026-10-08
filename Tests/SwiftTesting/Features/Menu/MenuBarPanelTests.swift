@@ -162,9 +162,9 @@ func menuBarPanelOffersGuidedSetupContinuation() {
         let complete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: true)
 
         #expect(incomplete.footer.actions.first?.id == .continueSetup)
-        #expect(incomplete.footer.actions.map(\.title).contains("Continue Guided Setup"))
-        #expect(complete.footer.actions.map(\.title).contains("Continue Guided Setup") == false)
-        #expect(complete.notice?.title != "Finish Guided Setup")
+        #expect(incomplete.footer.actions.map(\.title).contains("Continue Setup"))
+        #expect(complete.footer.actions.map(\.title).contains("Continue Setup") == false)
+        #expect(complete.notice?.title != "Finish setup")
         for canCheckForUpdates in [false, true] {
             for isSetupComplete in [false, true] {
                 let content = makeMenuBarPanelContent(
@@ -397,9 +397,9 @@ func menuBarAssignmentListKeepsUnavailableAssignmentWithoutDroppingTheRow() thro
 
     #expect(list.rows.count == 1)
     #expect(row.physicalKeyboardName == "Travel")
-    #expect(row.assignedInputSourceName == "Unavailable Input Source")
+    #expect(row.assignedInputSourceName == "Input source unavailable")
     #expect(row.showsWarningSymbol)
-    #expect(row.warningNote == "Unavailable Keyboard Assignment")
+    #expect(row.warningNote == "Choose another in Settings")
 }
 
 @Test("Menu-bar assignment rows warn only when action is needed")
@@ -417,7 +417,7 @@ func menuBarAssignmentRowsWarnOnlyWhenActionIsNeeded() throws {
     #expect(ready.showsWarningSymbol == false)
     #expect(ready.warningNote == nil)
     #expect(broken.showsWarningSymbol)
-    #expect(broken.warningNote == "Unavailable Keyboard Assignment")
+    #expect(broken.warningNote == "Choose another in Settings")
 }
 
 @Test("Menu-bar assignment list empty state is compact")
@@ -431,7 +431,7 @@ func menuBarAssignmentListEmptyStateIsCompact() {
 
     #expect(list.rows.isEmpty)
     #expect(list.emptyTitle == "No assigned keyboards")
-    #expect(list.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
+    #expect(list.emptyDescription == "Assign keyboards in Settings.")
     #expect(list.scrolls == false)
 }
 
@@ -489,7 +489,7 @@ func menuBarPanelContentKeepsAssignmentListAndQuickActions() {
     let content = makeMenuBarPanelContent(outcome: .readyFixture())
 
     #expect(content.assignmentList.emptyTitle == "No assigned keyboards")
-    #expect(content.assignmentList.emptyDescription == "Open Keyameleon Settings to assign keyboards.")
+    #expect(content.assignmentList.emptyDescription == "Assign keyboards in Settings.")
     #expect(content.assignmentList.rows.isEmpty)
     #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
@@ -733,7 +733,7 @@ func menuBarPanelMismatchNoticeNamesActivePhysicalKeyboard() {
     )
     let notice = makeMenuBarPanelContent(outcome: outcome).notice
 
-    #expect(notice?.title == "Input Source differs")
+    #expect(notice?.title == "Input source differs")
     #expect(notice?.detail == "Travel is using Italian instead of U.S.")
     #expect(notice?.action.id == .settings)
 }
@@ -798,7 +798,7 @@ func menuBarPanelSelectionFailureNoticeOffersRetryWhenAvailable() throws {
     let content = makeMenuBarPanelContent(outcome: outcome)
     let action = try #require(content.notice?.action)
 
-    #expect(content.notice?.title == "Couldn't switch Input Source")
+    #expect(content.notice?.title == "Couldn’t switch input source")
     #expect(content.notice?.detail == "Try again for Travel.")
     #expect(action.id == .retryNow)
     #expect(action.title == "Retry Now")
@@ -825,11 +825,11 @@ func menuBarPanelSelectionFailureNoticeFallsBackToSettings() {
         availableActions: [.pause]
     )
 
-    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Check the Keyboard Assignment.")
+    #expect(makeMenuBarPanelContent(outcome: outcome).notice?.detail == "Check the input source in Settings.")
     #expect(makeMenuBarPanelContent(outcome: outcome).notice?.action.id == .settings)
 }
 
-@Test("Assign an Input Source notice names one unassigned Physical Keyboard")
+@Test("Unassigned keyboard notice names one unassigned Physical Keyboard")
 @MainActor
 func menuBarPanelUnassignedNoticeUsesKeyboardName() {
     let content = makeMenuBarPanelContent(
@@ -839,12 +839,12 @@ func menuBarPanelUnassignedNoticeUsesKeyboardName() {
         ]
     )
 
-    #expect(content.notice?.title == "Assign an Input Source")
-    #expect(content.notice?.detail == "Assign an Input Source to Travel.")
+    #expect(content.notice?.title == "Keyboard not assigned")
+    #expect(content.notice?.detail == "Choose an input source for Travel.")
     #expect(content.notice?.action.id == .settings)
 }
 
-@Test("Assign an Input Source notice preserves Physical Keyboard order")
+@Test("Unassigned keyboard notice preserves Physical Keyboard order")
 @MainActor
 func menuBarPanelUnassignedNoticePreservesKeyboardOrder() {
     let content = makeMenuBarPanelContent(
@@ -855,10 +855,10 @@ func menuBarPanelUnassignedNoticePreservesKeyboardOrder() {
         ]
     )
 
-    #expect(content.notice?.detail == "Assign Input Sources to Travel and Desk.")
+    #expect(content.notice?.detail == "Choose input sources for Travel and Desk.")
 }
 
-@Test("Assign an Input Source notice counts three unassigned Physical Keyboards")
+@Test("Unassigned keyboard notice counts three unassigned Physical Keyboards")
 @MainActor
 func menuBarPanelUnassignedNoticeCountsThreePhysicalKeyboards() {
     let content = makeMenuBarPanelContent(
@@ -870,7 +870,7 @@ func menuBarPanelUnassignedNoticeCountsThreePhysicalKeyboards() {
         ]
     )
 
-    #expect(content.notice?.detail == "Assign Input Sources to 3 Physical Keyboards.")
+    #expect(content.notice?.detail == "Choose input sources for 3 keyboards.")
 }
 
 @Test("Unavailable Keyboard Assignment stays on assignment row without a notice")
@@ -924,8 +924,8 @@ func menuBarPanelNoticePrioritizesSelectionFailure() {
         ]
     )
 
-    #expect(content.notice?.title == "Couldn't switch Input Source")
-    #expect(content.notice?.detail == "Check Travel's Keyboard Assignment.")
+    #expect(content.notice?.title == "Couldn’t switch input source")
+    #expect(content.notice?.detail == "Check Travel’s input source in Settings.")
 }
 
 @Test("Input Source mismatch notice outranks unassigned and unfinished setup")
@@ -949,7 +949,7 @@ func menuBarPanelNoticePrioritizesMismatch() {
         isSetupComplete: false
     )
 
-    #expect(content.notice?.title == "Input Source differs")
+    #expect(content.notice?.title == "Input source differs")
 }
 
 @Test("Unassigned notice outranks unfinished Guided setup")
@@ -963,7 +963,7 @@ func menuBarPanelNoticePrioritizesUnassignedKeyboardOverSetup() {
         isSetupComplete: false
     )
 
-    #expect(content.notice?.title == "Assign an Input Source")
+    #expect(content.notice?.title == "Keyboard not assigned")
 }
 
 @Test("Unfinished Guided setup notice appears when no earlier condition matches")
@@ -974,10 +974,10 @@ func menuBarPanelNoticeExplainsUnfinishedGuidedSetup() {
         isSetupComplete: false
     )
 
-    #expect(content.notice?.title == "Finish Guided Setup")
+    #expect(content.notice?.title == "Finish setup")
     #expect(content.notice?.detail == "Continue where you left off.")
     #expect(content.notice?.action.id == .continueSetup)
-    #expect(content.notice?.action.title == "Continue Guided Setup")
+    #expect(content.notice?.action.title == "Continue Setup")
 }
 
 private func makeMenuBarPanelContent(
