@@ -80,21 +80,21 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
             return nil
         }
 
-        // CoreHID's unique ID is software-based. Serial number or BLE address
-        // is required before the identity can make a Physical Keyboard assignable.
+        // CoreHID's unique ID is software-based. Serial number, BLE address, or
+        // vendor and product IDs anchor the identity so it can be assignable.
         let isBuiltIn = await client.isBuiltIn
         let serialNumber = await client.serialNumber
         let bluetoothAddress = await PhysicalKeyboardHIDInspection.bluetoothAddress(
             for: client
         )
-        let identity = await client.uniqueID.flatMap {
-            PhysicalKeyboardIdentity(
-                rawValue: $0,
-                isBuiltIn: isBuiltIn,
-                serialNumber: serialNumber,
-                bluetoothAddress: bluetoothAddress
-            )
-        }
+        let identity = PhysicalKeyboardIdentity(
+            rawValue: await client.uniqueID,
+            isBuiltIn: isBuiltIn,
+            serialNumber: serialNumber,
+            bluetoothAddress: bluetoothAddress,
+            vendorID: await client.vendorID,
+            productID: await client.productID
+        )
 
         return PhysicalKeyboardHardwareFacts(
             serviceID: reference.deviceID,
@@ -105,7 +105,8 @@ final class SystemPhysicalKeyboardDiscoverer: PhysicalKeyboardDiscovering {
             vendorID: await client.vendorID,
             productID: await client.productID,
             modelNumber: await client.modelNumber,
-            serialNumber: serialNumber
+            serialNumber: serialNumber,
+            locationID: await client.locationID
         )
     }
 
@@ -134,9 +135,9 @@ enum PhysicalKeyboardHIDInspection {
         let usages = [primaryUsage] + deviceUsages
 
         return PhysicalKeyboardHIDRecognition(
-            hasKeyboardUsage: usages.contains { isKeyboardUsage($0) },
-            hasKeyboardInputElement: await client.elements.contains {
-                isKeyboardInputElement($0)
+            hasKeyInputUsage: usages.contains { isKeyInputUsage($0) },
+            hasKeyInputElement: await client.elements.contains {
+                isKeyInputElement($0)
             }
         )
     }
@@ -157,25 +158,29 @@ enum PhysicalKeyboardHIDInspection {
         return nil
     }
 
-    private static func isKeyboardUsage(_ usage: HIDUsage) -> Bool {
-        if case .genericDesktop(.keyboard) = usage {
-            return true
+    /// Usages that can carry Activation Activity: keyboard, keypad, and
+    /// consumer (media) keys. Deliberately broad; see `docs/choices.md`.
+    static func isKeyInputUsage(_ usage: HIDUsage) -> Bool {
+        switch usage {
+        case .genericDesktop(.keyboard), .genericDesktop(.keypad), .keyboardOrKeypad, .consumer:
+            true
+        default:
+            false
         }
-        if case .genericDesktop(.keypad) = usage {
-            return true
-        }
-        return false
     }
 
-    private static func isKeyboardInputElement(_ element: HIDElement) -> Bool {
+    /// Input elements the event observer monitors for Activation Activity.
+    static func isKeyInputElement(_ element: HIDElement) -> Bool {
         guard element.type == .input else {
             return false
         }
 
-        if case .keyboardOrKeypad = element.usage {
+        switch element.usage {
+        case .keyboardOrKeypad, .consumer:
             return true
+        default:
+            return false
         }
-        return false
     }
 }
 

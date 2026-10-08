@@ -16,9 +16,9 @@ When behavior changes, edit the relevant section in place rather than appending 
 
 ### Recognition
 
-Keyameleon inspects every CoreHID device, because keyboard collections can sit behind a pointer or vendor-defined primary usage. A device is a **Physical Keyboard** when its primary or device usages include keyboard or keypad, or when it exposes a keyboard input element. LED output is not required, and pointer usage does not disqualify a device.
+Keyameleon inspects every CoreHID device, because keyboard collections can sit behind a pointer or vendor-defined primary usage. A device is a **Physical Keyboard** when it can produce **Activation Activity**: its primary or device usages include keyboard, keypad, or consumer (media key) usage, or it exposes a keyboard, keypad, or consumer input element. Recognition and Activation Activity observation share one element rule, so any device that can switch layouts is listed. LED output is not required, and pointer usage does not disqualify a device.
 
-This broad rule misses fewer keyboards at the cost of listing some devices that are not keyboards, such as a mouse with shortcut buttons. The person ignores those (see [Ignoring devices](#ignoring-devices)) rather than Keyameleon guessing.
+This broad rule prefers listing too many devices over missing a keyboard, such as a 2.4 GHz receiver whose keyboard collection is not advertised. The cost is listing some devices that are not keyboards, such as a mouse with shortcut buttons, a headset with volume buttons, or a display with media controls. The person ignores those (see [Ignoring devices](#ignoring-devices)) rather than Keyameleon guessing.
 
 Recognition is separate from assignment: a device can be listed without being assignable.
 
@@ -26,7 +26,9 @@ Recognition is separate from assignment: a device can be listed without being as
 
 A **Keyboard Assignment** requires a stable, unique **Physical Keyboard Identity**.
 
-- **External keyboards** use their USB serial number, or for Bluetooth LE keyboards without one, their Bluetooth device address. CoreHID's software IDs change on reconnect and are not used. A keyboard without a stable, unique identity is listed as unsupported, with the reason shown.
+- **External keyboards** use their USB serial number, or for Bluetooth LE keyboards without one, their Bluetooth device address. A device with neither, such as a 2.4 GHz receiver, falls back to its vendor and product IDs, so every HID interface of the receiver forms one row that survives reconnects and port changes. CoreHID's software IDs change on reconnect and differ per interface, so they are not used for these fallbacks.
+- The vendor and product fallback names a model, not one device. When more than one serial-less device of the same model is connected at once (seen as different USB `locationID`s), they share one row marked unsupported as `Identity shared` rather than Keyameleon guessing which is which.
+- A keyboard without any stable, unique identity, including one whose vendor or product ID is zero, is listed as unsupported, with the reason shown.
 - **The built-in keyboard** is one fixed identity covering every CoreHID service macOS marks as built-in, independent of software or hardware identifiers ([ADR 0003](adr/0003-built-in-physical-keyboard-identity.md)). Its default name is the shared macOS product name, or `Built-in Keyboard` when services disagree.
 - When an identity changes, Keyameleon does not move or delete saved names, assignments, or designations automatically. The one exception is the one-time built-in migration in ADR 0003.
 

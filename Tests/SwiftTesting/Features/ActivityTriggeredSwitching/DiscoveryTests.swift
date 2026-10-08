@@ -1,3 +1,4 @@
+import CoreHID
 import Testing
 @testable import Keyameleon
 
@@ -111,8 +112,8 @@ func matchingBluetoothAddressesGroupHIDServicesAsOnePhysicalKeyboard() {
 @Test("Keyboard usage stays recognized without LED evidence")
 func keyboardUsageWithoutLEDIsPhysicalKeyboard() {
     let recognition = PhysicalKeyboardHIDRecognition(
-        hasKeyboardUsage: true,
-        hasKeyboardInputElement: false
+        hasKeyInputUsage: true,
+        hasKeyInputElement: false
     )
 
     #expect(recognition.isPhysicalKeyboard)
@@ -121,8 +122,8 @@ func keyboardUsageWithoutLEDIsPhysicalKeyboard() {
 @Test("Keyboard input elements identify a Physical Keyboard without advertised keyboard usage")
 func keyboardInputElementIdentifiesPhysicalKeyboard() {
     let recognition = PhysicalKeyboardHIDRecognition(
-        hasKeyboardUsage: false,
-        hasKeyboardInputElement: true
+        hasKeyInputUsage: false,
+        hasKeyInputElement: true
     )
 
     #expect(recognition.isPhysicalKeyboard)
@@ -131,11 +132,102 @@ func keyboardInputElementIdentifiesPhysicalKeyboard() {
 @Test("Pointer without keyboard usage or key input stays excluded")
 func pointerWithoutKeyboardEvidenceIsNotPhysicalKeyboard() {
     let recognition = PhysicalKeyboardHIDRecognition(
-        hasKeyboardUsage: false,
-        hasKeyboardInputElement: false
+        hasKeyInputUsage: false,
+        hasKeyInputElement: false
     )
 
     #expect(!recognition.isPhysicalKeyboard)
+}
+
+@Test(
+    "Keyboard, keypad, and consumer usages identify a Physical Keyboard",
+    arguments: [
+        HIDUsage.genericDesktop(.keyboard),
+        .genericDesktop(.keypad),
+        .keyboardOrKeypad(nil),
+        .consumer(.consumerControl)
+    ]
+)
+func keyInputUsageIdentifiesPhysicalKeyboard(usage: HIDUsage) {
+    #expect(PhysicalKeyboardHIDInspection.isKeyInputUsage(usage))
+}
+
+@Test(
+    "Usages without key input do not identify a Physical Keyboard",
+    arguments: [HIDUsage.genericDesktop(.mouse), .genericDesktop(.pointer)]
+)
+func usageWithoutKeyInputDoesNotIdentifyPhysicalKeyboard(usage: HIDUsage) {
+    #expect(!PhysicalKeyboardHIDInspection.isKeyInputUsage(usage))
+}
+
+@Test("Serial-less receiver interfaces group into one assignable Physical Keyboard")
+func serialLessReceiverInterfacesGroupIntoOneAssignablePhysicalKeyboard() {
+    var catalog = PhysicalKeyboardCatalog()
+
+    catalog.apply(.connected(makeSerialLessFacts(serviceID: 81, uniqueID: "interface-a")))
+    catalog.apply(.connected(makeSerialLessFacts(serviceID: 82, uniqueID: "interface-b")))
+
+    #expect(catalog.physicalKeyboards.count == 1)
+    #expect(catalog.physicalKeyboards[0].assignmentState == .unassigned)
+    #expect(catalog.physicalKeyboards[0].connectedServiceCount == 2)
+}
+
+@Test("Serial-less identity survives new CoreHID unique IDs, a missing one, and a new port")
+func serialLessIdentityIsIndependentOfUniqueIDAndPort() {
+    let original = makeSerialLessFacts(serviceID: 83, uniqueID: "before", locationID: 1)
+    let reconnected = makeSerialLessFacts(serviceID: 84, uniqueID: nil, locationID: 2)
+
+    #expect(original.identityStability == .stable)
+    #expect(original.identity == reconnected.identity)
+}
+
+@Test("Identical serial-less devices on different ports share an unsupported identity")
+func identicalSerialLessDevicesOnDifferentPortsAreShared() {
+    var catalog = PhysicalKeyboardCatalog()
+
+    catalog.apply(.connected(makeSerialLessFacts(serviceID: 85, uniqueID: "a", locationID: 1)))
+    catalog.apply(.connected(makeSerialLessFacts(serviceID: 86, uniqueID: "b", locationID: 2)))
+
+    #expect(catalog.physicalKeyboards.count == 1)
+    #expect(catalog.physicalKeyboards[0].assignmentState == .unsupported(.sharedIdentity))
+}
+
+@Test(
+    "Serial-less device with a zero vendor or product ID stays without identity",
+    arguments: [(UInt32(0), UInt32(0)), (0, 1), (0x19F5, 0)]
+)
+func serialLessDeviceWithZeroVendorOrProductHasNoIdentity(vendorID: UInt32, productID: UInt32) {
+    let identity = PhysicalKeyboardIdentity(
+        rawValue: nil,
+        isBuiltIn: false,
+        serialNumber: nil,
+        vendorID: vendorID,
+        productID: productID
+    )
+
+    #expect(identity == nil)
+}
+
+@Test("Serial number anchors the identity when CoreHID has no unique ID")
+func serialNumberAnchorsIdentityWithoutUniqueID() {
+    let first = PhysicalKeyboardIdentity(
+        rawValue: nil,
+        isBuiltIn: false,
+        serialNumber: "keyboard-a",
+        vendorID: 0x19F5,
+        productID: 0x0001
+    )
+    let second = PhysicalKeyboardIdentity(
+        rawValue: nil,
+        isBuiltIn: false,
+        serialNumber: "keyboard-b",
+        vendorID: 0x19F5,
+        productID: 0x0001
+    )
+
+    #expect(first?.isStable == true)
+    #expect(first?.isModelAnchored == false)
+    #expect(first != second)
 }
 
 @Test("Different serial facts make a shared Physical Keyboard Identity unsupported")
@@ -468,6 +560,31 @@ private func makeHardwareFacts(
         productID: productID,
         modelNumber: "Model",
         serialNumber: serialNumber
+    )
+}
+
+private func makeSerialLessFacts(
+    serviceID: UInt64,
+    uniqueID: String?,
+    locationID: UInt64 = 1
+) -> PhysicalKeyboardHardwareFacts {
+    PhysicalKeyboardHardwareFacts(
+        serviceID: serviceID,
+        identity: PhysicalKeyboardIdentity(
+            rawValue: uniqueID,
+            isBuiltIn: false,
+            serialNumber: nil,
+            vendorID: 0x19F5,
+            productID: 0x0001
+        ),
+        name: "NuPhy Halo75 V2 Dongle",
+        transport: .usb,
+        isBuiltIn: false,
+        vendorID: 0x19F5,
+        productID: 0x0001,
+        modelNumber: nil,
+        serialNumber: nil,
+        locationID: locationID
     )
 }
 

@@ -12,6 +12,7 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
         case builtIn
         case serialNumber(String)
         case bluetoothAddress(String)
+        case vendorProduct(vendorID: UInt32, productID: UInt32)
 
         var rawValue: String {
             switch self {
@@ -21,6 +22,8 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
                 "serial:\(value)"
             case let .bluetoothAddress(value):
                 "bluetooth:\(value)"
+            case let .vendorProduct(vendorID, productID):
+                "hardware:\(vendorID):\(productID)"
             }
         }
     }
@@ -36,30 +39,43 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
         serialNumber: nil
     )!
 
+    /// `rawValue` is CoreHID's unique ID. Built-in identities require it; the
+    /// hardware-derived anchors do not.
     init?(
-        rawValue: String,
+        rawValue: String?,
         isBuiltIn: Bool,
         serialNumber: String?,
-        bluetoothAddress: String? = nil
+        bluetoothAddress: String? = nil,
+        vendorID: UInt32? = nil,
+        productID: UInt32? = nil
     ) {
-        let normalized = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !normalized.isEmpty else {
-            return nil
-        }
+        let normalized = Self.normalizedHardwareToken(rawValue)
 
         if isBuiltIn {
+            guard let normalized else {
+                return nil
+            }
             value = normalized
             hardwareAnchor = .builtIn
         } else if let serialNumber = Self.normalizedHardwareToken(serialNumber) {
-            value = normalized
+            // Without a unique ID, the serial number alone names the device.
+            value = normalized ?? "serial:\(serialNumber)"
             hardwareAnchor = .serialNumber(serialNumber)
         } else if let bluetoothAddress = Self.normalizedBluetoothAddress(bluetoothAddress) {
             // CoreHID unique IDs churn on BLE reconnect. Group by the MAC.
             value = "bluetooth:\(bluetoothAddress)"
             hardwareAnchor = .bluetoothAddress(bluetoothAddress)
-        } else {
+        } else if let vendorID, let productID, vendorID != 0, productID != 0 {
+            // No serial or address, such as a 2.4 GHz receiver. CoreHID unique
+            // IDs differ per HID interface, so group every interface by model.
+            let anchor = HardwareAnchor.vendorProduct(vendorID: vendorID, productID: productID)
+            value = anchor.rawValue
+            hardwareAnchor = anchor
+        } else if let normalized {
             value = normalized
             hardwareAnchor = nil
+        } else {
+            return nil
         }
     }
 
@@ -73,6 +89,15 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
 
     var groupingKey: String {
         value
+    }
+
+    /// Whether the identity names a model rather than one device, so two
+    /// identical devices connected at once share it.
+    var isModelAnchored: Bool {
+        if case .vendorProduct = hardwareAnchor {
+            return true
+        }
+        return false
     }
 
     private static func normalizedHardwareToken(_ raw: String?) -> String? {
@@ -97,12 +122,13 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
     }
 }
 
+/// A device that can produce Activation Activity is a Physical Keyboard.
 struct PhysicalKeyboardHIDRecognition: Equatable, Sendable {
-    var hasKeyboardUsage: Bool
-    var hasKeyboardInputElement: Bool
+    var hasKeyInputUsage: Bool
+    var hasKeyInputElement: Bool
 
     var isPhysicalKeyboard: Bool {
-        hasKeyboardUsage || hasKeyboardInputElement
+        hasKeyInputUsage || hasKeyInputElement
     }
 }
 
@@ -148,6 +174,8 @@ struct PhysicalKeyboardHardwareFacts: Equatable, Sendable {
     let productID: UInt32
     let modelNumber: String?
     let serialNumber: String?
+    /// Port path; every HID interface of one USB device shares it.
+    let locationID: UInt64?
 
     init(
         serviceID: UInt64,
@@ -158,7 +186,8 @@ struct PhysicalKeyboardHardwareFacts: Equatable, Sendable {
         vendorID: UInt32,
         productID: UInt32,
         modelNumber: String?,
-        serialNumber: String?
+        serialNumber: String?,
+        locationID: UInt64? = nil
     ) {
         self.serviceID = serviceID
         self.identity = identity
@@ -170,6 +199,7 @@ struct PhysicalKeyboardHardwareFacts: Equatable, Sendable {
         self.productID = productID
         self.modelNumber = modelNumber?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         self.serialNumber = serialNumber?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        self.locationID = locationID
     }
 
     fileprivate var stableFacts: StablePhysicalKeyboardFacts {
@@ -579,6 +609,12 @@ struct PhysicalKeyboardCatalog: Sendable {
 
             let serialNumbers = Set(sortedGroup.compactMap(\.serialNumber))
             if serialNumbers.count > 1 {
+                return .sharedIdentity
+            }
+
+            // Two identical devices without serial numbers sit on different ports.
+            if identity.isModelAnchored,
+               Set(sortedGroup.compactMap(\.locationID)).count > 1 {
                 return .sharedIdentity
             }
 
