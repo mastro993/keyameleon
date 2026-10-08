@@ -243,17 +243,30 @@ reset_local_state() {
     # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
     # copies it into the Keyameleon folder again. Other apps may use that path, so
     # delete it only when Keyameleon's keyboard table is there and every entity
-    # table (Core Data's Z-prefixed names) is one of Keyameleon's.
+    # table (Core Data's Z-prefixed names) is one of Keyameleon's. A store that
+    # also holds another app's tables is never edited; the reset fails instead.
     local legacy_store="${HOME}/Library/Application Support/default.store"
     local legacy_store_query="
         SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
-            AND NOT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name GLOB 'Z[A-Z]*'
+            || EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name GLOB 'Z[A-Z]*'
                 AND name NOT IN ('ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL'))"
+    local legacy_store_tables=''
     if [[ -f "${legacy_store}" ]] \
-        && sqlite3 -readonly "${legacy_store}" "${legacy_store_query}" 2>/dev/null | grep -qx 1; then
-        print "Deleting legacy store ${legacy_store}"
-        rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
+        && ! legacy_store_tables="$(sqlite3 -readonly "${legacy_store}" "${legacy_store_query}")"; then
+        print -u2 "Could not inspect ${legacy_store}, so it was kept. The next launch may copy its keyboards back."
+        return 1
     fi
+    case "${legacy_store_tables}" in
+        10)
+            print "Deleting legacy store ${legacy_store}"
+            rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
+            ;;
+        11)
+            print -u2 "${legacy_store} holds Keyameleon's keyboards and another app's data, so it was kept."
+            print -u2 'The next launch copies those keyboards back. Remove them by hand for a first run.'
+            return 1
+            ;;
+    esac
     print 'Keyameleon local state reset.'
 }
 

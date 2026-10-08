@@ -39,7 +39,7 @@ reset_local_state
 
 
 class ResetLocalStateTests(unittest.TestCase):
-    def run_reset(self, home, legacy_tables):
+    def run_reset(self, home, legacy_tables, status=0):
         support = home / "Library/Application Support"
         (support / "Keyameleon").mkdir(parents=True)
         (home / "Library/Logs/Keyameleon").mkdir(parents=True)
@@ -72,7 +72,11 @@ class ResetLocalStateTests(unittest.TestCase):
             ("zsh", "-c", RESET_SCRIPT, "test", str(home), str(dump), str(log)),
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.returncode, status, result.stderr)
+        if status:
+            self.assertIn("The next launch copies those keyboards back.", result.stderr)
+        else:
+            self.assertIn("Keyameleon local state reset.", result.stdout)
         self.assertEqual(
             log.read_text(encoding="utf-8"),
             "kill 42\n"
@@ -98,14 +102,33 @@ class ResetLocalStateTests(unittest.TestCase):
             self.assertFalse((support / "default.store-wal").exists())
 
     def test_reset_keeps_a_default_store_with_another_apps_tables(self):
-        for name, tables in (
-            ("another app", ("ZOTHERMODEL",)),
-            ("shared", ("ZPHYSICALKEYBOARDRECORDMODEL", "ZOTHERMODEL")),
+        for name, tables, status in (
+            ("another app", ("ZOTHERMODEL",), 0),
+            ("shared", ("ZPHYSICALKEYBOARDRECORDMODEL", "ZOTHERMODEL"), 1),
         ):
             with self.subTest(name), tempfile.TemporaryDirectory() as directory:
-                support = self.run_reset(Path(directory), tables)
+                support = self.run_reset(Path(directory), tables, status)
                 self.assertTrue((support / "default.store").exists())
                 self.assertTrue((support / "default.store-wal").exists())
+
+    def test_unreadable_default_store_fails_the_reset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            support = home / "Library/Application Support"
+            support.mkdir(parents=True)
+            (support / "default.store").write_text("not a database", encoding="utf-8")
+            dump = home / "dump"
+            dump.touch()
+            log = home / "log"
+            log.touch()
+            result = subprocess.run(
+                ("zsh", "-c", RESET_SCRIPT, "test", str(home), str(dump), str(log)),
+                cwd=ROOT, capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("Could not inspect", result.stderr)
+            self.assertNotIn("Keyameleon local state reset.", result.stdout)
+            self.assertTrue((support / "default.store").exists())
 
     def test_unregister_failure_stops_the_reset(self):
         with tempfile.TemporaryDirectory() as directory:
