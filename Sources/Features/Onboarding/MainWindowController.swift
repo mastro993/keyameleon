@@ -21,7 +21,6 @@ final class MainWindowController: NSWindowController {
         window.isReleasedWhenClosed = false
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-        window.isMovableByWindowBackground = true
         window.minSize = NSSize(width: 840, height: 640)
         window.contentView = NSHostingView(
             rootView: RootView(

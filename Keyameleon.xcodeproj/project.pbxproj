@@ -141,6 +141,7 @@
 		D2BB8767FE9D1C869D9E48B8 /* HostedUnitTestProcessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661E3469B7E0EE17C2B97F61 /* HostedUnitTestProcessTests.swift */; };
 		D5591BFB143694C510A0AE64 /* KeyboardSettingsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5833820D63C60CE49A397432 /* KeyboardSettingsList.swift */; };
 		D69DAE8EEF4E02FBD452660B /* SettingsSidebarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5015ED7A3A7CF07AAFA5C57F /* SettingsSidebarRow.swift */; };
+		D98E1018A754B0E4E9FDD575 /* MainWindowControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECB91FEE36673094CF89C01 /* MainWindowControllerTests.swift */; };
 		DD0688612362BE64D451FFB0 /* SettingsSidebarNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47122BE6E1451F88072AFF6 /* SettingsSidebarNavigation.swift */; };
 		DE662C3DF632C58E73B62824 /* InputSourceMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552C989000F2B33D9944740C /* InputSourceMenu.swift */; };
 		DE75647520A62B63714D8B0D /* OnboardingSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7409CCB9C1CD1D00AB3E0BB8 /* OnboardingSidebar.swift */; };
@@ -299,6 +300,7 @@
 		BBCE22653E2FB600F2E5996C /* InstallationIntegrityKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationIntegrityKey.swift; sourceTree = "<group>"; };
 		BE40AFCED092F5E1AD68F1A4 /* PersistenceFailureNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceFailureNotice.swift; sourceTree = "<group>"; };
 		BEB60BA35D341F5E694AB225 /* ListenPermissionWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenPermissionWatch.swift; sourceTree = "<group>"; };
+		BECB91FEE36673094CF89C01 /* MainWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowControllerTests.swift; sourceTree = "<group>"; };
 		C03B481045B62F2980AD7C6B /* GeneralSettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsModel.swift; sourceTree = "<group>"; };
 		C3841004C81EB551B7007F30 /* HIDStreamRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDStreamRecoveryTests.swift; sourceTree = "<group>"; };
 		C47F59345513A7D2BE11A3A5 /* LogLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogLevel.swift; sourceTree = "<group>"; };
@@ -472,6 +474,7 @@
 		5C0B1371F5611AE34FE84C62 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				BECB91FEE36673094CF89C01 /* MainWindowControllerTests.swift */,
 				7CF1A47881BE8F265C0ABF3D /* OnboardingCopyTests.swift */,
 				5D29790BA0E7F60B96160331 /* OnboardingKeyboardExclusionModelTests.swift */,
 				18D81ECA454E56A9D56B8466 /* SetupModelTests.swift */,
@@ -1007,6 +1010,7 @@
 				7A8C6887DD7B079B13903F9B /* InstallationIntegrityKeychainTests.swift in Sources */,
 				F62E818CCB09141A65147F65 /* LifecycleTests.swift in Sources */,
 				8670CE25558614D008389932 /* LogTests.swift in Sources */,
+				D98E1018A754B0E4E9FDD575 /* MainWindowControllerTests.swift in Sources */,
 				8E2A487FDBE6BB30222E2F7D /* ManualDesignationTests.swift in Sources */,
 				35E9CFDD030E21B10BA02FBF /* MenuBarPanelAccessibilityTests.swift in Sources */,
 				A1D53B54EA46E21E4902916F /* MenuBarPanelTests.swift in Sources */,
