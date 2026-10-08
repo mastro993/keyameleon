@@ -192,17 +192,42 @@ func identicalSerialLessDevicesOnDifferentPortsAreShared() {
     #expect(catalog.physicalKeyboards[0].assignmentState == .unsupported(.sharedIdentity))
 }
 
-@Test("Serial-less device without vendor or product IDs stays without identity")
-func serialLessDeviceWithoutVendorOrProductHasNoIdentity() {
+@Test(
+    "Serial-less device with a zero vendor or product ID stays without identity",
+    arguments: [(UInt32(0), UInt32(0)), (0, 1), (0x19F5, 0)]
+)
+func serialLessDeviceWithZeroVendorOrProductHasNoIdentity(vendorID: UInt32, productID: UInt32) {
     let identity = PhysicalKeyboardIdentity(
         rawValue: nil,
         isBuiltIn: false,
         serialNumber: nil,
-        vendorID: 0,
-        productID: 0
+        vendorID: vendorID,
+        productID: productID
     )
 
     #expect(identity == nil)
+}
+
+@Test("Serial number anchors the identity when CoreHID has no unique ID")
+func serialNumberAnchorsIdentityWithoutUniqueID() {
+    let first = PhysicalKeyboardIdentity(
+        rawValue: nil,
+        isBuiltIn: false,
+        serialNumber: "keyboard-a",
+        vendorID: 0x19F5,
+        productID: 0x0001
+    )
+    let second = PhysicalKeyboardIdentity(
+        rawValue: nil,
+        isBuiltIn: false,
+        serialNumber: "keyboard-b",
+        vendorID: 0x19F5,
+        productID: 0x0001
+    )
+
+    #expect(first?.isStable == true)
+    #expect(first?.isModelAnchored == false)
+    #expect(first != second)
 }
 
 @Test("Different serial facts make a shared Physical Keyboard Identity unsupported")

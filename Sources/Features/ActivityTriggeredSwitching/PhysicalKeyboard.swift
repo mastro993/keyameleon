@@ -39,8 +39,8 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
         serialNumber: nil
     )!
 
-    /// `rawValue` is CoreHID's unique ID. Built-in and serial-number
-    /// identities require it; the hardware-derived anchors do not.
+    /// `rawValue` is CoreHID's unique ID. Built-in identities require it; the
+    /// hardware-derived anchors do not.
     init?(
         rawValue: String?,
         isBuiltIn: Bool,
@@ -57,14 +57,15 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
             }
             value = normalized
             hardwareAnchor = .builtIn
-        } else if let normalized, let serialNumber = Self.normalizedHardwareToken(serialNumber) {
-            value = normalized
+        } else if let serialNumber = Self.normalizedHardwareToken(serialNumber) {
+            // Without a unique ID, the serial number alone names the device.
+            value = normalized ?? "serial:\(serialNumber)"
             hardwareAnchor = .serialNumber(serialNumber)
         } else if let bluetoothAddress = Self.normalizedBluetoothAddress(bluetoothAddress) {
             // CoreHID unique IDs churn on BLE reconnect. Group by the MAC.
             value = "bluetooth:\(bluetoothAddress)"
             hardwareAnchor = .bluetoothAddress(bluetoothAddress)
-        } else if let vendorID, let productID, vendorID != 0 || productID != 0 {
+        } else if let vendorID, let productID, vendorID != 0, productID != 0 {
             // No serial or address, such as a 2.4 GHz receiver. CoreHID unique
             // IDs differ per HID interface, so group every interface by model.
             let anchor = HardwareAnchor.vendorProduct(vendorID: vendorID, productID: productID)

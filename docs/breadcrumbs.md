@@ -20,7 +20,9 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
   own `service:` row). `PhysicalKeyboardIdentity` now anchors serial-less,
   address-less external devices on vendor and product IDs (`hardware:<vid>:<pid>`),
   which groups the interfaces into one assignable row. Different `locationID`s
-  under that anchor mean identical devices, reported as `sharedIdentity`.
+  under that anchor mean more than one device of that model is connected,
+  reported as `sharedIdentity`. The fallback needs both IDs nonzero, and a
+  serial number without a CoreHID unique ID still anchors on the serial.
 - An Ignore saved for such a device under its old key (`hardware:<vid>:<pid>:<model>`
   or a unique-ID identity) no longer matches; the device reappears once and can
   be ignored again.
