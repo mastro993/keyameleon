@@ -17,14 +17,6 @@ struct UnsupportedPhysicalKeyboardsSection: View {
             Section {
                 DisclosureGroup(isExpanded: $isExpanded) {
                     VStack(alignment: .leading) {
-                        Text(
-                            "Keyameleon can’t recognize these devices reliably, "
-                                + "so they can’t have a Keyboard Assignment. "
-                                + "Some aren’t keyboards, such as a mouse or headset with buttons."
-                        )
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                         ForEach(keyboards) { keyboard in
                             Divider()
                             UnsupportedPhysicalKeyboardRow(keyboard: keyboard)
