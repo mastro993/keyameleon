@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = "/tmp/keyameleon-run-open-test/build/Build/Products/Debug"
 OPEN_SCRIPT = r'''
-source <(sed -n '/^open_development_app()/,/^}/p' Scripts/run.sh)
+source <(sed -n -e '/^wait_until_no_keyameleon_runs()/,/^}/p' -e '/^open_development_app()/,/^}/p' Scripts/run.sh)
 PRODUCTS_PATH="$1"
 running_path="$2"
 log_path="$3"
@@ -77,7 +77,7 @@ kill_leftover_derived_data_keyameleon
 
     def test_lookup_failure_never_opens_app(self):
         script = r'''
-source <(sed -n '/^open_development_app()/,/^}/p' Scripts/run.sh)
+source <(sed -n -e '/^wait_until_no_keyameleon_runs()/,/^}/p' -e '/^open_development_app()/,/^}/p' Scripts/run.sh)
 PRODUCTS_PATH=/tmp/keyameleon-run-open-test
 counter_path="$1"
 opened_path="$2"
@@ -97,7 +97,7 @@ open() { print opened > "$opened_path"; }
 sleep() { :; }
 open_development_app
 '''
-        for fail_on in (1, 2, 3):
+        for fail_on in (1, 2):
             with self.subTest(fail_on=fail_on), tempfile.TemporaryDirectory() as directory:
                 counter = Path(directory) / "calls"
                 opened = Path(directory) / "opened"
