@@ -20,15 +20,15 @@ Keyameleon inspects every CoreHID device, because keyboard collections can sit b
 
 This broad rule prefers listing too many devices over missing a keyboard, such as a 2.4 GHz receiver whose keyboard collection is not advertised. The cost is listing some devices that are not keyboards, such as a mouse with shortcut buttons, a headset with volume buttons, or a display with media controls. The person ignores those (see [Ignoring devices](#ignoring-devices)) rather than Keyameleon guessing.
 
-Recognition is separate from assignment: a device can be listed without being assignable.
+Recognition is separate from assignment: a device can be recognized without being assignable. Unsupported devices stay out of the keyboard list in Guided setup and Settings; a collapsed, read-only `Unsupported devices` section below the list shows each one's name, connection type and status, and reason. They cannot be renamed or ignored there.
 
 ### Identity
 
 A **Keyboard Assignment** requires a stable, unique **Physical Keyboard Identity**.
 
 - **External keyboards** use their USB serial number, or for Bluetooth LE keyboards without one, their Bluetooth device address. A device with neither, such as a 2.4 GHz receiver, falls back to its vendor and product IDs, so every HID interface of the receiver forms one row that survives reconnects and port changes. CoreHID's software IDs change on reconnect and differ per interface, so they are not used for these fallbacks.
-- The vendor and product fallback names a model, not one device. When more than one serial-less device of the same model is connected at once (seen as different USB `locationID`s), they share one row marked unsupported as `Identity shared` rather than Keyameleon guessing which is which.
-- A keyboard without any stable, unique identity, including one whose vendor or product ID is zero, is listed as unsupported, with the reason shown.
+- The vendor and product fallback names a model, not one device. When more than one serial-less device of the same model is connected at once (seen as different USB `locationID`s), they share one entry marked unsupported as `Identity shared` rather than Keyameleon guessing which is which.
+- A keyboard without any stable, unique identity, including one whose vendor or product ID is zero, is unsupported and appears only under `Unsupported devices`, with the reason shown.
 - **The built-in keyboard** is one fixed identity covering every CoreHID service macOS marks as built-in, independent of software or hardware identifiers ([ADR 0003](adr/0003-built-in-physical-keyboard-identity.md)). Its default name is the shared macOS product name, or `Built-in Keyboard` when services disagree.
 - When an identity changes, Keyameleon does not move or delete saved names, assignments, or designations automatically. The one exception is the one-time built-in migration in ADR 0003.
 

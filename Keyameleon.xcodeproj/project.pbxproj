@@ -83,6 +83,7 @@
 		70F9C19E96F2EF3FEED1EB56 /* UpdatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B795111210D68DF941CB9B7E /* UpdatePolicy.swift */; };
 		72696326EB311035F8CE8AF8 /* SetupModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D81ECA454E56A9D56B8466 /* SetupModelTests.swift */; };
 		72BEA68E2FBFA5930C5F43DD /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6922C80A926525B53DA1CBBC /* RootView.swift */; };
+		74B5E184231496C9EEB4F9A1 /* UnsupportedPhysicalKeyboardsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 268D771EA6D145AE181ECBBA /* UnsupportedPhysicalKeyboardsSection.swift */; };
 		762BF4666C196B18B5920E39 /* Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1FE0FC8CA921079CD4E263 /* Lifecycle.swift */; };
 		764A5D9A0FEE4B0B198EC956 /* OnboardingPermissionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38773298812C5A17D1726C14 /* OnboardingPermissionStep.swift */; };
 		78208410456914D1FB05E171 /* AboutIdentityBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7248E781984B018DF4C5029 /* AboutIdentityBlock.swift */; };
@@ -99,6 +100,7 @@
 		889BA327EC6E1BBD455DF698 /* InstallationIntegrityKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCE22653E2FB600F2E5996C /* InstallationIntegrityKey.swift */; };
 		89DD408A37072FF82B982F48 /* PhysicalKeyboardRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7BE62D56098EDFF6AB61E8 /* PhysicalKeyboardRowView.swift */; };
 		8AF97F2BC8C162D8707950D8 /* PhysicalKeyboardEventObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDACC5F5FEE3354745017EE7 /* PhysicalKeyboardEventObserver.swift */; };
+		8B16B92E9838D7723B30FAD1 /* UnsupportedPhysicalKeyboardRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF40344D3E7FB5ADE0FC9B58 /* UnsupportedPhysicalKeyboardRow.swift */; };
 		8E2A487FDBE6BB30222E2F7D /* ManualDesignationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34CCDD31AB22CC0C28426FAD /* ManualDesignationTests.swift */; };
 		906721B0DAE0F8DF5F7B2847 /* ApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFD6C2C12E6744103679EBE /* ApplicationDelegate.swift */; };
 		90C39303017E76F46C4A13EF /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8072A8E869541B47D522773D /* AppIdentity.swift */; };
@@ -196,6 +198,7 @@
 		1A6DB2E3039606970CA2C0BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1D1883A29573897172890DDD /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		1FF898807224FEB57662CD03 /* PhysicalKeyboardRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardRows.swift; sourceTree = "<group>"; };
+		268D771EA6D145AE181ECBBA /* UnsupportedPhysicalKeyboardsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedPhysicalKeyboardsSection.swift; sourceTree = "<group>"; };
 		2780C6032D0F86AADE9642E3 /* MenuBarPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelTests.swift; sourceTree = "<group>"; };
 		27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		292B87F6B6EB98598837DB1B /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
@@ -290,6 +293,7 @@
 		ACC728BFDBEAA5AFF42FCD74 /* ApplicationDelegate+Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ApplicationDelegate+Menu.swift"; sourceTree = "<group>"; };
 		AD5F8E0B94D1C80FD56A8BB0 /* GuidedSetupCompletionDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSetupCompletionDestination.swift; sourceTree = "<group>"; };
 		ADF493F86703E6756ECDE8B7 /* ActivityTriggeredSwitchingTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitchingTestSupport.swift; sourceTree = "<group>"; };
+		AF40344D3E7FB5ADE0FC9B58 /* UnsupportedPhysicalKeyboardRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedPhysicalKeyboardRow.swift; sourceTree = "<group>"; };
 		B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleInstanceLock.swift; sourceTree = "<group>"; };
 		B374C67570AA786A07343B93 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
 		B511C748DA6CA0346AF82293 /* PhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardStore.swift; sourceTree = "<group>"; };
@@ -410,6 +414,8 @@
 				94D02389C573881611AF0DEC /* SavedPhysicalKeyboardChanges.swift */,
 				E2346EDBABE7C49A31D94212 /* SetupModel.swift */,
 				7958C8689D37DDD3864216B0 /* Theme.swift */,
+				AF40344D3E7FB5ADE0FC9B58 /* UnsupportedPhysicalKeyboardRow.swift */,
+				268D771EA6D145AE181ECBBA /* UnsupportedPhysicalKeyboardsSection.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -975,6 +981,8 @@
 				6E6AE5997646E58C9C409CDC /* SwitchingStatus.swift in Sources */,
 				E4C4892DEE368B7B9262DC5C /* SwitchingWarning.swift in Sources */,
 				3495EF43F3935D7741092B32 /* Theme.swift in Sources */,
+				8B16B92E9838D7723B30FAD1 /* UnsupportedPhysicalKeyboardRow.swift in Sources */,
+				74B5E184231496C9EEB4F9A1 /* UnsupportedPhysicalKeyboardsSection.swift in Sources */,
 				36F0019B86A7140B10EC0B34 /* UpdateChecker.swift in Sources */,
 				70F9C19E96F2EF3FEED1EB56 /* UpdatePolicy.swift in Sources */,
 				4E3F7FC607BD3E2CC2399318 /* View+Extension.swift in Sources */,

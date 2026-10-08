@@ -73,8 +73,12 @@ struct PhysicalKeyboardRow: Identifiable, Equatable {
 }
 
 /// The reconciled Physical Keyboard rows one list draws.
+///
+/// Unsupported keyboards never take a row; they are kept apart in
+/// `unsupportedKeyboards` for a read-only list below the main one.
 struct PhysicalKeyboardRows: Equatable {
     private(set) var rows: [PhysicalKeyboardRow] = []
+    private(set) var unsupportedKeyboards: [PhysicalKeyboard] = []
 
     @MainActor
     init(
@@ -109,13 +113,22 @@ struct PhysicalKeyboardRows: Equatable {
         savedRecords: [SavedPhysicalKeyboardRecord] = [],
         exclusionKeyFor: @MainActor (PhysicalKeyboardRecordID) -> String?
     ) {
-        let current = PhysicalKeyboardListOrdering.sorted(physicalKeyboards).map { keyboard in
+        let sorted = PhysicalKeyboardListOrdering.sorted(physicalKeyboards).map { keyboard in
             (keyboard: keyboard, exclusionKey: exclusionKeyFor(keyboard.id))
         }
         let exclusionsByKey = Dictionary(
             exclusions.map { ($0.key, $0) },
             uniquingKeysWith: { _, latest in latest }
         )
+        let current = sorted.filter(\.keyboard.isAssignable)
+        unsupportedKeyboards = sorted.compactMap { candidate in
+            guard !candidate.keyboard.isAssignable,
+                  candidate.exclusionKey.flatMap({ exclusionsByKey[$0] }) == nil
+            else {
+                return nil
+            }
+            return candidate.keyboard
+        }
         var consumedKeyboardIDs: Set<PhysicalKeyboardRecordID> = []
         var reconciledRows: [PhysicalKeyboardRow] = []
 

@@ -30,6 +30,7 @@ struct OnboardingView: View {
                     OnboardingAssignmentsStep(
                         model: model,
                         rows: keyboardRows.rows,
+                        unsupportedKeyboards: keyboardRows.unsupportedKeyboards,
                         onIgnore: { id in
                             model.excludePhysicalKeyboard(id)
                             reconcileKeyboardRows()

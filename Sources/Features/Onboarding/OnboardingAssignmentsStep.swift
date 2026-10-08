@@ -4,6 +4,7 @@ import SwiftUI
 struct OnboardingAssignmentsStep: View {
     let model: SetupModel
     let rows: [PhysicalKeyboardRow]
+    let unsupportedKeyboards: [PhysicalKeyboard]
     let onIgnore: (PhysicalKeyboardRecordID) -> Void
     let onStopIgnoring: (String) -> Void
 
@@ -42,6 +43,8 @@ struct OnboardingAssignmentsStep: View {
                     .foregroundStyle(OnboardingPalette.muted)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            UnsupportedPhysicalKeyboardsSection(keyboards: unsupportedKeyboards)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
@@ -57,14 +60,16 @@ struct OnboardingAssignmentsStep: View {
 @MainActor
 private func onboardingAssignmentsPreview(_ state: PreviewSetupState) -> some View {
     let fixture = PreviewFixtures.setup(state)
+    let rows = PhysicalKeyboardRows(
+        physicalKeyboards: fixture.model.physicalKeyboards,
+        exclusions: fixture.model.excludedPhysicalKeyboards,
+        savedRecords: fixture.model.savedPhysicalKeyboardRecords,
+        exclusionKeyFor: fixture.model.exclusionKey(for:)
+    )
     return OnboardingAssignmentsStep(
         model: fixture.model,
-        rows: PhysicalKeyboardRows(
-            physicalKeyboards: fixture.model.physicalKeyboards,
-            exclusions: fixture.model.excludedPhysicalKeyboards,
-            savedRecords: fixture.model.savedPhysicalKeyboardRecords,
-            exclusionKeyFor: fixture.model.exclusionKey(for:)
-        ).rows,
+        rows: rows.rows,
+        unsupportedKeyboards: rows.unsupportedKeyboards,
         onIgnore: { _ in },
         onStopIgnoring: { _ in }
     )
