@@ -28,7 +28,9 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
 - `SystemInputMonitoringRecovery` replaces `NSWorkspaceSystemSettingsOpener`:
   it opens Settings, relaunches through a `/bin/sh` waiter (it never quits if
   the waiter cannot start), and after a relaunch that still reads denied it
-  resets only Keyameleon's row and requests again.
+  resets only Keyameleon's row and requests again. The relauncher marks the
+  reopened process with a launch argument instead of a saved flag, so a later
+  manual launch can never reset a denial (CodeRabbit on #171).
 - Removed the drag guide (`InputMonitoringGuide*`, `InputMonitoringSettingsWindow`,
   `AppBundleDrag*`) and its tests: requesting first always lists the app.
 - Tests: `InputMonitoringRecoveryTests` (actions, deep link, relaunch guard,

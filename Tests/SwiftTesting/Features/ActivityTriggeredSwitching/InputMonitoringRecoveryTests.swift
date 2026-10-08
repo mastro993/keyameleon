@@ -36,19 +36,16 @@ func relaunchQuitsOnlyWithRelauncher() {
     let failing = RecoveryHarness(permission: .denied, relauncherStarts: false)
     failing.recovery.relaunch()
     #expect(failing.terminateCount == 0)
-    #expect(failing.defaults.bool(forKey: SystemInputMonitoringRecovery.relaunchKey) == false)
 
     let working = RecoveryHarness(permission: .denied)
     working.recovery.relaunch()
     #expect(working.terminateCount == 1)
-    #expect(working.defaults.bool(forKey: SystemInputMonitoringRecovery.relaunchKey))
 }
 
-@Test("Denied after a relaunch resets the stale decision once")
+@Test("Denied in a process opened by the relauncher resets the stale decision once")
 @MainActor
 func deniedAfterRelaunchResetsStaleDecision() async {
-    let harness = RecoveryHarness(permission: .denied)
-    harness.recovery.relaunch()
+    let harness = RecoveryHarness(permission: .denied, relaunched: true)
 
     #expect(await harness.recovery.resetStaleGrantAfterRelaunch())
     #expect(harness.resetCount == 1)
@@ -59,26 +56,32 @@ func deniedAfterRelaunchResetsStaleDecision() async {
     #expect(harness.resetCount == 1)
 }
 
-@Test("A relaunch that applied the grant, or no relaunch, leaves the decision alone")
+@Test("A manual launch never resets, even after a relaunch that failed to reopen")
 @MainActor
-func grantedOrOrdinaryLaunchKeepsDecision() async {
-    let ordinary = RecoveryHarness(permission: .denied)
-    #expect(await ordinary.recovery.resetStaleGrantAfterRelaunch() == false)
-    #expect(ordinary.resetCount == 0)
+func manualLaunchNeverResets() async {
+    let previous = RecoveryHarness(permission: .denied)
+    previous.recovery.relaunch()
+    #expect(previous.terminateCount == 1)
 
-    let granted = RecoveryHarness(permission: .denied)
-    granted.recovery.relaunch()
-    granted.permission.state = .granted
-    #expect(await granted.recovery.resetStaleGrantAfterRelaunch() == false)
-    #expect(granted.resetCount == 0)
-    #expect(granted.defaults.bool(forKey: SystemInputMonitoringRecovery.relaunchKey) == false)
+    // The reopen failed; the person opens Keyameleon later from Finder.
+    let manual = RecoveryHarness(permission: .denied)
+    #expect(await manual.recovery.resetStaleGrantAfterRelaunch() == false)
+    #expect(manual.resetCount == 0)
+    #expect(manual.permission.state == .denied)
+}
+
+@Test("A relaunch that applied the grant leaves the decision alone")
+@MainActor
+func grantedRelaunchKeepsDecision() async {
+    let harness = RecoveryHarness(permission: .granted, relaunched: true)
+    #expect(await harness.recovery.resetStaleGrantAfterRelaunch() == false)
+    #expect(harness.resetCount == 0)
 }
 
 @Test("A failed reset keeps the denied decision and does not ask again")
 @MainActor
 func failedResetDoesNotAskAgain() async {
-    let harness = RecoveryHarness(permission: .denied, resetSucceeds: false)
-    harness.recovery.relaunch()
+    let harness = RecoveryHarness(permission: .denied, relaunched: true, resetSucceeds: false)
 
     #expect(await harness.recovery.resetStaleGrantAfterRelaunch() == false)
     #expect(harness.resetCount == 1)
@@ -88,7 +91,7 @@ func failedResetDoesNotAskAgain() async {
 @MainActor
 private final class RecoveryHarness {
     let permission: SetupModelTestListenPermissionProvider
-    let defaults: UserDefaults
+    private let launchArguments: [String]
     private let relauncherStarts: Bool
     private let resetSucceeds: Bool
     private(set) var openedURLs: [URL] = []
@@ -97,7 +100,7 @@ private final class RecoveryHarness {
 
     private(set) lazy var recovery = SystemInputMonitoringRecovery(
         permissionProvider: permission,
-        defaults: defaults,
+        launchArguments: launchArguments,
         openURL: { [unowned self] in openedURLs.append($0) },
         startRelauncher: { [unowned self] in relauncherStarts },
         terminate: { [unowned self] in terminateCount += 1 },
@@ -110,9 +113,14 @@ private final class RecoveryHarness {
         }
     )
 
-    init(permission state: ListenPermissionState, relauncherStarts: Bool = true, resetSucceeds: Bool = true) {
+    init(
+        permission state: ListenPermissionState,
+        relaunched: Bool = false,
+        relauncherStarts: Bool = true,
+        resetSucceeds: Bool = true
+    ) {
         permission = SetupModelTestListenPermissionProvider(state: state)
-        defaults = UserDefaults(suiteName: "InputMonitoringRecoveryTests.\(UUID().uuidString)") ?? .standard
+        launchArguments = ["Keyameleon"] + (relaunched ? [SystemInputMonitoringRecovery.relaunchArgument] : [])
         self.relauncherStarts = relauncherStarts
         self.resetSucceeds = resetSucceeds
     }

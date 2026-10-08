@@ -56,7 +56,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 **Permissions**
 
 - An incomplete Permissions step responds to a grant without a second request.
-- Before macOS has asked, the footer offers Allow Input Monitoring; afterwards, Open System Settings and Restart Keyameleon.
+- Before macOS has asked, the footer offers Allow Input Monitoring; afterward, Open System Settings and Restart Keyameleon.
 - Closing and reopening the window resumes the saved step.
 
 **Keyboards**
@@ -131,7 +131,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 ### Input Monitoring recovery
 
-`InputMonitoringRecoveryTests` covers the actions per decision, the Settings deep link, the relaunch guard, and the one-time stale reset with injected side effects, so tests never open System Settings, run `tccutil`, or quit. `SetupModelTests` covers a grant advancing setup through the permission watch. Check the real behavior on macOS 26 with a disposable permission identity, because a reset removes the real row for `dev.fedemas.keyameleon`:
+`InputMonitoringRecoveryTests` covers the actions per decision, the Settings deep link, the relaunch guard, the one-time stale reset, and that a manual launch never resets with injected side effects, so tests never open System Settings, run `tccutil`, or quit. `SetupModelTests` covers a grant advancing setup through the permission watch. Check the real behavior on macOS 26 with a disposable permission identity, because a reset removes the real row for `dev.fedemas.keyameleon`:
 
 1. **Unknown.** Run `tccutil reset ListenEvent dev.fedemas.keyameleon`, then open Keyameleon. Guided setup and the menu notice offer only Allow Input Monitoring. Choosing it shows the macOS alert, Keyameleon appears switched off in Input Monitoring, and the UI switches to Open System Settings with Restart Keyameleon.
 2. **Grant.** Choose Open System Settings: Input Monitoring opens, including when System Settings is already open on another pane. Turn Keyameleon on and choose Quit & Reopen: Keyameleon reopens Ready, and Guided setup continues at Keyboards.
