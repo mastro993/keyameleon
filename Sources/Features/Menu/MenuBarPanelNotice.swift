@@ -13,8 +13,7 @@ struct MenuBarPanelNotice: Equatable, Sendable {
 
     static func make(
         outcome: ActivityTriggeredSwitchingOutcome,
-        physicalKeyboards: [PhysicalKeyboard],
-        isSetupComplete: Bool
+        physicalKeyboards: [PhysicalKeyboard]
     ) -> MenuBarPanelNotice? {
         switch outcome.switchingStatus {
         case .permissionRequired:
@@ -102,15 +101,6 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                     title: unassignedNames.count == 1 ? "Keyboard not assigned" : "Keyboards not assigned",
                     detail: detail,
                     action: settingsAction,
-                    tone: .neutral
-                )
-            }
-
-            if !isSetupComplete {
-                return MenuBarPanelNotice(
-                    title: "Finish setup",
-                    detail: "Continue where you left off.",
-                    action: .init(id: .continueSetup, title: "Continue Setup", isEnabled: true),
                     tone: .neutral
                 )
             }

@@ -11,7 +11,7 @@ extension MenuBarPanelActionID {
         case .settings: .settings
         case .quit: .quit
         case .requestPermission, .openSystemSettings, .relaunch,
-             .retryNow, .retryPersistence, .continueSetup, .checkForUpdates: nil
+             .retryNow, .retryPersistence, .checkForUpdates: nil
         }
     }
 }

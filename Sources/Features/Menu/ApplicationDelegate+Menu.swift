@@ -10,6 +10,17 @@ extension ApplicationDelegate {
         menuBarPanelController?.close()
     }
 
+    /// Shows the status item once Guided setup is complete. Safe to call again.
+    func startMenuBarApp() {
+        guard statusItem == nil else {
+            return
+        }
+
+        statusItem = makeStatusItem()
+        menuBarPanelController = makeMenuBarPanelController()
+        refreshMenuBarPresentation()
+    }
+
     func makeStatusItem() -> NSStatusItem {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = item.button else {
@@ -37,7 +48,6 @@ extension ApplicationDelegate {
 
     func makeMenuBarPanelActions() -> MenuBarPanelActions {
         MenuBarPanelActions(
-            continueSetup: { [weak self] in self?.continueSetup(nil) },
             openSettings: { [weak self] in self?.openSettings(nil) },
             checkForUpdates: { [weak self] in self?.checkForUpdates(nil) },
             quit: { [weak self] in self?.quitKeyameleon(nil) }
@@ -57,7 +67,6 @@ extension ApplicationDelegate {
         withObservationTracking {
             _ = activityTriggeredSwitching.outcome
             _ = setupModel.physicalKeyboards
-            _ = setupModel.isSetupComplete
             _ = setupModel.eligibleInputSources
             _ = setupModel.persistenceError
             _ = activityTriggeredSwitching.persistenceError
@@ -84,7 +93,6 @@ extension ApplicationDelegate {
     func applyMenuBarIcon(to button: NSStatusBarButton) {
         let outcome = activityTriggeredSwitching.outcome
         let hasItemConditionsNeedingAction = !setupModel.physicalKeyboardActionConditions.isEmpty
-            || !setupModel.isSetupComplete
             || outcome.mismatch != nil
         let mark = MenuBarIconMark.resolve(
             switchingStatus: outcome.switchingStatus,

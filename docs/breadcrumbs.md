@@ -4,6 +4,20 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-08 — Menu bar app starts after Guided setup
+
+- Before, the status item and switching started on first launch, and the menu
+  showed a `Finish setup` notice and `Continue Setup` command while setup was
+  incomplete. The icon also showed the warning mark for unfinished setup.
+- Now the status item is created only when setup completes (or at launch when
+  it already has), and `ActivityTriggeredSwitching.appliesKeyboardAssignments`
+  ignores Activation Activity until then. Setup runs as a regular app with a
+  Dock icon; completion switches to the accessory (menu-bar-only) policy.
+  Closing setup early quits; reopening the app shows setup at the saved stage.
+- Removed the `continueSetup` menu action, the setup notice, and the
+  `isSetupComplete` input to menu content. Menu notices now report only
+  changes after setup.
+
 ## 2026-10-08 — Input Monitoring check rebuilt
 
 - Reported: after uninstalling and reinstalling, Open System Settings in the

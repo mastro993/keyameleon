@@ -22,6 +22,9 @@ final class ActivityTriggeredSwitching {
     private let resolver: PhysicalKeyboardPresentationResolver
 
     private var isStarted = false
+    /// False until Guided setup completes. Activation Activity is then
+    /// ignored, so no Input Source is selected during setup.
+    var appliesKeyboardAssignments = true
     private var eventProtectedDataUnavailable = false
     private var lastKnownListenPermission: ListenPermissionState
     private var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
@@ -362,7 +365,8 @@ final class ActivityTriggeredSwitching {
 
     /// Internal seam for deterministic module tests.
     func handleActivationActivity(_ activity: PhysicalKeyboardActivationActivity) {
-        guard isStarted, persistenceError == nil, outcome.switchingStatus == .ready else {
+        guard isStarted, appliesKeyboardAssignments, persistenceError == nil,
+              outcome.switchingStatus == .ready else {
             return
         }
 

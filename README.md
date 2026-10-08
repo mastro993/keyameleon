@@ -26,7 +26,7 @@ Keyameleon is a macOS menu bar app that switches the keyboard layout to match th
 
 - **One layout per keyboard.** Assign an Input Source to each Physical Keyboard once; Keyameleon remembers it across disconnects and restarts.
 - **Automatic switching.** Press a key and Keyameleon selects that keyboard's Input Source, then verifies the change.
-- **Menu bar only.** No Dock icon. The menu shows your assigned keyboards, which one is active, and any problem that needs attention.
+- **Menu bar only.** No Dock icon once setup is finished. The menu shows your assigned keyboards, which one is active, and any problem that needs attention.
 - **Guided setup.** One walkthrough grants Input Monitoring, assigns layouts, and confirms everything is ready.
 - **Rename and ignore devices.** Give keyboards your own names, and ignore devices (such as a mouse with shortcut keys) that macOS reports as keyboards.
 - **Pause and resume** with <kbd>⌘</kbd><kbd>P</kbd> from the menu.
@@ -58,7 +58,7 @@ Guided setup opens on first launch:
 2. **Keyboards.** Pick an Input Source for each keyboard. You can skip this and assign layouts later in Settings.
 3. **Ready.** Finish, and Keyameleon stays in the menu bar.
 
-If you close the setup window early, choose **Continue Guided Setup** from the menu bar to pick up where you left off. Closing a window never quits the app; use **Quit Keyameleon** in the menu.
+Keyameleon does not switch layouts and has no menu bar icon until you finish setup. If you close the setup window early, Keyameleon quits; open it again to pick up where you left off. After setup, closing a window never quits the app; use **Quit Keyameleon** in the menu.
 
 ## How it works
 

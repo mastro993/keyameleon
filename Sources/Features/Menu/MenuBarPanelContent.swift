@@ -8,7 +8,6 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case relaunch
     case retryNow
     case retryPersistence
-    case continueSetup
     case settings
     case checkForUpdates
     case quit
@@ -44,7 +43,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
         assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
         marketingVersion: String?,
         appName: String = AppIdentity.current.name,
-        isSetupComplete: Bool = true,
         canCheckForUpdates: Bool
     ) {
         self.switchingStatus = outcome.switchingStatus
@@ -54,8 +52,7 @@ struct MenuBarPanelContent: Equatable, Sendable {
             + (outcome.switchingStatus == .paused ? " (Paused)" : "")
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
-            physicalKeyboards: physicalKeyboards,
-            isSetupComplete: isSetupComplete
+            physicalKeyboards: physicalKeyboards
         )
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
@@ -64,7 +61,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
         self.footer = Footer(
             actions: Self.makeActions(
                 outcome: outcome,
-                isSetupComplete: isSetupComplete,
                 canCheckForUpdates: canCheckForUpdates,
                 appName: appName
             )
@@ -73,18 +69,10 @@ struct MenuBarPanelContent: Equatable, Sendable {
 
     private static func makeActions(
         outcome: ActivityTriggeredSwitchingOutcome,
-        isSetupComplete: Bool,
         canCheckForUpdates: Bool,
         appName: String
     ) -> [Action] {
         var actions = [Action]()
-        if !isSetupComplete {
-            actions.append(Action(
-                id: .continueSetup,
-                title: "Continue Setup",
-                isEnabled: true
-            ))
-        }
         actions.append(pauseOrResume(outcome: outcome))
         if outcome.hasAction(.relaunch) {
             actions.append(Action(id: .relaunch, title: "Restart \(appName)", isEnabled: true))

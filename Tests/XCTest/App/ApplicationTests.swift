@@ -63,14 +63,7 @@ final class ApplicationTests: XCTestCase {
     @MainActor
     func testMenuNoticesReplaceKeyboardsAndRestoreTheList() throws {
         let permission = ApplicationTestListenPermissionProvider(state: .granted)
-        let delegate = makeApplicationTestDelegate(
-            permissionProvider: permission,
-            setupStore: ApplicationTestSetupDecisionStore(
-                hasStartedGuidedSetup: true,
-                hasCompletedGuidedSetup: false,
-                guidedSetupStep: .ready
-            )
-        )
+        let delegate = makeApplicationTestDelegate(permissionProvider: permission)
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
@@ -78,25 +71,7 @@ final class ApplicationTests: XCTestCase {
 
         let panel = try XCTUnwrap(delegate.menuBarPanelController)
         let menu = panel.menu
-        let noticeItem = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
-        let noticeHost = try XCTUnwrap(noticeItem.view as? NSHostingView<MenuBarPanelNoticeView>)
         let settings = try XCTUnwrap(menu.items.first { $0.title == "Settings" })
-        XCTAssertEqual(noticeHost.rootView.notice.title, "Finish setup")
-        XCTAssertEqual(noticeHost.rootView.notice.action.id, .continueSetup)
-        XCTAssertTrue(noticeHost.rootView.notice.action.isEnabled)
-        XCTAssertGreaterThan(noticeHost.frame.height, 0)
-        XCTAssertEqual(noticeHost.frame.width, Theme.Menu.width)
-        XCTAssertNil(menu.items.first { $0.title == "Keyboards" })
-        XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
-
-        delegate.windowController?.close()
-        noticeHost.rootView.perform(noticeHost.rootView.notice.action.id)
-        XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
-        panel.refresh()
-        XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
-
-        delegate.setupModel.completeSetup(destination: .menuBar)
-        panel.refresh()
         XCTAssertNil(menu.items.first { $0.identifier?.rawValue == "menu-bar-notice" })
         let keyboards = try XCTUnwrap(menu.items.first { $0.identifier?.rawValue == "menu-bar-keyboards" })
         let hosted = try XCTUnwrap(keyboards.view)
@@ -111,7 +86,11 @@ final class ApplicationTests: XCTestCase {
         let permissionHost = try XCTUnwrap(permissionItem.view as? NSHostingView<MenuBarPanelNoticeView>)
         XCTAssertEqual(permissionHost.rootView.notice.title, "Input Monitoring is off")
         XCTAssertEqual(permissionHost.rootView.notice.action.id, .openSystemSettings)
+        XCTAssertTrue(permissionHost.rootView.notice.action.isEnabled)
+        XCTAssertGreaterThan(permissionHost.frame.height, 0)
+        XCTAssertEqual(permissionHost.frame.width, Theme.Menu.width)
         XCTAssertNil(menu.items.first { $0.title == "Keyboards" })
+        XCTAssertEqual(menu.items.filter { $0.view != nil }.count, 1)
         XCTAssertEqual(menu.size.width, keyboardMenuWidth)
         XCTAssertTrue(settings === menu.items.first { $0.title == "Settings" })
 
@@ -397,6 +376,18 @@ final class ApplicationTests: XCTestCase {
     }
 
     @MainActor
+    func testClosingGuidedSetupBeforeCompletionTerminatesApplication() {
+        let delegate = makeApplicationTestDelegate(
+            setupStore: ApplicationTestSetupDecisionStore(hasCompletedGuidedSetup: false)
+        )
+        defer { stopApplicationTestSurface(delegate) }
+
+        XCTAssertTrue(
+            delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared)
+        )
+    }
+
+    @MainActor
     func testCompletingGuidedSetupPresentsSettingsAndKeepsTheApplicationRunning() throws {
         let setupStore = ApplicationTestSetupDecisionStore(
             hasCompletedGuidedSetup: false,
@@ -440,15 +431,23 @@ final class ApplicationTests: XCTestCase {
         defer { stopApplicationTestSurface(delegate) }
 
         XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
+        XCTAssertNil(delegate.menuBarStatusItem)
+        XCTAssertNil(delegate.menuBarPanelController)
+        XCTAssertFalse(delegate.activityTriggeredSwitching.appliesKeyboardAssignments)
+        XCTAssertEqual(NSApp.activationPolicy(), .regular)
+
         delegate.setupModel.completeSetup(destination: .menuBar)
+        XCTAssertEqual(NSApp.activationPolicy(), .accessory)
         XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
         XCTAssertNil(delegate.settingsWindowController)
         XCTAssertNotNil(delegate.menuBarStatusItem)
+        XCTAssertNotNil(delegate.menuBarPanelController)
+        XCTAssertTrue(delegate.activityTriggeredSwitching.appliesKeyboardAssignments)
         XCTAssertTrue(delegate.setupModel.isSetupComplete)
     }
 
     @MainActor
-    func testMenuActionContinuesClosedGuidedSetupAtSavedStep() throws {
+    func testReopenShowsClosedGuidedSetupAtSavedStepWithoutMenuBar() {
         for (step, permission) in [
             (GuidedSetupStep.permission, ListenPermissionState.denied),
             (.assignments, .granted),
@@ -471,16 +470,15 @@ final class ApplicationTests: XCTestCase {
                 delegate.windowController?.close()
             }
             XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)
+            XCTAssertNil(delegate.menuBarStatusItem)
             delegate.windowController?.close()
             XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
 
-            let panel = try XCTUnwrap(delegate.menuBarPanelController)
-            let item = try XCTUnwrap(panel.menu.items.first { $0.title == "Continue Setup" })
-            XCTAssertEqual(item.representedObject as? String, MenuBarPanelActionID.continueSetup.rawValue)
-            panel.menu.performActionForItem(at: try XCTUnwrap(
-                panel.menu.items.firstIndex { $0.title == "Continue Setup" }
-            ))
+            XCTAssertFalse(
+                delegate.applicationShouldHandleReopen(NSApplication.shared, hasVisibleWindows: false)
+            )
             XCTAssertTrue(delegate.windowController?.window?.isVisible ?? false)
+            XCTAssertNil(delegate.menuBarStatusItem)
             XCTAssertEqual(delegate.setupModel.guidedSetupStep, step)
             XCTAssertFalse(delegate.setupModel.isSetupComplete)
         }
@@ -516,6 +514,7 @@ final class ApplicationTests: XCTestCase {
         XCTAssertFalse(
             delegate.applicationShouldHandleReopen(NSApplication.shared, hasVisibleWindows: false)
         )
+        XCTAssertNil(delegate.windowController)
     }
 
     @MainActor

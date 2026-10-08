@@ -48,7 +48,6 @@ func menuBarPanelReadyShowsPauseWithoutRecovery() {
     #expect(overflow(content, .pause)?.title == "Pause Switching")
     #expect(overflowIDs(content).contains(.requestPermission) == false)
     #expect(overflowIDs(content).contains(.relaunch) == false)
-    #expect(content.actionTitles.contains("Continue Setup…") == false)
 }
 
 @Test("Paused tray shows Resume")
@@ -149,36 +148,26 @@ func menuBarPanelFooterOverflowDefaultActions() {
     ])
 }
 
-@Test("Incomplete Guided setup has a continuation in every switching state")
+@Test("Check for Updates sits below Settings in every switching state")
 @MainActor
-func menuBarPanelOffersGuidedSetupContinuation() {
+func menuBarPanelPlacesCheckForUpdatesBelowSettings() {
     for outcome in [
         ActivityTriggeredSwitchingOutcome.readyFixture(),
         .permissionRequiredFixture(),
         .temporarilyUnavailableFixture(),
         .pausedFixture()
     ] {
-        let incomplete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: false)
-        let complete = makeMenuBarPanelContent(outcome: outcome, isSetupComplete: true)
-
-        #expect(incomplete.footer.actions.first?.id == .continueSetup)
-        #expect(incomplete.footer.actions.map(\.title).contains("Continue Setup"))
-        #expect(complete.footer.actions.map(\.title).contains("Continue Setup") == false)
-        #expect(complete.notice?.title != "Finish setup")
         for canCheckForUpdates in [false, true] {
-            for isSetupComplete in [false, true] {
-                let content = makeMenuBarPanelContent(
-                    outcome: outcome,
-                    isSetupComplete: isSetupComplete,
-                    canCheckForUpdates: canCheckForUpdates
-                )
-                let actions = content.footer.actions
-                let settingsIndex = actions.firstIndex { $0.id == .settings }
-                #expect(settingsIndex != nil)
-                if let settingsIndex {
-                    #expect(actions[settingsIndex + 1].id == .checkForUpdates)
-                    #expect(actions[settingsIndex + 1].isEnabled == canCheckForUpdates)
-                }
+            let content = makeMenuBarPanelContent(
+                outcome: outcome,
+                canCheckForUpdates: canCheckForUpdates
+            )
+            let actions = content.footer.actions
+            let settingsIndex = actions.firstIndex { $0.id == .settings }
+            #expect(settingsIndex != nil)
+            if let settingsIndex {
+                #expect(actions[settingsIndex + 1].id == .checkForUpdates)
+                #expect(actions[settingsIndex + 1].isEnabled == canCheckForUpdates)
             }
         }
     }
@@ -564,7 +553,7 @@ func menuBarPanelCommandShortcutMapping() {
     #expect(MenuBarPanelActionID.settings.shortcut?.rawValue == ",")
     #expect(MenuBarPanelActionID.quit.shortcut?.rawValue == "q")
     for id in [MenuBarPanelActionID.requestPermission, .openSystemSettings,
-               .relaunch, .retryNow, .retryPersistence, .continueSetup, .checkForUpdates] {
+               .relaunch, .retryNow, .retryPersistence, .checkForUpdates] {
         #expect(id.shortcut == nil)
     }
 }
@@ -611,7 +600,6 @@ func menuBarPanelOnlyPermissionRequiredUsesWarningTone() {
             ]
         ).notice?.tone == .neutral
     )
-    #expect(makeMenuBarPanelContent(outcome: .readyFixture(), isSetupComplete: false).notice?.tone == .neutral)
 }
 
 @Test("Permission Required notice opens Settings when recovery actions are unavailable")
@@ -928,7 +916,7 @@ func menuBarPanelNoticePrioritizesSelectionFailure() {
     #expect(content.notice?.detail == "Check Travel’s input source in Settings.")
 }
 
-@Test("Input Source mismatch notice outranks unassigned and unfinished setup")
+@Test("Input Source mismatch notice outranks unassigned")
 @MainActor
 func menuBarPanelNoticePrioritizesMismatch() {
     let outcome = ActivityTriggeredSwitchingOutcome(
@@ -945,39 +933,16 @@ func menuBarPanelNoticePrioritizesMismatch() {
         outcome: outcome,
         physicalKeyboards: [
             makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
-        ],
-        isSetupComplete: false
+        ]
     )
 
     #expect(content.notice?.title == "Input source differs")
 }
 
-@Test("Unassigned notice outranks unfinished Guided setup")
+@Test("Ready with every keyboard assigned shows no notice")
 @MainActor
-func menuBarPanelNoticePrioritizesUnassignedKeyboardOverSetup() {
-    let content = makeMenuBarPanelContent(
-        outcome: .readyFixture(),
-        physicalKeyboards: [
-            makePanelKeyboard(name: "Travel", identifier: "travel", assignmentState: .unassigned)
-        ],
-        isSetupComplete: false
-    )
-
-    #expect(content.notice?.title == "Keyboard not assigned")
-}
-
-@Test("Unfinished Guided setup notice appears when no earlier condition matches")
-@MainActor
-func menuBarPanelNoticeExplainsUnfinishedGuidedSetup() {
-    let content = makeMenuBarPanelContent(
-        outcome: .readyFixture(),
-        isSetupComplete: false
-    )
-
-    #expect(content.notice?.title == "Finish setup")
-    #expect(content.notice?.detail == "Continue where you left off.")
-    #expect(content.notice?.action.id == .continueSetup)
-    #expect(content.notice?.action.title == "Continue Setup")
+func menuBarPanelReadyWithoutConditionsHasNoNotice() {
+    #expect(makeMenuBarPanelContent(outcome: .readyFixture()).notice == nil)
 }
 
 private func makeMenuBarPanelContent(
@@ -985,7 +950,6 @@ private func makeMenuBarPanelContent(
     physicalKeyboards: [PhysicalKeyboard] = [],
     assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource] = [:],
     marketingVersion: String? = "0.1.0",
-    isSetupComplete: Bool = true,
     canCheckForUpdates: Bool = false
 ) -> MenuBarPanelContent {
     MenuBarPanelContent(
@@ -993,7 +957,6 @@ private func makeMenuBarPanelContent(
         physicalKeyboards: physicalKeyboards,
         assignedInputSources: assignedInputSources,
         marketingVersion: marketingVersion,
-        isSetupComplete: isSetupComplete,
         canCheckForUpdates: canCheckForUpdates
     )
 }

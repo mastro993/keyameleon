@@ -48,7 +48,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             physicalKeyboards: keyboards,
             assignedInputSources: assignedInputSources,
             marketingVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
-            isSetupComplete: setupModel.isSetupComplete,
             canCheckForUpdates: generalSettingsModel.canCheckForUpdates
         )
 
@@ -168,7 +167,6 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         case .relaunch: setupModel.relaunch()
         case .retryNow: switching.retryNow()
         case .retryPersistence: setupModel.retryPersistenceOperation()
-        case .continueSetup: actions.continueSetup()
         case .settings: actions.openSettings()
         case .checkForUpdates: actions.checkForUpdates()
         case .quit: actions.quit()
