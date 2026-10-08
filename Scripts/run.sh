@@ -230,8 +230,11 @@ reset_local_state() {
     registered_keyameleon_apps | while IFS= read -r app; do
         [[ -d "${app}" ]] || continue
         print "Unregistering ${app}"
-        "${LSREGISTER}" -u "${app}" 2>/dev/null || true
-    done
+        if ! "${LSREGISTER}" -u "${app}"; then
+            print -u2 "Could not unregister ${app}; Quit & Reopen may still open it."
+            return 1
+        fi
+    done || return 1
 
     tccutil reset All "${BUNDLE_ID}"
     defaults delete "${BUNDLE_ID}" 2>/dev/null || true
@@ -239,10 +242,15 @@ reset_local_state() {
 
     # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
     # copies it into the Keyameleon folder again. Other apps may use that path, so
-    # delete it only when it holds Keyameleon's table.
+    # delete it only when Keyameleon's keyboard table is there and every entity
+    # table (Core Data's Z-prefixed names) is one of Keyameleon's.
     local legacy_store="${HOME}/Library/Application Support/default.store"
-    if [[ -f "${legacy_store}" ]] && sqlite3 -readonly "${legacy_store}" \
-        "SELECT 1 FROM sqlite_master WHERE name = 'ZPHYSICALKEYBOARDRECORDMODEL'" 2>/dev/null | grep -qx 1; then
+    local legacy_store_query="
+        SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
+            AND NOT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name GLOB 'Z[A-Z]*'
+                AND name NOT IN ('ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL'))"
+    if [[ -f "${legacy_store}" ]] \
+        && sqlite3 -readonly "${legacy_store}" "${legacy_store_query}" 2>/dev/null | grep -qx 1; then
         print "Deleting legacy store ${legacy_store}"
         rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
     fi
