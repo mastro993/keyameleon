@@ -7,10 +7,15 @@ struct SettingsSidebarNavigation: View {
     var body: some View {
         List(selection: $selection.section) {
             ForEach(SettingsSection.allCases) { section in
-                SettingsSidebarRow(
-                    section: section,
-                    isSelected: selection.section == section
-                )
+                // The ZStack works around a macOS Xcode Previews crash
+                // (`TableViewListCore_Mac2.swift`) when a List row is a custom view.
+                // Remove it once Apple fixes https://developer.apple.com/forums/thread/803429
+                ZStack {
+                    SettingsSidebarRow(
+                        section: section,
+                        isSelected: selection.section == section
+                    )
+                }
                 .tag(section)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
