@@ -62,7 +62,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 **Keyboards**
 
 - Assign an Input Source, go to Ready, use Back, and check that the assignment remains.
-- An included keyboard without a custom name shows only `Connected` or `Disconnected` below its name. With a custom name, the status is prefixed by the product name and ` - `. An ignored keyboard appends ` (Ignored)`.
+- An included keyboard without a custom name shows only `Connected` or `Disconnected` below its name. With a custom name, the status is prefixed by the product name and a middle dot (`·`). An ignored keyboard appends ` (Ignored)`.
 - Ignore an external keyboard from its trailing menu: it stays in place with its saved Input Source disabled, and its status follows physical connect and disconnect.
 - Reopen setup, Rename… the ignored keyboard, and confirm its assignment is still shown. Stop Ignoring it and check its name and assignment.
 - The built-in keyboard has no menu actions. A persistence error disables changes.
@@ -88,8 +88,8 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 **General**
 
-- Shows the `App` heading, the Launch at login switch with its explanation, and the menu bar line. The switch label includes the explanation.
-- Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and adds Login Items guidance.
+- Shows the `App` heading and the Launch at login switch.
+- Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and shows an error with Open Login Items.
 
 **Keyboards**
 

@@ -61,7 +61,7 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         if (setupModel.persistenceError ?? switching.persistenceError) != nil {
             notice = MenuBarPanelNotice(
                 title: "Saved keyboards unavailable",
-                detail: "Click Retry to read them again.",
+                detail: "Click Retry to try again.",
                 action: .init(id: .retryPersistence, title: "Retry", isEnabled: true),
                 tone: .warning
             )

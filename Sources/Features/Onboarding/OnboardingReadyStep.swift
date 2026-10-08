@@ -11,7 +11,7 @@ struct OnboardingReadyStep: View {
                 .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
-            Text("Start typing on any keyboard and Keyameleon switches to its input source.")
+            Text("Type on an assigned keyboard and Keyameleon switches to its input source.")
                 .font(.body)
                 .lineSpacing(2)
                 .padding(.vertical, 1)
