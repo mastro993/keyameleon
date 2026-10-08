@@ -57,7 +57,9 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 - An incomplete Permissions step responds to a grant without a second request.
 - Before macOS has asked, the footer offers Allow Input Monitoring; afterward, Open System Settings and Restart Keyameleon.
-- Closing and reopening the window resumes the saved step.
+- Before setup completes there is no menu bar icon, and typing on an assigned keyboard does not change the Input Source.
+- Closing the window quits Keyameleon. Opening it again resumes the saved step.
+- Finish shows the menu bar icon, and switching starts.
 
 **Keyboards**
 
@@ -123,7 +125,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 3. **Pause.** Choose Pause Switching (<kbd>⌘</kbd><kbd>P</kbd>) and reopen: the heading shows `(Paused)` and the command reads Resume Switching. Resume and reopen. Every command, including Retry, Allow Input Monitoring, and Restart Keyameleon, closes the menu.
 4. **Commands.** <kbd>⌘</kbd><kbd>,</kbd> opens Settings. Check for Updates… sits directly below Settings with no shortcut or tooltip, and is disabled until the updater is ready and while a check runs; reopen after the check to see it enabled again. On a disposable session, <kbd>⌘</kbd><kbd>Q</kbd> quits. Arrow keys and Return move through commands. Escape, an outside click, or a status item click dismisses the menu without changing switching state.
 5. **Permission notice.** With the decision unknown, a yellow Input Monitoring required notice replaces the keyboard list and its button, Allow Input Monitoring…, closes the menu and shows the macOS alert. With the switch off, the notice reads Input Monitoring is off, its button opens Input Monitoring, and Restart Keyameleon appears below Pause Switching.
-6. **Other notices.** Temporarily unavailable, mismatch, and unassigned notices are neutral and open Settings; selection failure offers Retry Now when available. Unfinished Guided setup offers Continue Setup. A yellow saved-data failure notice outranks switching notices and offers Retry, which is separate from switching's Retry Now. Select a notice with the arrow keys and activate it with Return, including saved-data Retry. If recovery reveals a permission notice, activate it from the keyboard and check that System Settings opens. Resolving a notice brings the keyboard list back.
+6. **Other notices.** Temporarily unavailable, mismatch, and unassigned notices are neutral and open Settings; selection failure offers Retry Now when available. A yellow saved-data failure notice outranks switching notices and offers Retry, which is separate from switching's Retry Now. Select a notice with the arrow keys and activate it with Return, including saved-data Retry. If recovery reveals a permission notice, activate it from the keyboard and check that System Settings opens. Resolving a notice brings the keyboard list back.
 7. **Accessibility.** With Increase Contrast and Reduce Transparency on, the background stays readable and the keyboard contrast treatment stays visible. With the menu open, scroll a six-keyboard list and change a keyboard or recovery state: ordinary updates keep the scroll position, and a notice replaces the list until resolved. With Reduce Motion on, changing the active keyboard updates the pill without its spring. Links and buttons show their native pointer without a stuck hand cursor.
 8. **Same Input Source on two keyboards.** With U.S. selected, assign it to two keyboards. Press a key on the first, the second, then the first again, reopening the menu each time. Only the last-used keyboard shows the active accent while U.S. stays selected. `menuBarPanelActivatesKeyboardWithCurrentInputSource` automates this sequence.
 

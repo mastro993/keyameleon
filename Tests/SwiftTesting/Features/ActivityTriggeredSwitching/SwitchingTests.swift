@@ -88,6 +88,44 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
     #expect(model.activePhysicalKeyboardID == keyboardID)
 }
 
+@Test("Activation Activity before Guided setup completes selects no Input Source")
+@MainActor
+func activationActivityBeforeSetupCompletesSelectsNoInputSource() {
+    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.other")
+    let model = SetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.italian", name: "Italian"),
+                EligibleInputSource(identifier: "com.example.other", name: "Other"),
+            ]
+        ),
+        inputSourceSelector: selector
+    )
+    model.activityTriggeredSwitching.appliesKeyboardAssignments = false
+
+    startAndCheck(model)
+    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 104)))
+    let keyboardID = model.physicalKeyboards[0].id
+    model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.italian")
+
+    let press = PhysicalKeyboardEvent(serviceID: 104, kind: .press)
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(press)
+
+    #expect(selector.selectCount == 0)
+    #expect(model.activePhysicalKeyboardID == nil)
+
+    model.activityTriggeredSwitching.appliesKeyboardAssignments = true
+    model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(press)
+
+    #expect(selector.selectCount == 1)
+    #expect(selector.lastRequestedIdentifier == "com.example.italian")
+}
+
 @Test("Unassigned and unsupported Activation Activity does not request Input Source change")
 @MainActor
 func unassignedAndUnsupportedActivationActivityDoesNotRequestInputSourceChange() {

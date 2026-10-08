@@ -126,7 +126,7 @@ private func nativeMenuRetriesPersistenceFailure() throws {
         switching: model.activityTriggeredSwitching,
         generalSettingsModel: PreviewFixtures.general(canCheckForUpdates: false),
         actions: MenuBarPanelActions(
-            continueSetup: {}, openSettings: {}, checkForUpdates: {}, quit: {}
+            openSettings: {}, checkForUpdates: {}, quit: {}
         )
     )
     let menu = controller.menu

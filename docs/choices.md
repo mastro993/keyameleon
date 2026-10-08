@@ -111,8 +111,9 @@ Guided setup has three saved stages: **Permissions**, **Keyboards**, and **Ready
 
 - Permission is checked when the window opens, and a grant advances Permissions automatically. Before macOS has asked, the footer offers **Allow Input Monitoring**; afterward it offers **Open System Settings** and **Restart Keyameleon**.
 - Keyboards saves each assignment and exclusion immediately. Continue and Set Up Later both reach Ready, even with no assignments. Back returns to Keyboards without losing changes. The step is one scrolling region (progress, explanation, rows, note) above a footer that stays reachable.
-- Ready reports the number of assignments and the current switching state, including paused, unavailable, and missing permission. **Finish** closes setup and leaves the menu bar app running; **Open Settings** closes setup, then opens Settings. Completion is saved first and handled once.
-- Closing the window keeps the saved stage. While setup is incomplete, the menu offers **Continue Setup** in every state.
+- Ready reports the number of assignments and the current switching state, including paused, unavailable, and missing permission. **Finish** closes setup, removes the Dock icon, and starts the menu bar app; **Open Settings** closes setup, starts the menu bar app, then opens Settings. Completion is saved first and handled once.
+- Until setup is complete Keyameleon is a regular app with a Dock icon, there is no status item, and Activity-Triggered Switching selects no Input Source. Permission and keyboard discovery still run so setup can advance. `ActivityTriggeredSwitching.appliesKeyboardAssignments` is the gate; `ApplicationDelegate` opens it on completion.
+- Closing the window keeps the saved stage and quits Keyameleon, since nothing else is on screen. Opening Keyameleon again, or reopening the running app, shows setup at the saved stage.
 
 ## Menu bar menu
 
@@ -122,7 +123,7 @@ The status item owns a native `NSMenu`. AppKit draws the heading, notices, comma
 - **Middle region:** either the keyboard list or one notice, never both.
   - The keyboard list is SwiftUI hosted in the menu, showing assigned keyboards only: the built-in keyboard first, then connected, then disconnected, alphabetical within each group. It has no section label, a 4 pt inset, and a five-row scrolling viewport. Ordinary updates reuse the host to keep the scroll position.
   - Each pill is one line: connection mark (`circle.fill`, `circle`, or `circle.dashed`), the Physical Keyboard Name, an optional warning triangle, and a filled locale-code badge (such as `US` or `IT`, resolved from the layout's primary language and its canonical region). The active keyboard gets an accent fill and border. Disconnected pills are dimmed (more opaque under Increase Contrast), except the warning triangle.
-  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. Other notices are neutral and open Settings or Continue Setup. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
+  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. Other notices are neutral and open Settings. The menu exists only after setup, so it never asks to finish setup; its notices report later changes that need action. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
 - **Commands:** Pause or Resume Switching (<kbd>⌘</kbd><kbd>P</kbd>), Settings (<kbd>⌘</kbd><kbd>,</kbd>), Check for Updates… directly below Settings, and Quit Keyameleon (<kbd>⌘</kbd><kbd>Q</kbd>) last. Every command closes the menu. There are no tooltips and no About item; About lives in Settings.
 - The menu refreshes permission, Input Sources, and status before it opens.
 
@@ -155,7 +156,7 @@ Sparkle 2 handles updates, configured in `Info.plist` and mirrored by `UpdatePol
 - No system profiling and no Keyameleon-generated identifiers.
 - Feed: `https://mastro993.github.io/keyameleon/appcast.xml`. GitHub Pages serves project sites under the lowercase repository path; a capitalized path made `0.4.0` and `0.4.1` unable to update. The Release workflow now reads the feed URL back from the built app and checks that the live feed serves the new version before publishing.
 - Only Official Release builds include `SUPublicEDKey`. Debug and CI builds never start Sparkle.
-- **Gentle reminders:** Keyameleon is a background app, so for a scheduled update it temporarily becomes a regular app with Dock badge `1`. Paying attention clears the badge, and the end of the update session restores menu-bar-only mode. Sparkle still shows its own alert. A check the person starts changes nothing.
+- **Gentle reminders:** Keyameleon is a background app, so for a scheduled update it temporarily becomes a regular app with Dock badge `1`. Paying attention clears the badge, and the end of the update session restores menu-bar-only mode (during Guided setup the Dock icon stays). Sparkle still shows its own alert. A check the person starts changes nothing.
 
 ## Single instance
 

@@ -85,7 +85,9 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
             inputMonitoringRecovery: SystemInputMonitoringRecovery(permissionProvider: composition.permissionProvider),
             lifecycleObserver: SystemLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
-            updateChecker: SparkleUpdateChecker(),
+            updateChecker: SparkleUpdateChecker { [setupStore = composition.setupStore] in
+                setupStore.hasCompletedGuidedSetup
+            },
             startsUpdaterOnLaunch: !isHostedUnitTest,
             startsApplicationSurfaceOnLaunch: !isHostedUnitTest,
             modelContainer: nil,
@@ -189,16 +191,17 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        applyActivationPolicy()
         if startsApplicationSurfaceOnLaunch {
             lifecycleObserver.start { [weak self] event in
                 self?.activityTriggeredSwitching.handleLifecycleEvent(event)
             }
+            activityTriggeredSwitching.appliesKeyboardAssignments = setupModel.isSetupComplete
             activityTriggeredSwitching.start()
             requestAgainIfGrantWasStale()
-            statusItem = makeStatusItem()
-            menuBarPanelController = makeMenuBarPanelController()
-            refreshMenuBarPresentation()
+            if setupModel.isSetupComplete {
+                startMenuBarApp()
+            }
         }
         if startsUpdaterOnLaunch {
             updateChecker.start()
@@ -211,6 +214,17 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Guided setup shows a Dock icon; afterwards Keyameleon lives only in the menu bar.
+    var activationPolicy: NSApplication.ActivationPolicy {
+        startsApplicationSurfaceOnLaunch && !setupModel.isSetupComplete ? .regular : .accessory
+    }
+
+    func applyActivationPolicy() {
+        // Hosted tests run inside Keyameleon; changing the policy there flashes a Dock icon.
+        guard !HostedUnitTestProcess.isDetected() else { return }
+        NSApp.setActivationPolicy(activationPolicy)
+    }
+
     func applicationDidBecomeActive(_ notification: Notification) {
         activityTriggeredSwitching.checkAgain()
         setupModel.advanceIfPermissionGranted()
@@ -218,11 +232,16 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         refreshMenuBarPresentation()
     }
 
+    /// Opening Keyameleon again before setup is complete shows setup.
+    /// Afterwards the menu bar app is the only surface.
     func applicationShouldHandleReopen(
         _ sender: NSApplication,
         hasVisibleWindows flag: Bool
     ) -> Bool {
-        false
+        if startsApplicationSurfaceOnLaunch, !setupModel.isSetupComplete {
+            openKeyameleon(sender)
+        }
+        return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -251,7 +270,8 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Before setup is complete there is no menu bar app, so closing setup quits.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
+        startsApplicationSurfaceOnLaunch && !setupModel.isSetupComplete
     }
 }

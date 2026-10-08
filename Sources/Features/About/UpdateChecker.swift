@@ -17,8 +17,11 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
     @preconcurrency SPUStandardUserDriverDelegate {
     private var controller: SPUStandardUpdaterController!
     private var didStart = false
+    /// False during Guided setup, which keeps its Dock icon after an update session.
+    private let isMenuBarOnly: @MainActor () -> Bool
 
-    override init() {
+    init(isMenuBarOnly: @escaping @MainActor () -> Bool = { true }) {
+        self.isMenuBarOnly = isMenuBarOnly
         super.init()
         // startingUpdater: false — start after configuration; Official Release supplies EdDSA key.
         controller = SPUStandardUpdaterController(
@@ -100,7 +103,9 @@ final class SparkleUpdateChecker: NSObject, UpdateChecking, SPUUpdaterDelegate,
 
     func standardUserDriverWillFinishUpdateSession() {
         NSApp.dockTile.badgeLabel = ""
-        NSApp.setActivationPolicy(.accessory)
+        if isMenuBarOnly() {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     private func defaultUserAgentString() -> String {

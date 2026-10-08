@@ -18,14 +18,12 @@ extension ApplicationDelegate {
     }
 
     func finishGuidedSetup(destination: GuidedSetupCompletionDestination) {
+        activityTriggeredSwitching.appliesKeyboardAssignments = true
+        startMenuBarApp()
+        applyActivationPolicy()
         windowController?.close()
         if destination == .settings {
             openSettings(nil)
         }
-    }
-
-    @objc
-    func continueSetup(_ sender: Any?) {
-        openKeyameleon(sender)
     }
 }
