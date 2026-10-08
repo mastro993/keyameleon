@@ -60,7 +60,7 @@ Every build you launch, in any worktree, DerivedData folder, mounted DMG or the 
 - Unregisters every registered copy from LaunchServices, and stops if one fails. The next copy you launch registers itself again, so Quit & Reopen finds it.
 - Resets Keyameleon's privacy permissions (`tccutil reset All dev.fedemas.keyameleon`).
 - Deletes its preferences, the saved keyboards in `~/Library/Application Support/Keyameleon`, and `~/Library/Logs/Keyameleon`.
-- Deletes the pre-0.4.6 store at `~/Library/Application Support/default.store`, which launch would otherwise copy back. Other apps can use that path, so it is deleted only when it holds Keyameleon's keyboard table and no other app's tables. If it holds both, the reset keeps the file, fails, and says the next launch will copy those keyboards back.
+- Deletes the pre-0.4.6 store at `~/Library/Application Support/default.store`, which launch would otherwise copy back. Other apps can use that path, so it is deleted only when it holds Keyameleon's keyboard table and no tables other than Keyameleon's and Core Data's own. If it holds both, the reset keeps the file, fails, and says the next launch will copy those keyboards back.
 
 It keeps the Keychain integrity key, as a real uninstall would, and the Launch at Login item. Launch at Login can open a different copy than the one you test, so turn it off first.
 

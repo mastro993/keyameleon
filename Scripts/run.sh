@@ -242,14 +242,17 @@ reset_local_state() {
 
     # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
     # copies it into the Keyameleon folder again. Other apps may use that path, so
-    # delete it only when Keyameleon's keyboard table is there and every entity
-    # table (Core Data's Z-prefixed names) is one of Keyameleon's. A store that
-    # also holds another app's tables is never edited; the reset fails instead.
+    # delete it only when Keyameleon's keyboard table is there and every other
+    # table is Keyameleon's or Core Data's own. A store that also holds any other
+    # table is never edited; the reset fails instead.
     local legacy_store="${HOME}/Library/Application Support/default.store"
     local legacy_store_query="
         SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
-            || EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name GLOB 'Z[A-Z]*'
-                AND name NOT IN ('ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL'))"
+            || EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name NOT GLOB 'sqlite_*'
+                AND name NOT IN (
+                    'ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL',
+                    'Z_PRIMARYKEY', 'Z_METADATA', 'Z_MODELCACHE',
+                    'ACHANGE', 'ATRANSACTION', 'ATRANSACTIONSTRING'))"
     local legacy_store_tables=''
     if [[ -f "${legacy_store}" ]] \
         && ! legacy_store_tables="$(sqlite3 -readonly "${legacy_store}" "${legacy_store_query}")"; then

@@ -96,7 +96,10 @@ class ResetLocalStateTests(unittest.TestCase):
                 "ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL",
                 "Z_PRIMARYKEY",
                 "Z_METADATA",
+                "Z_MODELCACHE",
                 "ACHANGE",
+                "ATRANSACTION",
+                "ATRANSACTIONSTRING",
             ))
             self.assertFalse((support / "default.store").exists())
             self.assertFalse((support / "default.store-wal").exists())
@@ -105,6 +108,7 @@ class ResetLocalStateTests(unittest.TestCase):
         for name, tables, status in (
             ("another app", ("ZOTHERMODEL",), 0),
             ("shared", ("ZPHYSICALKEYBOARDRECORDMODEL", "ZOTHERMODEL"), 1),
+            ("shared, plain SQLite table", ("ZPHYSICALKEYBOARDRECORDMODEL", "other_app_records"), 1),
         ):
             with self.subTest(name), tempfile.TemporaryDirectory() as directory:
                 support = self.run_reset(Path(directory), tables, status)
