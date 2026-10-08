@@ -212,8 +212,8 @@ registered_keyameleon_apps() {
 
 # Returns this Mac to a never-installed state for Keyameleon, so the next launch
 # is a first run. Quits every running copy, including an installed release.
-# The Keychain integrity key stays, as it would after a real uninstall; it only
-# signs data this reset deletes.
+# The Keychain integrity key stays: it lives in the data-protection keychain,
+# which the security CLI cannot reach, and it only signs data this reset deletes.
 reset_local_state() {
     local pid bundle app running
 
@@ -225,20 +225,18 @@ reset_local_state() {
     done <<< "${running}"
     wait_until_no_keyameleon_runs || return 1
 
-    # The next launched copy registers itself again and becomes the one
-    # Quit & Reopen finds. Records for deleted copies are never launched.
-    registered_keyameleon_apps | while IFS= read -r app; do
-        [[ -d "${app}" ]] || continue
-        print "Unregistering ${app}"
-        if ! "${LSREGISTER}" -u "${app}"; then
-            print -u2 "Could not unregister ${app}; Quit & Reopen may still open it."
-            return 1
-        fi
-    done || return 1
-
-    tccutil reset All "${BUNDLE_ID}"
+    # tccutil resolves the bundle ID through LaunchServices, so it runs while
+    # copies are still registered. With none registered it fails with -10814.
+    if ! tccutil reset All "${BUNDLE_ID}"; then
+        print -u2 'Could not reset privacy permissions; no registered copy of Keyameleon was found.'
+    fi
+    # Launch at Login is a Background Task Management item that outlives the app.
+    if ! osascript -e 'tell application "System Events" to delete every login item whose name is "Keyameleon"'; then
+        print -u2 'Could not remove the Launch at Login item; turn it off in System Settings > General > Login Items.'
+    fi
     defaults delete "${BUNDLE_ID}" 2>/dev/null || true
-    rm -rf "${HOME}/Library/Application Support/Keyameleon" "${HOME}/Library/Logs/Keyameleon"
+    rm -rf "${HOME}/Library/Application Support/Keyameleon" "${HOME}/Library/Logs/Keyameleon" \
+        "${HOME}/Library/Caches/${BUNDLE_ID}" "${HOME}/Library/HTTPStorages/${BUNDLE_ID}"
 
     # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
     # copies it into the Keyameleon folder again. Other apps may use that path, so
@@ -270,6 +268,18 @@ reset_local_state() {
             return 1
             ;;
     esac
+
+    # Last, because tccutil above needs a registered copy. The next launched copy
+    # registers itself again and becomes the one Quit & Reopen finds. Records for
+    # deleted copies are never launched.
+    registered_keyameleon_apps | while IFS= read -r app; do
+        [[ -d "${app}" ]] || continue
+        print "Unregistering ${app}"
+        if ! "${LSREGISTER}" -u "${app}"; then
+            print -u2 "Could not unregister ${app}; Quit & Reopen may still open it."
+            return 1
+        fi
+    done || return 1
     print 'Keyameleon local state reset.'
 }
 

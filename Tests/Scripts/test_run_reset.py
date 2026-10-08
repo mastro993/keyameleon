@@ -31,11 +31,21 @@ lsregister_stub() {
     fi
 }
 kill() { print -r -- "kill $1" >> "$log_path"; }
-tccutil() { print -r -- "tccutil $*" >> "$log_path"; }
+# Like the real tool, tccutil cannot resolve the bundle ID once every copy is unregistered.
+tccutil() {
+    grep -q '^lsregister -u' "$log_path" && return 1
+    print -r -- "tccutil $*" >> "$log_path"
+}
+osascript() { print -r -- "osascript $*" >> "$log_path"; }
 defaults() { print -r -- "defaults $*" >> "$log_path"; }
 sleep() { :; }
 reset_local_state
 '''
+
+REMOVE_LOGIN_ITEM = (
+    "osascript -e tell application \"System Events\" "
+    "to delete every login item whose name is \"Keyameleon\""
+)
 
 
 class ResetLocalStateTests(unittest.TestCase):
@@ -80,9 +90,10 @@ class ResetLocalStateTests(unittest.TestCase):
         self.assertEqual(
             log.read_text(encoding="utf-8"),
             "kill 42\n"
-            f"lsregister -u {stale}\n"
             "tccutil reset All dev.fedemas.keyameleon\n"
-            "defaults delete dev.fedemas.keyameleon\n",
+            f"{REMOVE_LOGIN_ITEM}\n"
+            "defaults delete dev.fedemas.keyameleon\n"
+            + ("" if status else f"lsregister -u {stale}\n"),
         )
         self.assertFalse((support / "Keyameleon").exists())
         self.assertFalse((home / "Library/Logs/Keyameleon").exists())
@@ -157,8 +168,29 @@ class ResetLocalStateTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 1)
             self.assertIn(f"Could not unregister {stale}", result.stderr)
-            self.assertEqual(log.read_text(encoding="utf-8"), "kill 42\n")
-            self.assertTrue((home / "Library/Application Support/Keyameleon").exists())
+            self.assertNotIn("Keyameleon local state reset.", result.stdout)
+            self.assertFalse((home / "Library/Application Support/Keyameleon").exists())
+
+    def test_permission_reset_failure_still_erases_state(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            (home / "Library/Application Support/Keyameleon").mkdir(parents=True)
+            dump = home / "dump"
+            dump.touch()
+            log = home / "log"
+            log.touch()
+            script = RESET_SCRIPT.replace(
+                "    grep -q '^lsregister -u' \"$log_path\" && return 1\n",
+                "    return 1\n",
+            )
+            result = subprocess.run(
+                ("zsh", "-c", script, "test", str(home), str(dump), str(log)),
+                cwd=ROOT, capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Could not reset privacy permissions", result.stderr)
+            self.assertIn("defaults delete dev.fedemas.keyameleon", log.read_text(encoding="utf-8"))
+            self.assertFalse((home / "Library/Application Support/Keyameleon").exists())
 
 
 if __name__ == "__main__":

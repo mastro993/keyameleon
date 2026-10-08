@@ -57,12 +57,13 @@ Every build you launch, in any worktree, DerivedData folder, mounted DMG or the 
 `./Scripts/run.sh reset` returns the Mac to a never-installed state:
 
 - Quits every running Keyameleon, including an installed release.
-- Unregisters every registered copy from LaunchServices, and stops if one fails. The next copy you launch registers itself again, so Quit & Reopen finds it.
-- Resets Keyameleon's privacy permissions (`tccutil reset All dev.fedemas.keyameleon`).
-- Deletes its preferences, the saved keyboards in `~/Library/Application Support/Keyameleon`, and `~/Library/Logs/Keyameleon`.
+- Resets Keyameleon's privacy permissions (`tccutil reset All dev.fedemas.keyameleon`). `tccutil` finds the app through LaunchServices, so this runs before any copy is unregistered. If no copy is registered, it warns and the reset continues.
+- Removes the Launch at Login item. If System Events can't remove it, the reset warns and continues; turn it off in System Settings > General > Login Items.
+- Deletes its preferences, including Guided setup progress, the saved keyboards in `~/Library/Application Support/Keyameleon`, `~/Library/Logs/Keyameleon`, and its caches.
 - Deletes the pre-0.4.6 store at `~/Library/Application Support/default.store`, which launch would otherwise copy back. Other apps can use that path, so it is deleted only when it holds Keyameleon's keyboard table and no tables other than Keyameleon's and Core Data's own. If it holds both, the reset keeps the file, fails, and says the next launch will copy those keyboards back.
+- Unregisters every registered copy from LaunchServices, last, and fails if one can't be unregistered. The next copy you launch registers itself again, so Quit & Reopen finds it.
 
-It keeps the Keychain integrity key, as a real uninstall would, and the Launch at Login item. Launch at Login can open a different copy than the one you test, so turn it off first.
+It keeps the Keychain integrity key. The key lives in the data-protection keychain, which the `security` CLI can't reach, and it only signs data the reset deletes, so the next launch still behaves as a first run.
 
 Data from the retired `Keyameleon (Dev)` app stays in its own folders, preferences domain, and Keychain item. Keyameleon neither imports nor deletes it.
 
