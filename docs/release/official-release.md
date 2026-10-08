@@ -1,348 +1,57 @@
 # Official Release
 
-## What it is
-
-An **Official Release** is a Keyameleon version the person with release authority
-publishes for users. It is:
+An **Official Release** is a Keyameleon version that the lead maintainer publishes for users. Only the Release `workflow_dispatch` on `main` creates one ([ADR 0004](../adr/0004-official-release-workflow-dispatch.md)). Local builds, CI artifacts, and manually created GitHub Releases are never Official Releases.
 
 | Property | Mechanism |
 | --- | --- |
-| Source-traceable | Tag `vMAJOR.MINOR.PATCH` on the public history; `release-evidence.json` binds artifact SHA-256 to that tag and commit |
-| Developer ID signed | `codesign` with Developer ID Application identity |
-| Secure timestamp | `--timestamp` on codesign |
+| Source-traceable | Annotated tag `vMAJOR.MINOR.PATCH`; `release-evidence.json` binds the DMG's SHA-256 to that tag and commit |
+| Developer ID signed | `codesign` with the Developer ID Application identity and `--timestamp` |
 | Hardened runtime | `ENABLE_HARDENED_RUNTIME=YES` / `--options=runtime` |
-| Notarized | `notarytool submit --wait` |
-| Stapled | `stapler staple` on the app and final DMG |
-| Updates | Sparkle `appcast.xml` EdDSA-signed; feed URL in Info.plist |
-| Channel | Stable. GitHub Release has one DMG; appcast and permanent versioned evidence are on GitHub Pages |
-| Homebrew | Cask `keyameleon` in [`mastro993/homebrew-tap`](https://github.com/mastro993/homebrew-tap) points at the same DMG |
+| Notarized and stapled | `notarytool submit --wait`, then `stapler staple` on the app and the DMG |
+| Updates | EdDSA-signed Sparkle `appcast.xml`; feed URL in `Info.plist` |
+| Channel | Stable, the only Channel |
 
-The latest Official Release is the only **Supported Release** (`SECURITY.md`).
-The DMG's universal app supports Apple silicon and Intel Macs on macOS 26 or later.
+The DMG holds a universal `Keyameleon.app` (Apple silicon and Intel, macOS 26 or later) and an Applications shortcut. The latest Official Release is the only Supported Release ([`SECURITY.md`](../../SECURITY.md)).
 
-## License
+Each release publishes to three places ([ADR 0006](../adr/0006-dmg-only-official-release-distribution.md)):
 
-- SPDX: `MIT` (`LICENSE`)
-- Third-party: `THIRD_PARTY_NOTICES.md`
+- **GitHub Release:** `Keyameleon-<version>.dmg` only, plus GitHub's generated source links.
+- **GitHub Pages:** the latest `appcast.xml` and every release's `releases/<tag>/release-evidence.json`, kept indefinitely.
+- **Homebrew:** the `keyameleon` cask in [`mastro993/homebrew-tap`](https://github.com/mastro993/homebrew-tap), pointing at the same DMG.
 
-Every build bundles `Contents/Resources/Licenses/` inside Keyameleon.app:
-`LICENSE.txt` from the repository's `LICENSE`, `THIRD_PARTY_NOTICES.md` from the
-repository index, and `Sparkle-LICENSE.txt` from the resolved Sparkle binary
-artifact's complete `LICENSE`, including its external component licenses.
-Settings → About opens the bundled project and Sparkle license texts offline.
+Do not modify the `v0.1.0` release or its old feed. Installed `v0.1.0` copies, and `0.4.0` and `0.4.1` copies that shipped a mistyped feed URL, need one manual install of a newer DMG before they can update themselves.
 
-The Xcode build runs `Scripts/bundle-licenses.py --copy --build-dir "$BUILD_DIR"`
-before code signing. It finds the nearest ancestor containing the resolved
-Sparkle artifact under `SourcePackages`, supporting both normal and archive
-build directories; it fails if no such artifact exists.
-The script checks the resolved binary artifact version against
-`Package.resolved`; Xcode embeds the framework after this phase. Missing or
-empty sources and artifact version mismatches fail the build. No legal text is maintained as a duplicate
-in the repository.
+## Publish a release
 
-`Scripts/official-release.sh` runs the same verifier without `--copy` before
-its explicit app signing and against the app in the produced DMG, mounted
-read-only before DMG signing. Verification also checks the embedded Sparkle
-framework version against `Package.resolved`. Missing or changed bundled texts fail packaging;
-the verifier never repairs a signed app. The DMG contains the app and the
-Applications shortcut. Existing signing, notarization, stapling, and Sparkle
-signature checks still apply.
+Complete [one-time setup](#one-time-setup) first.
 
-To verify an app against the source checkout and packages used to build it:
+1. Make sure the intended commit is on `main` and CI is green for it.
+2. Open **Actions → Release → Run workflow** on `main`.
+3. Choose the **release type**: `patch`, `minor`, or `major`. From `v0.2.3` these produce `0.2.4`, `0.3.0`, and `1.0.0`.
+4. **`verify`** checks that the run is on the default branch, calculates the version from the latest Official Release tag, rejects an existing tag or Release, and waits up to 45 minutes for **Required CI gate** on the commit. It fails if CI fails, times out if CI never starts, and fails if `main` advances in the meantime.
+5. Wait until **`bump`**, **`produce`**, and **`publish`** all show as pending review for `official-release`, then approve them together. Approving before all three are pending can require another approval, because approval does not carry over to jobs that become pending later.
+6. **`bump`** sets `MARKETING_VERSION`, regenerates the Xcode project, and pushes `chore(release): X.Y.Z` to `main`. The commit lands before tests run, so if `produce` fails the bump stays on `main` but nothing is tagged or published.
+7. **`produce`** waits for that exact bump commit, then tests, builds, signs, notarizes, staples, and checks the Sparkle signature on a fresh macOS runner, with a read-only token and no deploy key. It uploads the DMG, `appcast.xml`, and `release-evidence.json` as one workflow artifact. Any ZIP used for notarization is discarded.
+8. **`publish`** runs on a fresh Ubuntu runner using scripts from the dispatch commit. It checks the evidence against the bump commit, creates the annotated tag, publishes the GitHub Release, and verifies the public DMG. It then publishes the appcast and evidence to GitHub Pages and verifies the served files. Last, `Scripts/publish-homebrew-cask.sh` sets the cask's `version` and `sha256` from the verified DMG and pushes `keyameleon X.Y.Z` to the tap.
 
-```sh
-python3 Scripts/bundle-licenses.py \
-  --app /path/to/Keyameleon.app \
-  --package-root /path/to/DerivedData/SourcePackages
-```
+**Timeouts.** `produce` polls `main` for the bump up to 180 times at 10-second intervals (30 minutes). `publish` polls for the artifact up to 180 times at 30-second intervals (90 minutes). API requests can stretch both. API errors, an unexpected `main`, and ambiguous or expired artifacts fail immediately. If `produce` fails before uploading, `publish` waits out its limit without publishing anything.
 
-## Start an Official Release
+**Never push release tags by hand.** A tag push does not start the workflow, and the tag ruleset blocks it. There is no dry run; local `SKIP_NOTARIZE=1` builds are not Official Releases.
 
-1. Ensure the intended commit is on `main` and CI is green for that commit.
-2. Run **Actions → Release → Run workflow** on `main`.
-3. Select **release type**: `patch`, `minor`, or `major`. From `v0.2.3`, these
-   produce `0.2.4`, `0.3.0`, and `1.0.0` respectively.
-4. Job `verify` checks current default branch, calculates from the latest
-   Official Release tag, rejects an existing target tag or Release, and waits
-   for successful CI on the selected commit.
-5. Wait until `bump`, `produce`, and `publish` are all pending review for
-   `official-release`. Select that environment and approve the pending jobs
-   together. They all depend on `verify`, so none waits for another job before
-   requesting approval. Approving before all three jobs are pending can
-   require another approval. Approval does not carry over to jobs that become
-   pending later.
-6. `bump` updates `MARKETING_VERSION`, regenerates the Xcode project, commits
-   `chore(release): X.Y.Z`, and pushes it to `main`. The version commit reaches
-   `main` before producer tests run. If those tests fail, the bump remains on
-   `main`, but no tag, Release, or feed is published.
-7. `produce` waits for that exact bump, then tests, builds, signs, notarizes,
-   staples, and verifies the Sparkle signature on a fresh macOS runner. Its
-   token is read-only and its checkout has no deploy key. It saves the DMG,
-   `appcast.xml`, and `release-evidence.json` as one immutable workflow artifact.
-   A transient ZIP may be used for app notarization only. It is not retained.
-8. `publish` waits for the same run's artifact on a fresh Ubuntu runner. Its
-   scripts come from the dispatch commit, not the producer checkout. It checks
-   the evidence against the pushed bump, creates the annotated tag at that
-   commit, publishes the GitHub Release, and verifies the public DMG download.
-   It then publishes the appcast and versioned evidence to GitHub Pages and
-   verifies the served feed, evidence, and enclosure. Last, it checks out
-   `mastro993/homebrew-tap` with `HOMEBREW_TAP_DEPLOY_KEY` and runs
-   `Scripts/publish-homebrew-cask.sh`, which sets the cask's `version` and
-   `sha256` from the verified public DMG and pushes `keyameleon X.Y.Z` to the
-   tap's `main`.
+**Release notes** come from `Scripts/official-release-notes.sh`: categorized change sections, a separator, and a `Changelog` section with the full comparison and linked commits, excluding merge commits and the version bump. Entries carry pull request links and `@login` authors when GitHub has them. GitHub renders the release page's Contributors card from those mentions, so the notes contain no contributors section.
 
-The producer polls `main` up to 180 times at 10-second intervals, a 30-minute
-wait. The publisher polls artifacts up to 180 times at 30-second intervals, a
-90-minute wait. API requests can extend elapsed runtime. Missing checkpoints
-wait until those limits. API errors, unexpected `main`, and ambiguous or
-expired artifacts fail immediately. Failure before artifact upload leaves the
-publisher waiting until its limit without publishing anything.
+## Retry a failed release
 
-A human tag push does **not** start the workflow. Do not `git push` Official
-Release tags. A new dispatch for an existing version fails; retry the original
-run as described below. If `main` advances during verification, the run fails
-before pushing and must be dispatched again.
+Fix the cause, then rerun **failed jobs** on the same run (`gh run rerun RUN_ID --failed`). Do not start a new dispatch or rerun all jobs; a new dispatch for an existing version fails. A retry may need a new approval.
 
-Release notes use categorized change sections, a separator, and a `Changelog`
-section with the full comparison and linked commit list. The notes are
-generated by `Scripts/official-release-notes.sh`. It excludes merge commits and
-adds pull-request links and `@login` authors when GitHub provides them. Those
-`@login` mentions are what the release page's own `Contributors` card renders
-from, so the notes list no contributors themselves.
+- A retry reuses the bump commit only while it is still the tip of `main`.
+- If the workflow artifact exists, the retry restores and validates those exact signed bytes and skips `produce`. An unreadable, ambiguous, expired, or invalid artifact stops the retry.
+- A missing artifact may be rebuilt only before a tag or GitHub Release exists. After publication has begun, investigate manually instead of producing new signed bytes.
+- Publication reuses a matching tag and asset, uploads a missing asset from the artifact, and deletes an empty `starter` asset left by a failed upload. It never replaces an uploaded asset or changes published evidence. A mismatched tag, asset, or evidence stops for manual investigation.
+- An identical Pages retry makes no commit. The cask step makes no commit when the cask already matches, and stops without pushing if the same version has a different checksum or the cask is already newer.
+- Failure before the GitHub Release leaves the previous feed in place. Failure after the Release but before Pages leaves the DMG downloadable for the retry.
 
-## Existing `v0.1.0`
-
-Do not mutate the existing `v0.1.0` release or its old feed. Future Official
-Releases use the GitHub Pages feed. Installed `v0.1.0` copies may need a manual
-installation of a newer DMG before they use that feed.
-
-### 1. Developer ID certificate (once)
-
-1. In Apple Developer → Certificates, create **Developer ID Application**
-   (not Developer ID Installer, not Apple Development).
-2. Install it in the login keychain on a trusted Mac.
-3. Keychain Access → My Certificates → that identity → Export… → `.p12`.
-   Set a password. Never commit the file.
-4. Encode it as a single line:
-
-   ```sh
-   base64 < DeveloperID.p12 | tr -d '\n' > developer-id.p12.b64
-   ```
-
-### 2. Notary API key (once)
-
-1. [App Store Connect → Integrations → Team Keys](https://appstoreconnect.apple.com/access/integrations/api).
-2. Generate an API key with access that can submit notarization (Developer or
-   Admin). Download `AuthKey_<KEY_ID>.p8` once. Note **Key ID** and **Issuer ID**.
-3. Team ID is the 10-character Membership ID (Xcode → Settings → Accounts, or
-   Apple Developer membership).
-4. Encode the key as a single line:
-
-   ```sh
-   base64 < AuthKey_<KEY_ID>.p8 | tr -d '\n' > authkey.p8.b64
-   ```
-
-### 3. Sparkle EdDSA keys (once)
-
-Use Sparkle **2.10.0** tools (same pin as `Package.resolved`):
-
-```sh
-curl -fsSL -o Sparkle.tar.xz \
-  https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz
-tar -xJf Sparkle.tar.xz
-./bin/generate_keys
-./bin/generate_keys -x sparkle_eddsa_private.key
-```
-
-`generate_keys` prints `SUPublicEDKey` (base64). That value is
-`SPARKLE_PUBLIC_ED_KEY`. The exported file is `SPARKLE_PRIVATE_ED_KEY`. Strip
-a trailing newline before storing:
-
-```sh
-tr -d '\n' < sparkle_eddsa_private.key > sparkle_eddsa_private.key.one
-```
-
-The secret value is the raw 44-character base64 seed only. Do not wrap it in
-quotes, PEM headers, or extra text. `generate_appcast` then fails with
-`Private key not decoded from the argument because it isn't base64 encoded`.
-
-Keep the Keychain copy and the export offline. Losing the private key blocks
-signed updates for existing Official Release binaries.
-
-### 4. GitHub Environment `official-release`
-
-Already created. Settings → Environments → `official-release`:
-
-1. **Deployment branches and tags** → Selected branches → `main` only.
-   The protected jobs run on `workflow_dispatch` from `main`.
-2. **Required reviewers** → `mastro993` (lead maintainer). Allow self-review so
-   the sole maintainer can approve their own dispatch. Disable administrator
-   bypass so approval cannot be skipped.
-3. **Environment secrets** (not repository secrets):
-
-   ```sh
-   gh secret set APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64 \
-     --env official-release < developer-id.p12.b64
-   gh secret set APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD \
-     --env official-release
-   gh secret set APPLE_API_KEY_ID --env official-release
-   gh secret set APPLE_API_ISSUER_ID --env official-release
-   gh secret set APPLE_API_KEY_P8_BASE64 --env official-release < authkey.p8.b64
-   gh secret set APPLE_TEAM_ID --env official-release
-   gh secret set SPARKLE_PRIVATE_ED_KEY --env official-release \
-     < sparkle_eddsa_private.key.one
-   gh secret set SPARKLE_PUBLIC_ED_KEY --env official-release
-   gh secret set RELEASE_DEPLOY_KEY --env official-release \
-     < keyameleon-release-workflow
-   gh secret set HOMEBREW_TAP_DEPLOY_KEY --env official-release \
-     < keyameleon-homebrew-tap
-   ```
-
-   Password / ID secrets: `gh secret set NAME --env official-release` then paste
-   at the prompt. No newline in the value.
-
-4. Optional environment variable `CODESIGN_IDENTITY` if the identity name is
-   not `Developer ID Application`. Leave unset by default.
-
-Confirm names only (values stay hidden):
-
-```sh
-gh secret list --env official-release
-```
-
-Expect the ten names above. Then delete the local p12, p8, and key copies
-from the working tree (`trash`, not git). Keep offline backups.
-
-### 5. Tag ruleset
-
-PR #133 is merged into `main`. The release workflow pushes tags with
-`RELEASE_DEPLOY_KEY`.
-
-Settings → Rules → Rulesets → `Official Release tags`:
-
-- Name: `Official Release tags`
-- Enforcement: Active
-- Target tags: `v[0-9]*` (GitHub glob; includes valid Official Release tags)
-- Rules: Restrict creations, Restrict updates, Restrict deletions, Block force pushes
-- Bypass actor: **Deploy keys**, bypass mode **Always**
-
-Check the live ruleset without changing it:
-
-```sh
-gh api repos/mastro993/Keyameleon/rulesets/20859991 \
-  --jq '{name, enforcement, conditions, rules, bypass_actors}'
-```
-
-Expect `name: "Official Release tags"`, `enforcement: "active"`, include
-`["refs/tags/v[0-9]*"]`, no exclusions, rules `creation`, `update`, `deletion`,
-`non_fast_forward`, and one `DeployKey` bypass with null ID and `always` mode.
-
-GitHub rulesets use globs, not regular expressions. This glob also matches
-some invalid version names. `Scripts/verify-official-release-tag.sh` checks the
-exact `vMAJOR.MINOR.PATCH` format before the workflow creates a tag. Humans
-without bypass cannot create tags that match the ruleset. The workflow pushes with
-`RELEASE_DEPLOY_KEY`; `GITHUB_TOKEN` cannot bypass this ruleset.
-
-On 2026-09-30, an existing-account push of a disposable, invalid-SemVer tag
-matching the glob (`v0issue123-create-probe-20260930`) was rejected with
-`GH013` and `Cannot create ref due to creations being restricted.` No tag was
-created. This proves creation is blocked for that account. It does not prove
-that updates or deletions are blocked, or that the release deploy key can
-bypass the ruleset.
-
-To finish verification, use the existing release deploy key from the
-maintainer's secure storage, or a separately authorized verification workflow
-in the `official-release` environment. Environment secrets cannot be read back.
-Create, update, and delete only a disposable invalid-SemVer tag matching the
-glob. Check that an ordinary account cannot update or delete it, and that it
-is absent afterward. Do not use a valid version tag or dispatch an Official
-Release for these checks.
-
-### 6. Release deploy key and main branch ruleset
-
-The release workflow needs one narrow exception to the pull-request-only rule:
-
-- Create one Ed25519 deploy key named `Keyameleon Release workflow` with write
-  access to this repository.
-- Store its private key as environment secret `RELEASE_DEPLOY_KEY` in
-  `official-release`.
-- Ruleset: `Main branch protection`
-- Bypass actor: **Deploy keys**
-- Bypass mode: **Always**
-
-GitHub does not allow its first-party Actions app as a bypass actor on this
-personal repository. The deploy key is repository-scoped and available only to
-the protected release environment. The `bump` and `publish` jobs use it for
-normal pushes. The `produce` job runs the full test suite without the deploy
-key after the version push. No job force-pushes.
-
-### 7. Homebrew tap deploy key
-
-`mastro993/homebrew-tap` is a separate public repository that holds casks for
-several products. Each product's release workflow gets its own write deploy key
-on the tap, so revoking one product's key does not affect the others.
-
-```sh
-ssh-keygen -t ed25519 -N "" -C "Keyameleon Release workflow" -f keyameleon-homebrew-tap
-gh repo deploy-key add keyameleon-homebrew-tap.pub --repo mastro993/homebrew-tap \
-  --title "Keyameleon Release workflow" --allow-write
-gh secret set HOMEBREW_TAP_DEPLOY_KEY --repo mastro993/Keyameleon \
-  --env official-release < keyameleon-homebrew-tap
-```
-
-Then delete both local key files. The tap has no branch rules; the key pushes
-to `main` directly.
-
-The cask uses `auto_updates true`, so Sparkle stays the updater. `brew upgrade`
-upgrades the cask only when the installed app's `CFBundleShortVersionString` is
-older than the tap version. `livecheck` reads the Sparkle feed.
-
-### 8. Check CI before dispatch
-
-`verify` uses a 45-minute polling deadline for **Required CI gate** on the
-selected commit. API requests and the final 20-second wait can extend elapsed
-runtime. If CI fails, `verify` fails. If CI never starts, `verify` times out.
-
-### 9. Negative checks (optional, no tag created)
-
-From **Actions → Release → Run workflow**:
-
-| Use workflow from | release type | Expected |
-| --- | --- | --- |
-| feature branch | `patch` | `verify` fails: not default branch |
-| stale `main` selection | `patch` | `verify` fails because remote `main` advanced |
-| `main` while CI is running | `patch` | `verify` waits; continues when **Required CI gate** succeeds |
-| `main` when target tag exists | any | `verify` fails without changing `main` |
-
-### 10. Publish an Official Release
-
-Follow [Start an Official Release](#start-an-official-release).
-
-There is no dry-run dispatch. `SKIP_NOTARIZE=1` local builds are not an
-Official Release.
-
-If a release job fails, fix the cause and re-run **failed jobs** on the same run
-(`gh run rerun RUN_ID --failed`), not a new dispatch or all jobs. A retry may
-require a new deployment approval. It reuses only the exact expected bump
-commit while that commit remains the tip of `main`. When the workflow artifact
-exists, the retry restores and validates those exact signed bytes, skipping
-production and re-upload. An unreadable, ambiguous, expired, or invalid
-artifact stops the retry. Missing artifacts permit rebuilding only before a
-tag or GitHub Release exists; after publication begins, investigate manually
-rather than regenerate signed bytes.
-
-Publication reuses a matching tag and asset, or uploads a missing asset from
-that workflow artifact. If an upload left an empty `starter` asset, it deletes
-that asset by ID before retrying. It never replaces an uploaded asset or changes
-published evidence for the same tag. An identical Pages retry makes no commit.
-A mismatched tag, asset, or evidence stops for manual investigation.
-The cask step makes no commit when the cask already has the same version and
-checksum. A different checksum for the same version, or a cask already at a
-newer version, stops without pushing. Failure
-before the GitHub Release leaves the previous feed intact; failure after the
-Release but before Pages leaves a downloadable DMG available for retry.
-
-### 11. Verify an Official Release
+## Verify a release
 
 ```sh
 TAG=v1.2.3
@@ -359,11 +68,11 @@ test -d /tmp/keyameleon-mounted/Keyameleon.app
 test -L /tmp/keyameleon-mounted/Applications
 xcrun stapler validate /tmp/keyameleon-mounted/Keyameleon.app
 hdiutil detach /tmp/keyameleon-mounted
-git rev-parse "${TAG}^{commit}"   # compare with evidence.gitCommit
+git rev-parse "${TAG}^{commit}"   # compare with the evidence's gitCommit
 brew update && brew info --cask mastro993/tap/keyameleon   # expect VERSION
 ```
 
-Download durable evidence from Pages, then verify its hash:
+Download the evidence from Pages and check its hash:
 
 ```sh
 curl -fsSL -o release-evidence.json \
@@ -372,155 +81,214 @@ jq '{tag,semanticVersion,gitCommit,artifactFileName,feedURLString}' release-evid
 shasum -a 256 -c <(jq -r '"\(.artifactSHA256)  \(.artifactFileName)"' release-evidence.json)
 ```
 
-`evidence.tag` must be `TAG`. `feedURLString` must be
-`https://mastro993.github.io/keyameleon/appcast.xml`. The appcast enclosure
-URL must be
-`https://github.com/mastro993/Keyameleon/releases/download/TAG/Keyameleon-VERSION.dmg`.
-Release notes must contain categorized sections, `### Changelog`, a full
-comparison link, and no `### Contributors` section, which GitHub renders
-itself from the notes' `@login` mentions.
+Expect:
 
-Install the app on a clean Mac (not a Development Build). **Check for
-Updates…** must start and must not install without user approval.
+- `tag` is `$TAG`, and `gitCommit` is the tag's peeled commit.
+- `feedURLString` is `https://mastro993.github.io/keyameleon/appcast.xml`.
+- The appcast enclosure URL is `https://github.com/mastro993/Keyameleon/releases/download/TAG/Keyameleon-VERSION.dmg`.
+- The release notes have categorized sections, `### Changelog`, and a full comparison link, and no `### Contributors` section.
 
-## Repository protection (host settings)
+Finally, install the app on a clean Mac, not a Debug build. **Check for Updates…** must start and must not install anything without approval.
 
-These controls live in GitHub settings, not in application source. The lead
-maintainer **must** enable them before the first Official Release. Without them,
-the workflows exist but the “protected” acceptance criteria are not enforced.
+## One-time setup
 
-### `main` branch (Settings → Branches / Rulesets)
+The lead maintainer must complete these steps before the first Official Release. Without the GitHub settings, the workflows still exist but their protections are not enforced.
 
-- Require a pull request before merging
-- Require status check: `Required CI gate`
-- Add **Deploy keys** as an `Always` bypass actor for the release bump
-- Keep every other push restricted
+### 1. Developer ID certificate
 
-### Tags (Settings → Rulesets)
+1. In Apple Developer → Certificates, create a **Developer ID Application** certificate (not Developer ID Installer or Apple Development).
+2. Install it in the login keychain on a trusted Mac.
+3. In Keychain Access → My Certificates, export the identity as a password-protected `.p12`. Never commit it.
+4. Encode it on one line:
 
-- Restrict creation, updates, and deletion of tags matching the glob
-  `v[0-9]*`; the release script validates the exact version format
-- Allow **Deploy keys** with an `Always` bypass to push the annotated tag
-- `workflow_dispatch` is the only supported way to mint an Official Release tag
+   ```sh
+   base64 < DeveloperID.p12 | tr -d '\n' > developer-id.p12.b64
+   ```
 
-### `official-release` environment (Settings → Environments)
+### 2. Notary API key
 
-- Required reviewer: `mastro993`; self-review allowed; administrator bypass
-  disabled. These settings require an explicit approval while allowing the
-  sole maintainer to dispatch an Official Release.
-- Deployment branches: default branch only (`main`). The protected jobs run
-  from `workflow_dispatch` on `main`
-- Secrets listed below exist only as environment or repository secrets — never in git
+1. In [App Store Connect → Integrations → Team Keys](https://appstoreconnect.apple.com/access/integrations/api), generate a key with Developer or Admin access. Download `AuthKey_<KEY_ID>.p8` (only possible once) and note the **Key ID** and **Issuer ID**.
+2. Note the 10-character **Team ID** from Xcode → Settings → Accounts or your Apple Developer membership.
+3. Encode the key on one line:
 
-The repository is public, so GitHub supports required environment reviewers.
-Check the live policy with `gh api repos/mastro993/Keyameleon/environments/official-release`
-and confirm `required_reviewers` lists `mastro993`, `prevent_self_review` is
-`false`, and `can_admins_bypass` is `false`. Check
-`gh api repos/mastro993/Keyameleon/environments/official-release/deployment-branch-policies`
-and confirm `main` is the only branch. To check the gate without changing
-`main`, dispatch Release, confirm all three protected jobs wait for review, and cancel without
-approving it. Approving this gate can push a real version commit.
+   ```sh
+   base64 < AuthKey_<KEY_ID>.p8 | tr -d '\n' > authkey.p8.b64
+   ```
 
-### GitHub Pages (Settings → Pages)
+### 3. Sparkle EdDSA keys
 
-- Source: **Deploy from a branch**
-- Branch: `gh-pages`
-- Folder: `/ (root)`
+Use the Sparkle tools that match `Package.resolved` (currently 2.10.0):
 
-The release workflow writes the latest signed `appcast.xml` and retains each
-version's `releases/<tag>/release-evidence.json` on that branch. It uses the
-`RELEASE_DEPLOY_KEY` from the protected `publish` checkout for a normal push.
-GitHub Pages branch deployment does not start from a `GITHUB_TOKEN` push,
-as described in [GitHub's publishing-source documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
-Older evidence files are preserved; a retry cannot overwrite changed bytes.
+```sh
+curl -fsSL -o Sparkle.tar.xz \
+  https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz
+tar -xJf Sparkle.tar.xz
+./bin/generate_keys
+./bin/generate_keys -x sparkle_eddsa_private.key
+tr -d '\n' < sparkle_eddsa_private.key > sparkle_eddsa_private.key.one
+```
 
-## Secrets (never commit)
+`generate_keys` prints the public key (`SUPublicEDKey`), which becomes `SPARKLE_PUBLIC_ED_KEY`. The exported file becomes `SPARKLE_PRIVATE_ED_KEY`: the raw 44-character base64 seed only, without quotes, PEM headers, or a trailing newline. Anything else makes `generate_appcast` fail with `Private key not decoded from the argument because it isn't base64 encoded`.
+
+Keep the Keychain copy and the export offline. Losing the private key means existing installs can no longer receive signed updates.
+
+### 4. Deploy keys
+
+Personal repositories cannot add GitHub Actions as a ruleset bypass actor, so the workflow pushes with deploy keys that only the protected `official-release` environment can read.
+
+- **Release deploy key.** Create an Ed25519 deploy key named `Keyameleon Release workflow` with write access to this repository. `bump` uses it to push the version commit and `publish` to push the tag and the `gh-pages` branch. No job force-pushes.
+- **Homebrew tap deploy key.** `mastro993/homebrew-tap` holds casks for several products, and each product gets its own write key, so revoking one does not affect the others. The tap has no branch rules; the key pushes to `main`.
+
+  ```sh
+  ssh-keygen -t ed25519 -N "" -C "Keyameleon Release workflow" -f keyameleon-homebrew-tap
+  gh repo deploy-key add keyameleon-homebrew-tap.pub --repo mastro993/homebrew-tap \
+    --title "Keyameleon Release workflow" --allow-write
+  ```
+
+The cask sets `auto_updates true`, so Sparkle remains the updater: `brew upgrade` only upgrades it when the installed app's `CFBundleShortVersionString` is older than the cask, and `livecheck` reads the Sparkle feed.
+
+### 5. `official-release` environment
+
+In **Settings → Environments → `official-release`**:
+
+- **Deployment branches:** `main` only.
+- **Required reviewers:** `mastro993`, with self-review allowed so the sole maintainer can approve their own dispatch, and administrator bypass disabled.
+- **Environment secrets** (not repository secrets). Paste IDs and passwords at the prompt, without a trailing newline:
+
+  ```sh
+  gh secret set APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64 \
+    --env official-release < developer-id.p12.b64
+  gh secret set APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD --env official-release
+  gh secret set APPLE_API_KEY_ID --env official-release
+  gh secret set APPLE_API_ISSUER_ID --env official-release
+  gh secret set APPLE_API_KEY_P8_BASE64 --env official-release < authkey.p8.b64
+  gh secret set APPLE_TEAM_ID --env official-release
+  gh secret set SPARKLE_PRIVATE_ED_KEY --env official-release < sparkle_eddsa_private.key.one
+  gh secret set SPARKLE_PUBLIC_ED_KEY --env official-release
+  gh secret set RELEASE_DEPLOY_KEY --env official-release < keyameleon-release-workflow
+  gh secret set HOMEBREW_TAP_DEPLOY_KEY --env official-release < keyameleon-homebrew-tap
+  ```
+
+- **Optional variable:** `CODESIGN_IDENTITY`, only if the identity is not named `Developer ID Application`.
+
+`gh secret list --env official-release` should list the ten secrets in the [secrets table](#secrets). Then move the local `.p12`, `.p8`, and key files to the trash (never through git) and keep offline backups.
+
+Check the live policy:
+
+```sh
+gh api repos/mastro993/Keyameleon/environments/official-release
+gh api repos/mastro993/Keyameleon/environments/official-release/deployment-branch-policies
+```
+
+Expect `required_reviewers` to list `mastro993`, `prevent_self_review: false`, `can_admins_bypass: false`, and `main` as the only branch. To test the gate without changing `main`, dispatch Release, confirm that all three protected jobs wait for review, and cancel without approving. Approving pushes a real version commit.
+
+### 6. `main` branch ruleset
+
+Ruleset `Main branch protection`:
+
+- Require a pull request before merging.
+- Require the status check `Required CI gate`.
+- Bypass actor: **Deploy keys**, mode **Always**, for the release bump. Keep every other push restricted.
+
+### 7. Tag ruleset
+
+Ruleset `Official Release tags`:
+
+- Enforcement: Active
+- Target tags: `v[0-9]*`
+- Rules: Restrict creations, Restrict updates, Restrict deletions, Block force pushes
+- Bypass actor: **Deploy keys**, mode **Always**
+
+GitHub rulesets use globs, so this pattern also matches some invalid names; `Scripts/verify-official-release-tag.sh` enforces the exact `vMAJOR.MINOR.PATCH` format before the workflow creates a tag. `GITHUB_TOKEN` cannot bypass the ruleset, which is why the workflow pushes tags with `RELEASE_DEPLOY_KEY`.
+
+Check the live ruleset:
+
+```sh
+gh api repos/mastro993/Keyameleon/rulesets/20859991 \
+  --jq '{name, enforcement, conditions, rules, bypass_actors}'
+```
+
+Expect `enforcement: "active"`, include `["refs/tags/v[0-9]*"]` with no exclusions, the rules `creation`, `update`, `deletion`, and `non_fast_forward`, and one `DeployKey` bypass with a null ID and `always` mode.
+
+**Still unverified.** On 2026-09-30 an ordinary account's push of a disposable tag was rejected with `GH013` (`Cannot create ref due to creations being restricted.`). That proves creation is blocked, not that updates and deletions are blocked or that the deploy key can bypass. To finish, use the release deploy key from secure storage, or an authorized workflow in the `official-release` environment, to create, update, and delete a disposable invalid-SemVer tag that matches the glob. Confirm an ordinary account cannot update or delete it, and that it is gone afterwards. Never use a valid version tag or dispatch a release for this.
+
+### 8. GitHub Pages
+
+**Settings → Pages:** deploy from the `gh-pages` branch, `/ (root)` folder.
+
+`publish` pushes to `gh-pages` with `RELEASE_DEPLOY_KEY`, because [a push made with `GITHUB_TOKEN` does not trigger a Pages build](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site). Older evidence files are kept, and a retry cannot overwrite them with different bytes.
+
+### 9. Optional negative checks
+
+None of these creates a tag. From **Actions → Release → Run workflow**:
+
+| Use workflow from | Release type | Expected |
+| --- | --- | --- |
+| A feature branch | `patch` | `verify` fails: not the default branch |
+| A stale `main` selection | `patch` | `verify` fails because remote `main` advanced |
+| `main` while CI is running | `patch` | `verify` waits, then continues when **Required CI gate** succeeds |
+| `main` when the target tag exists | any | `verify` fails without changing `main` |
+
+## Reference
+
+### Secrets
 
 | Secret | Purpose |
 | --- | --- |
-| `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64` | Developer ID Application certificate (p12, base64) |
-| `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD` | p12 password |
-| `APPLE_API_KEY_ID` | App Store Connect API key id for notarytool |
-| `APPLE_API_ISSUER_ID` | API issuer id |
-| `APPLE_API_KEY_P8_BASE64` | API private key `.p8` contents (base64) |
-| `APPLE_TEAM_ID` | Developer team id |
-| `SPARKLE_PRIVATE_ED_KEY` | Sparkle EdDSA private key (generate_appcast / sign_update) |
-| `SPARKLE_PUBLIC_ED_KEY` | Sparkle EdDSA public key embedded as `SUPublicEDKey` at release build |
-| `RELEASE_DEPLOY_KEY` | Private half of the repository-scoped release write key |
+| `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_P12_BASE64` | Developer ID Application certificate (`.p12`, base64) |
+| `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD` | `.p12` password |
+| `APPLE_API_KEY_ID` | App Store Connect API key ID for `notarytool` |
+| `APPLE_API_ISSUER_ID` | API issuer ID |
+| `APPLE_API_KEY_P8_BASE64` | API private key (`.p8`, base64) |
+| `APPLE_TEAM_ID` | Developer team ID |
+| `SPARKLE_PRIVATE_ED_KEY` | Sparkle EdDSA private key for `generate_appcast` and `sign_update` |
+| `SPARKLE_PUBLIC_ED_KEY` | Sparkle EdDSA public key, embedded as `SUPublicEDKey` |
+| `RELEASE_DEPLOY_KEY` | Private half of this repository's release deploy key |
 | `HOMEBREW_TAP_DEPLOY_KEY` | Private half of the write deploy key on `mastro993/homebrew-tap` |
 
-Optional variable: `CODESIGN_IDENTITY` (defaults to `Developer ID Application`).
+Recovery material for certificates and Sparkle keys stays offline or in the maintainer's secret store. `.gitignore` excludes local key files such as `*.p12`, `*.p8`, `sparkle_eddsa_private.key`, and `secrets/`; never force-add them.
 
-Recovery material for certificates and Sparkle keys stays offline or in the
-maintainer secret store — not in this repository.
+Only Official Release builds embed `SUPublicEDKey`. Debug and CI builds omit it and never start Sparkle, so update checks need an Official Release binary and a published appcast.
 
-### Local key material gitignore
+### Bundled licenses
 
-Local files such as `*.p12`, `*.p8`, `sparkle_eddsa_private.key`, and `secrets/`
-are ignored. Do not force-add them.
+Every build includes `Contents/Resources/Licenses/` in `Keyameleon.app`, and **Settings → About** opens these texts offline:
 
-## Local production (maintainers)
+- `LICENSE.txt`, from the repository's `LICENSE` (SPDX `MIT`)
+- `THIRD_PARTY_NOTICES.md`, from the repository file of the same name
+- `Sparkle-LICENSE.txt`, the complete `LICENSE` from the resolved Sparkle binary, including its embedded component licenses
 
-With secrets exported in the shell:
+Before code signing, the Xcode build runs `Scripts/bundle-licenses.py --copy --build-dir "$BUILD_DIR"`. It finds the resolved Sparkle artifact under `SourcePackages` (for both normal and archive builds) and checks its version against `Package.resolved`. Missing or empty sources and version mismatches fail the build. No legal text is duplicated in the repository.
+
+`Scripts/official-release.sh` runs the same check without `--copy` on the app before signing and on the app inside the DMG (mounted read-only) before signing the DMG, and also checks the embedded Sparkle framework version. It never repairs a signed app. To check an app yourself:
+
+```sh
+python3 Scripts/bundle-licenses.py \
+  --app /path/to/Keyameleon.app \
+  --package-root /path/to/DerivedData/SourcePackages
+```
+
+### Local production
+
+Maintainers can produce artifacts locally with the secrets exported in the shell:
 
 ```sh
 export RELEASE_TAG=v1.2.3
-# export all secrets listed above
+# export every secret in the table above
 ./Scripts/official-release.sh
 ```
 
-Artifacts land in `dist/`:
-
-- `Keyameleon-<version>.dmg`
-- `appcast.xml` (published to GitHub Pages by the workflow)
-- `release-evidence.json` (workflow artifact and durable GitHub Pages record)
-
-`SKIP_NOTARIZE=1` builds and signs without notarization. Local artifacts and a
-manual GitHub Release are **not** an Official Release. Only `workflow_dispatch`
-on `main` publishes one.
-
-## Evidence verification
+This writes `Keyameleon-<version>.dmg`, `appcast.xml`, and `release-evidence.json` to `dist/`. Check the evidence with:
 
 ```sh
 cd dist
 jq -r '"\(.artifactSHA256)  \(.artifactFileName)"' release-evidence.json | shasum -a 256 -c -
 ```
 
-Confirm `tag` / `gitCommit` match the public annotated tag's peeled commit.
+`SKIP_NOTARIZE=1` signs without notarizing. Local artifacts are never an Official Release.
 
-### Backfill `v0.4.5` evidence
+### Missing `v0.4.5` evidence
 
-The `v0.4.5` run predates permanent Pages evidence. Its workflow artifact
-expires on 2026-12-26. Backfill only from that run's original
-`release-evidence.json`, the existing public DMG, and the existing Pages feed.
-Do not regenerate evidence or dispatch another release. In a clean checkout
-with the release deploy key configured for `origin`:
+`v0.4.5` predates permanent evidence on Pages, and `releases/v0.4.5/release-evidence.json` has not been backfilled. Its only copy is in workflow run `36336223890` (artifact `official-release-0.4.5`, source commit `71514f9790593beda36885f6cc7aa03ba0e87e58`), which expires on 2026-12-26.
 
-```sh
-TAG=v0.4.5
-COMMIT=71514f9790593beda36885f6cc7aa03ba0e87e58
-mkdir -p /tmp/keyameleon-backfill
-gh run download 36336223890 --name official-release-0.4.5 --dir /tmp/keyameleon-backfill
-curl -fsSL -o /tmp/keyameleon-backfill/appcast.xml \
-  https://mastro993.github.io/keyameleon/appcast.xml
-curl -fLsS -o /tmp/keyameleon-backfill/Keyameleon-0.4.5.dmg \
-  https://github.com/mastro993/Keyameleon/releases/download/v0.4.5/Keyameleon-0.4.5.dmg
-bash Scripts/publish-release-pages.sh "$TAG" "$COMMIT" \
-  /tmp/keyameleon-backfill /tmp/keyameleon-backfill/Keyameleon-0.4.5.dmg
-curl -fsSL https://mastro993.github.io/keyameleon/releases/v0.4.5/release-evidence.json \
-  | cmp - /tmp/keyameleon-backfill/release-evidence.json
-```
-
-Run this backfill while `v0.4.5` is still the current feed version. If a newer
-release has replaced the feed, stop and recover the original signed appcast
-before arranging an evidence-only backfill.
-
-The publisher verifies the public DMG hash, feed, and remote annotated tag
-before a push. An identical retry leaves `gh-pages` unchanged. This backfill
-adds only the evidence record when the current feed already has matching bytes.
-
-## Sparkle public key in debug builds
-
-Debug and CI builds may omit `SUPublicEDKey`. Official Release builds inject the
-public key from `SPARKLE_PUBLIC_ED_KEY`. User-facing update checks require an
-Official Release binary plus a published `appcast.xml`.
+`Scripts/publish-release-pages.sh` cannot backfill it anymore, because it always publishes evidence together with the feed. With the artifact's `v0.4.5` appcast it refuses to replace the newer live feed, and with the current feed the appcast no longer matches the `v0.4.5` evidence and DMG. Backfilling needs an evidence-only publish that copies the original `release-evidence.json` byte for byte, without touching the feed. Never regenerate evidence or dispatch another release for this.

@@ -1,56 +1,37 @@
 # Contributing to Keyameleon
 
+Thanks for helping. This guide covers how to propose a change and what a pull request needs to be merged.
+
+## Before you start
+
+- **Small fixes**, such as typos, small bugs, and documentation, can go straight to a pull request.
+- **Larger changes, new features, and UI changes** need an issue first, so the approach is agreed before you write code. Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or [feature request](.github/ISSUE_TEMPLATE/feature_request.yml) template.
+- **Security issues** go through private reporting, never a public issue. See [`SECURITY.md`](SECURITY.md).
+
+To build and run the app, follow [`docs/development.md`](docs/development.md).
+
+## Pull requests
+
+Changes reach `main` only through pull requests. Each pull request should:
+
+1. **Pass CI.** The required check is **Required CI gate**. For code changes it runs `./Scripts/run.sh test` on macOS 26; documentation-only changes skip the macOS job. Run the same command locally before asking for review. Details are in [`docs/testing.md`](docs/testing.md#continuous-integration).
+2. **Include tests** for any behavior change. See [what to test](docs/testing.md#what-to-test).
+3. **Use the product vocabulary** from [`CONTEXT.md`](CONTEXT.md) for domain concepts, such as Physical Keyboard rather than "device".
+4. **Update the docs** in `docs/` that describe the behavior you changed.
+5. **Have a Conventional Commit title**, such as `fix(menu): keep scroll position when a keyboard reconnects`.
+6. **Follow the [pull request template](.github/pull_request_template.md).** Link the issue with `Closes #123`, and add before and after screenshots for UI changes.
+
+## Rules that are never negotiable
+
+- Keep Key Content out of saved data, logs, network output, and crash state.
+- Do not add analytics, telemetry, or automatic diagnostic upload.
+- Do not add third-party dependencies without agreement in an issue first.
+- Never commit signing certificates, notarization keys, Sparkle private keys, or recovery material.
+
+## Releases
+
+Contributors do not publish releases. The lead maintainer starts each Official Release from the Release workflow on `main`, and it runs only after their approval. See [`docs/release/official-release.md`](docs/release/official-release.md).
+
 ## License
 
-Keyameleon is `MIT`. By contributing, you agree your contribution is
-licensed under the same terms. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
-License obligations are tracked by those two files; CI does not run a separate
-license scanner.
-
-## Before you open a pull request
-
-- Small pull requests for quick fixes and small changes are welcome. Open them
-  directly.
-- For larger changes, new features, or UI changes, open an issue first so the
-  approach can be agreed before you write the code. Use the
-  [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or
-  [feature request](.github/ISSUE_TEMPLATE/feature_request.yml) template, and
-  link the issue from your pull request with `Closes #123`.
-- Report security issues privately, as described in `SECURITY.md`, not in a
-  public issue.
-
-## Pull requests required
-
-Changes land on `main` only through pull requests. Direct pushes to `main` are
-not the contribution path. Each PR must:
-
-1. Pass the required CI gate (`CI` workflow). The workflow classifies the pull
-   request: code changes (app source, product tests, `Scripts/run.sh`, project
-   or package files, the CI workflow) run `./Scripts/run.sh test` on
-   `macos-26` — the safety audit, then Swift Testing, then XCTest.
-   Documentation-only pull requests still pass because the macOS job is
-   skipped on purpose (ADR 0001).
-2. Include applicable tests for the behavior change
-3. Use glossary terms from `CONTEXT.md` when naming domain concepts
-
-## Tests
-
-- Prefer Swift Testing under `Tests/SwiftTesting` for domain and model seams
-- Use XCTest under `Tests/XCTest` for AppKit shell contracts when needed
-- Run `./Scripts/run.sh test` before requesting review
-- Keep tests focused on distinct product outcomes and safety rules. Do not add
-  tests for private counters, implementation wiring, or fixed performance quotas.
-
-## Code of collaboration
-
-- Keep Key Content out of saved data, logs, network output, and crash state
-- Do not add analytics or automatic diagnostic upload
-- Do not commit signing certificates, notarization keys, Sparkle private keys,
-  or recovery material (see `docs/release/official-release.md`)
-
-## Official Releases
-
-Contributors do not publish Official Releases. Only the Release
-`workflow_dispatch` on `main` starts the workflow. The `official-release`
-environment requires lead-maintainer approval before release jobs run. See
-`docs/release/official-release.md` and `SECURITY.md`.
+Keyameleon is [MIT licensed](LICENSE). By contributing, you agree that your contribution is licensed under the same terms.
