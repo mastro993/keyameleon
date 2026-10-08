@@ -191,10 +191,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Guided setup shows a Dock icon; afterwards Keyameleon lives only in the menu bar.
-        NSApp.setActivationPolicy(
-            startsApplicationSurfaceOnLaunch && !setupModel.isSetupComplete ? .regular : .accessory
-        )
+        applyActivationPolicy()
         if startsApplicationSurfaceOnLaunch {
             lifecycleObserver.start { [weak self] event in
                 self?.activityTriggeredSwitching.handleLifecycleEvent(event)
@@ -215,6 +212,17 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
             setupModel.beginGuidedSetup()
             openKeyameleon(nil)
         }
+    }
+
+    /// Guided setup shows a Dock icon; afterwards Keyameleon lives only in the menu bar.
+    var activationPolicy: NSApplication.ActivationPolicy {
+        startsApplicationSurfaceOnLaunch && !setupModel.isSetupComplete ? .regular : .accessory
+    }
+
+    func applyActivationPolicy() {
+        // Hosted tests run inside Keyameleon; changing the policy there flashes a Dock icon.
+        guard !HostedUnitTestProcess.isDetected() else { return }
+        NSApp.setActivationPolicy(activationPolicy)
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {

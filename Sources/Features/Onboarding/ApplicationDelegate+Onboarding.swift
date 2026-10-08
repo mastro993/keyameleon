@@ -20,7 +20,7 @@ extension ApplicationDelegate {
     func finishGuidedSetup(destination: GuidedSetupCompletionDestination) {
         activityTriggeredSwitching.appliesKeyboardAssignments = true
         startMenuBarApp()
-        NSApp.setActivationPolicy(.accessory)
+        applyActivationPolicy()
         windowController?.close()
         if destination == .settings {
             openSettings(nil)

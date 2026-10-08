@@ -43,8 +43,6 @@ func stopApplicationTestSurface(_ delegate: ApplicationDelegate) {
     delegate.applicationWillTerminate(
         Notification(name: NSApplication.willTerminateNotification)
     )
-    // Unfinished setup launches as a regular app; restore the test host's agent policy.
-    NSApp.setActivationPolicy(.accessory)
 }
 
 @MainActor

@@ -434,10 +434,10 @@ final class ApplicationTests: XCTestCase {
         XCTAssertNil(delegate.menuBarStatusItem)
         XCTAssertNil(delegate.menuBarPanelController)
         XCTAssertFalse(delegate.activityTriggeredSwitching.appliesKeyboardAssignments)
-        XCTAssertEqual(NSApp.activationPolicy(), .regular)
+        XCTAssertEqual(delegate.activationPolicy, .regular)
 
         delegate.setupModel.completeSetup(destination: .menuBar)
-        XCTAssertEqual(NSApp.activationPolicy(), .accessory)
+        XCTAssertEqual(delegate.activationPolicy, .accessory)
         XCTAssertFalse(delegate.windowController?.window?.isVisible ?? true)
         XCTAssertNil(delegate.settingsWindowController)
         XCTAssertNotNil(delegate.menuBarStatusItem)
