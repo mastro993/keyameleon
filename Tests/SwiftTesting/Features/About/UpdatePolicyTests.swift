@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 @testable import Keyameleon
@@ -10,6 +11,17 @@ func keylessBuildUpdaterDoesNotStart() throws {
     checker.start()
     checker.checkForUpdates()
     #expect(!checker.canCheckForUpdates)
+}
+
+@Test("Ending an update session during Guided setup keeps the Dock icon")
+@MainActor
+func updateSessionDuringSetupKeepsRegularPolicy() {
+    defer { NSApp.setActivationPolicy(.accessory) }
+    NSApp.setActivationPolicy(.regular)
+    SparkleUpdateChecker { false }.standardUserDriverWillFinishUpdateSession()
+    #expect(NSApp.activationPolicy() == .regular)
+    SparkleUpdateChecker { true }.standardUserDriverWillFinishUpdateSession()
+    #expect(NSApp.activationPolicy() == .accessory)
 }
 
 @Test("Update policy bounds checks and forbids auto-install tracking")

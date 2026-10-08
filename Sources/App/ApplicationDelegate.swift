@@ -85,7 +85,9 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
             inputMonitoringRecovery: SystemInputMonitoringRecovery(permissionProvider: composition.permissionProvider),
             lifecycleObserver: SystemLifecycleObserver(),
             launchAtLoginController: ServiceManagementLaunchAtLoginController(),
-            updateChecker: SparkleUpdateChecker(),
+            updateChecker: SparkleUpdateChecker { [setupStore = composition.setupStore] in
+                setupStore.hasCompletedGuidedSetup
+            },
             startsUpdaterOnLaunch: !isHostedUnitTest,
             startsApplicationSurfaceOnLaunch: !isHostedUnitTest,
             modelContainer: nil,
