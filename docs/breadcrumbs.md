@@ -4,6 +4,20 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-09 — README search visibility and screenshots
+
+- Repository description and topics now name the product category
+  (automatic keyboard layout switcher for macOS). Before, the description was
+  only the tagline, so search results had no keywords.
+- README gained a keyword subtitle, an FAQ phrased as search questions, and
+  real screenshots in `assets/` (menu, Settings, guided setup; light and dark),
+  replacing the `assets/screenshot.png` placeholder.
+- Screenshots come from `PreviewFixtures` (no real device names), staged by a
+  throwaway XCTest: the menu over the `design/desktop_*` wallpapers, windows
+  captured with `screencapture -l`. The test host lacks Screen Recording
+  permission, so the shell ran `screencapture` on request. macOS draws its
+  recording indicator over region captures; patch it out before committing.
+
 ## 2026-10-08 — Menu bar app starts after Guided setup
 
 - Before, the status item and switching started on first launch, and the menu
