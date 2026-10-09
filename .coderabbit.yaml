@@ -287,8 +287,8 @@ reviews:
         mode: error
         instructions: |
           Fail if the PR adds analytics, telemetry, crash reporting, or any network request other than Sparkle's
-          update check, or adds a Swift package or other third-party dependency, unless the PR description links
-          an issue where the dependency was agreed. Pass otherwise.
+          update check; no exception applies. Also fail if the PR adds a Swift package or other third-party
+          dependency, unless the PR description links an issue where that dependency was agreed. Pass otherwise.
       - name: Tests for behavior changes
         mode: warning
         instructions: |
