@@ -1,8 +1,9 @@
-<img width="1920" height="540" alt="Keyameleon banner" src="https://github.com/user-attachments/assets/090bad21-77f1-4c04-ae1f-5e18a51928c3" />
+<img width="1920" height="540" alt="Keyameleon, the automatic keyboard layout switcher for macOS" src="https://github.com/user-attachments/assets/090bad21-77f1-4c04-ae1f-5e18a51928c3" />
 
 <div align="center">
   <h1>Keyameleon</h1>
   <p><strong>Every keyboard speaks its own language.</strong></p>
+  <p>Automatic keyboard layout switching for every keyboard on your Mac.</p>
   <p>
     <a href="https://github.com/mastro993/Keyameleon/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/mastro993/Keyameleon"></a>
     <a href="https://github.com/mastro993/Keyameleon/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/mastro993/Keyameleon/actions/workflows/ci.yml/badge.svg"></a>
@@ -13,14 +14,20 @@
     <a href="#install">Install</a> ·
     <a href="#how-it-works">How it works</a> ·
     <a href="#privacy">Privacy</a> ·
+    <a href="#faq">FAQ</a> ·
     <a href="#build-from-source">Build from source</a> ·
     <a href="https://keyameleon.app/">Website</a>
   </p>
 </div>
 
-Keyameleon is a macOS menu bar app that switches the keyboard layout to match the keyboard you are typing on. If you use one Mac with keyboards that have different physical layouts, such as a US laptop keyboard and an Italian external keyboard, you no longer switch layouts by hand.
+Keyameleon is an automatic keyboard layout switcher for macOS. It lives in the menu bar and switches the input source to match the keyboard you are typing on. If you use one Mac with keyboards that have different layouts, such as a US MacBook keyboard and an Italian external keyboard, or a Dvorak keyboard next to a QWERTY one, you no longer switch layouts by hand. It works with the built-in keyboard and with USB and Bluetooth keyboards.
 
-<!-- Add assets/screenshot.png here: the menu bar icon and the open menu, with two or more assigned keyboards and one active. -->
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/menu-dark.jpg">
+    <img width="667" alt="Keyameleon menu bar menu listing three keyboards with their input sources: MacBook Keyboard on Italian, Office Keyboard on U.S. and active, Travel Keyboard on German and disconnected" src="assets/menu-light.jpg">
+  </picture>
+</p>
 
 ## Features
 
@@ -32,6 +39,13 @@ Keyameleon is a macOS menu bar app that switches the keyboard layout to match th
 - **Pause and resume** with <kbd>⌘</kbd><kbd>P</kbd> from the menu.
 - **Launch at login**, if you want it.
 - **Updates you approve.** Keyameleon checks for updates at most once a day and never installs one without your approval.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/settings-dark.png">
+    <img width="760" alt="Keyameleon Settings window with the Keyboards pane, where each keyboard has its own input source" src="assets/settings-light.png">
+  </picture>
+</p>
 
 ## Requirements
 
@@ -57,6 +71,13 @@ Guided setup opens on first launch:
 1. **Permissions.** Choose **Allow Input Monitoring**, then turn Keyameleon on in System Settings. If macOS asks, choose **Quit & Reopen**. Setup continues by itself once access is granted.
 2. **Keyboards.** Pick an Input Source for each keyboard. You can skip this and assign layouts later in Settings.
 3. **Ready.** Finish, and Keyameleon stays in the menu bar.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/setup-dark.png">
+    <img width="760" alt="Keyameleon guided setup on the Keyboards step, picking an input source for each connected keyboard" src="assets/setup-light.png">
+  </picture>
+</p>
 
 Keyameleon does not switch layouts and has no menu bar icon until you finish setup. If you close the setup window early, Keyameleon quits; open it again to pick up where you left off. After setup, closing a window never quits the app; use **Quit Keyameleon** in the menu.
 
@@ -87,6 +108,28 @@ Keyameleon stores data locally:
 | Operational logs (no typed content) | `~/Library/Logs/Keyameleon/` |
 
 **Settings → About** opens the data and log folders in Finder.
+
+## FAQ
+
+### Can a Mac use a different keyboard layout for each keyboard?
+
+Not on its own. macOS has one active input source for the whole system, and it changes only when you pick another one from the menu bar, press a shortcut, or let it follow the current document. Keyameleon adds the missing rule: give each keyboard an input source once, and it switches when you start typing on that keyboard.
+
+### How is Keyameleon different from per-app layout switchers?
+
+Per-app switchers change the layout when you switch apps. Keyameleon changes it when you switch keyboards, whatever app is in front.
+
+### Does it work with Bluetooth keyboards and the built-in MacBook keyboard?
+
+Yes. The built-in keyboard and USB and Bluetooth keyboards can each have their own input source. A keyboard that macOS cannot identify reliably is listed but cannot receive an assignment; see [How it works](#how-it-works).
+
+### Does Keyameleon read what I type?
+
+It uses key presses only to tell which keyboard is active. Typed content never reaches saved data, log files, or the network. See [Privacy](#privacy).
+
+### Is Keyameleon free?
+
+Yes. It is free and open source under the MIT License.
 
 ## Troubleshooting
 
