@@ -7,50 +7,35 @@ struct GeneralSettingsPane: View {
 
     var body: some View {
         Form {
-            Section {
-                Toggle(isOn: launchAtLoginBinding) {
-                    Text("Launch at login")
-                        .font(Theme.Typography.rowTitle)
-                        .foregroundStyle(Theme.primary)
+            Section("App") {
+                Toggle("Launch at login", isOn: launchAtLoginBinding)
+                    .toggleStyle(.switch)
+                if model.launchAtLoginError != nil {
+                    LaunchAtLoginErrorRow()
                 }
-                .toggleStyle(.switch)
-            } header: {
-                Text("App")
-                    .font(Theme.Typography.sectionTitle)
-                    .foregroundStyle(Theme.primary)
-            } footer: {
-                LaunchAtLoginFooter(hasError: model.launchAtLoginError != nil)
             }
 
             Section {
                 VStack(alignment: .leading) {
-                    Picker(selection: externalChangeResponseBinding) {
+                    Picker("When input source changes externally", selection: externalChangeResponseBinding) {
                         Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
                         Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
                         Text("Keep it until you type on another keyboard")
                             .tag(ExternalChangeResponse.holdUntilKeyboardChange)
-                    } label: {
-                        Text("When input source changes externally")
-                            .font(Theme.Typography.rowTitle)
-                            .foregroundStyle(Theme.primary)
                     }
+                    // Full width under the row, like System Settings descriptions.
                     Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
-                        .font(Theme.Typography.caption)
-                        .foregroundStyle(Theme.secondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } header: {
                 Text("Switching")
-                    .font(Theme.Typography.sectionTitle)
-                    .foregroundStyle(Theme.primary)
             } footer: {
                 ExternalChangeResponseFooter(response: model.externalChangeResponse)
             }
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(Theme.contentBackground)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var launchAtLoginBinding: Binding<Bool> {

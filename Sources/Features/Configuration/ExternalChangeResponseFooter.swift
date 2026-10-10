@@ -7,9 +7,6 @@ struct ExternalChangeResponseFooter: View {
 
     var body: some View {
         Text(explanation)
-            .font(Theme.Typography.caption)
-            .foregroundStyle(Theme.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var explanation: String {
@@ -26,13 +23,16 @@ struct ExternalChangeResponseFooter: View {
 
 #if DEBUG
 #Preview("External Change Response footer") {
-    VStack(alignment: .leading) {
+    Form {
         ForEach(ExternalChangeResponse.allCases, id: \.self) { response in
-            ExternalChangeResponseFooter(response: response)
+            Section {
+                Text(response.rawValue)
+            } footer: {
+                ExternalChangeResponseFooter(response: response)
+            }
         }
     }
-    .padding()
-    .frame(width: 420, alignment: .leading)
-    .background(Theme.contentBackground)
+    .formStyle(.grouped)
+    .frame(width: 520)
 }
 #endif

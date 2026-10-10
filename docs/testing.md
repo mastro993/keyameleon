@@ -86,20 +86,20 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 - Open Settings from the menu bar and from the end of Guided setup. Reopening returns to the last pane. Panes are General, Keyboards, and About, in that order.
 - Select each sidebar row, then move between panes with the arrow keys. Check the blue selection, filled icon, keycap identity, and sidebar surface in active and inactive windows. Sidebar items report their selected state to VoiceOver.
 - The window does not shrink below 840 × 560.
-- All panes share one spacing policy: the same left edge for section headers and rows, native row insets, and the same outer margin. At 840 × 560, the Keyboards empty and persistence-failure states line up with the populated list's header.
+- Panes use only system styles: compare them with System Settings in light and dark, active and inactive. Pop-up pickers show a bezel only under the pointer. Section headers and rows share the native left edge.
 
 **General**
 
-- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When input source changes externally** picker and its subtitle, set to `Switch back on the next key press` on a fresh install or after updating.
-- Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and shows an error with Open Login Items.
+- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When input source changes externally** picker and its full-width description, set to `Switch back on the next key press` on a fresh install or after updating.
+- Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and shows an error row with Open Login Items.
 - Each External Change Response shows its own footer line, and the choice persists across a relaunch.
 
 **Keyboards**
 
-- One row per Physical Keyboard, ignored ones in place and dimmed: name, connection status, Input Source picker, and trailing menu.
+- One row per Physical Keyboard, ignored ones in place with a disabled picker: name, connection status, Input Source picker, and trailing actions menu.
 - Rename… an external keyboard: the name changes and the status reads `<product> · Connected`.
-- Ignore it: the picker is disabled, the status appends ` (Ignored)`, and the row stays in place. Ignored rows mute their name, status, and picker text while Stop Ignoring stays usable. Stop Ignoring restores its name and assignment.
-- The built-in keyboard has no actions menu.
+- Ignore it: the picker is disabled, the status appends ` (Ignored)`, and the row stays in place. The actions menu stays usable on ignored rows. Stop Ignoring restores its name and assignment.
+- The built-in keyboard has no actions menu, and its picker still lines up with the others.
 - A persistence error disables the picker and menu while the notice with Retry stays visible, and the empty state is hidden.
 - With no keyboards, the pane shows the native `No keyboards detected` state and connection guidance.
 - VoiceOver reads each row's name, status, Input Source, and menu.
@@ -112,12 +112,12 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 **About**
 
-- Shows the app icon, name, tagline, information rows, Sparkle acknowledgement, and creator credit. The identity sits on the pane background and the credit scrolls into view.
+- Shows the app icon, name, tagline, information rows, Sparkle acknowledgement, and creator credit. The identity sits above the Information group and the credit scrolls into view.
 - Version matches the running build.
-- `View on GitHub` and `@fedemas` open the browser. `Open in Finder` creates and opens both folders, whose paths stay selectable. The license rows open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt`. `Check for Updates…` is disabled while Sparkle cannot check.
+- `View on GitHub` and `@fedemas` open the browser. `Open in Finder` creates and opens both folders, whose paths stay selectable. The `View License` buttons open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt`. `Check for Updates…` is disabled while Sparkle cannot check.
 - Larger text does not clip sidebar labels or folder paths.
 
-**Previews.** The named previews in `Sources/Features/Configuration/SettingsView.swift` cover all three panes and the empty Keyboards state in light and dark, and at 840 × 560 with large text and many keyboards. Compare them with the Pencil frames `Settings / General`, `Settings / Keyboards`, `Settings / About`, and `Settings / Keyboards / Empty` in `design/design.pen`.
+**Previews.** The named previews in `Sources/Features/Configuration/SettingsView.swift` cover all three panes and the empty Keyboards state in light and dark, and at 840 × 560 with large text and many keyboards. Only the sidebar follows the Pencil designs in `design/design.pen`; the panes follow System Settings.
 
 ### Menu bar menu
 
