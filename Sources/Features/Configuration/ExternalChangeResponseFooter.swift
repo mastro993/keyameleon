@@ -15,11 +15,11 @@ struct ExternalChangeResponseFooter: View {
     private var explanation: String {
         switch response {
         case .switchBack:
-            "Your next key press switches to the input source of the keyboard you type on."
+            "The next key press switches to the input source assigned to that keyboard."
         case .holdUntilMatch:
             "The new input source stays until you type on a keyboard assigned to it."
         case .holdUntilKeyboardChange:
-            "The new input source stays until you type on a different keyboard."
+            "The new input source stays until you type on another keyboard."
         }
     }
 }

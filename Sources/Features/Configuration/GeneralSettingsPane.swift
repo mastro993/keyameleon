@@ -24,11 +24,12 @@ struct GeneralSettingsPane: View {
 
             Section {
                 Picker(selection: externalChangeResponseBinding) {
-                    Text("Switch back on next key press").tag(ExternalChangeResponse.switchBack)
-                    Text("Keep it until it matches the keyboard").tag(ExternalChangeResponse.holdUntilMatch)
-                    Text("Keep it until I type on another keyboard").tag(ExternalChangeResponse.holdUntilKeyboardChange)
+                    Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
+                    Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
+                    Text("Keep it until you type on another keyboard")
+                        .tag(ExternalChangeResponse.holdUntilKeyboardChange)
                 } label: {
-                    Text("When the input source is changed outside Keyameleon")
+                    Text("When the input source changes outside Keyameleon")
                         .font(Theme.Typography.rowTitle)
                         .foregroundStyle(Theme.primary)
                 }
