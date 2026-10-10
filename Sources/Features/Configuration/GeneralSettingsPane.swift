@@ -21,6 +21,24 @@ struct GeneralSettingsPane: View {
             } footer: {
                 LaunchAtLoginFooter(hasError: model.launchAtLoginError != nil)
             }
+
+            Section {
+                Picker(selection: externalChangeResponseBinding) {
+                    Text("Switch back on next key press").tag(ExternalChangeResponse.switchBack)
+                    Text("Keep it until it matches the keyboard").tag(ExternalChangeResponse.holdUntilMatch)
+                    Text("Keep it until I type on another keyboard").tag(ExternalChangeResponse.holdUntilKeyboardChange)
+                } label: {
+                    Text("When the input source is changed outside Keyameleon")
+                        .font(Theme.Typography.rowTitle)
+                        .foregroundStyle(Theme.primary)
+                }
+            } header: {
+                Text("Switching")
+                    .font(Theme.Typography.sectionTitle)
+                    .foregroundStyle(Theme.primary)
+            } footer: {
+                ExternalChangeResponseFooter(response: model.externalChangeResponse)
+            }
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
@@ -34,12 +52,26 @@ struct GeneralSettingsPane: View {
             set: { model.setLaunchAtLoginEnabled($0) }
         )
     }
+
+    private var externalChangeResponseBinding: Binding<ExternalChangeResponse> {
+        Binding(
+            get: { model.externalChangeResponse },
+            set: { model.setExternalChangeResponse($0) }
+        )
+    }
 }
 
 #if DEBUG
 #Preview("General pane") {
     GeneralSettingsPane(
         model: PreviewFixtures.general(launchAtLoginEnabled: true)
+    )
+    .frame(width: 620, height: 400)
+}
+
+#Preview("General pane holding until keyboard change") {
+    GeneralSettingsPane(
+        model: PreviewFixtures.general(externalChangeResponse: .holdUntilKeyboardChange)
     )
     .frame(width: 620, height: 400)
 }

@@ -4,6 +4,22 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-10 — External Change Response and Input Source Hold (#182)
+
+- Typing a few words in another layout, or using an input method that toggles
+  modes while typing, was nearly impossible: every External Input Source Change
+  was reverted on the next key press. General settings now offer an External
+  Change Response; the two hold options start an in-memory Input Source Hold.
+- Keyameleon's own selections were already invisible to the change handler:
+  `applyWantedKeyboardAssignment` updates the observed Input Source before the
+  notification arrives. A change first seen on a key press is also caught,
+  because `refreshCurrentIdentifier()` publishes before the assignment applies.
+- `InputSourceHoldPolicy` holds the rules as pure functions;
+  `InputSourceHoldTracker` keeps the state and writes the start and end log
+  lines. Both live outside `ActivityTriggeredSwitching.swift`, which sits at
+  the SwiftLint file-length limit, and its testing accessors moved to
+  `ActivityTriggeredSwitching+Testing.swift` for the same reason.
+
 ## 2026-10-09 — README search visibility and screenshots
 
 - Repository description and topics now name the product category

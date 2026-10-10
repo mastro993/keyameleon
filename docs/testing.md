@@ -90,8 +90,9 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 **General**
 
-- Shows the `App` heading and the Launch at login switch.
+- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When the input source is changed outside Keyameleon** picker, set to `Switch back on next key press` on a fresh install or after updating.
 - Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and shows an error with Open Login Items.
+- Each External Change Response shows its own footer line, and the choice persists across a relaunch.
 
 **Keyboards**
 
@@ -129,7 +130,21 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 7. **Accessibility.** With Increase Contrast and Reduce Transparency on, the background stays readable and the keyboard contrast treatment stays visible. With the menu open, scroll a six-keyboard list and change a keyboard or recovery state: ordinary updates keep the scroll position, and a notice replaces the list until resolved. With Reduce Motion on, changing the active keyboard updates the pill without its spring. Links and buttons show their native pointer without a stuck hand cursor.
 8. **Same Input Source on two keyboards.** With U.S. selected, assign it to two keyboards. Press a key on the first, the second, then the first again, reopening the menu each time. Only the last-used keyboard shows the active accent while U.S. stays selected. `menuBarPanelActivatesKeyboardWithCurrentInputSource` automates this sequence.
 
+9. **Input Source Hold.** During a hold (see [External Input Source Changes](#external-input-source-changes)), the menu shows a neutral `Input source kept` notice naming the current Input Source and what ends the hold, instead of the mismatch notice. **Switch Back Now** closes the menu, ends the hold, and selects the Active Physical Keyboard's Input Source; reopening shows the keyboard list.
+
 `MenuBarPanelPreviews.swift` previews the keyboard region, and `MenuBarPanelNoticeView.swift` previews warning, neutral, and long notices in light and dark. Verify native menu behavior in the running app.
+
+### External Input Source Changes
+
+`InputSourceHoldPolicyTests` covers every start and end rule, and `InputSourceHoldTests` drives them through the module seams. Check the real behavior with two assigned keyboards, A on U.S. and B on Italian, and a third Input Source such as French enabled. Type on A first so it is the Active Physical Keyboard. Change the Input Source with the menu bar, a shortcut, and the Globe key; all three behave the same. The Log File shows one `debug` line when a hold starts and one when it ends, with the reason.
+
+1. **Switch back on next key press.** Change to French. The next key press on A selects U.S. again. No hold notice appears.
+2. **Keep it until I type on another keyboard.** Change to French. Keep typing on A: French stays, and the menu shows the hold notice. Type on B: Italian is selected. Repeat, and type on an unassigned keyboard instead: French stays and the hold ends; typing on A then selects U.S.
+3. **Keep it until it matches the keyboard.** Change to Italian while typing on A: Italian stays while you type on A. Type on B: the hold ends without a visible change. Type on A: U.S. is selected. With a Japanese input method assigned to A, toggling Kana and Eisu while typing on A keeps the hold until you type on a keyboard assigned to the mode now selected.
+4. **Fresh launch.** Relaunch, change to French before typing, then type on B: French stays. Type on A: U.S. is selected.
+5. **Hold ends.** Start a hold, then check each ending separately: Switch Back Now in the menu (selects A's Input Source), Pause then Resume, changing the picker in General, editing or removing the holding keyboard's Input Source in Keyboards, disconnecting the holding keyboard, and relaunching. After each, the next key press on A selects U.S.
+6. **Hold survives.** Start a hold, sleep and wake the Mac, then type on A: French stays. Typing on an ignored device never ends a hold.
+7. **No hold.** Change to A's own Input Source while A is active, or change it while paused or during Guided setup: no hold notice appears.
 
 ### Input Monitoring recovery
 

@@ -9,7 +9,10 @@ func generalSettingsTogglesLaunchAtLogin() {
     let updates = FakeUpdateChecker(canCheck: true)
     let model = GeneralSettingsModel(
         launchAtLoginController: launchAtLogin,
-        updateChecker: updates
+        updateChecker: updates,
+        activityTriggeredSwitching: ProductionFactory.makeActivityTriggeredSwitching(
+            setupStore: SetupModelTestSetupDecisionStore()
+        ).activityTriggeredSwitching
     )
 
     #expect(model.isLaunchAtLoginEnabled == false)
@@ -28,7 +31,10 @@ func generalSettingsSurfacesLaunchAtLoginFailures() {
     let updates = FakeUpdateChecker(canCheck: false)
     let model = GeneralSettingsModel(
         launchAtLoginController: launchAtLogin,
-        updateChecker: updates
+        updateChecker: updates,
+        activityTriggeredSwitching: ProductionFactory.makeActivityTriggeredSwitching(
+            setupStore: SetupModelTestSetupDecisionStore()
+        ).activityTriggeredSwitching
     )
 
     model.setLaunchAtLoginEnabled(true)
@@ -44,12 +50,52 @@ func generalSettingsRequestsUpdateCheck() {
     let updates = FakeUpdateChecker(canCheck: true)
     let model = GeneralSettingsModel(
         launchAtLoginController: launchAtLogin,
-        updateChecker: updates
+        updateChecker: updates,
+        activityTriggeredSwitching: ProductionFactory.makeActivityTriggeredSwitching(
+            setupStore: SetupModelTestSetupDecisionStore()
+        ).activityTriggeredSwitching
     )
 
     model.checkForUpdates()
 
     #expect(updates.checkForUpdatesCallCount == 1)
+}
+
+@MainActor
+@Test("General settings saves the External Change Response through Activity-Triggered Switching")
+func generalSettingsSavesExternalChangeResponse() {
+    let setupStore = SetupModelTestSetupDecisionStore()
+    let switching = ProductionFactory.makeActivityTriggeredSwitching(setupStore: setupStore)
+        .activityTriggeredSwitching
+    let model = GeneralSettingsModel(
+        launchAtLoginController: FakeLaunchAtLoginController(isEnabled: false),
+        updateChecker: FakeUpdateChecker(canCheck: true),
+        activityTriggeredSwitching: switching
+    )
+
+    #expect(model.externalChangeResponse == .switchBack)
+
+    model.setExternalChangeResponse(.holdUntilKeyboardChange)
+
+    #expect(model.externalChangeResponse == .holdUntilKeyboardChange)
+    #expect(switching.externalChangeResponse == .holdUntilKeyboardChange)
+    #expect(setupStore.externalChangeResponse == .holdUntilKeyboardChange)
+}
+
+@MainActor
+@Test("The saved External Change Response is read back after restart")
+func savedExternalChangeResponseSurvivesRestart() throws {
+    let suiteName = "keyameleon.tests.externalChangeResponse.\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    #expect(UserDefaultsSetupDecisionStore(defaults: defaults).externalChangeResponse == .switchBack)
+    UserDefaultsSetupDecisionStore(defaults: defaults).setExternalChangeResponse(.holdUntilMatch)
+
+    let switching = ProductionFactory.makeActivityTriggeredSwitching(
+        setupStore: UserDefaultsSetupDecisionStore(defaults: defaults)
+    ).activityTriggeredSwitching
+    #expect(switching.externalChangeResponse == .holdUntilMatch)
 }
 
 @MainActor

@@ -61,7 +61,7 @@ A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device
 
 ## Activity-Triggered Switching
 
-`ActivityTriggeredSwitching` is the single switching module. It exposes one immutable outcome and seven operations: start, stop, request permission, check again, pause, resume, and retry now. Its permission actions depend on the Input Monitoring decision: unknown offers Request Permission; denied offers Open System Settings and Relaunch. Discovery, Input Source selection, and record storage stay behind their own modules.
+`ActivityTriggeredSwitching` is the single switching module. It exposes one immutable outcome and nine operations: start, stop, request permission, check again, pause, resume, retry now, set the External Change Response, and switch back now. Its permission actions depend on the Input Monitoring decision: unknown offers Request Permission; denied offers Open System Settings and Relaunch. Discovery, Input Source selection, and record storage stay behind their own modules.
 
 ### Switching
 
@@ -69,8 +69,28 @@ A **Physical Keyboard Exclusion** (shown as **Ignore** in the UI) marks a device
 - Keyameleon requests the exact assigned Input Source and reads it back to verify. It does not delay or change the triggering event, so that event and anything macOS handles before verification can use the previous Input Source.
 - Requests are serialized in observation order and tagged with a generation, so stale readbacks from rapid typing across keyboards are discarded.
 - A request is skipped when the wanted assignment is already verified and current. Two keyboards assigned to the same Input Source therefore switch the active keyboard without selecting again.
-- If the person changes the Input Source manually or another app does, Keyameleon records it and shows the mismatch but does not fight it. The next Activation Activity reapplies the assignment.
+- If the Input Source changes outside Keyameleon, Keyameleon records it but does not fight it. What happens next depends on the External Change Response (see [External Input Source Changes](#external-input-source-changes)).
 - Before selecting, including on Retry Now, Keyameleon reads the keyboard's saved name. If that read fails, it selects nothing.
+
+### External Input Source Changes
+
+An **External Input Source Change** is any change of the current Input Source that Keyameleon did not make: a keyboard shortcut, the menu bar, the Globe key, macOS per-document switching, an input method toggling modes (Japanese Kana/Eisu, Caps Lock switching to and from ABC), or another app. Keyameleon cannot tell them apart and treats them all the same. Its own selections never count: each one updates the observed Input Source before its change notification arrives.
+
+The global **External Change Response** (General settings) decides what happens next:
+
+- **Switch Back** (default, `Switch back on next key press`): no Input Source Hold; the next Activation Activity applies the Keyboard Assignment. Updating users see no behavior change.
+- **Hold Until Match** (`Keep it until it matches the keyboard`): an **Input Source Hold** starts and ends on Activation Activity from a Physical Keyboard whose Keyboard Assignment equals the current Input Source, checked against the keyboard typed on at each key press. An unassigned keyboard never ends it.
+- **Hold Until Keyboard Change** (`Keep it until I type on another keyboard`): a hold starts, tied to the Active Physical Keyboard, and ends on Activation Activity from a different Physical Keyboard. An unassigned keyboard ends it without selecting anything; typing on the original keyboard then switches back. With no Active Physical Keyboard at the time of the change (fresh launch, before any typing), the first keyboard typed on becomes the holding keyboard. The holding keyboard disconnecting ends the hold. Ignored devices produce no Activation Activity, so they never end a hold.
+
+Further rules:
+
+- No hold starts when the new Input Source already equals the Active Physical Keyboard's Keyboard Assignment, or when Switching Status is not Ready (Paused, Permission Required, during Guided setup).
+- Another External Input Source Change during a hold does not restart it.
+- Any hold ends on app restart, Pause then Resume, changing the External Change Response, editing or removing the holding keyboard's Keyboard Assignment (for Hold Until Match, the Active Physical Keyboard's), or **Switch Back Now** in the menu, which also applies the Active Physical Keyboard's Keyboard Assignment. Sleep and wake keep the hold.
+- The hold lives in memory only and is never saved. The response is saved in UserDefaults under `keyameleon.activityTriggeredSwitching.externalChangeResponse`.
+- `InputSourceHoldPolicy` owns every start and end rule that depends on keyboards and Input Sources, as pure functions with unit tests.
+
+There is no **switch back right away** option that reverts the change as soon as it is noticed. It would fight macOS per-document switching, input methods, and other switcher apps, could loop against them, and would reverse the "no fight" choice from [#6](https://github.com/mastro993/keyameleon/issues/6). Remembering the change as the keyboard's new Keyboard Assignment is left to an explicit action, and a per-keyboard response is left out for simplicity.
 
 ### Failures and recovery
 
@@ -123,7 +143,7 @@ The status item owns a native `NSMenu`. AppKit draws the heading, notices, comma
 - **Middle region:** either the keyboard list or one notice, never both.
   - The keyboard list is SwiftUI hosted in the menu, showing assigned keyboards only: the built-in keyboard first, then connected, then disconnected, alphabetical within each group. It has no section label, a 4 pt inset, and a five-row scrolling viewport. Ordinary updates reuse the host to keep the scroll position.
   - Each pill is one line: connection mark (`circle.fill`, `circle`, or `circle.dashed`), the Physical Keyboard Name, an optional warning triangle, and a filled locale-code badge (such as `US` or `IT`, resolved from the layout's primary language and its canonical region). The active keyboard gets an accent fill and border. Disconnected pills are dimmed (more opaque under Increase Contrast), except the warning triangle.
-  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. Other notices are neutral and open Settings. The menu exists only after setup, so it never asks to finish setup; its notices report later changes that need action. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
+  - A notice has a title, a short explanation, and one full-width button. A saved-data failure is a yellow notice with Retry and outranks everything else. Missing permission is yellow: before macOS has asked it reads **Input Monitoring required** with **Allow Input Monitoring…**; once asked it reads **Input Monitoring is off** with **Open System Settings**, and the commands gain **Restart Keyameleon** below Pause. Selection failure offers Retry Now when available. During an Input Source Hold, a neutral **Input source kept** notice names the current Input Source, says what ends the hold, and offers **Switch Back Now**; it replaces the mismatch notice. Other notices are neutral and open Settings. The menu exists only after setup, so it never asks to finish setup; its notices report later changes that need action. Buttons are native `NSButton`s so they work during menu tracking, and the notice's menu item carries the same action for keyboard activation.
 - **Commands:** Pause or Resume Switching (<kbd>⌘</kbd><kbd>P</kbd>), Settings (<kbd>⌘</kbd><kbd>,</kbd>), Check for Updates… directly below Settings, and Quit Keyameleon (<kbd>⌘</kbd><kbd>Q</kbd>) last. Every command closes the menu. There are no tooltips and no About item; About lives in Settings.
 - The menu refreshes permission, Input Sources, and status before it opens.
 
@@ -132,7 +152,7 @@ The status item owns a native `NSMenu`. AppKit draws the heading, notices, comma
 Settings is a branded window with a sidebar and three panes: **General**, **Keyboards**, and **About**. It reopens on the last pane and has an 840 × 560 minimum size, enforced by both the window and the SwiftUI content.
 
 - The sidebar is a native `List(selection:)` with the keycap mark from the official logo. Panes use grouped `Form` and `Section` with platform margins and row insets, and no per-pane padding.
-- **General:** Launch at login (via `SMAppService.mainApp`) as a native toggle. If a change fails, the toggle shows the real service state and the footer offers **Open Login Items**.
+- **General:** Launch at login (via `SMAppService.mainApp`) as a native toggle. If a change fails, the toggle shows the real service state and the footer offers **Open Login Items**. Under a `Switching` heading, the **When the input source is changed outside Keyameleon** picker sets the External Change Response, with a one-line footer explaining the selected option.
 - **Keyboards:** the shared keyboard list under an `Input sources` heading. The Input Source control is a bordered menu hosting a native picker in a fixed 176 pt column so every row lines up. An Unavailable Keyboard Assignment reads `Unavailable`, with a tooltip on how to fix it. With no keyboards, a native `ContentUnavailableView` reads `No keyboards detected`, unless saved data is unreadable, in which case only the Retry notice shows.
 - **About:** app icon, name, and tagline; rows for version (with build number), source code, app data folder, logs folder, license, and updates; the Sparkle acknowledgement; and the creator credit, which scrolls with the pane. Folder paths are selectable and open in Finder. License rows open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt` and are disabled if the build lacks them.
 
@@ -144,7 +164,7 @@ Guided setup and Settings share `Theme` for colors and type, so the two windows 
 - Nothing is written until `Log.start` installs a writer at launch, so tests and previews never touch the real Logs folder.
 - The writer appends to `~/Library/Logs/Keyameleon/keyameleon.log` through one `O_APPEND` descriptor, rotates at 1 MiB, and keeps five rotated files. It collapses line breaks inside a message, truncates oversized records, and reopens the file if it is deleted or replaced. Every file operation is best effort and never interrupts switching.
 - A line holds the timestamp, level, category, and message. Keyboard lines use the Physical Keyboard Name (the saved custom name first), never identities, paths, system error text, or Key Content.
-- Logged events include launch, termination, store and Launch at Login failures, update checks, connections and disconnections, changes of Active Physical Keyboard, selection results, status changes, permission, and assignment changes. There is no line per keystroke; `verbose` covers external Input Source changes.
+- Logged events include launch, termination, store and Launch at Login failures, update checks, connections and disconnections, changes of Active Physical Keyboard, selection results, status changes, permission, assignment changes, External Change Response changes, and the start and end of each Input Source Hold at `debug`, with the reason it ended. There is no line per keystroke; `verbose` covers External Input Source Changes.
 - A blocked second launch appends one line without rotating, so it never renames a file the running app holds open.
 - A crash leaves no marker; the missing `Terminating` line shows it.
 

@@ -92,6 +92,9 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
     let mismatch: ActivityTriggeredSwitchingMismatch?
     let warnings: [ActivityTriggeredSwitchingWarning]
     let availableActions: Set<ActivityTriggeredSwitchingAction>
+    /// The External Change Response keeping the current Input Source, or nil
+    /// when no Input Source Hold is running.
+    var inputSourceHold: ExternalChangeResponse?
 
     static let initial = ActivityTriggeredSwitchingOutcome(
         switchingStatus: .permissionRequired,
@@ -127,7 +130,8 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
                 listenPermission: listenPermission,
                 warnings: warnings,
                 isPaused: isPaused
-            )
+            ),
+            inputSourceHold: inputSourceHold
         )
     }
 }

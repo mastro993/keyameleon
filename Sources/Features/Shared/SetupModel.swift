@@ -14,12 +14,14 @@ protocol SetupDecisionStoring: AnyObject {
     var guidedSetupStep: GuidedSetupStep { get }
     var isActivityTriggeredSwitchingPaused: Bool { get }
     var hasEvaluatedBuiltInIdentityMigration: Bool { get }
+    var externalChangeResponse: ExternalChangeResponse { get }
 
     func markGuidedSetupStarted()
     func markGuidedSetupStep(_ step: GuidedSetupStep)
     func markGuidedSetupCompleted()
     func setActivityTriggeredSwitchingPaused(_ paused: Bool)
     func markBuiltInIdentityMigrationEvaluated()
+    func setExternalChangeResponse(_ response: ExternalChangeResponse)
 }
 
 @MainActor
@@ -32,6 +34,8 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
             "keyameleon.activityTriggeredSwitching.paused"
         static let hasEvaluatedBuiltInIdentityMigration =
             "keyameleon.builtInIdentityMigration.evaluated"
+        static let externalChangeResponse =
+            "keyameleon.activityTriggeredSwitching.externalChangeResponse"
     }
 
     private let defaults: UserDefaults
@@ -67,6 +71,11 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
         defaults.bool(forKey: Key.hasEvaluatedBuiltInIdentityMigration)
     }
 
+    var externalChangeResponse: ExternalChangeResponse {
+        defaults.string(forKey: Key.externalChangeResponse)
+            .flatMap(ExternalChangeResponse.init(rawValue:)) ?? .switchBack
+    }
+
     func markGuidedSetupStarted() {
         defaults.set(true, forKey: Key.hasStartedGuidedSetup)
         if defaults.string(forKey: Key.guidedSetupStep) == nil {
@@ -91,6 +100,10 @@ final class UserDefaultsSetupDecisionStore: SetupDecisionStoring {
 
     func markBuiltInIdentityMigrationEvaluated() {
         defaults.set(true, forKey: Key.hasEvaluatedBuiltInIdentityMigration)
+    }
+
+    func setExternalChangeResponse(_ response: ExternalChangeResponse) {
+        defaults.set(response.rawValue, forKey: Key.externalChangeResponse)
     }
 }
 
@@ -802,6 +815,7 @@ final class SetupModel {
                         ? "Keyboard Assignment removed for \(keyboard.name)"
                         : "Keyboard Assignment saved for \(keyboard.name)"
                 )
+                activityTriggeredSwitching.keyboardAssignmentDidChange(keyboard.id)
             case let .replace(old, new):
                 Log.debug(.setup, "Moved the saved Physical Keyboard record to \(old.name)")
                 lastKnownPhysicalKeyboards.removeValue(forKey: old.id.rawValue)

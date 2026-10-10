@@ -56,15 +56,18 @@ enum PreviewFixtures {
     static func general(
         launchAtLoginEnabled: Bool = false,
         launchAtLoginFailure: Bool = false,
-        canCheckForUpdates: Bool = true
+        canCheckForUpdates: Bool = true,
+        externalChangeResponse: ExternalChangeResponse = .switchBack
     ) -> GeneralSettingsModel {
         let model = GeneralSettingsModel(
             launchAtLoginController: PreviewLaunchAtLoginController(
                 isEnabled: launchAtLoginEnabled,
                 shouldFail: launchAtLoginFailure
             ),
-            updateChecker: PreviewUpdateChecker(canCheck: canCheckForUpdates)
+            updateChecker: PreviewUpdateChecker(canCheck: canCheckForUpdates),
+            activityTriggeredSwitching: setup(.completed).model.activityTriggeredSwitching
         )
+        model.setExternalChangeResponse(externalChangeResponse)
 
         if launchAtLoginFailure {
             model.setLaunchAtLoginEnabled(!launchAtLoginEnabled)
@@ -570,6 +573,7 @@ final class PreviewSetupDecisionStore: SetupDecisionStoring {
     private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var isActivityTriggeredSwitchingPaused: Bool
     private(set) var hasEvaluatedBuiltInIdentityMigration = true
+    private(set) var externalChangeResponse: ExternalChangeResponse = .switchBack
 
     init(
         hasStartedGuidedSetup: Bool,
@@ -604,6 +608,10 @@ final class PreviewSetupDecisionStore: SetupDecisionStoring {
 
     func markBuiltInIdentityMigrationEvaluated() {
         hasEvaluatedBuiltInIdentityMigration = true
+    }
+
+    func setExternalChangeResponse(_ response: ExternalChangeResponse) {
+        externalChangeResponse = response
     }
 }
 

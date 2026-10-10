@@ -128,7 +128,8 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         )
         generalSettingsModel = GeneralSettingsModel(
             launchAtLoginController: launchAtLoginController,
-            updateChecker: updateChecker
+            updateChecker: updateChecker,
+            activityTriggeredSwitching: composition.activityTriggeredSwitching
         )
 
         super.init()

@@ -726,6 +726,41 @@ func menuBarPanelMismatchNoticeNamesActivePhysicalKeyboard() {
     #expect(notice?.action.id == .settings)
 }
 
+@Test("Input Source Hold notice explains its end and offers Switch Back Now instead of the mismatch")
+@MainActor
+func menuBarPanelHoldNoticeOffersSwitchBackNow() {
+    func outcome(hold: ExternalChangeResponse?, currentName: String? = "Italian") -> ActivityTriggeredSwitchingOutcome {
+        ActivityTriggeredSwitchingOutcome(
+            switchingStatus: .ready,
+            temporarilyUnavailableReasons: [],
+            activePhysicalKeyboard: ActivityTriggeredSwitchingActivePhysicalKeyboard(
+                name: "Travel",
+                connectionState: .connected,
+                assignment: .assigned(name: "U.S.")
+            ),
+            currentKeyboardAssignment: .assigned(name: "U.S."),
+            currentInputSourceName: currentName,
+            mismatch: ActivityTriggeredSwitchingMismatch(currentName: "Italian", assignedName: "U.S."),
+            warnings: [],
+            availableActions: [.pause],
+            inputSourceHold: hold
+        )
+    }
+
+    let keyboardChange = makeMenuBarPanelContent(outcome: outcome(hold: .holdUntilKeyboardChange)).notice
+    #expect(keyboardChange?.title == "Input source kept")
+    #expect(keyboardChange?.detail == "Italian stays until you type on another keyboard.")
+    #expect(keyboardChange?.action == .init(id: .switchBackNow, title: "Switch Back Now", isEnabled: true))
+    #expect(keyboardChange?.tone == .neutral)
+
+    let match = makeMenuBarPanelContent(outcome: outcome(hold: .holdUntilMatch, currentName: nil)).notice
+    #expect(match?.detail == "The input source stays until you type on a keyboard assigned to it.")
+    #expect(match?.action.id == .switchBackNow)
+
+    #expect(makeMenuBarPanelContent(outcome: outcome(hold: nil)).notice?.title == "Input source differs")
+    #expect(MenuBarPanelActionID.switchBackNow.shortcut == nil)
+}
+
 @Test("Input Source differs notice omits a missing Active Physical Keyboard name")
 @MainActor
 func menuBarPanelMismatchNoticeOmitsMissingActivePhysicalKeyboardName() {

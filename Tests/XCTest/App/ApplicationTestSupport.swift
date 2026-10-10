@@ -102,6 +102,7 @@ final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
     private(set) var guidedSetupStep: GuidedSetupStep
     private(set) var isActivityTriggeredSwitchingPaused = false
     private(set) var hasEvaluatedBuiltInIdentityMigration = false
+    private(set) var externalChangeResponse: ExternalChangeResponse = .switchBack
 
     init(
         hasStartedGuidedSetup: Bool = false,
@@ -134,6 +135,10 @@ final class ApplicationTestSetupDecisionStore: SetupDecisionStoring {
 
     func markBuiltInIdentityMigrationEvaluated() {
         hasEvaluatedBuiltInIdentityMigration = true
+    }
+
+    func setExternalChangeResponse(_ response: ExternalChangeResponse) {
+        externalChangeResponse = response
     }
 }
 
