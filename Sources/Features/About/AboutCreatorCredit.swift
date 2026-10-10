@@ -3,9 +3,15 @@ import SwiftUI
 @MainActor
 struct AboutCreatorCredit: View {
     var body: some View {
-        HStack {
+        HStack(spacing: 4) {
             Text("Made with ❤️ by")
-            Link("@fedemas", destination: AboutInfo.creatorURL)
+                .font(Theme.Typography.caption)
+                .foregroundStyle(Theme.secondary)
+            Link(destination: AboutInfo.creatorURL) {
+                Text("@fedemas")
+                    .font(Theme.Typography.caption)
+            }
+            .pointingHandCursor()
         }
         .frame(maxWidth: .infinity)
     }
@@ -16,5 +22,6 @@ struct AboutCreatorCredit: View {
     AboutCreatorCredit()
         .padding()
         .frame(width: 320)
+        .background(Theme.contentBackground)
 }
 #endif

@@ -15,49 +15,74 @@ struct AboutSettingsPane: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent("Version", value: info.identity.aboutVersionLabel)
-                LabeledContent("Source code") {
-                    Link("View on GitHub", destination: info.repositoryURL)
-                        .help("Opens Keyameleon's source repository on GitHub.")
+                AboutInformationRow(label: "Version") {
+                    Text(info.identity.aboutVersionLabel)
+                        .foregroundStyle(Theme.secondary)
                 }
-                AboutFolderRow(label: "App data folder", url: info.appDataFolderURL, openFolder: openFolder)
-                    .help("Contains Keyameleon's local application data.")
-                AboutFolderRow(label: "Logs folder", url: info.logsFolderURL, openFolder: openFolder)
-                    .help("Contains Keyameleon's local log files.")
-                LabeledContent {
-                    licenseButton(for: .project)
-                } label: {
-                    Text("License")
-                    Text("MIT")
+                AboutInformationRow(label: "Source code") {
+                    Link(destination: info.repositoryURL) {
+                        AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+                    }
+                    .help("Opens Keyameleon's source repository on GitHub.")
                 }
-                LabeledContent("Updates") {
-                    Button("Check for Updates…", action: model.checkForUpdates)
-                        .disabled(!model.canCheckForUpdates)
-                        .help("Checks whether a newer Keyameleon version is available.")
+                AboutFolderRow(
+                    label: "App data folder",
+                    url: info.appDataFolderURL,
+                    openFolder: openFolder
+                )
+                .help("Contains Keyameleon's local application data.")
+                AboutFolderRow(
+                    label: "Logs folder",
+                    url: info.logsFolderURL,
+                    openFolder: openFolder
+                )
+                .help("Contains Keyameleon's local log files.")
+                AboutInformationRow(label: "License") {
+                    licenseButton(for: .project, title: "MIT")
+                        .help("Opens the MIT License.")
+                }
+                AboutInformationRow(label: "Updates") {
+                    Button(action: model.checkForUpdates) {
+                        AboutLinkLabel(title: "Check for Updates…")
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!model.canCheckForUpdates)
+                    .help("Checks whether a newer Keyameleon version is available.")
                 }
             } header: {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 16) {
                     AboutIdentityBlock(info: info)
-                    Text("Information")
+                    AboutSectionHeading(title: "Information")
                 }
             }
             Section {
-                LabeledContent("Sparkle") {
-                    licenseButton(for: .sparkle)
+                AboutInformationRow(label: "Sparkle") {
+                    licenseButton(for: .sparkle, title: "View License")
                 }
             } header: {
-                Text("Acknowledgements")
+                AboutSectionHeading(title: "Acknowledgements")
             } footer: {
                 AboutCreatorCredit()
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Theme.contentBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    /// A bundled license text, disabled when the build does not carry it.
-    private func licenseButton(for license: BundledLicense) -> some View {
-        Button("View License", action: license.open)
-            .disabled(license.url == nil)
+    /// A bundled license text, or a disabled label when the build does not carry it.
+    private func licenseButton(
+        for license: BundledLicense,
+        title: String
+    ) -> some View {
+        Button {
+            license.open()
+        } label: {
+            AboutLinkLabel(title: title, systemImage: "chevron.right")
+        }
+        .buttonStyle(.plain)
+        .disabled(license.url == nil)
     }
 
     private func openFolder(_ url: URL) {

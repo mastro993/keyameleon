@@ -29,6 +29,9 @@ struct SettingsView: View {
                 pane
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            // The pane fills under the transparent title bar and supplies its own top inset.
+            .ignoresSafeArea(edges: .top)
+            .background(Theme.contentBackground, ignoresSafeAreaEdges: .all)
         }
         .frame(
             minWidth: Theme.Metrics.settingsWindowMinimumWidth,

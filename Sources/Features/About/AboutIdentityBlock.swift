@@ -6,18 +6,19 @@ struct AboutIdentityBlock: View {
     let info: AboutInfo
 
     var body: some View {
-        HStack {
+        HStack(spacing: 14) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
+                .interpolation(.high)
                 .frame(width: 48, height: 48)
                 .accessibilityLabel("Keyameleon app icon")
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text(info.identity.name)
-                    .font(.title2)
-                    .foregroundStyle(.primary)
+                    .font(Theme.Typography.screenTitle)
+                    .foregroundStyle(Theme.primary)
                 Text("The right layout. On every keyboard.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(Theme.secondary)
             }
         }
     }
@@ -28,5 +29,6 @@ struct AboutIdentityBlock: View {
     AboutIdentityBlock(info: PreviewFixtures.aboutInfo)
         .padding()
         .frame(width: 620, alignment: .leading)
+        .background(Theme.contentBackground)
 }
 #endif

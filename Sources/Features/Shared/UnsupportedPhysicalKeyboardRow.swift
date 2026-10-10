@@ -6,12 +6,20 @@ struct UnsupportedPhysicalKeyboardRow: View {
     let keyboard: PhysicalKeyboard
 
     var body: some View {
-        LabeledContent {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(keyboard.name)
+                    .font(Theme.Typography.rowTitle)
+                    .foregroundStyle(Theme.muted)
+                Text(subtitle)
+                    .font(Theme.Typography.subheadline)
+                    .foregroundStyle(Theme.muted)
+            }
+            Spacer(minLength: 0)
             Text(reason.title)
+                .font(Theme.Typography.subheadline)
+                .foregroundStyle(Theme.secondary)
                 .help(reason.explanation)
-        } label: {
-            Text(keyboard.name)
-            Text(subtitle)
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint(reason.explanation)
@@ -41,10 +49,8 @@ struct UnsupportedPhysicalKeyboardRow: View {
 
 #if DEBUG
 #Preview("Unsupported device row") {
-    Form {
-        UnsupportedPhysicalKeyboardRow(keyboard: PreviewFixtures.unsupportedPhysicalKeyboard())
-    }
-    .formStyle(.grouped)
-    .frame(width: 630)
+    UnsupportedPhysicalKeyboardRow(keyboard: PreviewFixtures.unsupportedPhysicalKeyboard())
+        .padding()
+        .frame(width: 630)
 }
 #endif

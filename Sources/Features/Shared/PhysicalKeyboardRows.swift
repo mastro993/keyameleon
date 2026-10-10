@@ -11,10 +11,6 @@ struct PhysicalKeyboardRow: Identifiable, Equatable {
         case matched(SavedPhysicalKeyboardRecord)
         case missing
         case ambiguous
-
-        var record: SavedPhysicalKeyboardRecord? {
-            if case let .matched(record) = self { record } else { nil }
-        }
     }
 
     enum RowID: Hashable {

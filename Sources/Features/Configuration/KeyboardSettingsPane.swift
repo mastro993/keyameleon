@@ -19,9 +19,15 @@ struct KeyboardSettingsPane: View {
     var body: some View {
         Group {
             if rows.rows.isEmpty && rows.unsupportedKeyboards.isEmpty {
-                if !model.hasPersistenceFailure {
-                    KeyboardEmptyState()
+                VStack(alignment: .leading, spacing: Theme.Metrics.paneSpacing) {
+                    KeyboardSettingsHeader()
+
+                    if !model.hasPersistenceFailure {
+                        KeyboardEmptyState()
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(EdgeInsets(top: 20, leading: 30, bottom: 20, trailing: 30))
             } else {
                 KeyboardSettingsList(
                     model: model,
@@ -38,7 +44,7 @@ struct KeyboardSettingsPane: View {
                 )
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .accessibilityIdentifier("physical-keyboard-configuration")
         .onChange(of: model.physicalKeyboards) { _, _ in rows.reconcile(with: model) }
         .onChange(of: model.excludedPhysicalKeyboards) { _, _ in rows.reconcile(with: model) }
@@ -57,6 +63,7 @@ private struct KeyboardEmptyState: View {
                 "Connect a USB or Bluetooth keyboard. It appears here automatically."
             )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -64,27 +71,32 @@ private struct KeyboardEmptyState: View {
 #Preview("Keyboards pane") {
     KeyboardSettingsPane(model: PreviewFixtures.setup(.pencilAssignments).model)
         .frame(width: 620, height: 560)
+        .background(Theme.contentBackground)
 }
 
 #Preview("Keyboards pane empty") {
     KeyboardSettingsPane(model: PreviewFixtures.setup(.assignmentsEmpty).model)
         .frame(width: 620, height: 560)
+        .background(Theme.contentBackground)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Keyboards pane large text") {
     KeyboardSettingsPane(model: PreviewFixtures.setup(.manyAssignments).model)
         .frame(width: 620, height: 560)
+        .background(Theme.contentBackground)
         .environment(\.dynamicTypeSize, .xxxLarge)
 }
 
 #Preview("Keyboards pane ignored and unavailable") {
     KeyboardSettingsPane(model: PreviewFixtures.setup(.mixedAssignments).model)
         .frame(width: 620, height: 560)
+        .background(Theme.contentBackground)
 }
 
 #Preview("Keyboards pane persistence failure") {
     KeyboardSettingsPane(model: PreviewFixtures.setup(.persistenceFailure).model)
         .frame(width: 620, height: 560)
+        .background(Theme.contentBackground)
 }
 #endif

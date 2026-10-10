@@ -26,6 +26,7 @@ struct OnboardingAssignmentsStep: View {
                         PhysicalKeyboardRowView(
                             row: row,
                             model: model,
+                            rowPadding: EdgeInsets(),
                             onIgnore: onIgnore,
                             onStopIgnoring: onStopIgnoring
                         )
@@ -43,7 +44,6 @@ struct OnboardingAssignmentsStep: View {
             }
 
             UnsupportedPhysicalKeyboardsSection(keyboards: unsupportedKeyboards)
-                .listRowBackground(OnboardingPalette.background)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)

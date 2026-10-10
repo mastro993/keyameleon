@@ -13,28 +13,35 @@ struct KeyboardSettingsList: View {
             Section {
                 if rows.isEmpty {
                     Text("No supported keyboards connected.")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .listRowBackground(Theme.windowBackground)
                 }
                 ForEach(rows) { row in
                     PhysicalKeyboardRowView(
                         row: row,
                         model: model,
+                        rowPadding: EdgeInsets(),
                         onIgnore: onIgnore,
                         onStopIgnoring: onStopIgnoring
                     )
+                    .listRowBackground(Theme.windowBackground)
                 }
             } header: {
-                Text("Input sources")
+                KeyboardSettingsHeader()
             } footer: {
                 Text(
-                    "Keyameleon switches to a keyboard’s input source when you type on it. "
-                        + "New keyboards appear when connected. Disconnected ones keep their input source."
+                    "New keyboards appear when connected. Disconnected ones keep their input source."
                 )
+                .font(Theme.Typography.caption)
+                .foregroundStyle(Theme.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             UnsupportedPhysicalKeyboardsSection(keyboards: unsupportedKeyboards)
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
     }
 }
 
@@ -55,5 +62,6 @@ struct KeyboardSettingsList: View {
         onStopIgnoring: { _ in }
     )
     .frame(width: 620, height: 420)
+    .background(Theme.contentBackground)
 }
 #endif

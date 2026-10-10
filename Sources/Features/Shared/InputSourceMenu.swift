@@ -1,23 +1,24 @@
 import SwiftUI
 
-/// The Input Source pop-up of a Physical Keyboard row.
+/// The Input Source control of a Physical Keyboard row.
 ///
-/// An Unavailable Keyboard Assignment keeps its saved value and reads
-/// `Unavailable`; it cannot be chosen again once another one is picked.
+/// A `PopUpPicker` keeps the System Settings pop-up box visible and fills one
+/// fixed column, so rows with short and long Input Source names line up.
 @MainActor
-struct InputSourcePicker: View {
-    let accessibilityLabel: String
+struct InputSourceMenu: View {
+    let title: String
     @Binding var selection: String?
     let inputSources: [EligibleInputSource]
 
     var body: some View {
         PopUpPicker(
-            accessibilityLabel: accessibilityLabel,
+            accessibilityLabel: title,
             options: choices.map { PopUpPicker.Option(title: $0.title, isEnabled: $0.isEnabled) },
             selectedIndex: choices.firstIndex { $0.identifier == selection },
             onSelect: { selection = choices[$0].identifier }
         )
-        .help(selection != nil && isUnavailable
+        .frame(width: 176)
+        .help(selection != nil && unavailable
             ? "This input source is no longer in macOS. Choose another, or add it back in System Settings › Keyboard."
             : "")
     }
@@ -30,32 +31,27 @@ struct InputSourcePicker: View {
 
     private var choices: [Choice] {
         var choices = [Choice(title: "Unassigned", identifier: nil)]
-        if let selection, isUnavailable {
+        if let selection, unavailable {
             choices.append(Choice(title: "Unavailable", identifier: selection, isEnabled: false))
         }
         choices += inputSources.map { Choice(title: $0.name, identifier: $0.identifier) }
         return choices
     }
 
-    private var isUnavailable: Bool {
+    private var unavailable: Bool {
         !inputSources.contains { $0.identifier == selection }
     }
 }
 
 #if DEBUG
-#Preview("Input Source picker") {
-    @Previewable @State var selection: String? = "com.apple.keylayout.Italian"
+#Preview("Input Source menu") {
+    @Previewable @State var selection: String?
     Form {
-        LabeledContent {
-            InputSourcePicker(
-                accessibilityLabel: "Input Source for Keychron K2",
-                selection: $selection,
-                inputSources: PreviewFixtures.inputSources()
-            )
-        } label: {
-            Text("Keychron K2")
-            Text("Connected")
-        }
+        InputSourceMenu(
+            title: "Input Source",
+            selection: $selection,
+            inputSources: PreviewFixtures.inputSources()
+        )
     }
     .formStyle(.grouped)
 }

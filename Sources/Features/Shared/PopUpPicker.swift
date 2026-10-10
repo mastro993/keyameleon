@@ -4,8 +4,8 @@ import SwiftUI
 /// The System Settings pop-up button: an `NSPopUpButton` with the
 /// `.flexiblePush` bezel, which keeps its box visible at rest.
 ///
-/// SwiftUI's `Picker` in a grouped `Form` shows that box only under the
-/// pointer on macOS 26, so Settings rows host the AppKit control instead.
+/// SwiftUI's `Picker` and bordered `Menu` in a grouped `Form` show that box
+/// only under the pointer on macOS 26, so rows host the AppKit control instead.
 struct PopUpPicker: NSViewRepresentable {
     struct Option: Equatable {
         let title: String
@@ -50,8 +50,13 @@ struct PopUpPicker: NSViewRepresentable {
         button.setAccessibilityLabel(accessibilityLabel)
     }
 
+    /// A proposed width (such as a fixed column) is used as is; otherwise the
+    /// button fits its widest item.
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSPopUpButton, context: Context) -> NSSize? {
-        nsView.intrinsicContentSize
+        NSSize(
+            width: proposal.width ?? nsView.intrinsicContentSize.width,
+            height: nsView.intrinsicContentSize.height
+        )
     }
 
     @MainActor
