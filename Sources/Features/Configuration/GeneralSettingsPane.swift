@@ -25,10 +25,9 @@ struct GeneralSettingsPane: View {
             Section {
                 VStack(alignment: .leading) {
                     Picker(selection: externalChangeResponseBinding) {
-                        Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
-                        Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
-                        Text("Keep it until you type on another keyboard")
-                            .tag(ExternalChangeResponse.holdUntilKeyboardChange)
+                        Text("Switch back").tag(ExternalChangeResponse.switchBack)
+                        Text("Keep until matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
+                        Text("Keep until another keyboard").tag(ExternalChangeResponse.holdUntilKeyboardChange)
                     } label: {
                         Text("When input source changes externally")
                             .font(Theme.Typography.rowTitle)
@@ -43,8 +42,6 @@ struct GeneralSettingsPane: View {
                 Text("Switching")
                     .font(Theme.Typography.sectionTitle)
                     .foregroundStyle(Theme.primary)
-            } footer: {
-                ExternalChangeResponseFooter(response: model.externalChangeResponse)
             }
         }
         .formStyle(.grouped)
