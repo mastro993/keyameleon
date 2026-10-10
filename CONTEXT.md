@@ -58,6 +58,18 @@ _Avoid_: Current keyboard, last keyboard
 A macOS text-input configuration, such as a language-specific keyboard layout, that interprets key input.
 _Avoid_: Source input, keyboard language
 
+**External Input Source Change**:
+A change of the current Input Source that Keyameleon did not make. It includes changes by the person, by macOS, and by other apps; Keyameleon cannot tell them apart and treats them the same.
+_Avoid_: Manual change, user change
+
+**External Change Response**:
+The person's global choice of how Activity-Triggered Switching reacts to an External Input Source Change: Switch Back, Hold Until Match, or Hold Until Keyboard Change. Switch Back starts no Input Source Hold, so the next Activation Activity applies the Keyboard Assignment.
+_Avoid_: Override mode, manual mode
+
+**Input Source Hold**:
+A period after an External Input Source Change during which Activity-Triggered Switching applies no Keyboard Assignment. With Hold Until Match, it ends when Activation Activity comes from a Physical Keyboard whose Keyboard Assignment equals the current Input Source. With Hold Until Keyboard Change, it ends when Activation Activity comes from a Physical Keyboard other than the holding one. It also ends when the person chooses to switch back, pauses and resumes, changes the External Change Response, or changes the holding Physical Keyboard's Keyboard Assignment, and when Keyameleon restarts.
+_Avoid_: Override, manual override, suspension
+
 **Keyboard Assignment**:
 The saved relation between one Physical Keyboard and its wanted Input Source.
 _Avoid_: Mapping, binding

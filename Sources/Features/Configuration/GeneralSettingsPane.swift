@@ -21,6 +21,31 @@ struct GeneralSettingsPane: View {
             } footer: {
                 LaunchAtLoginFooter(hasError: model.launchAtLoginError != nil)
             }
+
+            Section {
+                VStack(alignment: .leading) {
+                    Picker(selection: externalChangeResponseBinding) {
+                        Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
+                        Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
+                        Text("Keep it until you type on another keyboard")
+                            .tag(ExternalChangeResponse.holdUntilKeyboardChange)
+                    } label: {
+                        Text("When input source changes externally")
+                            .font(Theme.Typography.rowTitle)
+                            .foregroundStyle(Theme.primary)
+                    }
+                    Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
+                        .font(Theme.Typography.caption)
+                        .foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } header: {
+                Text("Switching")
+                    .font(Theme.Typography.sectionTitle)
+                    .foregroundStyle(Theme.primary)
+            } footer: {
+                ExternalChangeResponseFooter(response: model.externalChangeResponse)
+            }
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
@@ -34,12 +59,26 @@ struct GeneralSettingsPane: View {
             set: { model.setLaunchAtLoginEnabled($0) }
         )
     }
+
+    private var externalChangeResponseBinding: Binding<ExternalChangeResponse> {
+        Binding(
+            get: { model.externalChangeResponse },
+            set: { model.setExternalChangeResponse($0) }
+        )
+    }
 }
 
 #if DEBUG
 #Preview("General pane") {
     GeneralSettingsPane(
         model: PreviewFixtures.general(launchAtLoginEnabled: true)
+    )
+    .frame(width: 620, height: 400)
+}
+
+#Preview("General pane holding until keyboard change") {
+    GeneralSettingsPane(
+        model: PreviewFixtures.general(externalChangeResponse: .holdUntilKeyboardChange)
     )
     .frame(width: 620, height: 400)
 }

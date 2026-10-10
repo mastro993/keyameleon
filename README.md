@@ -103,7 +103,7 @@ Keyameleon stores data locally:
 | What | Where |
 | --- | --- |
 | Keyboard names and assignments | `~/Library/Application Support/Keyameleon/` |
-| Setup progress, ignored devices, pause state | Preferences domain `dev.fedemas.keyameleon` |
+| Setup progress, ignored devices, pause state, External Change Response | Preferences domain `dev.fedemas.keyameleon` |
 | Integrity key that protects saved keyboard designations | Keychain item `dev.fedemas.keyameleon.installation-integrity` |
 | Operational logs (no typed content) | `~/Library/Logs/Keyameleon/` |
 
@@ -126,6 +126,10 @@ Yes. The built-in keyboard and USB and Bluetooth keyboards can each have their o
 ### Does Keyameleon read what I type?
 
 It uses key presses only to tell which keyboard is active. Typed content never reaches saved data, log files, or the network. See [Privacy](#privacy).
+
+### Can I switch to another layout for a few words without Keyameleon switching back?
+
+Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, set **When input source changes externally** to keep the new input source until you type on a keyboard assigned to it, or until you type on another keyboard. The menu bar menu then shows **Switch Back Now** to return early.
 
 ### Is Keyameleon free?
 

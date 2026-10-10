@@ -7,6 +7,7 @@ enum MenuBarPanelActionID: String, Equatable, Sendable {
     case openSystemSettings
     case relaunch
     case retryNow
+    case switchBackNow
     case retryPersistence
     case settings
     case checkForUpdates

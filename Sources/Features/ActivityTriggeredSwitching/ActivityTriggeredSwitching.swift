@@ -3,7 +3,7 @@ import Observation
 
 /// Deep Activity-Triggered Switching module.
 ///
-/// External callers learn one outcome and seven product operations. Observation,
+/// External callers learn one outcome and nine product operations. Observation,
 /// exact selection, recovery, lifecycle, and adapter details stay inside this
 /// module.
 @MainActor
@@ -11,6 +11,7 @@ import Observation
 final class ActivityTriggeredSwitching {
     private(set) var outcome: ActivityTriggeredSwitchingOutcome
     private(set) var persistenceError: String?
+    private(set) var externalChangeResponse: ExternalChangeResponse
 
     private let permissionProvider: any ListenPermissionProviding
     private let protectedStateProvider: any ProtectedStateProviding
@@ -21,62 +22,29 @@ final class ActivityTriggeredSwitching {
     private let exclusionStore: any PhysicalKeyboardExclusionStoring
     private let resolver: PhysicalKeyboardPresentationResolver
 
-    private var isStarted = false
+    private(set) var isStarted = false
     /// False until Guided setup completes. Activation Activity is then
     /// ignored, so no Input Source is selected during setup.
     var appliesKeyboardAssignments = true
     private var eventProtectedDataUnavailable = false
     private var lastKnownListenPermission: ListenPermissionState
-    private var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
-    private var warningEpisodeCount = 0
-    private var wantedKeyboardAssignmentGeneration: UInt64 = 0
-    private var wantedKeyboardAssignmentIdentifier: String?
-    private var wantedKeyboardAssignment: WantedKeyboardAssignment?
-    private var verifiedKeyboardAssignmentIdentifier: String?
-    private var observedCurrentInputSourceIdentifier: String?
+    private(set) var activeWarningByCause: [SwitchingWarning.Cause: SwitchingWarning] = [:]
+    private(set) var warningEpisodeCount = 0
+    private(set) var wantedKeyboardAssignmentGeneration: UInt64 = 0
+    private(set) var wantedKeyboardAssignmentIdentifier: String?
+    private(set) var wantedKeyboardAssignment: WantedKeyboardAssignment?
+    private(set) var verifiedKeyboardAssignmentIdentifier: String?
+    private(set) var observedCurrentInputSourceIdentifier: String?
     private var lastActivePhysicalKeyboard: PhysicalKeyboard?
+    private(set) var inputSourceHold = InputSourceHoldTracker()
 
     private let permissionWatch = ListenPermissionWatch()
     private var discoveryObserverID: UUID?
     private var discoveryRecordObserverID: UUID?
     private var inputSourceObserverID: UUID?
 
-    // Internal adapter evidence used by focused module tests. It is not part
-    // of the product outcome.
-    var testingActiveWarnings: [SwitchingWarning] {
-        activeWarnings
-    }
-
-    var testingWarningEpisodeCount: Int {
-        warningEpisodeCount
-    }
-
-    var testingVerifiedKeyboardAssignmentIdentifier: String? {
-        verifiedKeyboardAssignmentIdentifier
-    }
-
-    var testingWantedKeyboardAssignmentIdentifier: String? {
-        wantedKeyboardAssignmentIdentifier
-    }
-
-    var testingWantedKeyboardAssignmentGeneration: UInt64 {
-        wantedKeyboardAssignmentGeneration
-    }
-
-    var testingObservedCurrentInputSourceIdentifier: String? {
-        observedCurrentInputSourceIdentifier
-    }
-
     var testingPhysicalKeyboardDiscovery: PhysicalKeyboardDiscovery {
         physicalKeyboardDiscovery
-    }
-
-    var testingWantedKeyboardAssignment: WantedKeyboardAssignment? {
-        wantedKeyboardAssignment
-    }
-
-    var testingIsStarted: Bool {
-        isStarted
     }
 
     func markActiveForTesting(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
@@ -130,6 +98,7 @@ final class ActivityTriggeredSwitching {
             integrityKeyProvider: integrityKeyProvider
         )
         observedCurrentInputSourceIdentifier = inputSources.currentInputSourceIdentifier
+        externalChangeResponse = setupStore.externalChangeResponse
 
         let protectedState = protectedStateProvider.currentProtectedState()
         let reasons = SwitchingUnavailableReason.initial(
@@ -246,6 +215,7 @@ final class ActivityTriggeredSwitching {
             return
         }
 
+        inputSourceHold.end(reason: "paused")
         setupStore.setActivityTriggeredSwitchingPaused(true)
         checkAgain()
     }
@@ -255,6 +225,7 @@ final class ActivityTriggeredSwitching {
             return
         }
 
+        inputSourceHold.end(reason: "resumed")
         setupStore.setActivityTriggeredSwitchingPaused(false)
         checkAgain()
     }
@@ -299,6 +270,7 @@ final class ActivityTriggeredSwitching {
     /// The wanted Keyboard Assignment goes with it: Retry Now must not select an
     /// Input Source for a Physical Keyboard the person just removed.
     func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
+        keyboardAssignmentDidChange(physicalKeyboardID)
         var changed = false
 
         if wantedKeyboardAssignment?.physicalKeyboardID == physicalKeyboardID {
@@ -401,43 +373,16 @@ final class ActivityTriggeredSwitching {
             )
         }
 
-        switch physicalKeyboard.assignmentState {
-        case let .assigned(assignment):
-            let wantedIdentifier = assignment.inputSourceIdentifier
-            let currentIdentifier = inputSources.currentInputSourceIdentifier
-            observedCurrentInputSourceIdentifier = currentIdentifier
-            wantedKeyboardAssignment = WantedKeyboardAssignment(
-                physicalKeyboardID: physicalKeyboard.id,
-                inputSourceIdentifier: wantedIdentifier
-            )
+        if inputSourceHold.keepsInputSource(
+            afterActivationActivityFrom: physicalKeyboard,
+            currentInputSourceIdentifier: inputSources.currentInputSourceIdentifier
+        ) {
+            rebuildOutcome()
+            return
+        }
 
-            if isUnavailable(assignment) {
-                clearWarning(cause: .selectionFailure)
-                openWarning(
-                    .unavailableKeyboardAssignment(
-                        physicalKeyboardID: physicalKeyboard.id,
-                        inputSourceIdentifier: wantedIdentifier
-                    )
-                )
-                if verifiedKeyboardAssignmentIdentifier == wantedIdentifier {
-                    verifiedKeyboardAssignmentIdentifier = nil
-                }
-                wantedKeyboardAssignmentIdentifier = wantedIdentifier
-            } else if wantedKeyboardAssignmentIdentifier == wantedIdentifier,
-                      verifiedKeyboardAssignmentIdentifier == wantedIdentifier,
-                      currentIdentifier == wantedIdentifier {
-                clearWarning(cause: .selectionFailure)
-            } else {
-                wantedKeyboardAssignmentGeneration &+= 1
-                let generation = wantedKeyboardAssignmentGeneration
-                wantedKeyboardAssignmentIdentifier = wantedIdentifier
-                _ = applyWantedKeyboardAssignment(
-                    wantedIdentifier,
-                    generation: generation
-                )
-            }
-        case .unassigned, .unsupported:
-            break
+        if case let .assigned(assignment) = physicalKeyboard.assignmentState {
+            applyKeyboardAssignment(assignment, of: physicalKeyboard.id)
         }
 
         rebuildOutcome()
@@ -451,6 +396,7 @@ final class ActivityTriggeredSwitching {
         let currentIdentifier = inputSources.currentInputSourceIdentifier
         let previousObserved = observedCurrentInputSourceIdentifier
         let previousVerified = verifiedKeyboardAssignmentIdentifier
+        let previousHold = inputSourceHold
         observedCurrentInputSourceIdentifier = currentIdentifier
 
         if let verified = verifiedKeyboardAssignmentIdentifier,
@@ -458,8 +404,20 @@ final class ActivityTriggeredSwitching {
             verifiedKeyboardAssignmentIdentifier = nil
         }
 
+        // Keyameleon's own selections update the observed Input Source before their
+        // notification arrives, so only an External Input Source Change gets here.
+        if currentIdentifier != previousObserved {
+            inputSourceHold.noteExternalChange(
+                to: currentIdentifier,
+                response: externalChangeResponse,
+                isReady: appliesKeyboardAssignments,
+                activePhysicalKeyboard: lastActivePhysicalKeyboard
+            )
+        }
+
         if previousObserved != observedCurrentInputSourceIdentifier
-            || previousVerified != verifiedKeyboardAssignmentIdentifier {
+            || previousVerified != verifiedKeyboardAssignmentIdentifier
+            || previousHold != inputSourceHold {
             Log.verbose(
                 .switching,
                 "Observed Input Source is now \(observedCurrentInputSourceIdentifier ?? "none")"
@@ -529,6 +487,9 @@ final class ActivityTriggeredSwitching {
         case let .disconnected(physicalKeyboardID, name):
             let displayName = physicalKeyboardName(physicalKeyboardID, fallback: name)
             Log.debug(.switching, "Physical Keyboard disconnected (\(displayName))")
+            if inputSourceHold.endOnDisconnect(of: physicalKeyboardID, name: displayName) {
+                rebuildOutcome()
+            }
         }
     }
 
@@ -621,6 +582,46 @@ final class ActivityTriggeredSwitching {
             verifiedKeyboardAssignmentIdentifier = nil
         }
         clearWarning(cause: .selectionFailure)
+    }
+
+    /// Selects a Keyboard Assignment unless it is unavailable or already verified and current.
+    private func applyKeyboardAssignment(
+        _ assignment: KeyboardAssignment,
+        of physicalKeyboardID: PhysicalKeyboardRecordID
+    ) {
+        let wantedIdentifier = assignment.inputSourceIdentifier
+        let currentIdentifier = inputSources.currentInputSourceIdentifier
+        observedCurrentInputSourceIdentifier = currentIdentifier
+        wantedKeyboardAssignment = WantedKeyboardAssignment(
+            physicalKeyboardID: physicalKeyboardID,
+            inputSourceIdentifier: wantedIdentifier
+        )
+
+        if isUnavailable(assignment) {
+            clearWarning(cause: .selectionFailure)
+            openWarning(
+                .unavailableKeyboardAssignment(
+                    physicalKeyboardID: physicalKeyboardID,
+                    inputSourceIdentifier: wantedIdentifier
+                )
+            )
+            if verifiedKeyboardAssignmentIdentifier == wantedIdentifier {
+                verifiedKeyboardAssignmentIdentifier = nil
+            }
+            wantedKeyboardAssignmentIdentifier = wantedIdentifier
+        } else if wantedKeyboardAssignmentIdentifier == wantedIdentifier,
+                  verifiedKeyboardAssignmentIdentifier == wantedIdentifier,
+                  currentIdentifier == wantedIdentifier {
+            clearWarning(cause: .selectionFailure)
+        } else {
+            wantedKeyboardAssignmentGeneration &+= 1
+            let generation = wantedKeyboardAssignmentGeneration
+            wantedKeyboardAssignmentIdentifier = wantedIdentifier
+            _ = applyWantedKeyboardAssignment(
+                wantedIdentifier,
+                generation: generation
+            )
+        }
     }
 
     private func recordStatusChange(from previous: SwitchingStatus, to current: SwitchingStatus) {
@@ -819,24 +820,11 @@ final class ActivityTriggeredSwitching {
             ?? .none
         let mismatch: ActivityTriggeredSwitchingMismatch? = {
             guard case let .assigned(savedAssignment) = activeKeyboard?.assignmentState,
-                  let currentIdentifier,
-                  currentIdentifier != savedAssignment.inputSourceIdentifier
-            else {
-                return nil
-            }
-
-            guard let currentName = displayName(forInputSourceIdentifier: currentIdentifier),
-                  let assignedName = displayName(
-                      forInputSourceIdentifier: savedAssignment.inputSourceIdentifier
-                  )
-            else {
-                return nil
-            }
-
-            return ActivityTriggeredSwitchingMismatch(
-                currentName: currentName,
-                assignedName: assignedName
-            )
+                  let currentIdentifier, currentIdentifier != savedAssignment.inputSourceIdentifier,
+                  let currentName = displayName(forInputSourceIdentifier: currentIdentifier),
+                  let assignedName = displayName(forInputSourceIdentifier: savedAssignment.inputSourceIdentifier)
+            else { return nil }
+            return ActivityTriggeredSwitchingMismatch(currentName: currentName, assignedName: assignedName)
         }()
 
         let warnings = try activeWarnings.map { warning in
@@ -862,7 +850,8 @@ final class ActivityTriggeredSwitching {
             currentInputSourceName: currentName,
             mismatch: mismatch,
             warnings: warnings,
-            availableActions: availableActions
+            availableActions: availableActions,
+            inputSourceHold: inputSourceHold.hold?.response
         )
         guard newOutcome != outcome else {
             return
@@ -924,7 +913,48 @@ final class ActivityTriggeredSwitching {
     private func displayName(forInputSourceIdentifier identifier: String) -> String? {
         inputSources.eligibleInputSources.first { $0.identifier == identifier }?.name
     }
+}
 
+// MARK: - Input Source Hold
+
+extension ActivityTriggeredSwitching {
+    /// Saves the External Change Response. Changing it ends any Input Source Hold.
+    func setExternalChangeResponse(_ response: ExternalChangeResponse) {
+        guard response != externalChangeResponse else {
+            return
+        }
+
+        setupStore.setExternalChangeResponse(response)
+        externalChangeResponse = response
+        Log.debug(.switching, "External Change Response is now \(response.rawValue)")
+        inputSourceHold.end(reason: "External Change Response changed")
+        rebuildOutcome()
+    }
+
+    /// Ends the Input Source Hold and applies the Active Physical Keyboard's Keyboard Assignment.
+    func switchBackNow() {
+        guard inputSourceHold.hold != nil else {
+            return
+        }
+
+        // A change still pending joins this hold instead of starting a new one.
+        inputSources.refreshCurrentIdentifier()
+        inputSourceHold.end(reason: "Switch Back Now")
+        if persistenceError == nil, outcome.switchingStatus == .ready,
+           let activeKeyboard = lastActivePhysicalKeyboard,
+           case let .assigned(assignment) = activeKeyboard.assignmentState {
+            applyKeyboardAssignment(assignment, of: activeKeyboard.id)
+        }
+        rebuildOutcome()
+    }
+
+    /// Setup seam: the person edited or removed one Physical Keyboard's Keyboard Assignment.
+    func keyboardAssignmentDidChange(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
+        let activeID = physicalKeyboardDiscovery.activePhysicalKeyboardID
+        if inputSourceHold.endOnKeyboardAssignmentChange(of: physicalKeyboardID, activePhysicalKeyboardID: activeID) {
+            rebuildOutcome()
+        }
+    }
 }
 
 // MARK: - Input Monitoring

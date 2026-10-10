@@ -65,6 +65,10 @@ struct MenuBarPanelNotice: Equatable, Sendable {
                 )
             }
 
+            if let hold = outcome.inputSourceHold {
+                return holdNotice(hold, inputSourceName: outcome.currentInputSourceName)
+            }
+
             if let mismatch = outcome.mismatch {
                 let detail: String
                 if let keyboardName = outcome.activePhysicalKeyboard?.name {
@@ -106,6 +110,27 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             }
             return nil
         }
+    }
+
+    /// An Input Source Hold keeps the current Input Source until its end rule
+    /// is met; Switch Back Now ends it early.
+    private static func holdNotice(
+        _ hold: ExternalChangeResponse,
+        inputSourceName: String?
+    ) -> MenuBarPanelNotice {
+        let name = inputSourceName ?? "The input source"
+        let detail = switch hold {
+        case .holdUntilMatch:
+            "\(name) stays until you type on a keyboard assigned to it."
+        case .holdUntilKeyboardChange, .switchBack:
+            "\(name) stays until you type on another keyboard."
+        }
+        return MenuBarPanelNotice(
+            title: "Input source kept",
+            detail: detail,
+            action: .init(id: .switchBackNow, title: "Switch Back Now", isEnabled: true),
+            tone: .neutral
+        )
     }
 
     /// Never asked: the macOS alert lists Keyameleon. Asked before: the
