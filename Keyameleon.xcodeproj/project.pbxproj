@@ -29,6 +29,7 @@
 		15EADB73F954D79F813518EC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5225FE09338A066FF3E0C002 /* Carbon.framework */; };
 		1AA27BA749DA8FBD0D8FCB9E /* PhysicalKeyboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B511C748DA6CA0346AF82293 /* PhysicalKeyboardStore.swift */; };
 		20ACB033A217515B3E545CAC /* MenuBarPanelNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 974256D0031FBD3AB7489104 /* MenuBarPanelNoticeView.swift */; };
+		226D8198069C140F37464D6D /* PopUpPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EDD995F46D22AB11121601 /* PopUpPicker.swift */; };
 		25016821FE60FE590E691332 /* PhysicalKeyboardNameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A650471B390EEA09CC565F /* PhysicalKeyboardNameSheet.swift */; };
 		25585C64D960E44C5FE14C77 /* SetupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2346EDBABE7C49A31D94212 /* SetupModel.swift */; };
 		28903F79EC2836360178E81E /* SwiftDataPersistenceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6295D7D467E8E5D93175B0 /* SwiftDataPersistenceSession.swift */; };
@@ -317,6 +318,7 @@
 		C3841004C81EB551B7007F30 /* HIDStreamRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDStreamRecoveryTests.swift; sourceTree = "<group>"; };
 		C47F59345513A7D2BE11A3A5 /* LogLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogLevel.swift; sourceTree = "<group>"; };
 		C4C6E2F4539E65E1CEE2A2E7 /* SavedPhysicalKeyboardChangesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPhysicalKeyboardChangesTests.swift; sourceTree = "<group>"; };
+		C7EDD995F46D22AB11121601 /* PopUpPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopUpPicker.swift; sourceTree = "<group>"; };
 		C97EE05448C4987184E170FA /* ApplicationDelegate+Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ApplicationDelegate+Configuration.swift"; sourceTree = "<group>"; };
 		C9FF997105D8312C69E066A5 /* PhysicalKeyboardEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardEvent.swift; sourceTree = "<group>"; };
 		CB7BE62D56098EDFF6AB61E8 /* PhysicalKeyboardRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardRowView.swift; sourceTree = "<group>"; };
@@ -416,6 +418,7 @@
 				33A650471B390EEA09CC565F /* PhysicalKeyboardNameSheet.swift */,
 				1FF898807224FEB57662CD03 /* PhysicalKeyboardRows.swift */,
 				CB7BE62D56098EDFF6AB61E8 /* PhysicalKeyboardRowView.swift */,
+				C7EDD995F46D22AB11121601 /* PopUpPicker.swift */,
 				2ED4A50C5EEC028890CFCF05 /* PreviewFixtures.swift */,
 				6DD37BC6057423BAEE7A8227 /* SavedPhysicalKeyboardChange.swift */,
 				516FF9DDC7616E9ADA909F26 /* SavedPhysicalKeyboardChangeResult.swift */,
@@ -969,6 +972,7 @@
 				4C7921EDED3A2D0CF3304A74 /* PhysicalKeyboardRows.swift in Sources */,
 				1AA27BA749DA8FBD0D8FCB9E /* PhysicalKeyboardStore.swift in Sources */,
 				F00E358EA4A43F8D5B0D0510 /* PhysicalKeyboardStoreMigration.swift in Sources */,
+				226D8198069C140F37464D6D /* PopUpPicker.swift in Sources */,
 				095C5489C3332CD88185ED3A /* PreviewFixtures.swift in Sources */,
 				2F431E03DC7F21EC31E7EAFF /* ProductionFactory.swift in Sources */,
 				72BEA68E2FBFA5930C5F43DD /* RootView.swift in Sources */,

@@ -2,8 +2,8 @@ import SwiftUI
 
 /// One Physical Keyboard row, shared by Guided setup and Settings.
 ///
-/// The row is a native Input Source picker labelled with the name and
-/// connection status, followed by the keyboard's actions menu. Unsupported keyboards never
+/// The row shows the name and connection status, the Input Source pop-up,
+/// and the keyboard's actions menu. Unsupported keyboards never
 /// get a row; `UnsupportedPhysicalKeyboardsSection` lists them. Ignoring and restoring write
 /// straight through the model, so both flows behave the same way.
 @MainActor
@@ -20,17 +20,20 @@ struct PhysicalKeyboardRowView: View {
         HStack {
             switch row.state {
             case let .included(keyboard):
-                InputSourcePicker(
-                    selection: Binding(
-                        get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
-                        set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
-                    ),
-                    inputSources: model.eligibleInputSources
-                ) {
+                LabeledContent {
+                    InputSourcePicker(
+                        accessibilityLabel: "Input Source for \(keyboard.name)",
+                        selection: Binding(
+                            get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
+                            set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
+                        ),
+                        inputSources: model.eligibleInputSources
+                    )
+                    .disabled(model.eligibleInputSources.isEmpty || hasPersistenceError)
+                } label: {
                     Text(keyboard.name)
                     Text(subtitle)
                 }
-                .disabled(model.eligibleInputSources.isEmpty || hasPersistenceError)
                 let menu = actionsMenu {
                     if keyboard.id.isIdentityBased {
                         Button("Rename…", systemImage: "pencil") { presentRename(for: keyboard) }
@@ -44,14 +47,17 @@ struct PhysicalKeyboardRowView: View {
                     menu.hidden().accessibilityHidden(true)
                 }
             case let .excluded(exclusion, savedRecord):
-                InputSourcePicker(
-                    selection: .constant(savedRecord.record?.keyboardAssignment?.inputSourceIdentifier),
-                    inputSources: model.eligibleInputSources
-                ) {
+                LabeledContent {
+                    InputSourcePicker(
+                        accessibilityLabel: "Input Source for \(savedRecord.record?.name ?? exclusion.name)",
+                        selection: .constant(savedRecord.record?.keyboardAssignment?.inputSourceIdentifier),
+                        inputSources: model.eligibleInputSources
+                    )
+                    .disabled(true)
+                } label: {
                     Text(savedRecord.record?.name ?? exclusion.name)
                     Text(subtitle)
                 }
-                .disabled(true)
                 .help("Ignored devices never switch the input source. Use the actions menu to stop ignoring.")
                 actionsMenu {
                     if let record = savedRecord.record, record.recordID.isIdentityBased, !record.isBuiltInIdentity {

@@ -86,7 +86,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 - Open Settings from the menu bar and from the end of Guided setup. Reopening returns to the last pane. Panes are General, Keyboards, and About, in that order.
 - Select each sidebar row, then move between panes with the arrow keys. Check the blue selection, filled icon, keycap identity, and sidebar surface in active and inactive windows. Sidebar items report their selected state to VoiceOver.
 - The window does not shrink below 840 × 560.
-- Panes use only system styles: compare them with System Settings in light and dark, active and inactive. Pop-up pickers show a bezel only under the pointer. Section headers and rows share the native left edge.
+- Panes use only system styles: compare them with System Settings in light and dark, active and inactive. Selectors show their pop-up box at rest, as in System Settings. Section headers and rows share the native left edge.
 
 **General**
 

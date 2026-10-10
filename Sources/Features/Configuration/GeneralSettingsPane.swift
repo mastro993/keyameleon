@@ -17,11 +17,16 @@ struct GeneralSettingsPane: View {
 
             Section {
                 VStack(alignment: .leading) {
-                    Picker("When input source changes externally", selection: externalChangeResponseBinding) {
-                        Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
-                        Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
-                        Text("Keep it until you type on another keyboard")
-                            .tag(ExternalChangeResponse.holdUntilKeyboardChange)
+                    // The title wraps beside the wide pop-up instead of pushing it to its own line.
+                    HStack {
+                        Text("When input source changes externally")
+                        Spacer()
+                        PopUpPicker(
+                            accessibilityLabel: "When input source changes externally",
+                            options: Self.responses.map { PopUpPicker.Option(title: $0.title) },
+                            selectedIndex: Self.responses.firstIndex { $0.response == model.externalChangeResponse },
+                            onSelect: { model.setExternalChangeResponse(Self.responses[$0].response) }
+                        )
                     }
                     // Full width under the row, like System Settings descriptions.
                     Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
@@ -45,12 +50,11 @@ struct GeneralSettingsPane: View {
         )
     }
 
-    private var externalChangeResponseBinding: Binding<ExternalChangeResponse> {
-        Binding(
-            get: { model.externalChangeResponse },
-            set: { model.setExternalChangeResponse($0) }
-        )
-    }
+    private static let responses: [(response: ExternalChangeResponse, title: String)] = [
+        (.switchBack, "Switch back on the next key press"),
+        (.holdUntilMatch, "Keep it until you type on a matching keyboard"),
+        (.holdUntilKeyboardChange, "Keep it until you type on another keyboard")
+    ]
 }
 
 #if DEBUG
