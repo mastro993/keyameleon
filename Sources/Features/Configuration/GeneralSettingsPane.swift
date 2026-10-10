@@ -23,20 +23,21 @@ struct GeneralSettingsPane: View {
             }
 
             Section {
-                Picker(selection: externalChangeResponseBinding) {
-                    Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
-                    Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
-                    Text("Keep it until you type on another keyboard")
-                        .tag(ExternalChangeResponse.holdUntilKeyboardChange)
-                } label: {
-                    VStack(alignment: .leading) {
+                VStack(alignment: .leading) {
+                    Picker(selection: externalChangeResponseBinding) {
+                        Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
+                        Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
+                        Text("Keep it until you type on another keyboard")
+                            .tag(ExternalChangeResponse.holdUntilKeyboardChange)
+                    } label: {
                         Text("When input source changes externally")
                             .font(Theme.Typography.rowTitle)
                             .foregroundStyle(Theme.primary)
-                        Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
-                            .font(Theme.Typography.caption)
-                            .foregroundStyle(Theme.secondary)
                     }
+                    Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
+                        .font(Theme.Typography.caption)
+                        .foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } header: {
                 Text("Switching")
