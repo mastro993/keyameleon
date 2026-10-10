@@ -46,8 +46,6 @@ struct GeneralSettingsPane: View {
                 Text("Switching")
                     .font(Theme.Typography.sectionTitle)
                     .foregroundStyle(Theme.primary)
-            } footer: {
-                ExternalChangeResponseFooter(response: model.externalChangeResponse)
             }
         }
         .formStyle(.grouped)
@@ -64,9 +62,9 @@ struct GeneralSettingsPane: View {
     }
 
     private static let responses: [(response: ExternalChangeResponse, title: String)] = [
-        (.switchBack, "Switch back on the next key press"),
-        (.holdUntilMatch, "Keep it until you type on a matching keyboard"),
-        (.holdUntilKeyboardChange, "Keep it until you type on another keyboard")
+        (.switchBack, "Switch back"),
+        (.holdUntilMatch, "Keep until matching keyboard"),
+        (.holdUntilKeyboardChange, "Keep until another keyboard")
     ]
 }
 
