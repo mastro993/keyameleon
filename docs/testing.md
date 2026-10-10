@@ -90,7 +90,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 **General**
 
-- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When the input source changes outside Keyameleon** picker, set to `Switch back on the next key press` on a fresh install or after updating.
+- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When input source changes externally** picker and its subtitle, set to `Switch back on the next key press` on a fresh install or after updating.
 - Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and shows an error with Open Login Items.
 - Each External Change Response shows its own footer line, and the choice persists across a relaunch.
 

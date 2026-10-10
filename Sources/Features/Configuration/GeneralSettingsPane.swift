@@ -29,9 +29,14 @@ struct GeneralSettingsPane: View {
                     Text("Keep it until you type on another keyboard")
                         .tag(ExternalChangeResponse.holdUntilKeyboardChange)
                 } label: {
-                    Text("When the input source changes outside Keyameleon")
-                        .font(Theme.Typography.rowTitle)
-                        .foregroundStyle(Theme.primary)
+                    VStack(alignment: .leading) {
+                        Text("When input source changes externally")
+                            .font(Theme.Typography.rowTitle)
+                            .foregroundStyle(Theme.primary)
+                        Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
+                            .font(Theme.Typography.caption)
+                            .foregroundStyle(Theme.secondary)
+                    }
                 }
             } header: {
                 Text("Switching")

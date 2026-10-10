@@ -129,7 +129,7 @@ It uses key presses only to tell which keyboard is active. Typed content never r
 
 ### Can I switch to another layout for a few words without Keyameleon switching back?
 
-Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, set **When the input source changes outside Keyameleon** to keep the new input source until you type on a keyboard assigned to it, or until you type on another keyboard. The menu bar menu then shows **Switch Back Now** to return early.
+Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, set **When input source changes externally** to keep the new input source until you type on a keyboard assigned to it, or until you type on another keyboard. The menu bar menu then shows **Switch Back Now** to return early.
 
 ### Is Keyameleon free?
 
