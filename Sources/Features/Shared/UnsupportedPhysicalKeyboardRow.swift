@@ -19,30 +19,31 @@ struct UnsupportedPhysicalKeyboardRow: View {
             Text(reason.title)
                 .font(Theme.Typography.subheadline)
                 .foregroundStyle(Theme.secondary)
-                .help(reason.explanation)
+                .help(Text(reason.explanation))
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint(reason.explanation)
     }
 
     private var subtitle: String {
-        let status = keyboard.connectionState == .connected ? "Connected" : "Disconnected"
+        let isConnected = keyboard.connectionState == .connected
+        let status = String(localized: isConnected ? .connectionConnected : .connectionDisconnected)
         return "\(keyboard.connectionTypeName) · \(status)"
     }
 
-    private var reason: (title: String, explanation: String) {
+    private var reason: (title: LocalizedStringResource, explanation: LocalizedStringResource) {
         guard case let .unsupported(reason) = keyboard.assignmentState else {
-            return ("Unsupported", "Keyameleon can’t recognize this device reliably.")
+            return (.unsupportedReasonUnknown, .unsupportedReasonUnknownHelp)
         }
         return switch reason {
         case .missingIdentity:
-            ("No stable ID", "This device reports no serial number or other stable ID.")
+            (.unsupportedReasonMissingIdentity, .unsupportedReasonMissingIdentityHelp)
         case .unstableIdentity:
-            ("ID changes", "This device’s ID changes when it reconnects.")
+            (.unsupportedReasonUnstableIdentity, .unsupportedReasonUnstableIdentityHelp)
         case .sharedIdentity:
-            ("Shared ID", "Several connected devices of this model report the same ID.")
+            (.unsupportedReasonSharedIdentity, .unsupportedReasonSharedIdentityHelp)
         case .ambiguousIdentity:
-            ("Inconsistent ID", "This device reports a different ID on each of its interfaces.")
+            (.unsupportedReasonAmbiguousIdentity, .unsupportedReasonAmbiguousIdentityHelp)
         }
     }
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 struct AboutInformationRow<Content: View>: View {
-    let label: String
+    let label: LocalizedStringResource
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -17,7 +17,7 @@ struct AboutInformationRow<Content: View>: View {
 /// One folder the About pane shows the path of and opens in Finder.
 @MainActor
 struct AboutFolderRow: View {
-    let label: String
+    let label: LocalizedStringResource
     let url: URL
     let openFolder: (URL) -> Void
 
@@ -45,7 +45,7 @@ struct AboutFolderRow: View {
                 Button {
                     openFolder(url)
                 } label: {
-                    AboutLinkLabel(title: "Open in Finder", systemImage: "folder")
+                    AboutLinkLabel(title: .aboutOpenInFinder, systemImage: "folder")
                 }
                 .buttonStyle(.plain)
             }
@@ -59,14 +59,14 @@ struct AboutFolderRow: View {
 #Preview("About information rows") {
     Form {
         Section {
-            AboutInformationRow(label: "Version") {
+            AboutInformationRow(label: .aboutVersion) {
                 Text("9.9.9 (1)").foregroundStyle(Theme.secondary)
             }
-            AboutInformationRow(label: "Source code") {
-                AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+            AboutInformationRow(label: .aboutSourceCode) {
+                AboutLinkLabel(title: .aboutViewOnGitHub, systemImage: "arrow.up.right")
             }
             AboutFolderRow(
-                label: "Logs folder",
+                label: .aboutLogsFolder,
                 url: URL(fileURLWithPath: "/tmp/Keyameleon/PreviewLogs", isDirectory: true),
                 openFolder: { _ in }
             )

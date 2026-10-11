@@ -8,10 +8,10 @@ struct LaunchAtLoginFooter: View {
     var body: some View {
         if hasError {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Couldn’t change this setting. macOS may need you to allow Keyameleon in Login Items.")
+                Text(.launchAtLoginFailed)
                     .font(Theme.Typography.caption)
                     .foregroundStyle(.red)
-                Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
+                Button(.openLoginItems) { SMAppService.openSystemSettingsLoginItems() }
             }
         }
     }

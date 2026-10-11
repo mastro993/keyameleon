@@ -59,9 +59,9 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
         let notice: MenuBarPanelNotice?
         if (setupModel.persistenceError ?? switching.persistenceError) != nil {
             notice = MenuBarPanelNotice(
-                title: "Saved keyboards unavailable",
-                detail: "Click Retry to try again.",
-                action: .init(id: .retryPersistence, title: "Retry", isEnabled: true),
+                title: String(localized: .savedKeyboardsUnavailable),
+                detail: String(localized: .persistenceClickRetry),
+                action: .init(id: .retryPersistence, title: String(localized: .retry), isEnabled: true),
                 tone: .warning
             )
         } else {
@@ -85,7 +85,7 @@ final class MenuBarPanelController: NSObject, NSMenuDelegate {
             .frame(width: MenuBarPanelContent.panelWidth)
             .padding(.vertical, Theme.Menu.sectionInset)
             let keyboardItem = item(id: "keyboards") {
-                NSMenuItem(title: "Keyboards", action: nil, keyEquivalent: "")
+                NSMenuItem(title: String(localized: .keyboards), action: nil, keyEquivalent: "")
             }
             updateHostedView(section, in: keyboardItem)
             desired.append(keyboardItem)

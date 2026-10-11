@@ -3,7 +3,6 @@ import SwiftUI
 @MainActor
 struct OnboardingProgressStage: View {
     let number: Int
-    let title: String
     let stage: GuidedSetupStep
     let current: GuidedSetupStep
 
@@ -15,7 +14,7 @@ struct OnboardingProgressStage: View {
                 .frame(width: 26, height: 26)
                 .background(active ? OnboardingPalette.accent : OnboardingPalette.chip, in: .circle)
                 .foregroundStyle(active ? .white : OnboardingPalette.muted)
-            Text(title)
+            Text(stage.label)
                 .font(stage == current ? .body.weight(.semibold) : .body)
                 .foregroundStyle(stage == current ? OnboardingPalette.primary : OnboardingPalette.muted)
         }
@@ -24,7 +23,7 @@ struct OnboardingProgressStage: View {
 
 #if DEBUG
 #Preview("Onboarding progress stage") {
-    OnboardingProgressStage(number: 1, title: "Permissions", stage: .permission, current: .permission)
+    OnboardingProgressStage(number: 1, stage: .permission, current: .permission)
         .padding()
 }
 #endif

@@ -166,13 +166,13 @@ extension ApplicationDelegate {
         case .ready:
             AppIdentity.current.name
         case .permissionRequired:
-            "\(AppIdentity.current.name) — Permission Required"
+            String(localized: .menuBarIconPermissionRequired(AppIdentity.current.name))
         case .temporarilyUnavailable:
-            "\(AppIdentity.current.name) — Temporarily Unavailable"
+            String(localized: .menuBarIconTemporarilyUnavailable(AppIdentity.current.name))
         case .paused:
-            "\(AppIdentity.current.name) — Paused"
+            String(localized: .menuBarIconPaused(AppIdentity.current.name))
         case .warning:
-            "\(AppIdentity.current.name) — Action needed"
+            String(localized: .menuBarIconActionNeeded(AppIdentity.current.name))
         }
     }
 }

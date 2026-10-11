@@ -42,9 +42,10 @@ struct PhysicalKeyboardRow: Identifiable, Equatable {
             }
             isConnected = connectedExcludedKeys.contains(exclusion.key)
         }
-        var status = isConnected ? "Connected" : "Disconnected"
-        if case .excluded = state {
-            status += " (Ignored)"
+        let status: String = if case .excluded = state {
+            String(localized: isConnected ? .connectionConnectedIgnored : .connectionDisconnectedIgnored)
+        } else {
+            String(localized: isConnected ? .connectionConnected : .connectionDisconnected)
         }
         return productName.map { "\($0) · \(status)" } ?? status
     }

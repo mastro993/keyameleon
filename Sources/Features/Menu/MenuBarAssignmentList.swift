@@ -2,10 +2,10 @@ import Foundation
 
 /// Assigned-only filter/order seam for the menu-bar panel. Actions stay out.
 struct MenuBarAssignmentList: Equatable, Sendable {
-    static let emptyTitle = "No assigned keyboards"
-    static let emptyDescription = "Assign keyboards in Settings."
-    static let unavailableInputSourceName = "Input source unavailable"
-    static let unavailableNote = "Choose another in Settings"
+    static var emptyTitle: String { String(localized: .menuNoAssignedKeyboards) }
+    static var emptyDescription: String { String(localized: .menuAssignKeyboardsInSettings) }
+    static var unavailableInputSourceName: String { String(localized: .menuInputSourceUnavailable) }
+    static var unavailableNote: String { String(localized: .menuChooseAnotherInSettings) }
     /// Visible pill viewport. The list itself is unbounded.
     static let visibleRowLimit = 5
 
@@ -17,11 +17,11 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         var accessibilityName: String {
             switch self {
             case .active:
-                "Active"
+                String(localized: .connectionActive)
             case .connected:
-                "Connected"
+                String(localized: .connectionConnected)
             case .disconnected:
-                "Disconnected"
+                String(localized: .connectionDisconnected)
             }
         }
     }

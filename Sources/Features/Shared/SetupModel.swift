@@ -445,42 +445,6 @@ final class SetupModel {
         ))
     }
 
-    func forgetConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
-        else {
-            return ""
-        }
-
-        let removedData =
-            """
-            This removes the saved Physical Keyboard Name, Keyboard Assignment, and \
-            Manual Physical Keyboard Designation for \(physicalKeyboard.name).
-            """
-        let reconnectResult = switch physicalKeyboard.connectionState {
-        case .connected:
-            "This connected Physical Keyboard reappears as new and unassigned."
-        case .disconnected:
-            "This disconnected Physical Keyboard disappears."
-        }
-        return "\(removedData) \(reconnectResult)"
-    }
-
-    func replaceConfirmationMessage(
-        replacing disconnectedID: PhysicalKeyboardRecordID,
-        with connectedID: PhysicalKeyboardRecordID
-    ) -> String {
-        guard let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
-              let connected = physicalKeyboards.first(where: { $0.id == connectedID })
-        else {
-            return ""
-        }
-
-        return """
-        Move the Physical Keyboard Name and Keyboard Assignment from \(disconnected.name) to \(connected.name)? \
-        The old saved record is removed. If the old hardware returns later, it appears as new and unassigned.
-        """
-    }
-
     func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
         guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
               physicalKeyboardID.isIdentityBased
@@ -539,25 +503,6 @@ final class SetupModel {
         applyExclusionKeysToDiscovery()
     }
 
-    func exclusionConfirmationMessage(for physicalKeyboardID: PhysicalKeyboardRecordID) -> String {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID })
-        else {
-            return ""
-        }
-
-        let effect =
-            "Keyameleon stops treating \(physicalKeyboard.name) as a Physical Keyboard. "
-            + "It stays visible as excluded and never triggers Activity-Triggered Switching."
-        let restore = "You can include it again during onboarding or in Settings."
-
-        guard savedIdentityKeys.contains(physicalKeyboardID.rawValue)
-        else {
-            return "\(effect) \(restore)"
-        }
-
-        return "\(effect) Its saved Physical Keyboard Name and Keyboard Assignment stay saved. \(restore)"
-    }
-
     func canStartManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
         guard manualDesignationPhase == .idle,
               let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
@@ -611,19 +556,6 @@ final class SetupModel {
             authenticationTag: tag
         )
         finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(.designate(designation)))
-    }
-
-    func manualDesignationStatusText() -> String? {
-        switch manualDesignationPhase {
-        case .idle:
-            nil
-        case .awaitingRemoval:
-            "Unplug or turn off this Physical Keyboard, then return it."
-        case .awaitingReturn:
-            "Return the same Physical Keyboard to continue."
-        case .awaitingNameConfirmation:
-            "Confirm the Physical Keyboard Name to save Manual Physical Keyboard Designation."
-        }
     }
 
     func assignedInputSource(for physicalKeyboard: PhysicalKeyboard) -> EligibleInputSource? {
@@ -709,7 +641,7 @@ final class SetupModel {
             if !savedPhysicalKeyboardChanges.hasPendingChange { persistenceError = nil }
         } catch {
             if !savedPhysicalKeyboardChanges.hasPendingChange {
-                persistenceError = "Check free disk space and access to your Library folder, then click Retry."
+                persistenceError = String(localized: .persistenceCheckDiskSpace)
             }
         }
     }
@@ -830,8 +762,7 @@ final class SetupModel {
             }
             publishPhysicalKeyboards()
         case .failed:
-            persistenceError = "Your last change wasn’t saved. "
-                + "Check free disk space and access to your Library folder, then click Retry."
+            persistenceError = String(localized: .persistenceChangeNotSaved)
         case .blocked, .nothingPending:
             break
         }

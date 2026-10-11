@@ -21,10 +21,10 @@ struct RootView: View {
                         .resizable()
                         .frame(width: 32.0, height: 32.0)
                         .foregroundStyle(.green)
-                    Text("Keyameleon is ready")
+                    Text(.setupCompleteTitle)
                         .font(.title.weight(.semibold))
                         .accessibilityAddTraits(.isHeader)
-                    Text("Setup is complete. Keyameleon runs in the menu bar.")
+                    Text(.setupCompleteDescription)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }

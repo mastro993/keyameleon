@@ -11,12 +11,12 @@ struct AboutIdentityBlock: View {
                 .resizable()
                 .interpolation(.high)
                 .frame(width: 48, height: 48)
-                .accessibilityLabel("Keyameleon app icon")
+                .accessibilityLabel(.aboutAppIcon)
             VStack(alignment: .leading, spacing: 5) {
                 Text(info.identity.name)
                     .font(Theme.Typography.screenTitle)
                     .foregroundStyle(Theme.primary)
-                Text("The right layout. On every keyboard.")
+                Text(.tagline)
                     .font(Theme.Typography.caption)
                     .foregroundStyle(Theme.secondary)
             }

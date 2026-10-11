@@ -7,22 +7,22 @@ struct OnboardingProgress: View {
     var body: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 34) {
-                OnboardingProgressStage(number: 1, title: "Permissions", stage: .permission, current: step)
+                OnboardingProgressStage(number: 1, stage: .permission, current: step)
                 OnboardingProgressConnector(width: 44)
-                OnboardingProgressStage(number: 2, title: "Keyboards", stage: .assignments, current: step)
+                OnboardingProgressStage(number: 2, stage: .assignments, current: step)
                 OnboardingProgressConnector(width: 44)
-                OnboardingProgressStage(number: 3, title: "Ready", stage: .ready, current: step)
+                OnboardingProgressStage(number: 3, stage: .ready, current: step)
             }
             HStack(spacing: 12) {
-                OnboardingProgressStage(number: 1, title: "Permissions", stage: .permission, current: step)
+                OnboardingProgressStage(number: 1, stage: .permission, current: step)
                 OnboardingProgressConnector(width: 8)
-                OnboardingProgressStage(number: 2, title: "Keyboards", stage: .assignments, current: step)
+                OnboardingProgressStage(number: 2, stage: .assignments, current: step)
                 OnboardingProgressConnector(width: 8)
-                OnboardingProgressStage(number: 3, title: "Ready", stage: .ready, current: step)
+                OnboardingProgressStage(number: 3, stage: .ready, current: step)
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Setup progress: \(step.label)")
+        .accessibilityLabel(.setupProgress(String(localized: step.label)))
     }
 
 }
@@ -36,11 +36,11 @@ extension GuidedSetupStep {
         }
     }
 
-    var label: String {
+    var label: LocalizedStringResource {
         switch self {
-        case .permission: "Permissions"
-        case .assignments: "Keyboards"
-        case .ready: "Ready"
+        case .permission: .setupStepPermissions
+        case .assignments: .keyboards
+        case .ready: .setupStepReady
         }
     }
 }

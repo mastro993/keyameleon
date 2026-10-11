@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
@@ -7,11 +8,11 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
 
     var id: Self { self }
 
-    var title: String {
+    var title: LocalizedStringResource {
         switch self {
-        case .general: "General"
-        case .keyboards: "Keyboards"
-        case .about: "About"
+        case .general: .settingsGeneral
+        case .keyboards: .keyboards
+        case .about: .settingsAbout
         }
     }
 

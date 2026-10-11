@@ -22,6 +22,10 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
+    # User-facing strings live in Resources/Localization/Localizable.xcstrings and are
+    # referenced through generated symbols, such as `Text(.settings)`.
+    STRING_CATALOG_GENERATE_SYMBOLS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
     MACOSX_DEPLOYMENT_TARGET: "26.0"
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     GCC_TREAT_WARNINGS_AS_ERRORS: YES
@@ -52,6 +56,7 @@ targets:
       - path: Resources/menu_icon.pdf
         type: file
         buildPhase: resources
+      - path: Resources/Localization
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: Keyameleon-icon
@@ -130,6 +135,9 @@ schemes:
         KeyameleonSwiftTesting: [test]
         KeyameleonXCTest: [test]
     test:
+      # Tests assert English copy, whatever language the Mac runs in.
+      language: en
+      region: US
       targets:
         - KeyameleonSwiftTesting
         - KeyameleonXCTest

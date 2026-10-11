@@ -9,13 +9,13 @@ struct GeneralSettingsPane: View {
         Form {
             Section {
                 Toggle(isOn: launchAtLoginBinding) {
-                    Text("Launch at login")
+                    Text(.launchAtLogin)
                         .font(Theme.Typography.rowTitle)
                         .foregroundStyle(Theme.primary)
                 }
                 .toggleStyle(.switch)
             } header: {
-                Text("App")
+                Text(.generalAppSection)
                     .font(Theme.Typography.sectionTitle)
                     .foregroundStyle(Theme.primary)
             } footer: {
@@ -25,25 +25,25 @@ struct GeneralSettingsPane: View {
             Section {
                 VStack(alignment: .leading) {
                     HStack {
-                        Text("When input source changes externally")
+                        Text(.externalChangeTitle)
                             .font(Theme.Typography.rowTitle)
                             .foregroundStyle(Theme.primary)
                         Spacer()
                         PopUpPicker(
-                            accessibilityLabel: "When input source changes externally",
-                            options: Self.responses.map { PopUpPicker.Option(title: $0.title) },
+                            accessibilityLabel: String(localized: .externalChangeTitle),
+                            options: Self.responses.map { PopUpPicker.Option(title: String(localized: $0.title)) },
                             selectedIndex: Self.responses.firstIndex { $0.response == model.externalChangeResponse },
                             onSelect: { model.setExternalChangeResponse(Self.responses[$0].response) }
                         )
                         .fixedSize()
                     }
-                    Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
+                    Text(.externalChangeDescription)
                         .font(Theme.Typography.caption)
                         .foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } header: {
-                Text("Switching")
+                Text(.generalSwitchingSection)
                     .font(Theme.Typography.sectionTitle)
                     .foregroundStyle(Theme.primary)
             }
@@ -61,10 +61,10 @@ struct GeneralSettingsPane: View {
         )
     }
 
-    private static let responses: [(response: ExternalChangeResponse, title: String)] = [
-        (.switchBack, "Switch back"),
-        (.holdUntilMatch, "Keep until matching keyboard"),
-        (.holdUntilKeyboardChange, "Keep until another keyboard")
+    private static let responses: [(response: ExternalChangeResponse, title: LocalizedStringResource)] = [
+        (.switchBack, .externalChangeSwitchBack),
+        (.holdUntilMatch, .externalChangeHoldUntilMatch),
+        (.holdUntilKeyboardChange, .externalChangeHoldUntilKeyboardChange)
     ]
 }
 

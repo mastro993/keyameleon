@@ -49,8 +49,10 @@ struct MenuBarPanelContent: Equatable, Sendable {
         self.switchingStatus = outcome.switchingStatus
         let trimmedVersion = marketingVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let version = trimmedVersion.isEmpty ? "—" : trimmedVersion
-        self.headerTitle = "\(appName) v\(version)"
-            + (outcome.switchingStatus == .paused ? " (Paused)" : "")
+        let heading = "\(appName) v\(version)"
+        self.headerTitle = outcome.switchingStatus == .paused
+            ? String(localized: .menuHeaderPaused(heading))
+            : heading
         self.notice = MenuBarPanelNotice.make(
             outcome: outcome,
             physicalKeyboards: physicalKeyboards
@@ -76,15 +78,15 @@ struct MenuBarPanelContent: Equatable, Sendable {
         var actions = [Action]()
         actions.append(pauseOrResume(outcome: outcome))
         if outcome.hasAction(.relaunch) {
-            actions.append(Action(id: .relaunch, title: "Restart \(appName)", isEnabled: true))
+            actions.append(Action(id: .relaunch, title: String(localized: .restartApp(appName)), isEnabled: true))
         }
-        actions.append(Action(id: .settings, title: "Settings", isEnabled: true))
+        actions.append(Action(id: .settings, title: String(localized: .settings), isEnabled: true))
         actions.append(Action(
             id: .checkForUpdates,
-            title: "Check for Updates…",
+            title: String(localized: .checkForUpdates),
             isEnabled: canCheckForUpdates
         ))
-        actions.append(Action(id: .quit, title: "Quit \(appName)", isEnabled: true))
+        actions.append(Action(id: .quit, title: String(localized: .quitApp(appName)), isEnabled: true))
         return actions
     }
 
@@ -94,14 +96,14 @@ struct MenuBarPanelContent: Equatable, Sendable {
         if outcome.hasAction(.resume) {
             return Action(
                 id: .resume,
-                title: "Resume Switching",
+                title: String(localized: .resumeSwitching),
                 isEnabled: true
             )
         }
 
         return Action(
             id: .pause,
-            title: "Pause Switching",
+            title: String(localized: .pauseSwitching),
             isEnabled: true
         )
     }

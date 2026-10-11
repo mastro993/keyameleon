@@ -84,12 +84,24 @@ Tests/
   XCTest/                      AppKit shell tests
   Scripts/                     Python tests for CI and release scripts
 Scripts/                       run.sh and the release tooling
-Resources/                     Asset catalogs and menu icon
+Resources/                     Asset catalogs, menu icon, and string catalogs (Localization/)
 Config/                        Signing configuration
 design/                        Pencil design file and references
 ```
 
 Use the glossary in [`CONTEXT.md`](../CONTEXT.md) when naming domain concepts, and check [`docs/adr`](adr) and [`docs/choices.md`](choices.md) before changing established behavior.
+
+## Localization
+
+User-visible strings live in [`Resources/Localization/Localizable.xcstrings`](../Resources/Localization/Localizable.xcstrings); `Info.plist` strings live in `InfoPlist.xcstrings` beside it. See [Localization](choices.md#localization) for the languages and rules.
+
+To add or change a string:
+
+1. Add a camelCase key with `extractionState` set to `manual`, a comment that tells translators where the string appears, and a translation for every language. Plurals use plural variations; multi-argument strings use positional specifiers (`%1$@`, `%2$@`).
+2. Build. Xcode generates a symbol for the key, so SwiftUI code uses `Text(.key)` or `Button(.key) { … }`, and code that needs a `String` uses `String(localized: .key)`. Keys with arguments become functions: `.restartApp(name)`.
+3. For macOS terms, copy the exact translation macOS uses; system `.loctable` files under `/System/Library` hold them.
+
+`Tests/Scripts/test_localization.py` fails when a string misses a language, a translation drops or adds a placeholder, or a key is unused. Swift tests run in English (the scheme sets the test language), so their assertions hold on a Mac set to any language.
 
 ## Safety audit
 

@@ -295,14 +295,14 @@ struct PhysicalKeyboard: Identifiable, Equatable, Sendable {
     /// Connection type a person recognizes, such as `USB` or `Built-in`.
     var connectionTypeName: String {
         if isBuiltIn {
-            return "Built-in"
+            return String(localized: .connectionTypeBuiltIn)
         }
 
         return switch transport {
         case .usb: "USB"
         case .bluetooth: "Bluetooth"
         case .bluetoothLowEnergy: "Bluetooth Low Energy"
-        case .other: "Other"
+        case .other: String(localized: .connectionTypeOther)
         }
     }
 

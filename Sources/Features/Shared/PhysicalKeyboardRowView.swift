@@ -47,11 +47,11 @@ struct PhysicalKeyboardRowView: View {
                         if case let .matched(record) = savedRecord,
                            record.recordID.isIdentityBased,
                            !record.isBuiltInIdentity {
-                            Button("Rename…", systemImage: "pencil") {
+                            Button(.renameEllipsis, systemImage: "pencil") {
                                 presentRename(for: .restored(from: record))
                             }
                         }
-                        Button("Stop Ignoring", systemImage: "eye") {
+                        Button(.stopIgnoring, systemImage: "eye") {
                             onStopIgnoring(exclusion.key)
                         }
                     } label: {
@@ -105,12 +105,12 @@ struct PhysicalKeyboardRowView: View {
                 .font(Theme.Typography.subheadline)
                 .foregroundStyle(Theme.muted)
         }
-        .help("Ignored devices never switch the input source. Use ⋯ to stop ignoring.")
+        .help(Text(.ignoredKeyboardHelp))
     }
 
     private func assignmentPicker(for keyboard: PhysicalKeyboard) -> some View {
         InputSourceMenu(
-            title: "Input Source for \(keyboard.name)",
+            title: String(localized: .inputSourceForKeyboard(keyboard.name)),
             selection: Binding(
                 get: { keyboard.keyboardAssignment?.inputSourceIdentifier },
                 set: { model.setKeyboardAssignment(keyboard.id, inputSourceIdentifier: $0) }
@@ -123,7 +123,7 @@ struct PhysicalKeyboardRowView: View {
     /// An ignored keyboard shows its saved assignment, or Unassigned, read-only.
     private func savedAssignmentPicker(for record: SavedPhysicalKeyboardRecord?, name: String) -> some View {
         InputSourceMenu(
-            title: "Input Source for \(name)",
+            title: String(localized: .inputSourceForKeyboard(name)),
             selection: .constant(record?.keyboardAssignment?.inputSourceIdentifier),
             inputSources: model.eligibleInputSources
         )
@@ -134,11 +134,11 @@ struct PhysicalKeyboardRowView: View {
     private func actionsMenu(for keyboard: PhysicalKeyboard) -> some View {
         Menu {
             if keyboard.id.isIdentityBased {
-                Button("Rename…", systemImage: "pencil") {
+                Button(.renameEllipsis, systemImage: "pencil") {
                     presentRename(for: keyboard)
                 }
             }
-            Button("Ignore", systemImage: "eye.slash") {
+            Button(.ignore, systemImage: "eye.slash") {
                 onIgnore(keyboard.id)
             }
         } label: {
@@ -153,10 +153,10 @@ struct PhysicalKeyboardRowView: View {
     }
 
     private var menuLabel: some View {
-        Label("Keyboard actions", systemImage: "ellipsis")
+        Label(.keyboardActions, systemImage: "ellipsis")
             .labelStyle(.iconOnly)
             .frame(width: 28, height: 28)
-            .help("Keyboard actions")
+            .help(Text(.keyboardActions))
     }
 
     /// The built-in keyboard reserves the actions column without offering actions.

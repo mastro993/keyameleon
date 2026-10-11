@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 struct AboutSectionHeading: View {
-    let title: String
+    let title: LocalizedStringResource
 
     var body: some View {
         Text(title)
@@ -13,7 +13,7 @@ struct AboutSectionHeading: View {
 
 #if DEBUG
 #Preview("About section heading") {
-    AboutSectionHeading(title: "Information")
+    AboutSectionHeading(title: .aboutInformation)
         .padding()
         .frame(width: 320, alignment: .leading)
         .background(Theme.contentBackground)

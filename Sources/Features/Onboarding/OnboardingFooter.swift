@@ -11,41 +11,41 @@ struct OnboardingFooter: View {
                 // Denied means macOS already lists Keyameleon, so the person
                 // only has to turn it on; unknown means macOS has to ask first.
                 let isListed = model.activityTriggeredSwitching.outcome.hasAction(.openSystemSettings)
-                Text(isListed ? "Already on? Restart to apply it." : "macOS will ask for permission.")
+                Text(isListed ? .permissionAlreadyOn : .permissionWillAsk)
                     .font(.callout)
                     .foregroundStyle(OnboardingPalette.secondary)
                 Spacer()
                 if isListed {
-                    Button("Restart \(AppIdentity.current.name)") { model.relaunch() }
-                    Button("Open System Settings") { model.openSystemSettings() }
+                    Button(.restartApp(AppIdentity.current.name)) { model.relaunch() }
+                    Button(.openSystemSettings) { model.openSystemSettings() }
                         .buttonStyle(.borderedProminent)
                         .tint(OnboardingPalette.button)
                         .keyboardShortcut(.defaultAction)
                         .accessibilityIdentifier("open-system-settings")
                 } else {
-                    Button("Allow Input Monitoring") { model.requestPermission() }
+                    Button(.allowInputMonitoring) { model.requestPermission() }
                         .buttonStyle(.borderedProminent)
                         .tint(OnboardingPalette.button)
                         .accessibilityIdentifier("request-permission")
                 }
             case .assignments:
                 Spacer()
-                Button("Set Up Later") { model.continueToReady() }
+                Button(.setUpLater) { model.continueToReady() }
                     .buttonStyle(.plain)
                     .foregroundStyle(OnboardingPalette.accent)
                     .disabled(model.hasPersistenceFailure)
-                Button("Continue") { model.continueToReady() }
+                Button(.continueSetup) { model.continueToReady() }
                     .buttonStyle(.borderedProminent)
                     .tint(OnboardingPalette.button)
                     .disabled(model.hasPersistenceFailure)
                     .keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("continue-guided-setup")
             case .ready:
-                Button("Back") { model.returnToAssignments() }
+                Button(.back) { model.returnToAssignments() }
                 Spacer()
-                Button("Open Settings") { model.completeSetup(destination: .settings) }
+                Button(.openSettings) { model.completeSetup(destination: .settings) }
                     .disabled(model.hasPersistenceFailure)
-                Button("Finish") { model.completeSetup(destination: .menuBar) }
+                Button(.finish) { model.completeSetup(destination: .menuBar) }
                     .buttonStyle(.borderedProminent)
                     .tint(OnboardingPalette.button)
                     .disabled(model.hasPersistenceFailure)

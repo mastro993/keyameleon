@@ -9,22 +9,22 @@ struct PhysicalKeyboardNameSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Rename Keyboard")
+            Text(.renameKeyboardTitle)
                 .font(.title2)
                 .accessibilityAddTraits(.isHeader)
 
-            Text("Leave empty to use “\(productName)”.")
+            Text(.renameKeyboardHint(productName))
             .foregroundStyle(.secondary)
 
             TextField(productName, text: $nameDraft)
                 .textFieldStyle(.roundedBorder)
-                .accessibilityLabel("Name")
+                .accessibilityLabel(.renameKeyboardNameLabel)
 
             HStack {
                 Spacer()
-                Button("Cancel", action: onCancel)
+                Button(.cancel, action: onCancel)
                     .keyboardShortcut(.cancelAction)
-                Button("Save", action: onSave)
+                Button(.save, action: onSave)
                     .keyboardShortcut(.defaultAction)
             }
         }

@@ -52,11 +52,11 @@ struct OnboardingSidebar: View {
         .accessibilityElement(children: .contain)
     }
 
-    private var headline: String {
+    private var headline: LocalizedStringResource {
         switch step {
-        case .permission: "The right layout. On every keyboard."
-        case .assignments: "Give each keyboard its own layout."
-        case .ready: "Less switching. More typing."
+        case .permission: .tagline
+        case .assignments: .setupHeadlineAssignments
+        case .ready: .setupHeadlineReady
         }
     }
 
@@ -68,14 +68,11 @@ struct OnboardingSidebar: View {
         }
     }
 
-    private var footer: String {
+    private var footer: LocalizedStringResource {
         switch step {
-        case .permission: "What you type is never saved, logged, or sent anywhere."
-        case .assignments: "Assignments stay on this Mac. Change them any time in Settings."
-        case .ready:
-            hasAssignments
-                ? "Your assignments are saved. Keyameleon runs in the menu bar."
-                : "Assign keyboards any time in Settings."
+        case .permission: .setupFooterPermission
+        case .assignments: .setupFooterAssignments
+        case .ready: hasAssignments ? .setupFooterReadyAssigned : .setupFooterReadyUnassigned
         }
     }
 }

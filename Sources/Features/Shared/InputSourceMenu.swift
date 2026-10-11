@@ -18,9 +18,7 @@ struct InputSourceMenu: View {
             onSelect: { selection = choices[$0].identifier }
         )
         .frame(width: 176)
-        .help(selection != nil && unavailable
-            ? "This input source is no longer in macOS. Choose another, or add it back in System Settings › Keyboard."
-            : "")
+        .help(selection != nil && unavailable ? String(localized: .inputSourceRemovedHelp) : "")
     }
 
     private struct Choice {
@@ -30,9 +28,13 @@ struct InputSourceMenu: View {
     }
 
     private var choices: [Choice] {
-        var choices = [Choice(title: "Unassigned", identifier: nil)]
+        var choices = [Choice(title: String(localized: .inputSourceUnassigned), identifier: nil)]
         if let selection, unavailable {
-            choices.append(Choice(title: "Unavailable", identifier: selection, isEnabled: false))
+            choices.append(Choice(
+                title: String(localized: .inputSourceUnavailable),
+                identifier: selection,
+                isEnabled: false
+            ))
         }
         choices += inputSources.map { Choice(title: $0.name, identifier: $0.identifier) }
         return choices

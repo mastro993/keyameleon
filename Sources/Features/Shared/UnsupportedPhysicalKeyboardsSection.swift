@@ -30,11 +30,11 @@ struct UnsupportedPhysicalKeyboardsSection: View {
                     }
                 } label: {
                     HStack {
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .font(Theme.Typography.caption)
                             .foregroundStyle(Theme.secondary)
                             .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        Text("Unsupported devices (\(keyboards.count))")
+                        Text(.unsupportedDevicesTitle(keyboards.count))
                             .font(Theme.Typography.subheadline)
                             .foregroundStyle(Theme.secondary)
                         Spacer(minLength: 0)
@@ -43,8 +43,8 @@ struct UnsupportedPhysicalKeyboardsSection: View {
                 }
                 .buttonStyle(.plain)
                 .textCase(nil)
-                .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
-                .help("Keyameleon can’t tell these devices apart reliably, so they can’t have an input source.")
+                .accessibilityValue(isExpanded ? .expanded : .collapsed)
+                .help(Text(.unsupportedDevicesHelp))
                 .accessibilityIdentifier("unsupported-devices")
             }
         }

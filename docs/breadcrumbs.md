@@ -4,6 +4,26 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-11 — The app speaks the website's languages
+
+- Keyameleon now ships Arabic, French, Italian, Japanese, Korean, Simplified
+  Chinese, Spanish, and Traditional Chinese, the languages of the website.
+  Strings moved into `Resources/Localization` string catalogs with manual keys,
+  and code uses the generated symbols.
+- Models that hand `String`s to AppKit or tests (menu actions, notices,
+  persistence errors) resolve them with `String(localized:)`. Sentences that
+  were assembled from fragments (" (Ignored)", "The input source", reason +
+  "Switching resumes automatically.") became whole strings per case.
+- macOS terms were matched against the system's own `.loctable` translations
+  rather than guessed; for example, Spanish macOS 26 calls Input Monitoring
+  "Monitorización de los dispositivos de entrada".
+- XcodeGen lists a catalog's languages in `knownRegions` only when the catalog
+  sits in a source folder, hence `Resources/Localization`.
+- The test action pins English; on a Mac set to Italian, copy assertions
+  failed otherwise.
+- Removed four unused confirmation-message builders from `SetupModel` rather
+  than translate them.
+
 ## 2026-10-11 — Rebuild keyameleon.app after publishing
 
 - keyameleon.app (`mastro993/Keyameleon-web`) prerenders the latest release at
