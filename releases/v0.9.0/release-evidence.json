@@ -1,0 +1,11 @@
+{
+  "appcastFileName": "appcast.xml",
+  "artifactFileName": "Keyameleon-0.9.0.dmg",
+  "artifactSHA256": "29509bf09d3216d62c9a85400bf8e7946e076e415bfd7a9808eea746ed455776",
+  "feedURLString": "https://mastro993.github.io/keyameleon/appcast.xml",
+  "gitCommit": "ffa9af85c93a146ab3846b6a79e84b99040a9a14",
+  "licenseSPDXIdentifier": "MIT",
+  "product": "Keyameleon",
+  "semanticVersion": "0.9.0",
+  "tag": "v0.9.0"
+}
