@@ -742,6 +742,17 @@ class PublishHomebrewCaskTests(unittest.TestCase):
         self.assertIn("ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}", publisher[tap:cask])
         self.assertIn('"$RUNNER_TEMP/release-asset/Keyameleon-${VERSION}.dmg"', publisher[cask:])
 
+    def test_workflow_rebuilds_site_last_without_failing_release(self) -> None:
+        publisher = WORKFLOW.read_text(encoding="utf-8").split("\n  publish:\n", 1)[1]
+        cask = publisher.index("- name: Publish Homebrew cask")
+        site = publisher.index("- name: Rebuild keyameleon.app")
+        self.assertLess(cask, site)
+        step = publisher[site:]
+        self.assertNotIn("- name:", step[len("- name:"):])
+        self.assertIn("continue-on-error: true", step)
+        self.assertIn("DEPLOY_HOOK: ${{ secrets.KEYAMELEON_WEB_DEPLOY_HOOK }}", step)
+        self.assertNotIn('echo "${DEPLOY_HOOK}', step)
+
 
 class ReleaseWorkflowTests(unittest.TestCase):
     def test_producer_cannot_write_repository_or_change_publisher_source(self) -> None:

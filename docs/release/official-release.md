@@ -32,7 +32,7 @@ Complete [one-time setup](#one-time-setup) first.
 5. Wait until **`bump`**, **`produce`**, and **`publish`** all show as pending review for `official-release`, then approve them together. Approving before all three are pending can require another approval, because approval does not carry over to jobs that become pending later.
 6. **`bump`** sets `MARKETING_VERSION`, regenerates the Xcode project, and pushes `chore(release): X.Y.Z` to `main`. The commit lands before tests run, so if `produce` fails the bump stays on `main` but nothing is tagged or published.
 7. **`produce`** waits for that exact bump commit, then tests, builds, signs, notarizes, staples, and checks the Sparkle signature on a fresh macOS runner, with a read-only token and no deploy key. It uploads the DMG, `appcast.xml`, and `release-evidence.json` as one workflow artifact. Any ZIP used for notarization is discarded.
-8. **`publish`** runs on a fresh Ubuntu runner using scripts from the dispatch commit. It checks the evidence against the bump commit, creates the annotated tag, publishes the GitHub Release, and verifies the public DMG. It then publishes the appcast and evidence to GitHub Pages and verifies the served files. Last, `Scripts/publish-homebrew-cask.sh` sets the cask's `version` and `sha256` from the verified DMG and pushes `keyameleon X.Y.Z` to the tap.
+8. **`publish`** runs on a fresh Ubuntu runner using scripts from the dispatch commit. It checks the evidence against the bump commit, creates the annotated tag, publishes the GitHub Release, and verifies the public DMG. It then publishes the appcast and evidence to GitHub Pages and verifies the served files. Last, `Scripts/publish-homebrew-cask.sh` sets the cask's `version` and `sha256` from the verified DMG and pushes `keyameleon X.Y.Z` to the tap. Finally it starts a rebuild of [keyameleon.app](https://keyameleon.app/), which prerenders the latest release at build time. A failed or skipped rebuild never fails the release; rerun the site's build from Cloudflare if it did not run.
 
 **Timeouts.** `produce` polls `main` for the bump up to 180 times at 10-second intervals (30 minutes). `publish` polls for the artifact up to 180 times at 30-second intervals (90 minutes). API requests can stretch both. API errors, an unexpected `main`, and ambiguous or expired artifacts fail immediately. If `produce` fails before uploading, `publish` waits out its limit without publishing anything.
 
@@ -167,11 +167,13 @@ In **Settings → Environments → `official-release`**:
   gh secret set SPARKLE_PUBLIC_ED_KEY --env official-release
   gh secret set RELEASE_DEPLOY_KEY --env official-release < keyameleon-release-workflow
   gh secret set HOMEBREW_TAP_DEPLOY_KEY --env official-release < keyameleon-homebrew-tap
+  gh secret set KEYAMELEON_WEB_DEPLOY_HOOK --env official-release
   ```
 
+- **Website deploy hook:** `KEYAMELEON_WEB_DEPLOY_HOOK` holds a Cloudflare Workers Builds [deploy hook](https://developers.cloudflare.com/workers/ci-cd/builds/deploy-hooks/) URL for the `main` branch of [`mastro993/Keyameleon-web`](https://github.com/mastro993/Keyameleon-web). Create it in the Cloudflare dashboard under the Worker's **Settings → Builds → Deploy Hooks**. The URL alone starts a build, so treat it as a credential; if it leaks, delete the hook and create a new one. Without this secret, `publish` warns and skips the rebuild. A separate `on: release` workflow cannot replace this step, because GitHub does not start workflows for a release published with `GITHUB_TOKEN`.
 - **Optional variable:** `CODESIGN_IDENTITY`, only if the identity is not named `Developer ID Application`.
 
-`gh secret list --env official-release` should list the ten secrets in the [secrets table](#secrets). Then move the local `.p12`, `.p8`, and key files to the trash (never through git) and keep offline backups.
+`gh secret list --env official-release` should list the eleven secrets in the [secrets table](#secrets). Then move the local `.p12`, `.p8`, and key files to the trash (never through git) and keep offline backups.
 
 Check the live policy:
 
@@ -245,6 +247,7 @@ None of these creates a tag. From **Actions → Release → Run workflow**:
 | `SPARKLE_PUBLIC_ED_KEY` | Sparkle EdDSA public key, embedded as `SUPublicEDKey` |
 | `RELEASE_DEPLOY_KEY` | Private half of this repository's release deploy key |
 | `HOMEBREW_TAP_DEPLOY_KEY` | Private half of the write deploy key on `mastro993/homebrew-tap` |
+| `KEYAMELEON_WEB_DEPLOY_HOOK` | Cloudflare Workers Builds deploy hook URL that rebuilds keyameleon.app from `mastro993/Keyameleon-web` `main` |
 
 Recovery material for certificates and Sparkle keys stays offline or in the maintainer's secret store. `.gitignore` excludes local key files such as `*.p12`, `*.p8`, `sparkle_eddsa_private.key`, and `secrets/`; never force-add them.
 

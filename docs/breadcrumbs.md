@@ -4,6 +4,18 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-11 — Rebuild keyameleon.app after publishing
+
+- keyameleon.app (`mastro993/Keyameleon-web`) prerenders the latest release at
+  build time, so its HTML went stale until the site was rebuilt
+  (Keyameleon-web#46).
+- `publish` now ends with **Rebuild keyameleon.app**, which POSTs to the
+  Cloudflare Workers Builds deploy hook in `KEYAMELEON_WEB_DEPLOY_HOOK`. It runs
+  after the Homebrew cask, so the release and DMG are already live. It uses
+  `continue-on-error` and skips with a warning when the secret is missing.
+- Rejected: a separate `on: release` workflow. The release is published with
+  `GITHUB_TOKEN`, and GitHub does not start workflows from its events.
+
 ## 2026-10-10 — External Change Response and Input Source Hold (#182)
 
 - Typing a few words in another layout, or using an input method that toggles
