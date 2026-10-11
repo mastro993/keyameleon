@@ -1,0 +1,65 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSInputMonitoringUsageDescription" : {
+      "comment" : "macOS shows this when asking for Input Monitoring. It explains that Keyameleon watches which keyboard is typed on to select that keyboard's input source.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يراقب Keyameleon نشاط الكتابة على كل لوحة مفاتيح فعلية ليبدّل تلقائيًا إلى مصدر الإدخال المعيّن لها."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon detecta en qué teclado físico escribes para cambiar automáticamente a la fuente de entrada que le has asignado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon détecte sur quel clavier physique vous tapez afin d’activer la méthode de saisie qui lui est attribuée."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon rileva su quale tastiera stai scrivendo per attivare la sorgente di input che le hai assegnato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleonは、どのキーボードでキーが押されたかを確認し、そのキーボードに割り当てられた入力ソースに自動で切り替えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon은 각 키보드에서 키 입력이 있는지 확인하여, 입력 중인 키보드에 지정된 입력 소스로 자동 전환합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon 会观察每个实体键盘上的按键活动，以便在你打字时自动切换到为该键盘指定的输入法。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyameleon 會偵測每個實體鍵盤上的按鍵活動，以便在你打字時自動切換到該鍵盤指定的輸入方式。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

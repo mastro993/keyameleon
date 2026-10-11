@@ -15,52 +15,52 @@ struct AboutSettingsPane: View {
     var body: some View {
         Form {
             Section {
-                AboutInformationRow(label: "Version") {
+                AboutInformationRow(label: .aboutVersion) {
                     Text(info.identity.aboutVersionLabel)
                         .foregroundStyle(Theme.secondary)
                 }
-                AboutInformationRow(label: "Source code") {
+                AboutInformationRow(label: .aboutSourceCode) {
                     Link(destination: info.repositoryURL) {
-                        AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+                        AboutLinkLabel(title: .aboutViewOnGitHub, systemImage: "arrow.up.right")
                     }
-                    .help("Opens Keyameleon's source repository on GitHub.")
+                    .help(Text(.aboutViewOnGitHubHelp))
                 }
                 AboutFolderRow(
-                    label: "App data folder",
+                    label: .aboutAppDataFolder,
                     url: info.appDataFolderURL,
                     openFolder: openFolder
                 )
-                .help("Contains Keyameleon's local application data.")
+                .help(Text(.aboutAppDataFolderHelp))
                 AboutFolderRow(
-                    label: "Logs folder",
+                    label: .aboutLogsFolder,
                     url: info.logsFolderURL,
                     openFolder: openFolder
                 )
-                .help("Contains Keyameleon's local log files.")
-                AboutInformationRow(label: "License") {
-                    licenseButton(for: .project, title: "MIT")
-                        .help("Opens the MIT License.")
+                .help(Text(.aboutLogsFolderHelp))
+                AboutInformationRow(label: .aboutLicense) {
+                    licenseButton(for: .project, title: LocalizedStringResource(stringLiteral: "MIT"))
+                        .help(Text(.aboutLicenseHelp))
                 }
-                AboutInformationRow(label: "Updates") {
+                AboutInformationRow(label: .aboutUpdates) {
                     Button(action: model.checkForUpdates) {
-                        AboutLinkLabel(title: "Check for Updates…")
+                        AboutLinkLabel(title: .checkForUpdates)
                     }
                     .buttonStyle(.plain)
                     .disabled(!model.canCheckForUpdates)
-                    .help("Checks whether a newer Keyameleon version is available.")
+                    .help(Text(.aboutCheckForUpdatesHelp))
                 }
             } header: {
                 VStack(alignment: .leading, spacing: 16) {
                     AboutIdentityBlock(info: info)
-                    AboutSectionHeading(title: "Information")
+                    AboutSectionHeading(title: .aboutInformation)
                 }
             }
             Section {
-                AboutInformationRow(label: "Sparkle") {
-                    licenseButton(for: .sparkle, title: "View License")
+                AboutInformationRow(label: LocalizedStringResource(stringLiteral: "Sparkle")) {
+                    licenseButton(for: .sparkle, title: .aboutViewLicense)
                 }
             } header: {
-                AboutSectionHeading(title: "Acknowledgements")
+                AboutSectionHeading(title: .aboutAcknowledgements)
             } footer: {
                 AboutCreatorCredit()
             }
@@ -74,12 +74,12 @@ struct AboutSettingsPane: View {
     /// A bundled license text, or a disabled label when the build does not carry it.
     private func licenseButton(
         for license: BundledLicense,
-        title: String
+        title: LocalizedStringResource
     ) -> some View {
         Button {
             license.open()
         } label: {
-            AboutLinkLabel(title: title, systemImage: "chevron.right")
+            AboutLinkLabel(title: title, systemImage: "chevron.forward")
         }
         .buttonStyle(.plain)
         .disabled(license.url == nil)

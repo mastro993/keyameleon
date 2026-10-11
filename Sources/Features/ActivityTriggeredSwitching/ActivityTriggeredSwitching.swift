@@ -676,7 +676,7 @@ final class ActivityTriggeredSwitching {
     private func markPersistenceUnavailable() {
         guard persistenceError == nil else { return }
         Log.error(.switching, "Saved Physical Keyboard data could not be read")
-        persistenceError = "Click Retry to read them again."
+        persistenceError = String(localized: .persistenceReadFailed)
         physicalKeyboardDiscovery.stopActivationActivityObservation()
         inputSources.stopObservingChanges()
     }

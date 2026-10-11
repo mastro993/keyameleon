@@ -7,11 +7,11 @@ struct PersistenceFailureNotice: View {
     var body: some View {
         if let message = model.persistenceError ?? model.activityTriggeredSwitching.persistenceError {
             VStack(alignment: .leading) {
-                Text("Saved keyboards unavailable")
+                Text(.savedKeyboardsUnavailable)
                     .font(.headline)
                 Text(message)
                     .font(.callout)
-                Button("Retry", action: model.retryPersistenceOperation)
+                Button(.retry, action: model.retryPersistenceOperation)
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("retry-keyboard-persistence")
             }

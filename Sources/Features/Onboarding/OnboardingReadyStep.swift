@@ -7,11 +7,11 @@ struct OnboardingReadyStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("You’re ready to switch.")
+            Text(.readyTitle)
                 .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
-            Text("Type on an assigned keyboard and Keyameleon switches to its input source.")
+            Text(.readyDescription)
                 .font(.body)
                 .lineSpacing(2)
                 .padding(.vertical, 1)
@@ -40,28 +40,23 @@ struct OnboardingReadyStep: View {
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: 631)
-                .accessibilityLabel("Illustration showing Keyameleon in the menu bar")
-            Text("Find Keyameleon in your menu bar.")
+                .accessibilityLabel(.readyMenuIllustration)
+            Text(.readyFindInMenuBar)
                 .font(.body.weight(.semibold))
                 .foregroundStyle(OnboardingPalette.primary)
         }
     }
 
-    private var summary: LocalizedStringKey {
-        assignmentCount == 0
-            ? "No keyboards assigned yet"
-            : "^[\(assignmentCount) keyboard](inflect: true) assigned"
+    private var summary: LocalizedStringResource {
+        assignmentCount == 0 ? .readyNoKeyboardsAssigned : .readyKeyboardsAssigned(assignmentCount)
     }
 
-    private var warning: String {
+    private var warning: LocalizedStringResource {
         switch switchingStatus {
         case .ready: ""
-        case .permissionRequired:
-            "Input Monitoring is off. Turn it on in System Settings to start switching."
-        case .paused:
-            "Switching is paused. Resume it from the menu bar."
-        case .temporarilyUnavailable:
-            "Switching is temporarily unavailable and resumes automatically."
+        case .permissionRequired: .readyWarningPermission
+        case .paused: .readyWarningPaused
+        case .temporarilyUnavailable: .readyWarningUnavailable
         }
     }
 }

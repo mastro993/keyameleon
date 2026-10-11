@@ -58,6 +58,8 @@
 		46560B0622F2F0F7BDA919E7 /* PhysicalKeyboardRowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F7EA66ED01F1E011256677 /* PhysicalKeyboardRowsTests.swift */; };
 		46685F0F541FE67FD24126D4 /* OnboardingAssignmentsHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049F0AD85E8A7DF23A4F5F9C /* OnboardingAssignmentsHeader.swift */; };
 		48015E432FD28317B7DD5C50 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D397C615AE93268A186585C /* ServiceManagement.framework */; };
+		49079FF123A9B754342550CE /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 272F4C334E8B8BFF3B4A8EFE /* Localizable.xcstrings */; };
+		4911B3D295D624C7D771AAA2 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2D1A7382E1585B99512F0D3 /* InfoPlist.xcstrings */; };
 		49316C09EF30EEB66F3802AF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6BDE001E72B645ABFC8A82 /* Security.framework */; };
 		49F21FE07F838960FD75583B /* AboutInformationRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412E59BB6787F50C8DD20569 /* AboutInformationRows.swift */; };
 		4C7921EDED3A2D0CF3304A74 /* PhysicalKeyboardRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF898807224FEB57662CD03 /* PhysicalKeyboardRows.swift */; };
@@ -156,6 +158,7 @@
 		DE75647520A62B63714D8B0D /* OnboardingSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7409CCB9C1CD1D00AB3E0BB8 /* OnboardingSidebar.swift */; };
 		E37E580439284415F5C96102 /* MenuBarPanelActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E86ABAC6DBB5100E792A420 /* MenuBarPanelActions.swift */; };
 		E4C4892DEE368B7B9262DC5C /* SwitchingWarning.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C5DDFF386765413A36E49 /* SwitchingWarning.swift */; };
+		E54D787528293EB7A3994DDB /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F97FFC3CDC45EBC7AE13DF /* LocalizationTests.swift */; };
 		E55C316C5DBB73785E24F605 /* PhysicalKeyboardDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A0B4E61F437F2664D6F2F9 /* PhysicalKeyboardDiscovery.swift */; };
 		ED4B06C4A898BE4D516A3A97 /* OnboardingPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D279E97FB8E4A619EDD50A /* OnboardingPalette.swift */; };
 		ED61917FBD440ACD117E1BBD /* OnboardingProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13F44CF77DA1901789DF1AE /* OnboardingProgress.swift */; };
@@ -201,12 +204,14 @@
 		0E86ABAC6DBB5100E792A420 /* MenuBarPanelActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelActions.swift; sourceTree = "<group>"; };
 		11B88E798212B2B74226E09A /* GeneralSettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsModelTests.swift; sourceTree = "<group>"; };
 		15D5F96A2362DECAA7C5162F /* MenuBarPanelNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelNotice.swift; sourceTree = "<group>"; };
+		16F97FFC3CDC45EBC7AE13DF /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
 		18D81ECA454E56A9D56B8466 /* SetupModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupModelTests.swift; sourceTree = "<group>"; };
 		1973A96FA9610EBB7668FCA8 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		1A6DB2E3039606970CA2C0BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1D1883A29573897172890DDD /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		1FF898807224FEB57662CD03 /* PhysicalKeyboardRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardRows.swift; sourceTree = "<group>"; };
 		268D771EA6D145AE181ECBBA /* UnsupportedPhysicalKeyboardsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedPhysicalKeyboardsSection.swift; sourceTree = "<group>"; };
+		272F4C334E8B8BFF3B4A8EFE /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		2780C6032D0F86AADE9642E3 /* MenuBarPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelTests.swift; sourceTree = "<group>"; };
 		27C9E4BB494DF1AF4ED49BA1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		292B87F6B6EB98598837DB1B /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
@@ -307,6 +312,7 @@
 		ADF493F86703E6756ECDE8B7 /* ActivityTriggeredSwitchingTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTriggeredSwitchingTestSupport.swift; sourceTree = "<group>"; };
 		AF40344D3E7FB5ADE0FC9B58 /* UnsupportedPhysicalKeyboardRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedPhysicalKeyboardRow.swift; sourceTree = "<group>"; };
 		B105075353DFBDB5058B49E2 /* SingleInstanceLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleInstanceLock.swift; sourceTree = "<group>"; };
+		B2D1A7382E1585B99512F0D3 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		B374C67570AA786A07343B93 /* ProtectedLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedLifecycleTests.swift; sourceTree = "<group>"; };
 		B511C748DA6CA0346AF82293 /* PhysicalKeyboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardStore.swift; sourceTree = "<group>"; };
 		B5ADE2BAB6057D00D67E9912 /* AssignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignmentTests.swift; sourceTree = "<group>"; };
@@ -509,6 +515,7 @@
 			isa = PBXGroup;
 			children = (
 				661E3469B7E0EE17C2B97F61 /* HostedUnitTestProcessTests.swift */,
+				16F97FFC3CDC45EBC7AE13DF /* LocalizationTests.swift */,
 				6773D1959E48A99AC660107F /* SingleInstanceTests.swift */,
 			);
 			path = App;
@@ -595,6 +602,15 @@
 				10619ADCB07C29ED6329148F /* Shared */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		95FD3B67020F1C7E3D27FD3D /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				B2D1A7382E1585B99512F0D3 /* InfoPlist.xcstrings */,
+				272F4C334E8B8BFF3B4A8EFE /* Localizable.xcstrings */,
+			);
+			path = Localization;
 			sourceTree = "<group>";
 		};
 		9EF588974A2332F9ADC189DB /* Features */ = {
@@ -710,6 +726,7 @@
 			children = (
 				DB91EEF94774F8CF12AB64D4 /* menu_icon.pdf */,
 				5699EF1B28DB0AD6444F7107 /* Onboarding.xcassets */,
+				95FD3B67020F1C7E3D27FD3D /* Localization */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -846,7 +863,15 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
+				ar,
 				en,
+				es,
+				fr,
+				it,
+				ja,
+				ko,
+				"zh-Hans",
+				"zh-Hant",
 			);
 			mainGroup = 6D27DD524F53C9F5FAFBBC8A;
 			minimizedProjectReferenceProxies = 1;
@@ -870,7 +895,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4911B3D295D624C7D771AAA2 /* InfoPlist.xcstrings in Resources */,
 				5C23FF1807F448C6382CF3C0 /* Keyameleon-icon.icon in Resources */,
+				49079FF123A9B754342550CE /* Localizable.xcstrings in Resources */,
 				6FB6E924B63B49C52F36B9B0 /* Onboarding.xcassets in Resources */,
 				A903A1EBFAF729A3578E75E7 /* menu_icon.pdf in Resources */,
 			);
@@ -1049,6 +1076,7 @@
 				B210CF1E13BBF10B3A99DB5C /* InputSourceSelectionPolicyTests.swift in Sources */,
 				7A8C6887DD7B079B13903F9B /* InstallationIntegrityKeychainTests.swift in Sources */,
 				F62E818CCB09141A65147F65 /* LifecycleTests.swift in Sources */,
+				E54D787528293EB7A3994DDB /* LocalizationTests.swift in Sources */,
 				8670CE25558614D008389932 /* LogTests.swift in Sources */,
 				D98E1018A754B0E4E9FDD575 /* MainWindowControllerTests.swift in Sources */,
 				8E2A487FDBE6BB30222E2F7D /* ManualDesignationTests.swift in Sources */,
@@ -1177,12 +1205,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -1249,6 +1279,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.8.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -1256,6 +1287,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;

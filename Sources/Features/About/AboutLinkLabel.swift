@@ -3,7 +3,7 @@ import SwiftUI
 /// The accent label and trailing symbol the About pane's rows use for actions.
 @MainActor
 struct AboutLinkLabel: View {
-    let title: String
+    let title: LocalizedStringResource
     var systemImage: String?
 
     var body: some View {
@@ -23,7 +23,7 @@ struct AboutLinkLabel: View {
 
 #if DEBUG
 #Preview("About link label") {
-    AboutLinkLabel(title: "View on GitHub", systemImage: "arrow.up.right")
+    AboutLinkLabel(title: .aboutViewOnGitHub, systemImage: "arrow.up.right")
         .padding()
         .background(Theme.contentBackground)
 }

@@ -39,6 +39,7 @@ Keyameleon is an automatic keyboard layout switcher for macOS. It lives in the m
 - **Pause and resume** with <kbd>⌘</kbd><kbd>P</kbd> from the menu.
 - **Launch at login**, if you want it.
 - **Updates you approve.** Keyameleon checks for updates at most once a day and never installs one without your approval.
+- **Speaks your language.** English, Italian, French, Spanish, Japanese, Korean, Simplified and Traditional Chinese, and Arabic, following your macOS language.
 
 <p align="center">
   <picture>

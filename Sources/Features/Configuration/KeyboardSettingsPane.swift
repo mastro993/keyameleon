@@ -57,11 +57,9 @@ struct KeyboardSettingsPane: View {
 private struct KeyboardEmptyState: View {
     var body: some View {
         ContentUnavailableView {
-            Label("No keyboards detected", systemImage: "keyboard")
+            Label(.keyboardsEmptyTitle, systemImage: "keyboard")
         } description: {
-            Text(
-                "Connect a USB or Bluetooth keyboard. It appears here automatically."
-            )
+            Text(.keyboardsEmptyDescription)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

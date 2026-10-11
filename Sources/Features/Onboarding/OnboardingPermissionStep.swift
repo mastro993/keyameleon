@@ -8,7 +8,7 @@ struct OnboardingPermissionStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 28) {
-            Text("Let Keyameleon recognize your keyboards.")
+            Text(.permissionTitle)
                 .font(.title)
                 .bold()
                 .foregroundStyle(OnboardingPalette.primary)
@@ -19,13 +19,13 @@ struct OnboardingPermissionStep: View {
                     .frame(width: 28, height: 34)
                     .foregroundStyle(OnboardingPalette.accent)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Input Monitoring").font(.body).bold()
-                    Text("Tells Keyameleon which keyboard you’re typing on")
+                    Text(.inputMonitoring).font(.body).bold()
+                    Text(.inputMonitoringPurpose)
                         .font(.callout)
                         .foregroundStyle(OnboardingPalette.secondary)
                 }
                 Spacer()
-                Text("Required")
+                Text(.requiredBadge)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(OnboardingPalette.secondary)
                     .padding(.horizontal, 14)
@@ -39,17 +39,15 @@ struct OnboardingPermissionStep: View {
             VStack(alignment: .leading, spacing: 16) {
                 OnboardingPermissionInstruction(
                     number: 1,
-                    message: isListed
-                        ? "Click Open System Settings."
-                        : "Click Allow Input Monitoring, then Open System Settings."
+                    message: isListed ? .permissionStepOpenSettings : .permissionStepAllow
                 )
                 OnboardingPermissionInstruction(
                     number: 2,
-                    message: "Turn on \(AppIdentity.current.name) in Input Monitoring."
+                    message: .permissionStepTurnOn(AppIdentity.current.name)
                 )
                 OnboardingPermissionInstruction(
                     number: 3,
-                    message: "If asked, click Quit & Reopen. Setup continues automatically."
+                    message: .permissionStepQuitReopen
                 )
             }
         }

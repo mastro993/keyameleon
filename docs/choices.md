@@ -10,7 +10,18 @@ When behavior changes, edit the relevant section in place rather than appending 
 - **Key Content stays in classification.** Keystrokes, modifiers, shortcuts, and keyboard state never reach saved data, logs, the network, or crash state.
 - **No telemetry.** No analytics, no notifications, no automatic uploads. Sparkle update checks are the only network traffic.
 - **Nothing silent or substituted.** Keyameleon never picks a replacement Input Source, never deletes or recreates unreadable user data, and never moves saved data between changed identities without an explicit rule or user action.
-- **Copy belongs to its view.** Each view owns its user-visible strings; there is no shared copy registry. Domain types expose typed facts, not text.
+- **Copy belongs to its view.** Each view decides which strings it shows; their text, in every language, lives in the [string catalog](#localization). Domain types expose typed facts, not text.
+
+## Localization
+
+Keyameleon speaks the languages of its website: English, Arabic, French, Italian, Japanese, Korean, Simplified Chinese, Spanish, and Traditional Chinese. It follows the macOS language order, including a per-app language set in System Settings › General › Language & Region, and falls back to English. Arabic lays out right to left.
+
+- Every user-visible string, including the Input Monitoring prompt, lives in `Resources/Localization`: `Localizable.xcstrings` for the app and `InfoPlist.xcstrings` for `Info.plist` keys. Code refers to strings through the symbols Xcode generates from manually managed keys, such as `Text(.openSystemSettings)` or `String(localized: .quitApp(name))` where AppKit or a model needs a `String`.
+- Counts use plural variations, not Markdown inflection, so languages with other plural rules (Arabic has six forms) read correctly.
+- Sentences are whole strings. A name fills a placeholder; a sentence is never assembled from translated fragments, so each language can order its words.
+- macOS terms (System Settings, Input Monitoring, Login Items, Quit & Reopen, menu bar, input source) use Apple's own translation for each language, as macOS shows them.
+- Names stay as they are: Keyameleon, Physical Keyboard Names, product names, and Input Source names, which macOS already localizes. The built-in keyboard's fallback product name stays English because it is saved data and part of a Manual Physical Keyboard Designation's signed payload.
+- Logs stay English.
 
 ## Physical Keyboards
 

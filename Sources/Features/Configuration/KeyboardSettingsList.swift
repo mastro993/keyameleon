@@ -12,7 +12,7 @@ struct KeyboardSettingsList: View {
         Form {
             Section {
                 if rows.isEmpty {
-                    Text("No supported keyboards connected.")
+                    Text(.keyboardsNoneSupported)
                         .foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .listRowBackground(Theme.windowBackground)
@@ -30,9 +30,7 @@ struct KeyboardSettingsList: View {
             } header: {
                 KeyboardSettingsHeader()
             } footer: {
-                Text(
-                    "New keyboards appear when connected. Disconnected ones keep their input source."
-                )
+                Text(.keyboardsListFooter)
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

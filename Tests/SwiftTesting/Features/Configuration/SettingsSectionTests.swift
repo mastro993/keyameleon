@@ -1,14 +1,15 @@
+import Foundation
 import Testing
 @testable import Keyameleon
 
 @Test("Settings sections are General, Keyboards, then About")
 func settingsSectionsAreGeneralKeyboardsThenAbout() {
     #expect(SettingsSection.allCases == [.general, .keyboards, .about])
-    #expect(SettingsSection.general.title == "General")
-    #expect(SettingsSection.keyboards.title == "Keyboards")
-    #expect(SettingsSection.about.title == "About")
+    #expect(String(localized: SettingsSection.general.title) == "General")
+    #expect(String(localized: SettingsSection.keyboards.title) == "Keyboards")
+    #expect(String(localized: SettingsSection.about.title) == "About")
     for section in SettingsSection.allCases {
-        #expect(!section.title.isEmpty)
+        #expect(!String(localized: section.title).isEmpty)
         #expect(!section.systemImage(isSelected: false).isEmpty)
         #expect(!section.systemImage(isSelected: true).isEmpty)
         // The design selects with the filled symbol, so the pair must differ.

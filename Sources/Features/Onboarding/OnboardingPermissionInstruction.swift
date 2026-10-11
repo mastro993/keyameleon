@@ -3,7 +3,7 @@ import SwiftUI
 @MainActor
 struct OnboardingPermissionInstruction: View {
     let number: Int
-    let message: String
+    let message: LocalizedStringResource
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
@@ -22,7 +22,7 @@ struct OnboardingPermissionInstruction: View {
 
 #if DEBUG
 #Preview("Permission instruction") {
-    OnboardingPermissionInstruction(number: 1, message: "Open the macOS permission prompt.")
+    OnboardingPermissionInstruction(number: 1, message: .permissionStepOpenSettings)
         .padding()
 }
 #endif
