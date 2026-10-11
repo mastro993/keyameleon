@@ -24,15 +24,18 @@ struct GeneralSettingsPane: View {
 
             Section {
                 VStack(alignment: .leading) {
-                    Picker(selection: externalChangeResponseBinding) {
-                        Text("Switch back on the next key press").tag(ExternalChangeResponse.switchBack)
-                        Text("Keep it until you type on a matching keyboard").tag(ExternalChangeResponse.holdUntilMatch)
-                        Text("Keep it until you type on another keyboard")
-                            .tag(ExternalChangeResponse.holdUntilKeyboardChange)
-                    } label: {
+                    HStack {
                         Text("When input source changes externally")
                             .font(Theme.Typography.rowTitle)
                             .foregroundStyle(Theme.primary)
+                        Spacer()
+                        PopUpPicker(
+                            accessibilityLabel: "When input source changes externally",
+                            options: Self.responses.map { PopUpPicker.Option(title: $0.title) },
+                            selectedIndex: Self.responses.firstIndex { $0.response == model.externalChangeResponse },
+                            onSelect: { model.setExternalChangeResponse(Self.responses[$0].response) }
+                        )
+                        .fixedSize()
                     }
                     Text("What happens after a shortcut, the menu bar, or another app changes the input source.")
                         .font(Theme.Typography.caption)
@@ -43,8 +46,6 @@ struct GeneralSettingsPane: View {
                 Text("Switching")
                     .font(Theme.Typography.sectionTitle)
                     .foregroundStyle(Theme.primary)
-            } footer: {
-                ExternalChangeResponseFooter(response: model.externalChangeResponse)
             }
         }
         .formStyle(.grouped)
@@ -60,12 +61,11 @@ struct GeneralSettingsPane: View {
         )
     }
 
-    private var externalChangeResponseBinding: Binding<ExternalChangeResponse> {
-        Binding(
-            get: { model.externalChangeResponse },
-            set: { model.setExternalChangeResponse($0) }
-        )
-    }
+    private static let responses: [(response: ExternalChangeResponse, title: String)] = [
+        (.switchBack, "Switch back"),
+        (.holdUntilMatch, "Keep until matching keyboard"),
+        (.holdUntilKeyboardChange, "Keep until another keyboard")
+    ]
 }
 
 #if DEBUG

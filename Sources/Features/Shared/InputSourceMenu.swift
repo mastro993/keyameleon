@@ -2,10 +2,8 @@ import SwiftUI
 
 /// The Input Source control of a Physical Keyboard row.
 ///
-/// A grouped `Form` restyles a menu `Picker` into a borderless control sized
-/// to its value, so rows with short and long Input Source names no longer line
-/// up. A bordered `Menu` hosting the inline `Picker` keeps native selection
-/// while the button fills one fixed column in every row.
+/// A `PopUpPicker` keeps the System Settings pop-up box visible and fills one
+/// fixed column, so rows with short and long Input Source names line up.
 @MainActor
 struct InputSourceMenu: View {
     let title: String
@@ -13,40 +11,35 @@ struct InputSourceMenu: View {
     let inputSources: [EligibleInputSource]
 
     var body: some View {
-        Menu {
-            Picker(title, selection: $selection) {
-                Text("Unassigned").tag(nil as String?)
-                if let selection, unavailable {
-                    Text("Unavailable").tag(Optional(selection)).disabled(true)
-                }
-                ForEach(inputSources) { source in
-                    Text(source.name).tag(Optional(source.identifier))
-                }
-            }
-            .pickerStyle(.inline)
-            .labelsHidden()
-        } label: {
-            Text(selectedName)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .menuStyle(.button)
-        .buttonStyle(.bordered)
-        .buttonSizing(.flexible)
+        PopUpPicker(
+            accessibilityLabel: title,
+            options: choices.map { PopUpPicker.Option(title: $0.title, isEnabled: $0.isEnabled) },
+            selectedIndex: choices.firstIndex { $0.identifier == selection },
+            onSelect: { selection = choices[$0].identifier }
+        )
         .frame(width: 176)
-        .accessibilityLabel(title)
-        .accessibilityValue(selectedName)
         .help(selection != nil && unavailable
             ? "This input source is no longer in macOS. Choose another, or add it back in System Settings › Keyboard."
             : "")
     }
 
-    private var unavailable: Bool {
-        !inputSources.contains { $0.identifier == selection }
+    private struct Choice {
+        let title: String
+        let identifier: String?
+        var isEnabled = true
     }
 
-    private var selectedName: String {
-        guard let selection else { return "Unassigned" }
-        return inputSources.first { $0.identifier == selection }?.name ?? "Unavailable"
+    private var choices: [Choice] {
+        var choices = [Choice(title: "Unassigned", identifier: nil)]
+        if let selection, unavailable {
+            choices.append(Choice(title: "Unavailable", identifier: selection, isEnabled: false))
+        }
+        choices += inputSources.map { Choice(title: $0.name, identifier: $0.identifier) }
+        return choices
+    }
+
+    private var unavailable: Bool {
+        !inputSources.contains { $0.identifier == selection }
     }
 }
 

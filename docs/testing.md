@@ -90,9 +90,9 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 **General**
 
-- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When input source changes externally** picker and its subtitle, set to `Switch back on the next key press` on a fresh install or after updating.
+- Shows the `App` heading and the Launch at login switch, then the `Switching` heading with the **When input source changes externally** picker and its full-width description, set to `Switch back` on a fresh install or after updating.
 - Toggling Launch at login persists across a relaunch. A failed change leaves the switch at the real service state and shows an error with Open Login Items.
-- Each External Change Response shows its own footer line, and the choice persists across a relaunch.
+- The choice persists across a relaunch.
 
 **Keyboards**
 
@@ -138,9 +138,9 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 `InputSourceHoldPolicyTests` covers every start and end rule, and `InputSourceHoldTests` drives them through the module seams. Check the real behavior with two assigned keyboards, A on U.S. and B on Italian, and a third Input Source such as French enabled. Type on A first so it is the Active Physical Keyboard. Change the Input Source with the menu bar, a shortcut, and the Globe key; all three behave the same. The Log File shows one `debug` line when a hold starts and one when it ends, with the reason.
 
-1. **Switch back on the next key press.** Change to French. The next key press on A selects U.S. again. No hold notice appears.
-2. **Keep it until you type on another keyboard.** Change to French. Keep typing on A: French stays, and the menu shows the hold notice. Type on B: Italian is selected. Repeat, and type on an unassigned keyboard instead: French stays and the hold ends; typing on A then selects U.S.
-3. **Keep it until you type on a matching keyboard.** Change to Italian while typing on A: Italian stays while you type on A. Type on B: the hold ends without a visible change. Type on A: U.S. is selected. With a Japanese input method assigned to A, toggling Kana and Eisu while typing on A keeps the hold until you type on a keyboard assigned to the mode now selected.
+1. **Switch back.** Change to French. The next key press on A selects U.S. again. No hold notice appears.
+2. **Keep until another keyboard.** Change to French. Keep typing on A: French stays, and the menu shows the hold notice. Type on B: Italian is selected. Repeat, and type on an unassigned keyboard instead: French stays and the hold ends; typing on A then selects U.S.
+3. **Keep until matching keyboard.** Change to Italian while typing on A: Italian stays while you type on A. Type on B: the hold ends without a visible change. Type on A: U.S. is selected. With a Japanese input method assigned to A, toggling Kana and Eisu while typing on A keeps the hold until you type on a keyboard assigned to the mode now selected.
 4. **Fresh launch.** Relaunch, change to French before typing, then type on B: French stays. Type on A: U.S. is selected.
 5. **Hold ends.** Start a hold, then check each ending separately: Switch Back Now in the menu (selects A's Input Source), Pause then Resume, changing the picker in General, editing or removing the holding keyboard's Input Source in Keyboards, disconnecting the holding keyboard, and relaunching. After each, the next key press on A selects U.S.
 6. **Hold survives.** Start a hold, sleep and wake the Mac, then type on A: French stays. Typing on an ignored device never ends a hold.
