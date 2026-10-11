@@ -495,3 +495,19 @@ jobs:
           set -euo pipefail
           bash Scripts/publish-homebrew-cask.sh homebrew-tap "$VERSION" \
             "$RUNNER_TEMP/release-asset/Keyameleon-${VERSION}.dmg"
+
+      # keyameleon.app prerenders the latest release at build time, so its HTML
+      # picks up this version only after a rebuild. A separate `on: release`
+      # workflow never runs, because this job publishes with GITHUB_TOKEN. The
+      # secret is a Cloudflare Workers Builds deploy hook URL; never print it.
+      - name: Rebuild keyameleon.app
+        continue-on-error: true # A site rebuild must never fail a release.
+        env:
+          DEPLOY_HOOK: ${{ secrets.KEYAMELEON_WEB_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${DEPLOY_HOOK}" ]]; then
+            echo "::warning::KEYAMELEON_WEB_DEPLOY_HOOK is not set; skipping the site rebuild."
+            exit 0
+          fi
+          curl -fsS --max-time 30 -X POST "${DEPLOY_HOOK}"
