@@ -260,6 +260,39 @@ enum PreviewFixtures {
         )
     }
 
+    /// Terminal assigned to U.S., Notes running without an assignment, and an
+    /// assigned app that is not installed.
+    static func appAssignments() -> AppAssignmentsModel {
+        let terminal = InstalledApp(
+            bundleIdentifier: "com.apple.Terminal",
+            name: "Terminal",
+            url: URL(filePath: "/System/Applications/Utilities/Terminal.app")
+        )
+        let notes = InstalledApp(
+            bundleIdentifier: "com.apple.Notes",
+            name: "Notes",
+            url: URL(filePath: "/System/Applications/Notes.app")
+        )
+        return AppAssignmentsModel(
+            store: InMemoryAppAssignmentStore([
+                AppAssignment(
+                    bundleIdentifier: terminal.bundleIdentifier,
+                    appName: terminal.name,
+                    inputSourceIdentifier: "com.apple.keylayout.US"
+                ),
+                AppAssignment(
+                    bundleIdentifier: "com.example.Removed",
+                    appName: "Removed App",
+                    inputSourceIdentifier: "com.apple.keylayout.German"
+                )
+            ]),
+            apps: InMemoryInstalledApps(
+                installed: [terminal, notes],
+                running: [terminal.bundleIdentifier, notes.bundleIdentifier]
+            )
+        )
+    }
+
     static func inputSources() -> [EligibleInputSource] {
         [
             EligibleInputSource(

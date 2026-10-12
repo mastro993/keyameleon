@@ -20,7 +20,7 @@
   </p>
 </div>
 
-Keyameleon is an automatic keyboard layout switcher for macOS. It lives in the menu bar and switches the input source to match the keyboard you are typing on. If you use one Mac with keyboards that have different layouts, such as a US MacBook keyboard and an Italian external keyboard, or a Dvorak keyboard next to a QWERTY one, you no longer switch layouts by hand. It works with the built-in keyboard and with USB and Bluetooth keyboards.
+Keyameleon is an automatic keyboard layout switcher for macOS. It lives in the menu bar and switches the input source to match the keyboard you are typing on, and the app you are typing in. If you use one Mac with keyboards that have different layouts, such as a US MacBook keyboard and an Italian external keyboard, or a Dvorak keyboard next to a QWERTY one, you no longer switch layouts by hand. It works with the built-in keyboard and with USB and Bluetooth keyboards.
 
 <p align="center">
   <picture>
@@ -33,6 +33,7 @@ Keyameleon is an automatic keyboard layout switcher for macOS. It lives in the m
 
 - **One layout per keyboard.** Assign an Input Source to each Physical Keyboard once; Keyameleon remembers it across disconnects and restarts.
 - **Automatic switching.** Press a key and Keyameleon selects that keyboard's Input Source, then verifies the change.
+- **One layout per app.** Give an app its own Input Source on every keyboard, such as Terminal always on U.S. while your external keyboard types Italian everywhere else. An app's layout wins over the keyboard's while that app is in front.
 - **Menu bar only.** No Dock icon once setup is finished. The menu shows your assigned keyboards, which one is active, and any problem that needs attention.
 - **Guided setup.** One walkthrough grants Input Monitoring, assigns layouts, and confirms everything is ready.
 - **Rename and ignore devices.** Give keyboards your own names, and ignore devices (such as a mouse with shortcut keys) that macOS reports as keyboards.
@@ -84,12 +85,13 @@ Keyameleon does not switch layouts and has no menu bar icon until you finish set
 
 ## How it works
 
-Keyameleon watches keyboard activity through Apple's CoreHID framework in listen-only mode. When you press a key, it identifies the keyboard, looks up that keyboard's assignment, and asks macOS to select the matching Input Source. It then reads the Input Source back to confirm the switch.
+Keyameleon watches keyboard activity through Apple's CoreHID framework in listen-only mode. When you press a key, it identifies the keyboard, looks up the input source it wants, and asks macOS to select it. It then reads the Input Source back to confirm the switch. The input source it wants is the front app's, if you gave that app one, otherwise the keyboard's. Switching to another app also switches the input source right away.
 
 Things worth knowing:
 
 - **The first key can use the old layout.** Keyameleon never delays or changes your input, so the key press that triggers a switch, and any keys macOS handles before the switch completes, use the previous layout.
 - **Each keyboard needs a stable identity.** Keyameleon recognizes an external keyboard by its hardware identity. A keyboard that macOS cannot identify reliably is listed but cannot receive an assignment.
+- **Turn off per-document switching.** If **Automatically switch to a document's input source** is on in Keyboard settings, macOS also switches when you change apps, and the two can disagree.
 - **Missing layouts are never replaced.** If an assigned Input Source is removed from macOS, Keyameleon keeps the assignment, shows a warning, and does not pick a substitute.
 - **Only one copy runs per Mac.** A second copy, even of another version, exits silently on launch.
 
@@ -103,7 +105,7 @@ Keyameleon stores data locally:
 
 | What | Where |
 | --- | --- |
-| Keyboard names and assignments | `~/Library/Application Support/Keyameleon/` |
+| Keyboard names and assignments, app assignments | `~/Library/Application Support/Keyameleon/` |
 | Setup progress, ignored devices, pause state, External Change Response | Preferences domain `dev.fedemas.keyameleon` |
 | Integrity key that protects saved keyboard designations | Keychain item `dev.fedemas.keyameleon.installation-integrity` |
 | Operational logs (no typed content) | `~/Library/Logs/Keyameleon/` |
@@ -118,7 +120,7 @@ Not on its own. macOS has one active input source for the whole system, and it c
 
 ### How is Keyameleon different from per-app layout switchers?
 
-Per-app switchers change the layout when you switch apps. Keyameleon changes it when you switch keyboards, whatever app is in front.
+Per-app switchers change the layout when you switch apps; they do not know which keyboard you type on. Keyameleon does both: each keyboard has its layout, and an app can override it on every keyboard while it is in front.
 
 ### Does it work with Bluetooth keyboards and the built-in MacBook keyboard?
 
@@ -130,7 +132,7 @@ It uses key presses only to tell which keyboard is active. Typed content never r
 
 ### Can I switch to another layout for a few words without Keyameleon switching back?
 
-Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, set **When input source changes externally** to keep the new input source until you type on a keyboard assigned to it, or until you type on another keyboard. The menu bar menu then shows **Switch Back Now** to return early.
+Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, set **When input source changes externally** to keep the new input source until you type on a keyboard assigned to it, or until you type on another keyboard. Switching apps always ends it. The menu bar menu then shows **Switch Back Now** to return early.
 
 ### Is Keyameleon free?
 

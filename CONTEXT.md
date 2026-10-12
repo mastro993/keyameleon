@@ -1,6 +1,6 @@
 # Keyameleon
 
-Keyameleon keeps the macOS Input Source aligned with the Physical Keyboard that produces input. It serves a person who uses the same Mac with Physical Keyboards that have different physical layouts.
+Keyameleon keeps the macOS Input Source aligned with the Physical Keyboard that produces input and the app in front. It serves a person who uses the same Mac with Physical Keyboards that have different physical layouts, or who wants some apps to always use one Input Source.
 
 ## Language
 
@@ -54,6 +54,14 @@ _Avoid_: severity, verbosity
 The Physical Keyboard that produced the last Activation Activity that Keyameleon observed. Keyameleon does not carry this condition across an app restart; after restart, there is no Active Physical Keyboard until new Activation Activity.
 _Avoid_: Current keyboard, last keyboard
 
+**Frontmost App**:
+The app that macOS last made active, other than Keyameleon itself. When Keyameleon becomes active, the Frontmost App stays the app that was active before it.
+_Avoid_: Active app, current app, focused app
+
+**App Activation**:
+A change of the Frontmost App.
+_Avoid_: App switch, focus change
+
 **Input Source**:
 A macOS text-input configuration, such as a language-specific keyboard layout, that interprets key input.
 _Avoid_: Source input, keyboard language
@@ -63,27 +71,39 @@ A change of the current Input Source that Keyameleon did not make. It includes c
 _Avoid_: Manual change, user change
 
 **External Change Response**:
-The person's global choice of how Activity-Triggered Switching reacts to an External Input Source Change: Switch Back, Hold Until Match, or Hold Until Keyboard Change. Switch Back starts no Input Source Hold, so the next Activation Activity applies the Keyboard Assignment.
+The person's global choice of how Activity-Triggered Switching reacts to an External Input Source Change: Switch Back, Hold Until Match, or Hold Until Keyboard Change. Switch Back starts no Input Source Hold, so the next Activation Activity or App Activation applies the Wanted Input Source.
 _Avoid_: Override mode, manual mode
 
 **Input Source Hold**:
-A period after an External Input Source Change during which Activity-Triggered Switching applies no Keyboard Assignment. With Hold Until Match, it ends when Activation Activity comes from a Physical Keyboard whose Keyboard Assignment equals the current Input Source. With Hold Until Keyboard Change, it ends when Activation Activity comes from a Physical Keyboard other than the holding one. It also ends when the person chooses to switch back, pauses and resumes, changes the External Change Response, or changes the holding Physical Keyboard's Keyboard Assignment, and when Keyameleon restarts.
+A period after an External Input Source Change during which Activity-Triggered Switching applies no Wanted Input Source. With Hold Until Match, it ends when the Wanted Input Source after Activation Activity equals the current Input Source. With Hold Until Keyboard Change, it ends when Activation Activity comes from a Physical Keyboard other than the holding one. Any App Activation ends it. It also ends when the person chooses to switch back, pauses and resumes, changes the External Change Response, changes the holding Physical Keyboard's Keyboard Assignment, or changes the Frontmost App's App Assignment, and when Keyameleon restarts.
 _Avoid_: Override, manual override, suspension
 
 **Keyboard Assignment**:
 The saved relation between one Physical Keyboard and its wanted Input Source.
 _Avoid_: Mapping, binding
 
+**App Assignment**:
+The saved relation between one app, recognized by its bundle identifier, and its wanted Input Source. While that app is the Frontmost App, it overrides the Keyboard Assignment of every Physical Keyboard, and it applies even without an Active Physical Keyboard.
+_Avoid_: App rule, per-app mapping
+
+**Wanted Input Source**:
+The Input Source Keyameleon aims for at a given moment: the Frontmost App's App Assignment if it has one, otherwise the Active Physical Keyboard's Keyboard Assignment. There is none when neither exists.
+_Avoid_: Target layout, effective assignment
+
 **Unavailable Keyboard Assignment**:
 A Keyboard Assignment whose Input Source is not available. Keyameleon keeps the assignment and does not select a substitute Input Source.
 _Avoid_: Broken assignment, missing assignment
+
+**Unavailable App Assignment**:
+An App Assignment whose Input Source is not available. Keyameleon keeps the assignment and selects nothing while that app is the Frontmost App; it does not fall back to the Keyboard Assignment.
+_Avoid_: Broken app rule
 
 **Switching Status**:
 The current global condition of Activity-Triggered Switching: Ready, Permission Required, Paused, or Temporarily Unavailable. It is separate from the condition of one Physical Keyboard or Keyboard Assignment.
 _Avoid_: App status, operational status
 
 **Activity-Triggered Switching**:
-The product behavior that requests and verifies a Keyboard Assignment after Keyameleon observes Activation Activity. It does not delay or change the original Physical Keyboard Event. That event and later events that macOS processes before verification can use the previous Input Source.
+The product behavior that requests and verifies the Wanted Input Source after Keyameleon observes Activation Activity or an App Activation. It does not delay or change the original Physical Keyboard Event. That event and later events that macOS processes before verification can use the previous Input Source.
 _Avoid_: First-activity guarantee, next-key guarantee, first-key guarantee, best-effort switching
 
 **Official Release**:

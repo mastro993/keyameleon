@@ -4,23 +4,23 @@ import Foundation
 ///
 /// Activity-Triggered Switching owns the hold and its effects; this policy owns
 /// the rules that depend on Physical Keyboards and Input Sources. Pause,
-/// Resume, a changed External Change Response, and Switch Back Now end any
-/// hold unconditionally, so they need no rule here.
+/// Resume, a changed External Change Response, Switch Back Now, an App
+/// Activation, and an edit of the Frontmost App's App Assignment end any hold
+/// unconditionally, so they need no rule here.
 enum InputSourceHoldPolicy {
     /// The hold after an External Input Source Change.
     ///
-    /// A running hold is kept as is: another change does not restart it.
-    /// `activePhysicalKeyboard` carries the Active Physical Keyboard and its
-    /// Keyboard Assignment's Input Source, if any.
+    /// A running hold is kept as is: another change does not restart it. No
+    /// hold starts when the change reaches the Wanted Input Source.
     static func holdAfterExternalChange(
         _ hold: InputSourceHold?,
         response: ExternalChangeResponse,
         isReady: Bool,
-        activePhysicalKeyboard: (id: PhysicalKeyboardRecordID, assignmentIdentifier: String?)?,
-        currentInputSourceIdentifier: String?
+        activePhysicalKeyboardID: PhysicalKeyboardRecordID?,
+        reachesWantedInputSource: Bool
     ) -> InputSourceHold? {
         if let hold { return hold }
-        guard isReady, currentInputSourceIdentifier != activePhysicalKeyboard?.assignmentIdentifier else {
+        guard isReady, !reachesWantedInputSource else {
             return nil
         }
 
@@ -30,23 +30,23 @@ enum InputSourceHoldPolicy {
         case .holdUntilMatch:
             return .untilMatch
         case .holdUntilKeyboardChange:
-            return .untilKeyboardChange(holdingPhysicalKeyboardID: activePhysicalKeyboard?.id)
+            return .untilKeyboardChange(holdingPhysicalKeyboardID: activePhysicalKeyboardID)
         }
     }
 
     /// The hold after Activation Activity from one Physical Keyboard. Nil ends
-    /// the hold, so that Physical Keyboard's Keyboard Assignment applies.
+    /// the hold, so the Wanted Input Source after that activity applies.
     static func holdAfterActivationActivity(
         _ hold: InputSourceHold?,
         physicalKeyboardID: PhysicalKeyboardRecordID,
-        assignmentIdentifier: String?,
+        wantedInputSourceIdentifier: String?,
         currentInputSourceIdentifier: String?
     ) -> InputSourceHold? {
         switch hold {
         case nil:
             return nil
         case .untilMatch:
-            guard let assignmentIdentifier, assignmentIdentifier == currentInputSourceIdentifier else {
+            guard let wantedInputSourceIdentifier, wantedInputSourceIdentifier == currentInputSourceIdentifier else {
                 return hold
             }
             return nil

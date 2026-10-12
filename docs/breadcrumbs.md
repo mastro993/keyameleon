@@ -65,6 +65,27 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
   plus raw SQLite stores for the empty, Core-Data-only and `sqlite_sequence`
   cases. Against the old code, every skip case imported the file.
 
+## 2026-10-12 — App Assignments (#187)
+
+- Keyameleon now switches per app as well as per keyboard. An App Assignment
+  wins over the Keyboard Assignment while its app is frontmost; the result is
+  the Wanted Input Source, which replaced `WantedKeyboardAssignment` throughout
+  `ActivityTriggeredSwitching` ([ADR 0007](adr/0007-app-assignments-override-keyboard-assignments.md)).
+- App Activations come from `NSWorkspace.didActivateApplicationNotification`
+  through `FrontmostAppObserving`; Keyameleon's own activation is ignored so
+  editing in Settings never switches. `FrontmostAppAssignments` keeps the
+  frontmost app and a cache of saved App Assignments, read once per change.
+- The SwiftData store moved to schema version 2 with a lightweight stage that
+  only adds `AppAssignmentModel`. A test opens a real version 1 store.
+- `ActivityTriggeredSwitching.swift` hit the SwiftLint file and type-body
+  limits, so warning bookkeeping moved into `SwitchingWarnings` and unavailable
+  reason bookkeeping into `SwitchingUnavailableReason`. `makeLiveComposition`
+  takes the shared persistence session instead of three stores.
+- Hold notices now say a hold also ends when you switch apps; the four strings
+  were retranslated.
+- Rejected: a per-keyboard, per-app matrix, and waiting for the next key press
+  before applying an App Assignment. Website Assignments are #188.
+
 ## 2026-10-11 — The app speaks the website's languages
 
 - Keyameleon now ships Arabic, French, Italian, Japanese, Korean, Simplified

@@ -225,7 +225,8 @@ final class SetupModel {
         exclusionStore: any PhysicalKeyboardExclusionStoring =
             InMemoryPhysicalKeyboardExclusionStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
-            InMemoryInstallationIntegrityKeyProvider()
+            InMemoryInstallationIntegrityKeyProvider(),
+        appAssignmentStore: any AppAssignmentStoring = InMemoryAppAssignmentStore()
     ) {
         let composition = ProductionFactory.makeActivityTriggeredSwitching(
             permissionProvider: permissionProvider,
@@ -239,7 +240,8 @@ final class SetupModel {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             exclusionStore: exclusionStore,
-            integrityKeyProvider: integrityKeyProvider
+            integrityKeyProvider: integrityKeyProvider,
+            appAssignmentStore: appAssignmentStore
         )
         self.init(
             activityTriggeredSwitching: composition.activityTriggeredSwitching,

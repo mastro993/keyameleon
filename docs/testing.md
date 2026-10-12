@@ -84,7 +84,7 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 **Window and navigation**
 
-- Open Settings from the menu bar and from the end of Guided setup. Reopening returns to the last pane. Panes are General, Keyboards, and About, in that order.
+- Open Settings from the menu bar and from the end of Guided setup. Reopening returns to the last pane. Panes are General, Keyboards, Apps, and About, in that order.
 - Select each sidebar row, then move between panes with the arrow keys. Check the blue selection, filled icon, keycap identity, and sidebar surface in active and inactive windows. Sidebar items report their selected state to VoiceOver.
 - The window does not shrink below 840 × 560.
 - All panes share one spacing policy: the same left edge for section headers and rows, native row insets, and the same outer margin. At 840 × 560, the Keyboards empty and persistence-failure states line up with the populated list's header.
@@ -111,6 +111,15 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 - An editable picker with no assignment, and an ignored keyboard's disabled picker with no saved assignment, both show `Unassigned`.
 - Missing or ambiguous saved records show a disabled `Unassigned` picker, never `Assignment unavailable` or an assignment borrowed from another record.
 
+**Apps**
+
+- With no App Assignments, the pane shows `No apps` with Add App….
+- Add App… lists running Dock apps by name with their icons, never Keyameleon or an app already listed, then Choose Other App…, which opens at `/Applications`. A new row starts on the current Input Source.
+- Change a row's Input Source: there is no `Unassigned` choice. Remove it from the trailing menu.
+- Assign an app, then uninstall or rename its bundle identifier away: the row stays with a placeholder icon and `Not installed`.
+- Remove an assigned Input Source from macOS: the row reads `Unavailable`.
+- VoiceOver reads each row's name, Input Source, and menu.
+
 **About**
 
 - Shows the app icon, name, tagline, information rows, Sparkle acknowledgement, and creator credit. The identity sits on the pane background and the credit scrolls into view.
@@ -131,7 +140,8 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 7. **Accessibility.** With Increase Contrast and Reduce Transparency on, the background stays readable and the keyboard contrast treatment stays visible. With the menu open, scroll a six-keyboard list and change a keyboard or recovery state: ordinary updates keep the scroll position, and a notice replaces the list until resolved. With Reduce Motion on, changing the active keyboard updates the pill without its spring. Links and buttons show their native pointer without a stuck hand cursor.
 8. **Same Input Source on two keyboards.** With U.S. selected, assign it to two keyboards. Press a key on the first, the second, then the first again, reopening the menu each time. Only the last-used keyboard shows the active accent while U.S. stays selected. `menuBarPanelActivatesKeyboardWithCurrentInputSource` automates this sequence.
 
-9. **Input Source Hold.** During a hold (see [External Input Source Changes](#external-input-source-changes)), the menu shows a neutral `Input source kept` notice naming the current Input Source and what ends the hold, instead of the mismatch notice. **Switch Back Now** closes the menu, ends the hold, and selects the Active Physical Keyboard's Input Source; reopening shows the keyboard list.
+9. **App Assignments.** With Terminal assigned to U.S. and frontmost, the first pill is Terminal with its icon, the U.S. badge, and the accent; the active keyboard's pill has no accent. Switch to an unassigned app: the Terminal pill disappears and the keyboard's accent returns. An unavailable App Assignment shows the warning triangle on the Terminal pill and the warning menu bar icon. Changing the Input Source in Terminal shows the mismatch notice naming Terminal.
+10. **Input Source Hold.** During a hold (see [External Input Source Changes](#external-input-source-changes)), the menu shows a neutral `Input source kept` notice naming the current Input Source and what ends the hold, instead of the mismatch notice. **Switch Back Now** closes the menu, ends the hold, and selects the Active Physical Keyboard's Input Source; reopening shows the keyboard list.
 
 `MenuBarPanelPreviews.swift` previews the keyboard region, and `MenuBarPanelNoticeView.swift` previews warning, neutral, and long notices in light and dark. Verify native menu behavior in the running app.
 
@@ -146,6 +156,18 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 5. **Hold ends.** Start a hold, then check each ending separately: Switch Back Now in the menu (selects A's Input Source), Pause then Resume, changing the picker in General, editing or removing the holding keyboard's Input Source in Keyboards, disconnecting the holding keyboard, and relaunching. After each, the next key press on A selects U.S.
 6. **Hold survives.** Start a hold, sleep and wake the Mac, then type on A: French stays. Typing on an ignored device never ends a hold.
 7. **No hold.** Change to A's own Input Source while A is active, or change it while paused or during Guided setup: no hold notice appears.
+
+### App Assignments
+
+`AppAssignmentSwitchingTests` covers the rules through the module seams. Check the real behavior with keyboard A on Italian, Terminal assigned to U.S., and macOS per-document switching off.
+
+1. **Override.** Type on A in TextEdit: Italian. Switch to Terminal: U.S. is selected before you type. Type on A: U.S. stays.
+2. **Leave.** Switch from Terminal to TextEdit: Italian is selected right away.
+3. **No keyboard yet.** Relaunch Keyameleon with Terminal in front, then switch away and back: U.S. is selected without typing.
+4. **Settings.** Open Settings › Apps from Terminal and change Terminal to French: the Input Source does not change while Settings is in front. Return to Terminal and type: French is selected.
+5. **Hold.** Set **Keep until another keyboard**, type on A in TextEdit, and change to French: French stays. Switch to Terminal: the hold ends and U.S. is selected.
+6. **Pause.** Pause switching and switch to Terminal: nothing changes.
+7. **Log.** The Log File names the app on selections it caused, and has no line for switching to an unassigned app.
 
 ### Input Monitoring recovery
 

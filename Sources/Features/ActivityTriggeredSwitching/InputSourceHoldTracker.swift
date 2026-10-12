@@ -12,17 +12,16 @@ struct InputSourceHoldTracker: Equatable {
         to currentInputSourceIdentifier: String?,
         response: ExternalChangeResponse,
         isReady: Bool,
-        activePhysicalKeyboard: PhysicalKeyboard?
+        activePhysicalKeyboardID: PhysicalKeyboardRecordID?,
+        wantedInputSourceIdentifier: String?
     ) {
         let wasHolding = hold != nil
         hold = InputSourceHoldPolicy.holdAfterExternalChange(
             hold,
             response: response,
             isReady: isReady,
-            activePhysicalKeyboard: activePhysicalKeyboard.map {
-                ($0.id, $0.keyboardAssignment?.inputSourceIdentifier)
-            },
-            currentInputSourceIdentifier: currentInputSourceIdentifier
+            activePhysicalKeyboardID: activePhysicalKeyboardID,
+            reachesWantedInputSource: currentInputSourceIdentifier == wantedInputSourceIdentifier
         )
         if !wasHolding, let hold {
             Log.debug(
@@ -33,9 +32,10 @@ struct InputSourceHoldTracker: Equatable {
     }
 
     /// Whether the hold still keeps the current Input Source after Activation
-    /// Activity from this Physical Keyboard. False means its Keyboard Assignment applies.
+    /// Activity from this Physical Keyboard. False means the Wanted Input Source applies.
     mutating func keepsInputSource(
         afterActivationActivityFrom physicalKeyboard: PhysicalKeyboard,
+        wantedInputSourceIdentifier: String?,
         currentInputSourceIdentifier: String?
     ) -> Bool {
         guard hold != nil else {
@@ -45,7 +45,7 @@ struct InputSourceHoldTracker: Equatable {
         hold = InputSourceHoldPolicy.holdAfterActivationActivity(
             hold,
             physicalKeyboardID: physicalKeyboard.id,
-            assignmentIdentifier: physicalKeyboard.keyboardAssignment?.inputSourceIdentifier,
+            wantedInputSourceIdentifier: wantedInputSourceIdentifier,
             currentInputSourceIdentifier: currentInputSourceIdentifier
         )
         guard hold == nil else {

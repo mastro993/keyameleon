@@ -102,12 +102,12 @@ enum PhysicalKeyboardSchemaV1: VersionedSchema {
 
 enum PhysicalKeyboardMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [PhysicalKeyboardSchemaV1.self]
+        [PhysicalKeyboardSchemaV1.self, PhysicalKeyboardSchemaV2.self]
     }
 
-    // Explicit empty plan: V1 is the baseline. Future schema versions add stages here.
+    /// V2 only adds App Assignments, so existing records and designations carry over unchanged.
     static var stages: [MigrationStage] {
-        []
+        [.lightweight(fromVersion: PhysicalKeyboardSchemaV1.self, toVersion: PhysicalKeyboardSchemaV2.self)]
     }
 }
 
@@ -128,7 +128,7 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         inMemory: Bool = false,
         buildIdentity: AppBuildIdentity = .current
     ) -> ModelConfiguration {
-        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
         let legacyConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         guard !inMemory else { return legacyConfiguration }
         let storeURL = legacyConfiguration.url.deletingLastPathComponent()
@@ -141,7 +141,7 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         inMemory: Bool = false,
         buildIdentity: AppBuildIdentity = .current
     ) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
         let configuration = makeConfiguration(inMemory: inMemory, buildIdentity: buildIdentity)
         if !inMemory {
             try prepareStore(

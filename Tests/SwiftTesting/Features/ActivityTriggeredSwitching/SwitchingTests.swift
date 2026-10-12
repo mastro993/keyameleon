@@ -84,7 +84,7 @@ func assignedActivationActivityRequestsExactKeyboardAssignmentAndVerifiesReadbac
 
     #expect(selector.selectCount == 1)
     #expect(selector.lastRequestedIdentifier == "com.example.italian")
-    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.italian")
+    #expect(model.activityTriggeredSwitching.testingVerifiedInputSourceIdentifier == "com.example.italian")
     #expect(model.activePhysicalKeyboardID == keyboardID)
 }
 
@@ -233,7 +233,7 @@ func failedVerificationLeavesActivePhysicalKeyboardAndDoesNotMarkAssignmentVerif
     )
 
     #expect(selector.selectCount == 1)
-    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == nil)
+    #expect(model.activityTriggeredSwitching.testingVerifiedInputSourceIdentifier == nil)
     #expect(model.activePhysicalKeyboardID == model.physicalKeyboards[0].id)
     // Failed select must not rewrite the observed current Input Source in the fake.
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")

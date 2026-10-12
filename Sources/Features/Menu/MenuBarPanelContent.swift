@@ -59,7 +59,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
         )
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
-            assignedInputSources: assignedInputSources
+            assignedInputSources: assignedInputSources,
+            frontmostAppAssignment: outcome.frontmostAppAssignment
         )
         self.footer = Footer(
             actions: Self.makeActions(

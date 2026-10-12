@@ -12,6 +12,7 @@ final class SettingsWindowController: NSWindowController {
     init(
         model: GeneralSettingsModel,
         setupModel: SetupModel,
+        appAssignmentsModel: AppAssignmentsModel,
         selection: SettingsSelection
     ) {
         self.selection = selection
@@ -41,6 +42,7 @@ final class SettingsWindowController: NSWindowController {
             rootView: SettingsView(
                 model: model,
                 setupModel: setupModel,
+                appAssignmentsModel: appAssignmentsModel,
                 selection: selection
             )
         )

@@ -179,7 +179,7 @@ private func hiddenRenameRetriesWithoutChangingAssignment() throws {
 
 @MainActor
 private func makeSavedChangeTestContainer(at url: URL) throws -> ModelContainer {
-    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
     return try ModelContainer(
         for: schema, migrationPlan: PhysicalKeyboardMigrationPlan.self,
         configurations: [ModelConfiguration(schema: schema, url: url)]

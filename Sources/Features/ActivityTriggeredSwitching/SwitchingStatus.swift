@@ -66,6 +66,35 @@ enum SwitchingUnavailableReason: Equatable, Hashable, Sendable {
         }
         return priority.filter { reasons.contains($0) }
     }
+
+    /// The reasons in priority order after one reason starts or stops.
+    static func updating(
+        _ reasons: [SwitchingUnavailableReason],
+        _ reason: SwitchingUnavailableReason,
+        isActive: Bool
+    ) -> [SwitchingUnavailableReason] {
+        var updated = Set(reasons)
+        if isActive {
+            updated.insert(reason)
+        } else {
+            updated.remove(reason)
+        }
+        return priority.filter { updated.contains($0) }
+    }
+
+    /// The reasons in priority order with Secure Input and protected data reread.
+    static func reconciling(
+        _ reasons: [SwitchingUnavailableReason],
+        protectedState: ProtectedStateSnapshot,
+        eventProtectedDataUnavailable: Bool
+    ) -> [SwitchingUnavailableReason] {
+        let protectedDataUnavailable = !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable
+        return updating(
+            updating(reasons, .secureInput, isActive: protectedState.isSecureInputEnabled),
+            .protectedDataUnavailable,
+            isActive: protectedDataUnavailable
+        )
+    }
 }
 
 enum ListenPermissionState: Equatable, Sendable {

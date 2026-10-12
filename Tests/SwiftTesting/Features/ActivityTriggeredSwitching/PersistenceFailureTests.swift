@@ -97,7 +97,7 @@ private func failedRecordEditsPreserveCommittedData(edit: FailedRecordEdit) thro
 
 @MainActor
 private func makePersistenceFailureContainer(at url: URL) throws -> ModelContainer {
-    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
     return try ModelContainer(
         for: schema, migrationPlan: PhysicalKeyboardMigrationPlan.self,
         configurations: [ModelConfiguration(schema: schema, url: url)]
@@ -298,7 +298,7 @@ private func switchingReadFailurePreservesAssignment() throws {
     #expect(model.persistenceError == nil)
     #expect(model.hasPersistenceFailure)
     #expect(switching.outcome == previous)
-    #expect(switching.testingWantedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(switching.testingWantedInputSourceIdentifier == "com.example.us")
     selector.current = "com.example.italian"
     discovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 903, kind: .press))
     switching.retryNow()

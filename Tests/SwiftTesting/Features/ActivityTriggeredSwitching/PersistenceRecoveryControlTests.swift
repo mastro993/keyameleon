@@ -89,7 +89,7 @@ private func retrySelectionReadFailureDoesNotSelect() throws {
     #expect(switching.persistenceError != nil)
     #expect(selector.selectCount == 1)
     #expect(selector.current == "com.example.italian")
-    #expect(switching.testingVerifiedKeyboardAssignmentIdentifier == nil)
+    #expect(switching.testingVerifiedInputSourceIdentifier == nil)
     fails = false
     model.retryPersistenceOperation()
     switching.retryNow()

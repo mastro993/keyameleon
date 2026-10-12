@@ -749,12 +749,12 @@ func menuBarPanelHoldNoticeOffersSwitchBackNow() {
 
     let keyboardChange = makeMenuBarPanelContent(outcome: outcome(hold: .holdUntilKeyboardChange)).notice
     #expect(keyboardChange?.title == "Input source kept")
-    #expect(keyboardChange?.detail == "Italian stays until you type on another keyboard.")
+    #expect(keyboardChange?.detail == "Italian stays until you type on another keyboard or switch apps.")
     #expect(keyboardChange?.action == .init(id: .switchBackNow, title: "Switch Back Now", isEnabled: true))
     #expect(keyboardChange?.tone == .neutral)
 
     let match = makeMenuBarPanelContent(outcome: outcome(hold: .holdUntilMatch, currentName: nil)).notice
-    #expect(match?.detail == "The input source stays until you type on a keyboard assigned to it.")
+    #expect(match?.detail == "The input source stays until you type on a keyboard assigned to it or switch apps.")
     #expect(match?.action.id == .switchBackNow)
 
     #expect(makeMenuBarPanelContent(outcome: outcome(hold: nil)).notice?.title == "Input source differs")
@@ -1106,4 +1106,25 @@ private func makePanelKeyboard(
         connectionState: connectionState,
         isActive: isActive
     )
+}
+
+@Test("The Frontmost App's App Assignment comes first and takes the accent from the active keyboard")
+@MainActor
+func menuListShowsFrontmostAppAssignmentFirst() {
+    let list = MenuBarAssignmentList(
+        physicalKeyboards: [
+            makeAssignedPanelKeyboard(name: "Active Board", identifier: "active", isActive: true)
+        ],
+        assignedInputSources: panelNames("active", "Italian"),
+        frontmostAppAssignment: ActivityTriggeredSwitchingAppAssignment(
+            bundleIdentifier: "com.apple.Terminal",
+            appName: "Terminal",
+            inputSource: EligibleInputSource(identifier: "com.example.us", name: "U.S.", localeCode: "US")
+        )
+    )
+
+    #expect(list.rows.map(\.physicalKeyboardName) == ["Terminal", "Active Board"])
+    #expect(list.rows.map(\.isActive) == [true, false])
+    #expect(list.rows.first?.appBundleIdentifier == "com.apple.Terminal")
+    #expect(list.rows.first?.assignedLocaleCode == "US")
 }

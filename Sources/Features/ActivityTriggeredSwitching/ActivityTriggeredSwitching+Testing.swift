@@ -4,31 +4,31 @@ import Foundation
 // the product outcome.
 extension ActivityTriggeredSwitching {
     var testingActiveWarnings: [SwitchingWarning] {
-        activeWarningByCause.values.sorted { $0.id < $1.id }
+        switchingWarnings.sorted
     }
 
     var testingWarningEpisodeCount: Int {
-        warningEpisodeCount
+        switchingWarnings.episodeCount
     }
 
-    var testingVerifiedKeyboardAssignmentIdentifier: String? {
-        verifiedKeyboardAssignmentIdentifier
+    var testingVerifiedInputSourceIdentifier: String? {
+        verifiedInputSourceIdentifier
     }
 
-    var testingWantedKeyboardAssignmentIdentifier: String? {
-        wantedKeyboardAssignmentIdentifier
+    var testingWantedInputSourceIdentifier: String? {
+        wantedInputSourceIdentifier
     }
 
-    var testingWantedKeyboardAssignmentGeneration: UInt64 {
-        wantedKeyboardAssignmentGeneration
+    var testingWantedInputSourceGeneration: UInt64 {
+        wantedInputSourceGeneration
     }
 
     var testingObservedCurrentInputSourceIdentifier: String? {
         observedCurrentInputSourceIdentifier
     }
 
-    var testingWantedKeyboardAssignment: WantedKeyboardAssignment? {
-        wantedKeyboardAssignment
+    var testingWantedInputSource: WantedInputSource? {
+        wantedInputSource
     }
 
     var testingIsStarted: Bool {

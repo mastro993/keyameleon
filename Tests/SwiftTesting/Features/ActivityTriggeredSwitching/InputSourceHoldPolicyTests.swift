@@ -18,8 +18,8 @@ private func holdAfterChange(
         hold,
         response: response,
         isReady: isReady,
-        activePhysicalKeyboard: active.map { ($0, activeAssignment) },
-        currentInputSourceIdentifier: current
+        activePhysicalKeyboardID: active,
+        reachesWantedInputSource: current == (active == nil ? nil : activeAssignment)
     )
 }
 
@@ -93,7 +93,7 @@ private func holdAfterActivity(
     InputSourceHoldPolicy.holdAfterActivationActivity(
         hold,
         physicalKeyboardID: keyboard,
-        assignmentIdentifier: assignment,
+        wantedInputSourceIdentifier: assignment,
         currentInputSourceIdentifier: current
     )
 }

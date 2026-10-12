@@ -31,6 +31,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
     private let startsUpdaterOnLaunch: Bool
     private let startsApplicationSurfaceOnLaunch: Bool
     let generalSettingsModel: GeneralSettingsModel
+    let appAssignmentsModel: AppAssignmentsModel
     let settingsSelection = SettingsSelection()
     var statusItem: NSStatusItem?
     /// Template status image loaded from `menu_icon.pdf` once per process.
@@ -75,8 +76,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
         }
         let composition = ProductionFactory.makeLiveComposition(
             setupStore: UserDefaultsSetupDecisionStore(),
-            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: persistenceSession),
-            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: persistenceSession),
+            persistenceSession: persistenceSession,
             exclusionStore: UserDefaultsPhysicalKeyboardExclusionStore(),
             integrityKeyProvider: KeychainInstallationIntegrityKeyProvider()
         )
@@ -130,6 +130,12 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
             launchAtLoginController: launchAtLoginController,
             updateChecker: updateChecker,
             activityTriggeredSwitching: composition.activityTriggeredSwitching
+        )
+        appAssignmentsModel = AppAssignmentsModel(
+            store: composition.appAssignmentStore,
+            currentInputSourceIdentifier: { [inputSources = composition.inputSources] in
+                inputSources.currentInputSourceIdentifier
+            }
         )
 
         super.init()
