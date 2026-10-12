@@ -65,9 +65,9 @@ func menuBarPanelPermissionRequiredOmitsRecoveryActions() {
     let content = makeMenuBarPanelContent(outcome: .permissionRequiredFixture())
 
     #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
-    #expect(content.actionTitles.contains("Request Permission") == false)
-    #expect(content.actionTitles.contains("Open System Settings") == false)
-    #expect(content.actionTitles.contains("Restart \(AppIdentity.current.name)") == false)
+    #expect(content.footer.actions.map(\.title).contains("Request Permission") == false)
+    #expect(content.footer.actions.map(\.title).contains("Open System Settings") == false)
+    #expect(content.footer.actions.map(\.title).contains("Restart \(AppIdentity.current.name)") == false)
     #expect(overflow(content, .pause)?.id == .pause)
 }
 
@@ -92,9 +92,9 @@ func menuBarPanelRecoveryActionsNeverAppear() {
     ] {
         let content = makeMenuBarPanelContent(outcome: outcome)
         #expect(overflowIDs(content) == [.pause, .settings, .checkForUpdates, .quit])
-        #expect(content.actionTitles.contains("Request Permission") == false)
-        #expect(content.actionTitles.contains("Open System Settings") == false)
-        #expect(content.actionTitles.contains("Restart \(AppIdentity.current.name)") == false)
+        #expect(content.footer.actions.map(\.title).contains("Request Permission") == false)
+        #expect(content.footer.actions.map(\.title).contains("Open System Settings") == false)
+        #expect(content.footer.actions.map(\.title).contains("Restart \(AppIdentity.current.name)") == false)
     }
 }
 
@@ -542,7 +542,7 @@ func menuBarPanelDeniedPermissionNoticeOpensSettingsAndOffersRestart() throws {
     #expect(action.title == "Open System Settings")
     #expect(overflowIDs(content) == [.pause, .relaunch, .settings, .checkForUpdates, .quit])
     #expect(overflow(content, .relaunch)?.title == "Restart \(AppIdentity.current.name)")
-    #expect(content.actionTitles.contains("Open System Settings") == false)
+    #expect(content.footer.actions.map(\.title).contains("Open System Settings") == false)
 }
 
 @Test("Native menu shortcuts map to Command-P, Command-comma, and Command-Q")

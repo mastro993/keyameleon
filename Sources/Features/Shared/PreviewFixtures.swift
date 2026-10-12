@@ -17,7 +17,6 @@ enum PreviewSetupState: Equatable {
     case mixedAssignments
     case manyAssignments
     case excludedDevices
-    case designationInProgress
     case paused
     case completed
 }
@@ -30,8 +29,6 @@ struct PreviewSetupFixture {
 
 @MainActor
 enum PreviewFixtures {
-    static let fixedDate = Date(timeIntervalSince1970: 1_735_689_600)
-
     static func setupWithAllKeyboardsExcluded() -> PreviewSetupFixture {
         let fixture = setup(.excludedDevices)
         fixture.model.physicalKeyboards.forEach { physicalKeyboard in
@@ -128,8 +125,7 @@ enum PreviewFixtures {
             return PreviewSetupFixture(model: model, switching: switching)
         }
 
-        let facts = hardwareFacts(for: state)
-        for fact in facts {
+        for fact in hardwareFacts(for: state) {
             discoverer.emit(.connected(fact))
         }
         configureAssignments(for: model, state: state)
@@ -139,22 +135,6 @@ enum PreviewFixtures {
         if state == .excludedDevices,
            let pointer = model.physicalKeyboards.first(where: { !$0.isAssignable }) {
             model.excludePhysicalKeyboard(pointer.id)
-        }
-
-        if state == .designationInProgress,
-           let keyboard = model.physicalKeyboards.first(where: {
-               if case .unsupported(.ambiguousIdentity) = $0.assignmentState {
-                   return true
-               }
-               return false
-           }) {
-            model.startManualDesignation(for: keyboard.id)
-            for serviceID: UInt64 in [40, 41] {
-                discoverer.emit(.disconnected(serviceID: serviceID))
-            }
-            for fact in facts where fact.serviceID == 40 {
-                discoverer.emit(.connected(fact))
-            }
         }
 
         if [.assignmentsPopulated, .readyPopulated, .readyPaused, .mixedAssignments, .paused].contains(state) {
@@ -317,7 +297,7 @@ enum PreviewFixtures {
         into store: InMemoryPhysicalKeyboardRecordStore,
         state: PreviewSetupState
     ) {
-        guard state == .mixedAssignments || state == .designationInProgress else {
+        guard state == .mixedAssignments else {
             return
         }
 
@@ -337,23 +317,6 @@ enum PreviewFixtures {
         for state: PreviewSetupState
     ) -> [PhysicalKeyboardHardwareFacts] {
         switch state {
-        case .designationInProgress:
-            return [
-                makeFacts(
-                    serviceID: 40,
-                    identity: "preview.ambiguous",
-                    serial: "ambiguous",
-                    name: "Prototype Keyboard",
-                    vendorID: 100
-                ),
-                makeFacts(
-                    serviceID: 41,
-                    identity: "preview.ambiguous",
-                    serial: "ambiguous",
-                    name: "Prototype Keyboard",
-                    vendorID: 101
-                )
-            ]
         case .assignmentsPopulated, .readyPopulated, .readyPaused, .paused:
             return [
                 makeFacts(

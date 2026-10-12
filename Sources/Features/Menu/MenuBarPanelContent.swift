@@ -34,10 +34,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
     let footer: Footer
     let notice: MenuBarPanelNotice?
 
-    var actionTitles: [String] {
-        footer.actions.map(\.title)
-    }
-
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],

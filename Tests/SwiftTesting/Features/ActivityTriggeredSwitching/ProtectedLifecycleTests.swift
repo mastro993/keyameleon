@@ -25,8 +25,6 @@ func permissionRevocationStopsObservationAndLaterInputSourceRequests() {
 
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
     #expect(eventObserver.stopCount == 1)
-    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
-    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
     #expect(selector.selectCount == 0)
 }
 

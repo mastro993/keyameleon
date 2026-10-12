@@ -28,7 +28,7 @@ These rules are hard failures:
 - Hosted test processes (`KeyameleonSwiftTesting`, `KeyameleonXCTest`) must not start CoreHID observation, the lifecycle observer, the status item, Guided setup, or Sparkle. Detect them with `XCTestConfigurationFilePath` or `XCTestBundlePath` ([ADR 0005](adr/0005-hosted-unit-tests-skip-live-surface.md)).
 - Tests run in English and the U.S. region: the scheme's test action sets both, so copy assertions hold whatever language the Mac uses. Translations are checked by `Tests/Scripts/test_localization.py` and `LocalizationTests.swift`.
 - Hosted app startup and Xcode previews use in-memory SwiftData storage. Store relocation and persistence-failure tests use disposable directories and never touch the user's real data.
-- Saved Physical Keyboard changes are tested through `SavedPhysicalKeyboardChanges` with the real SwiftData adapters: rollback across both stores, exact Retry, blocked competing changes, and notifications after commit for rename, assignment, replacement, forget, and designation. Model tests cover the displayed failure, recovery, and cancelling a designation without cancelling an unrelated pending change.
+- Saved Physical Keyboard changes are tested through `SavedPhysicalKeyboardChanges` with the real SwiftData adapters: rollback, exact Retry, blocked competing changes, and notifications after commit for rename and assignment. Model tests cover the displayed failure and recovery. `ManualDesignationTests` seeds designations the way earlier versions saved them and checks that authentic evidence is honored and tampered evidence is not.
 
 ## Continuous integration
 

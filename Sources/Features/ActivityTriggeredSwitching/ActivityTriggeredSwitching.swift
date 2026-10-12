@@ -304,26 +304,6 @@ final class ActivityTriggeredSwitching {
         rebuildOutcome()
     }
 
-    func replaceActivePhysicalKeyboard(
-        from oldID: PhysicalKeyboardRecordID,
-        to newID: PhysicalKeyboardRecordID
-    ) {
-        guard physicalKeyboardDiscovery.activePhysicalKeyboardID == oldID else {
-            return
-        }
-
-        if let keyboard = physicalKeyboardDiscovery.physicalKeyboards.first(where: { $0.id == newID }) {
-            do {
-                lastActivePhysicalKeyboard = try resolver.resolve(keyboard)
-            } catch {
-                markPersistenceUnavailable()
-                return
-            }
-        }
-        physicalKeyboardDiscovery.markActive(newID)
-        rebuildOutcome()
-    }
-
     /// Application lifecycle seam. Not part of the product interface.
     func handleLifecycleEvent(_ event: LifecycleEvent) {
         switch event {

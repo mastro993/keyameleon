@@ -4,7 +4,7 @@ import Testing
 @testable import Keyameleon
 
 private enum SavedChangeTestCase: CaseIterable {
-    case rename, assign, replace, forget, designate
+    case rename, assign
 }
 
 private enum SavedChangeTestFailure: Error {
@@ -31,8 +31,7 @@ private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
         try $0.save()
     })
     let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
-    let designations = SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
-    let changes = SavedPhysicalKeyboardChanges(records: records, designations: designations)
+    let changes = SavedPhysicalKeyboardChanges(records: records)
     let assignment = KeyboardAssignment(inputSourceIdentifier: "com.example.us")
     let old = PhysicalKeyboard(
         id: PhysicalKeyboardRecordID(rawValue: "identity:old"), productName: "Keyboard",
@@ -44,26 +43,16 @@ private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
         customName: "Travel", transport: .usb, isBuiltIn: false, assignmentState: .unassigned,
         connectedServiceCount: 1, connectionState: .connected, isActive: false
     )
-    let originalDesignation = SavedManualPhysicalKeyboardDesignation(
-        identityKey: old.id.rawValue, productName: old.productName,
-        confirmedName: "Studio", authenticationTag: Data([1, 2, 3])
-    )
-    let newDesignation = SavedManualPhysicalKeyboardDesignation(
-        identityKey: old.id.rawValue, productName: old.productName,
-        confirmedName: "Desk", authenticationTag: Data([4, 5, 6])
-    )
     try records.saveName(identityKey: old.id.rawValue, productName: old.productName, customName: old.customName)
     try records.saveAssignment(identityKey: old.id.rawValue, productName: old.productName, assignment: assignment)
     try records.saveName(
         identityKey: destination.id.rawValue, productName: destination.productName, customName: destination.customName
     )
-    try designations.save(originalDesignation)
     let originalRecords = try records.allRecords().sorted { $0.identityKey < $1.identityKey }
     let destinationRecord = try #require(try records.record(forIdentityKey: destination.id.rawValue))
     let originalRecord = try #require(try records.record(forIdentityKey: old.id.rawValue))
     let command: SavedPhysicalKeyboardChange
     let expectedRecords: [SavedPhysicalKeyboardRecord]
-    let expectedDesignations: [SavedManualPhysicalKeyboardDesignation]
     switch edit {
     case .rename:
         command = .rename(keyboard: old, customName: "Desk")
@@ -71,37 +60,17 @@ private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
             identityKey: old.id.rawValue, productName: old.productName,
             customName: "Desk", keyboardAssignment: assignment
         )]
-        expectedDesignations = [originalDesignation]
     case .assign:
         command = .assign(keyboard: old, assignment: nil)
         expectedRecords = [destinationRecord, SavedPhysicalKeyboardRecord(
             identityKey: old.id.rawValue, productName: old.productName, customName: originalRecord.customName
         )]
-        expectedDesignations = [originalDesignation]
-    case .replace:
-        command = .replace(old: old, new: destination)
-        expectedRecords = [SavedPhysicalKeyboardRecord(
-            identityKey: destination.id.rawValue, productName: destination.productName,
-            customName: originalRecord.customName, keyboardAssignment: assignment
-        )]
-        expectedDesignations = []
-    case .forget:
-        command = .forget(keyboard: old)
-        expectedRecords = [destinationRecord]
-        expectedDesignations = []
-    case .designate:
-        command = .designate(newDesignation)
-        expectedRecords = [destinationRecord, SavedPhysicalKeyboardRecord(
-            identityKey: old.id.rawValue, productName: old.productName,
-            customName: newDesignation.confirmedName, keyboardAssignment: assignment
-        )]
-        expectedDesignations = [newDesignation]
     }
     var notifications = 0
     records.startObservingChanges {
         notifications += 1
         do {
-            try expectSavedChangeTestState(at: url, records: expectedRecords, designations: expectedDesignations)
+            try expectSavedChangeTestState(at: url, records: expectedRecords)
         } catch {
             Issue.record(error)
         }
@@ -121,8 +90,7 @@ private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
     #expect(context.hasChanges == false)
     #expect(notifications == 0)
     #expect(try records.allRecords().sorted { $0.identityKey < $1.identityKey } == originalRecords)
-    #expect(try designations.allDesignations() == [originalDesignation])
-    try expectSavedChangeTestState(at: url, records: originalRecords, designations: [originalDesignation])
+    try expectSavedChangeTestState(at: url, records: originalRecords)
 
     fails = false
     let result = changes.retry()
@@ -130,7 +98,7 @@ private func savedChangesRetryAtomically(edit: SavedChangeTestCase) throws {
     #expect(saveAttempts == 4)
     #expect(changes.hasPendingChange == false)
     #expect(notifications == 1)
-    try expectSavedChangeTestState(at: url, records: expectedRecords, designations: expectedDesignations)
+    try expectSavedChangeTestState(at: url, records: expectedRecords)
     #expect(changes.retry() == .nothingPending)
     #expect(notifications == 1)
     #expect(saveAttempts == 4)
@@ -150,14 +118,13 @@ private func hiddenRenameRetriesWithoutChangingAssignment() throws {
         try $0.save()
     })
     let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
-    let designations = SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
     let identityKey = "identity:macos.keyboard.saved|anchor:serial:keyboard-a"
     let assignment = KeyboardAssignment(inputSourceIdentifier: "com.example.german")
     try records.saveAssignment(
         identityKey: identityKey, productName: "Test Keyboard", assignment: assignment
     )
     let saved = try #require(try records.record(forIdentityKey: identityKey))
-    let changes = SavedPhysicalKeyboardChanges(records: records, designations: designations)
+    let changes = SavedPhysicalKeyboardChanges(records: records)
     let rename = SavedPhysicalKeyboardChange.rename(
         keyboard: .restored(from: saved), customName: "Travel"
     )
@@ -189,12 +156,10 @@ private func makeSavedChangeTestContainer(at url: URL) throws -> ModelContainer 
 @MainActor
 private func expectSavedChangeTestState(
     at url: URL,
-    records expectedRecords: [SavedPhysicalKeyboardRecord],
-    designations expectedDesignations: [SavedManualPhysicalKeyboardDesignation]
+    records expectedRecords: [SavedPhysicalKeyboardRecord]
 ) throws {
-    let context = ModelContext(try makeSavedChangeTestContainer(at: url))
-    let records = SwiftDataPhysicalKeyboardRecordStore(modelContext: context)
-    let designations = SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: context)
+    let records = SwiftDataPhysicalKeyboardRecordStore(
+        modelContext: ModelContext(try makeSavedChangeTestContainer(at: url))
+    )
     #expect(try records.allRecords().sorted { $0.identityKey < $1.identityKey } == expectedRecords)
-    #expect(try designations.allDesignations() == expectedDesignations)
 }

@@ -41,10 +41,6 @@ struct SwitchingWarning: Identifiable, Equatable, Sendable {
         }
     }
 
-    var supportsRetryNow: Bool {
-        recoveryAction == .retryNow
-    }
-
     static func selectionFailure(inputSourceIdentifier: String) -> SwitchingWarning {
         SwitchingWarning(
             cause: .selectionFailure,

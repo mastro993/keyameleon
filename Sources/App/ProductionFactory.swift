@@ -73,20 +73,12 @@ enum ProductionFactory {
         frontmostAppObserver: any FrontmostAppObserving = NoOpFrontmostAppObserver()
     ) -> ActivityTriggeredSwitchingComposition {
         let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
-        if let records = physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore,
-           let designations = designationStore as? SwiftDataManualPhysicalKeyboardDesignationStore {
-            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(
-                records: records,
-                designations: designations
-            )
-        } else if let records = physicalKeyboardRecordStore as? InMemoryPhysicalKeyboardRecordStore,
-                  let designations = designationStore as? InMemoryManualPhysicalKeyboardDesignationStore {
-            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(
-                records: records,
-                designations: designations
-            )
+        if let records = physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore {
+            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(records: records)
+        } else if let records = physicalKeyboardRecordStore as? InMemoryPhysicalKeyboardRecordStore {
+            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(records: records)
         } else {
-            preconditionFailure("Saved Physical Keyboard changes require matching record and designation stores")
+            preconditionFailure("Saved Physical Keyboard changes require a SwiftData or in-memory record store")
         }
 
         let physicalKeyboardDiscovery = PhysicalKeyboardDiscovery(

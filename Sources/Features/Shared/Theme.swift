@@ -83,8 +83,7 @@ enum Theme {
         static let sidebarWidth: CGFloat = 220
         /// The sidebar's top inset, measured from the bottom of the native title bar.
         static let sidebarTopInset: CGFloat = 24
-        /// The Settings content pane's insets, and the spacing between its blocks.
-        static let panePadding = EdgeInsets(top: 24, leading: 30, bottom: 24, trailing: 30)
+        /// The spacing between the Settings content pane's blocks.
         static let paneSpacing: CGFloat = 20
         /// The sidebar navigation item and the Input Source picker.
         static let controlRadius: CGFloat = 6

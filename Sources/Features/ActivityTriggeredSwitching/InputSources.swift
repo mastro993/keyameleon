@@ -184,12 +184,6 @@ final class SystemInputSourceChangeObserver: InputSourceChangeObserving {
     }
 }
 
-/// Typed fact when the observed current Input Source differs from the Active assignment.
-struct InputSourceMismatch: Equatable, Sendable {
-    let currentInputSourceIdentifier: String
-    let assignedInputSourceIdentifier: String
-}
-
 @MainActor
 final class SystemInputSourceProvider: InputSourceProviding, InputSourceSelecting {
     func eligibleInputSources() -> [EligibleInputSource] {

@@ -109,29 +109,6 @@ func keyboardAssignmentSavesExactInputSourceIdentifierImmediatelyWithoutSelectio
     )
 }
 
-@Test("Searchable assignment picker filters by Input Source name only")
-@MainActor
-func searchableAssignmentPickerFiltersByInputSourceNameOnly() {
-    let model = SetupModel(
-        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
-        setupStore: SetupModelTestSetupDecisionStore(),
-        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
-        inputSourceProvider: SetupModelTestInputSourceProvider(
-            inputSources: [
-                EligibleInputSource(identifier: "com.apple.keylayout.Italian", name: "Italian"),
-                EligibleInputSource(identifier: "com.apple.keylayout.US", name: "U.S."),
-                EligibleInputSource(identifier: "com.apple.keylayout.British", name: "British")
-            ]
-        )
-    )
-
-    startAndCheck(model)
-
-    let filtered = model.filteredInputSources(matching: "ita")
-    #expect(filtered.map(\.name) == ["Italian"])
-    #expect(filtered.allSatisfy { !$0.name.contains("com.apple") })
-}
-
 @Test("SwiftData store keeps names and assignments across containers")
 @MainActor
 func swiftDataStoreKeepsNamesAndAssignmentsAcrossContainers() throws {

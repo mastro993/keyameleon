@@ -14,8 +14,9 @@ _Avoid_: Keyboard identifier, device identity
 
 **Manual Physical Keyboard Designation**:
 A saved user decision that one stable and unique external identity group is a
-Physical Keyboard. Keyameleon creates it only after the same identity leaves
-and returns and the user confirms its Physical Keyboard Name.
+Physical Keyboard. Earlier versions created it after the same identity left and
+returned and the user confirmed its Physical Keyboard Name. Keyameleon still
+honors saved designations but no longer creates them.
 _Avoid_: Keyboard override, trusted device
 
 **Physical Keyboard Name**:

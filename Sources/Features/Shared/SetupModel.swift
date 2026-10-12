@@ -123,7 +123,6 @@ final class SetupModel {
     private(set) var excludedPhysicalKeyboards: [SavedPhysicalKeyboardExclusion] = []
     private(set) var savedPhysicalKeyboardRecords: [SavedPhysicalKeyboardRecord] = []
     private(set) var eligibleInputSources: [EligibleInputSource] = []
-    private(set) var manualDesignationPhase: ManualPhysicalKeyboardDesignationPhase = .idle
 
     private(set) var persistenceError: String?
     /// True while either store cannot be read or written, which is what every
@@ -132,7 +131,6 @@ final class SetupModel {
         persistenceError != nil || activityTriggeredSwitching.persistenceError != nil
     }
     private let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
-    private var savedIdentityKeys: Set<String> = []
 
     var onGuidedSetupCompleted: ((GuidedSetupCompletionDestination) -> Void)?
 
@@ -143,9 +141,7 @@ final class SetupModel {
     private let physicalKeyboardDiscovery: PhysicalKeyboardDiscovery
     private let inputSources: InputSourceModule
     private let physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring
-    private let designationStore: any ManualPhysicalKeyboardDesignationStoring
     private let exclusionStore: any PhysicalKeyboardExclusionStoring
-    private let integrityKeyProvider: any InstallationIntegrityKeyProviding
     private let resolver: PhysicalKeyboardPresentationResolver
     private var lastKnownPhysicalKeyboards: [String: PhysicalKeyboard] = [:]
     private var discoveryObserverID: UUID?
@@ -170,9 +166,7 @@ final class SetupModel {
         self.physicalKeyboardDiscovery = physicalKeyboardDiscovery
         self.inputSources = inputSources
         self.physicalKeyboardRecordStore = physicalKeyboardRecordStore
-        self.designationStore = designationStore
         self.exclusionStore = exclusionStore
-        self.integrityKeyProvider = integrityKeyProvider
         resolver = PhysicalKeyboardPresentationResolver(
             recordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
@@ -184,11 +178,7 @@ final class SetupModel {
 
         applyExclusionKeysToDiscovery()
         discoveryObserverID = physicalKeyboardDiscovery.observeChanges { [weak self] _ in
-            self?.advanceManualDesignationSession()
             self?.publishPhysicalKeyboards()
-        }
-        _ = physicalKeyboardDiscovery.observeRecordChanges { [weak self] change in
-            self?.noteDesignationDisconnect(change)
         }
         inputSourceObserverID = inputSources.observeChanges { [weak self] in
             guard let self else {
@@ -403,60 +393,6 @@ final class SetupModel {
         ))
     }
 
-    func canForgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
-        physicalKeyboardID.isIdentityBased
-            && savedIdentityKeys.contains(physicalKeyboardID.rawValue)
-    }
-
-    func replaceCandidates(
-        for physicalKeyboardID: PhysicalKeyboardRecordID
-    ) -> [PhysicalKeyboard] {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
-              physicalKeyboard.connectionState == .connected,
-              physicalKeyboard.isAssignable,
-              physicalKeyboard.id.isIdentityBased
-        else {
-            return []
-        }
-
-        return physicalKeyboards.filter { candidate in
-            candidate.connectionState == .disconnected
-                && candidate.id.isIdentityBased
-                && candidate.id != physicalKeyboardID
-        }
-    }
-
-    func replaceSavedPhysicalKeyboard(
-        _ disconnectedID: PhysicalKeyboardRecordID,
-        with connectedID: PhysicalKeyboardRecordID
-    ) {
-        guard let connected = physicalKeyboards.first(where: { $0.id == connectedID }),
-              connected.connectionState == .connected,
-              connected.isAssignable,
-              connected.id.isIdentityBased,
-              let disconnected = physicalKeyboards.first(where: { $0.id == disconnectedID }),
-              disconnected.connectionState == .disconnected,
-              disconnected.id.isIdentityBased,
-              savedIdentityKeys.contains(disconnectedID.rawValue)
-        else {
-            return
-        }
-
-        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(
-            .replace(old: disconnected, new: connected)
-        ))
-    }
-
-    func forgetPhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
-        guard let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
-              physicalKeyboardID.isIdentityBased
-        else {
-            return
-        }
-
-        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(.forget(keyboard: physicalKeyboard)))
-    }
-
     func canExcludePhysicalKeyboard(_ physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
         exclusionKey(for: physicalKeyboardID) != nil
     }
@@ -469,7 +405,6 @@ final class SetupModel {
         }
 
         Log.debug(.setup, "Excluded \(physicalKeyboard.name) as a Physical Keyboard")
-        cancelManualDesignationIfMatching(physicalKeyboardID)
         lastKnownPhysicalKeyboards.removeValue(forKey: physicalKeyboardID.rawValue)
         activityTriggeredSwitching.forgetPhysicalKeyboard(physicalKeyboardID)
         exclusionStore.exclude(SavedPhysicalKeyboardExclusion(key: key, name: physicalKeyboard.name))
@@ -505,61 +440,6 @@ final class SetupModel {
         applyExclusionKeysToDiscovery()
     }
 
-    func canStartManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) -> Bool {
-        guard manualDesignationPhase == .idle,
-              let physicalKeyboard = physicalKeyboards.first(where: { $0.id == physicalKeyboardID }),
-              physicalKeyboard.connectionState == .connected
-        else {
-            return false
-        }
-
-        return ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(
-            for: physicalKeyboard
-        )
-    }
-
-    func startManualDesignation(for physicalKeyboardID: PhysicalKeyboardRecordID) {
-        guard canStartManualDesignation(for: physicalKeyboardID) else {
-            return
-        }
-
-        manualDesignationPhase = .awaitingRemoval(physicalKeyboardID)
-    }
-
-    func cancelManualDesignation() {
-        if savedPhysicalKeyboardChanges.cancelPendingDesignation() {
-            persistenceError = nil
-        }
-        manualDesignationPhase = .idle
-    }
-
-    func confirmManualDesignationName(_ name: String) {
-        guard case let .awaitingNameConfirmation(recordID, productName) = manualDesignationPhase,
-              ManualPhysicalKeyboardDesignationEvidenceRules.acceptsConfirmedName(name),
-              ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
-                  connected: physicalKeyboardDiscovery.physicalKeyboards,
-                  expectedID: recordID
-              ) != nil
-        else {
-            return
-        }
-
-        let confirmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let tag = ManualPhysicalKeyboardDesignationAuthenticator.authenticationTag(
-            identityKey: recordID.rawValue,
-            productName: productName,
-            confirmedName: confirmedName,
-            integrityKey: integrityKeyProvider.integrityKey()
-        )
-        let designation = SavedManualPhysicalKeyboardDesignation(
-            identityKey: recordID.rawValue,
-            productName: productName,
-            confirmedName: confirmedName,
-            authenticationTag: tag
-        )
-        finishSavedPhysicalKeyboardChange(savedPhysicalKeyboardChanges.perform(.designate(designation)))
-    }
-
     func assignedInputSource(for physicalKeyboard: PhysicalKeyboard) -> EligibleInputSource? {
         guard let identifier = physicalKeyboard.keyboardAssignment?.inputSourceIdentifier else {
             return nil
@@ -570,70 +450,6 @@ final class SetupModel {
 
     func assignedInputSourceName(for physicalKeyboard: PhysicalKeyboard) -> String? {
         assignedInputSource(for: physicalKeyboard)?.name
-    }
-
-    func filteredInputSources(matching query: String) -> [EligibleInputSource] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            return eligibleInputSources
-        }
-
-        return eligibleInputSources.filter {
-            $0.name.localizedCaseInsensitiveContains(trimmed)
-        }
-    }
-
-    private func cancelManualDesignationIfMatching(_ physicalKeyboardID: PhysicalKeyboardRecordID) {
-        switch manualDesignationPhase {
-        case .idle:
-            return
-        case let .awaitingRemoval(id),
-            let .awaitingReturn(id),
-            let .awaitingNameConfirmation(id, _):
-            if id == physicalKeyboardID {
-                manualDesignationPhase = .idle
-            }
-        }
-    }
-
-    /// Leave is a real disconnect, never an empty catalog.
-    ///
-    /// Activity-Triggered Switching clears the catalog on sleep, lock, secure
-    /// input, and pause. Those publications must not advance the session.
-    private func noteDesignationDisconnect(_ change: PhysicalKeyboardDiscoveryRecordChange) {
-        guard case let .disconnected(physicalKeyboardID, _) = change else {
-            return
-        }
-
-        guard case let .awaitingRemoval(recordID) = manualDesignationPhase else {
-            return
-        }
-
-        guard physicalKeyboardID == recordID else {
-            return
-        }
-
-        manualDesignationPhase = .awaitingReturn(recordID)
-    }
-
-    private func advanceManualDesignationSession() {
-        switch manualDesignationPhase {
-        case .idle, .awaitingRemoval, .awaitingNameConfirmation:
-            return
-        case let .awaitingReturn(recordID):
-            let connected = physicalKeyboardDiscovery.physicalKeyboards
-            if let returned = ManualPhysicalKeyboardDesignationEvidenceRules.acceptsReturn(
-                connected: connected,
-                expectedID: recordID
-            ) {
-                manualDesignationPhase = .awaitingNameConfirmation(
-                    recordID,
-                    productName: returned.productName
-                )
-            } else if connected.contains(where: { $0.id == recordID }) {
-                manualDesignationPhase = .idle
-            }
-        }
     }
 
     private func publishPhysicalKeyboards() {
@@ -690,7 +506,6 @@ final class SetupModel {
         }
 
         lastKnownPhysicalKeyboards = knownKeyboards
-        savedIdentityKeys = Set(savedRecords.map(\.identityKey))
         savedPhysicalKeyboardRecords = savedRecords
         physicalKeyboards = PhysicalKeyboardListOrdering.sorted(
             connected + disconnected
@@ -750,17 +565,6 @@ final class SetupModel {
                         : "Keyboard Assignment saved for \(keyboard.name)"
                 )
                 activityTriggeredSwitching.keyboardAssignmentDidChange(keyboard.id)
-            case let .replace(old, new):
-                Log.debug(.setup, "Moved the saved Physical Keyboard record to \(old.name)")
-                lastKnownPhysicalKeyboards.removeValue(forKey: old.id.rawValue)
-                activityTriggeredSwitching.replaceActivePhysicalKeyboard(from: old.id, to: new.id)
-            case let .forget(keyboard):
-                Log.debug(.setup, "Forgot Physical Keyboard (\(keyboard.name))")
-                lastKnownPhysicalKeyboards.removeValue(forKey: keyboard.id.rawValue)
-                cancelManualDesignationIfMatching(keyboard.id)
-                activityTriggeredSwitching.forgetPhysicalKeyboard(keyboard.id)
-            case .designate:
-                manualDesignationPhase = .idle
             }
             publishPhysicalKeyboards()
         case .failed:

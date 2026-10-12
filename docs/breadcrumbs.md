@@ -86,6 +86,26 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
 - Rejected: a per-keyboard, per-app matrix, and waiting for the next key press
   before applying an App Assignment. Website Assignments are #188.
 
+## 2026-10-12 — Remove unused code
+
+- Manual Physical Keyboard Designation, Replace Saved Physical Keyboard, and
+  Forget lost their Settings entry points in #150 and kept only model seams.
+  Their creation flows are gone: the designation session in `SetupModel`, the
+  replace, forget, and designate cases of `SavedPhysicalKeyboardChange`,
+  `ManualPhysicalKeyboardDesignationEvidenceRules`,
+  `replaceActivePhysicalKeyboard`, and the `deleteRecord`, `save`, and `delete`
+  store methods. `SavedPhysicalKeyboardChanges` now writes records only.
+- Designations saved by earlier versions are still read and authenticated, so a
+  keyboard someone already vouched for stays assignable. `ManualDesignationTests`
+  now seeds that saved evidence instead of driving the removed flow.
+- Also removed: `InputSourceMismatch`, `isFixedBuiltInIdentity`, `panePadding`,
+  `PreviewFixtures.fixedDate` and its unused `designationInProgress` state,
+  `filteredInputSources`, the `CardSurface` color, properties that only tests
+  read (`actionTitles`, `allowsActivityTriggeredSwitching`, both
+  `supportsRetryNow`, and three `UpdatePolicy` flags that Sparkle never read; the
+  Info.plist keys still enforce them), a tracked `__pycache__` file, and
+  `assets/.gitkeep`.
+
 ## 2026-10-11 — The app speaks the website's languages
 
 - Keyameleon now ships Arabic, French, Italian, Japanese, Korean, Simplified

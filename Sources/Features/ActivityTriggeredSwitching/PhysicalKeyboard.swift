@@ -234,10 +234,6 @@ struct PhysicalKeyboardRecordID: Hashable, Sendable {
     var isIdentityBased: Bool {
         rawValue.hasPrefix("identity:")
     }
-
-    var isFixedBuiltInIdentity: Bool {
-        self == .builtIn
-    }
 }
 
 enum PhysicalKeyboardConnectionState: Equatable, Sendable {

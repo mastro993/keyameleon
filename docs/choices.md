@@ -43,13 +43,12 @@ A **Keyboard Assignment** requires a stable, unique **Physical Keyboard Identity
 - **The built-in keyboard** is one fixed identity covering every CoreHID service macOS marks as built-in, independent of software or hardware identifiers ([ADR 0003](adr/0003-built-in-physical-keyboard-identity.md)). Its default name is the shared macOS product name, or `Built-in Keyboard` when services disagree.
 - When an identity changes, Keyameleon does not move or delete saved names, assignments, or designations automatically. The one exception is the one-time built-in migration in ADR 0003.
 
-### Manual designation, replacement, and forgetting
+### Saved manual designations
 
-These exist in the model, with tests, but **have no UI entry point** since Settings was rebuilt.
+Earlier versions let the person create a **Manual Physical Keyboard Designation**, and Replace or Forget a saved keyboard. Settings no longer offers any of the three, and Keyameleon no longer creates, moves, or deletes designations or saved keyboards.
 
-- **Manual Physical Keyboard Designation** lets the person vouch for an external keyboard whose identity is ambiguous across interfaces. It is offered only for external, identity-based devices marked ambiguous; it requires the device to leave and return and the person to confirm its name. The saved evidence is authenticated with an HMAC (CryptoKit) whose key lives in the Keychain item `dev.fedemas.keyameleon.installation-integrity`. Tampered evidence leaves the device unsupported. A designation saves a name only, never an assignment.
-- **Replace** moves a saved name and assignment from a disconnected saved keyboard to a new identity, after confirmation.
-- **Forget** deletes a saved keyboard's name, assignment, and designation. Connected hardware reappears as a new, unassigned keyboard.
+- A designation saved by an earlier version still counts. It vouches for an external keyboard whose identity is ambiguous across interfaces and gives it the confirmed name; it never carries an assignment. Its evidence is authenticated with an HMAC (CryptoKit) whose key lives in the Keychain item `dev.fedemas.keyameleon.installation-integrity`. Tampered evidence leaves the device unsupported.
+- A saved keyboard that is disconnected stays in the list with its name and assignment. Ignore hides it.
 
 ### Ignoring devices
 
@@ -147,7 +146,7 @@ There is no **switch back right away** option that reverts the change as soon as
 
 - Keyboard names, assignments, designations, and App Assignments live in SwiftData at `~/Library/Application Support/Keyameleon/default.store`. Debug builds use `Keyameleon Dev` instead; the folder follows the bundle ID, never the display name ([ADR 0008](adr/0008-separate-debug-identity.md)). Setup progress, exclusions, and pause state live in UserDefaults; the integrity key lives in the Keychain. Copying the store alone (with its `-wal` and `-shm` files, while Keyameleon is quit) is not a complete backup.
 - **Legacy store migration:** release builds only. Before 0.4.6 the store lived at SwiftData's shared default path, `Application Support/default.store`, which any non-sandboxed SwiftData app can also use. That file is copied with SQLite's backup API into a staging folder, and the copy is moved into place only when it holds Keyameleon's keyboard table and no tables other than Keyameleon's and Core Data's own. Anything else, including a store that mixes Keyameleon's tables with another app's, is discarded with one warning line, and a fresh store is created. A mixed store's model metadata may be the other app's, and its copy would carry that app's data. An existing destination always wins, the legacy files are never touched, and a failed copy is retried on the next launch. A migration failure stops startup of the store rather than opening an empty one. Debug builds never read that file, which holds an old release's data; their store starts empty.
-- **Transactions:** records and designations share one explicit SwiftData transaction with autosave off. `SavedPhysicalKeyboardChanges` owns the five saved changes (rename, assignment, replace, forget, designation). A change reports success only after the whole transaction saves; a failure rolls back, keeps the request for an exact Retry, and blocks later changes until Retry succeeds or a pending designation is cancelled.
+- **Transactions:** records and designations share one SwiftData context with autosave off. `SavedPhysicalKeyboardChanges` owns the two saved changes (rename and assignment) and runs each in an explicit transaction. A change reports success only after the transaction saves; a failure rolls back, keeps the request for an exact Retry, and blocks later changes until Retry succeeds.
 - **Unreadable data:** if the store cannot be opened or read, Keyameleon keeps running with the last successfully read state and shows a notice with Retry in Guided setup, Settings, and the menu. It never deletes the data, recreates the store, or substitutes an in-memory store, and switching never acts on missing or invented data.
 - Hosted tests and Xcode previews use in-memory stores.
 

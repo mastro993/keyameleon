@@ -41,15 +41,11 @@ func switchingStatusPriorityIsPermissionTemporarilyUnavailablePausedReady() {
     )
 }
 
-@Test("Paused and Ready allow discovery; only Ready allows Activity-Triggered Switching")
-func pausedAndReadyAllowDiscoveryOnlyReadyAllowsSwitching() {
-    #expect(SwitchingStatus.ready.allowsActivityTriggeredSwitching)
+@Test("Paused and Ready allow Physical Keyboard discovery")
+func pausedAndReadyAllowDiscovery() {
     #expect(SwitchingStatus.ready.allowsPhysicalKeyboardDiscovery)
-    #expect(!SwitchingStatus.paused.allowsActivityTriggeredSwitching)
     #expect(SwitchingStatus.paused.allowsPhysicalKeyboardDiscovery)
-    #expect(!SwitchingStatus.permissionRequired.allowsActivityTriggeredSwitching)
     #expect(!SwitchingStatus.permissionRequired.allowsPhysicalKeyboardDiscovery)
-    #expect(!SwitchingStatus.temporarilyUnavailable.allowsActivityTriggeredSwitching)
     #expect(!SwitchingStatus.temporarilyUnavailable.allowsPhysicalKeyboardDiscovery)
 }
 
@@ -117,7 +113,6 @@ func pauseStopsKeyContentObservationAndInputSourceRequests() {
     #expect(model.isActivityTriggeredSwitchingPaused)
     #expect(setupStore.isActivityTriggeredSwitchingPaused)
     #expect(eventObserver.stopCount == 1)
-    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
 
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(

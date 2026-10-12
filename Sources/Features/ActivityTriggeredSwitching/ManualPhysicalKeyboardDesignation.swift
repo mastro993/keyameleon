@@ -22,68 +22,6 @@ struct SavedManualPhysicalKeyboardDesignation: Equatable, Sendable {
     }
 }
 
-/// Guided-setup session for Manual Physical Keyboard Designation.
-enum ManualPhysicalKeyboardDesignationPhase: Equatable, Sendable {
-    case idle
-    case awaitingRemoval(PhysicalKeyboardRecordID)
-    case awaitingReturn(PhysicalKeyboardRecordID)
-    case awaitingNameConfirmation(PhysicalKeyboardRecordID, productName: String)
-}
-
-/// Approved evidence rules for offering and completing Manual Physical Keyboard Designation.
-enum ManualPhysicalKeyboardDesignationEvidenceRules {
-    /// Offer only for external, identity-based, ambiguous groups.
-    /// Missing, unstable, and shared identity stay unsupported with no offer.
-    static func offersDesignation(for physicalKeyboard: PhysicalKeyboard) -> Bool {
-        guard !physicalKeyboard.isBuiltIn else {
-            return false
-        }
-
-        guard physicalKeyboard.id.isIdentityBased else {
-            return false
-        }
-
-        guard case .unsupported(.ambiguousIdentity) = physicalKeyboard.assignmentState else {
-            return false
-        }
-
-        return true
-    }
-
-    /// Return step accepts the same identity group when evidence stays stable and not shared.
-    /// Ambiguous multi-interface facts remain valid — that is the approved exceptional case.
-    static func acceptsReturn(
-        connected: [PhysicalKeyboard],
-        expectedID: PhysicalKeyboardRecordID
-    ) -> PhysicalKeyboard? {
-        guard expectedID.isIdentityBased else {
-            return nil
-        }
-
-        guard let returned = connected.first(where: { $0.id == expectedID }) else {
-            return nil
-        }
-
-        guard !returned.isBuiltIn else {
-            return nil
-        }
-
-        switch returned.assignmentState {
-        case .unsupported(.missingIdentity),
-            .unsupported(.unstableIdentity),
-            .unsupported(.sharedIdentity):
-            return nil
-        case .unsupported(.ambiguousIdentity), .unassigned, .assigned:
-            return returned
-        }
-    }
-
-    /// Incomplete or empty confirmed name is invalid evidence.
-    static func acceptsConfirmedName(_ name: String) -> Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-}
-
 /// CryptoKit authentication for designation evidence. Integrity key lives in Keychain.
 enum ManualPhysicalKeyboardDesignationAuthenticator {
     static func authenticationTag(

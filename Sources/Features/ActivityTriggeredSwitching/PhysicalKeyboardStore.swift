@@ -17,7 +17,6 @@ protocol PhysicalKeyboardRecordStoring: AnyObject {
         productName: String,
         assignment: KeyboardAssignment?
     ) throws
-    func deleteRecord(identityKey: String) throws
     func transferRecord(
         fromIdentityKey: String,
         toIdentityKey: String,
@@ -30,7 +29,7 @@ extension PhysicalKeyboardRecordStoring {
     func stopObservingChanges() {}
 
     /// Moves the only old built-in record to the fixed local identity.
-    /// Multiple old records are left untouched for the replacement flow.
+    /// Multiple old records are left untouched; nothing picks one automatically.
     @discardableResult
     func migrateSingleOldBuiltInRecord(
         toIdentityKey identityKey: String,
@@ -208,17 +207,6 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         try session.transaction {
             let model = try upsertModel(identityKey: identityKey, productName: productName)
             model.assignedInputSourceIdentifier = assignment?.inputSourceIdentifier
-            session.didChange { [weak self] in self?.onChange?() }
-        }
-    }
-
-    func deleteRecord(identityKey: String) throws {
-        try session.transaction {
-            guard let model = try fetchModel(identityKey: identityKey) else {
-                return
-            }
-
-            try session.modelContext().delete(model)
             session.didChange { [weak self] in self?.onChange?() }
         }
     }

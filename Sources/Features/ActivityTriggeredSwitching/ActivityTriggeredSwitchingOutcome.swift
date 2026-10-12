@@ -52,10 +52,6 @@ struct ActivityTriggeredSwitchingWarning: Identifiable, Equatable, Hashable, Sen
         }
         return [categoryKey, physicalKeyboardName ?? ""].joined(separator: "|")
     }
-
-    var supportsRetryNow: Bool {
-        recoveryAction == .retryNow
-    }
 }
 
 enum ActivityTriggeredSwitchingAction: Hashable, Sendable {

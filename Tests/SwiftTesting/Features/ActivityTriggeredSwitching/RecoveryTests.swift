@@ -42,7 +42,6 @@ func selectionFailureLeavesNormalInputUnchangedAndOpensOneWarningEpisode() {
     #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
     #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].category == .selectionFailed)
     #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].recoveryAction == .retryNow)
-    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].supportsRetryNow)
     #expect(model.activityTriggeredSwitching.testingWantedInputSource?.inputSourceIdentifier == "com.example.us")
 }
 

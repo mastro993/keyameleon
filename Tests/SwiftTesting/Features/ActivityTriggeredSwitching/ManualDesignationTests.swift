@@ -1,91 +1,9 @@
 import CryptoKit
 import Foundation
-import Synchronization
 import Testing
 @testable import Keyameleon
 
-// MARK: - Evidence rules
-
-@Test("Manual Physical Keyboard Designation offered only for external ambiguous identity groups")
-func manualDesignationOfferedOnlyForExternalAmbiguousIdentityGroups() {
-    let ambiguous = PhysicalKeyboard(
-        id: PhysicalKeyboardRecordID(rawValue: "identity:macos.keyboard.a|anchor:serial:s1"),
-        productName: "Ambiguous Board",
-        customName: nil,
-        transport: .usb,
-        isBuiltIn: false,
-        assignmentState: .unsupported(.ambiguousIdentity),
-        connectedServiceCount: 2,
-        connectionState: .connected,
-        isActive: false
-    )
-    #expect(ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: ambiguous))
-
-    let missing = PhysicalKeyboard(
-        id: PhysicalKeyboardRecordID(rawValue: "service:1"),
-        productName: "No ID",
-        customName: nil,
-        transport: .usb,
-        isBuiltIn: false,
-        assignmentState: .unsupported(.missingIdentity),
-        connectedServiceCount: 1,
-        connectionState: .connected,
-        isActive: false
-    )
-    #expect(!ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: missing))
-
-    let shared = PhysicalKeyboard(
-        id: PhysicalKeyboardRecordID(rawValue: "identity:macos.keyboard.a|anchor:serial:s1"),
-        productName: "Shared",
-        customName: nil,
-        transport: .usb,
-        isBuiltIn: false,
-        assignmentState: .unsupported(.sharedIdentity),
-        connectedServiceCount: 2,
-        connectionState: .connected,
-        isActive: false
-    )
-    #expect(!ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: shared))
-
-    let unstable = PhysicalKeyboard(
-        id: PhysicalKeyboardRecordID(rawValue: "identity:macos.keyboard.a|anchor:unstable"),
-        productName: "Unstable",
-        customName: nil,
-        transport: .usb,
-        isBuiltIn: false,
-        assignmentState: .unsupported(.unstableIdentity),
-        connectedServiceCount: 1,
-        connectionState: .connected,
-        isActive: false
-    )
-    #expect(!ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: unstable))
-
-    let builtInAmbiguous = PhysicalKeyboard(
-        id: PhysicalKeyboardRecordID(rawValue: "identity:macos.keyboard.builtin|anchor:built-in"),
-        productName: "Built-in",
-        customName: nil,
-        transport: .other,
-        isBuiltIn: true,
-        assignmentState: .unsupported(.ambiguousIdentity),
-        connectedServiceCount: 2,
-        connectionState: .connected,
-        isActive: false
-    )
-    #expect(!ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: builtInAmbiguous))
-
-    let assignable = PhysicalKeyboard(
-        id: PhysicalKeyboardRecordID(rawValue: "identity:macos.keyboard.a|anchor:serial:s1"),
-        productName: "OK",
-        customName: nil,
-        transport: .usb,
-        isBuiltIn: false,
-        assignmentState: .unassigned,
-        connectedServiceCount: 1,
-        connectionState: .connected,
-        isActive: false
-    )
-    #expect(!ManualPhysicalKeyboardDesignationEvidenceRules.offersDesignation(for: assignable))
-}
+// MARK: - Evidence
 
 @Test("CryptoKit authenticates Manual Physical Keyboard Designation evidence")
 func cryptoKitAuthenticatesManualDesignationEvidence() {
@@ -139,11 +57,11 @@ func designationEvidencePayloadExcludesKeyContentFields() {
     #expect(!text.contains("modifier"))
 }
 
-// MARK: - SetupModel flow
+// MARK: - Saved designations
 
-@Test("Manual designation requires leave, return, and explicit name confirmation")
+@Test("Authentic saved designation makes an ambiguous Physical Keyboard assignable")
 @MainActor
-func manualDesignationRequiresLeaveReturnAndExplicitNameConfirmation() {
+func authenticSavedDesignationMakesAmbiguousPhysicalKeyboardAssignable() throws {
     let recordStore = InMemoryPhysicalKeyboardRecordStore()
     let designationStore = InMemoryManualPhysicalKeyboardDesignationStore()
     let integrityKey = InMemoryInstallationIntegrityKeyProvider()
@@ -158,193 +76,22 @@ func manualDesignationRequiresLeaveReturnAndExplicitNameConfirmation() {
     startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 201, 202, identity: "macos.keyboard.amb")
     let keyboardID = model.physicalKeyboards[0].id
-    #expect(model.canStartManualDesignation(for: keyboardID))
     #expect(model.physicalKeyboards[0].assignmentState == .unsupported(.ambiguousIdentity))
 
-    model.startManualDesignation(for: keyboardID)
-    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
-
-    // Other keyboard still assignable during flow.
-    discoverer.emit(
-        .connected(
-            makeDesignationHardwareFacts(
-                serviceID: 301,
-                identity: "macos.keyboard.other",
-                productID: 50,
-                serialNumber: "other-serial"
-            )
-        )
-    )
-    let otherID = model.physicalKeyboards.first {
-        $0.id != keyboardID && $0.isAssignable
-    }?.id
-    #expect(otherID != nil)
-    if let otherID {
-        model.setKeyboardAssignment(otherID, inputSourceIdentifier: "com.example.us")
-        #expect(
-            model.physicalKeyboards.first { $0.id == otherID }?
-                .keyboardAssignment?.inputSourceIdentifier == "com.example.us"
-        )
-    }
-
-    discoverer.emit(.disconnected(serviceID: 201))
-    discoverer.emit(.disconnected(serviceID: 202))
-    #expect(model.manualDesignationPhase == .awaitingReturn(keyboardID))
-
-    connectAmbiguousGroup(discoverer, serviceIDs: 203, 204, identity: "macos.keyboard.amb")
-    #expect(
-        model.manualDesignationPhase
-            == .awaitingNameConfirmation(keyboardID, productName: "Ambiguous Board")
-    )
-
-    // No designation yet without name confirmation.
-    #expect(designationStore.designation(forIdentityKey: keyboardID.rawValue) == nil)
-    #expect(model.physicalKeyboards.first { $0.id == keyboardID }?.isAssignable == false)
-
-    model.confirmManualDesignationName("Travel Board")
-
-    #expect(model.manualDesignationPhase == .idle)
-    let designated = model.physicalKeyboards.first { $0.id == keyboardID }
-    #expect(designated?.isAssignable == true)
-    #expect(designated?.name == "Travel Board")
-    #expect(designated?.keyboardAssignment == nil)
-    #expect(designationStore.designation(forIdentityKey: keyboardID.rawValue) != nil)
-    #expect(
-        recordStore.record(forIdentityKey: keyboardID.rawValue)?.customName == "Travel Board"
-    )
-    #expect(
-        ManualPhysicalKeyboardDesignationAuthenticator.isAuthentic(
-            designationStore.designation(forIdentityKey: keyboardID.rawValue)!,
-            integrityKey: integrityKey.integrityKey()
-        )
-    )
-}
-
-@Test("Manual designation leave needs a real disconnect, not an empty catalog")
-@MainActor
-func manualDesignationLeaveNeedsARealDisconnectNotAnEmptyCatalog() {
-    let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
-    let model = makeDesignationModel(
-        recordStore: InMemoryPhysicalKeyboardRecordStore(),
-        designationStore: InMemoryManualPhysicalKeyboardDesignationStore(),
-        integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
-        discoverer: discoverer
-    )
-
-    startAndCheck(model)
-    connectAmbiguousGroup(discoverer, serviceIDs: 251, 252, identity: "macos.keyboard.leave")
-    let keyboardID = model.physicalKeyboards[0].id
-    model.startManualDesignation(for: keyboardID)
-    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
-
-    // Sleep, lock, secure input, and pause stop discovery. An empty catalog is
-    // not leave: the Physical Keyboard never went away.
-    model.activityTriggeredSwitching.stop()
-    #expect(model.physicalKeyboards.isEmpty)
-    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
-
-    startAndCheck(model)
-    connectAmbiguousGroup(discoverer, serviceIDs: 253, 254, identity: "macos.keyboard.leave")
-    #expect(model.manualDesignationPhase == .awaitingRemoval(keyboardID))
-
-    discoverer.emit(.disconnected(serviceID: 253))
-    discoverer.emit(.disconnected(serviceID: 254))
-    #expect(model.manualDesignationPhase == .awaitingReturn(keyboardID))
-}
-
-@Test("Shared return evidence is not accepted and creates no designation or assignment")
-@MainActor
-func sharedReturnEvidenceIsNotAcceptedAndCreatesNoDesignationOrAssignment() {
-    let recordStore = InMemoryPhysicalKeyboardRecordStore()
-    let designationStore = InMemoryManualPhysicalKeyboardDesignationStore()
-    let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
-    let model = makeDesignationModel(
+    saveDesignation(
+        "Travel Board",
+        for: keyboardID,
         recordStore: recordStore,
         designationStore: designationStore,
-        integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
-        discoverer: discoverer
+        integrityKey: integrityKey
     )
-
     startAndCheck(model)
-    connectAmbiguousGroup(discoverer, serviceIDs: 211, 212, identity: "macos.keyboard.amb2")
-    let keyboardID = model.physicalKeyboards[0].id
-    model.startManualDesignation(for: keyboardID)
-    discoverer.emit(.disconnected(serviceID: 211))
-    discoverer.emit(.disconnected(serviceID: 212))
-    #expect(model.manualDesignationPhase == .awaitingReturn(keyboardID))
+    connectAmbiguousGroup(discoverer, serviceIDs: 201, 202, identity: "macos.keyboard.amb")
 
-    // Shared serials change identity anchors → different record; original group not accepted.
-    discoverer.emit(
-        .connected(
-            makeDesignationHardwareFacts(
-                serviceID: 213,
-                identity: "macos.keyboard.amb2",
-                productID: 100,
-                serialNumber: "serial-a"
-            )
-        )
-    )
-    discoverer.emit(
-        .connected(
-            makeDesignationHardwareFacts(
-                serviceID: 214,
-                identity: "macos.keyboard.amb2",
-                productID: 100,
-                serialNumber: "serial-b"
-            )
-        )
-    )
-
-    #expect(model.manualDesignationPhase == .awaitingReturn(keyboardID))
-    #expect(designationStore.designation(forIdentityKey: keyboardID.rawValue) == nil)
-    #expect(recordStore.record(forIdentityKey: keyboardID.rawValue) == nil)
-    #expect(
-        model.physicalKeyboards.contains {
-            if case .unsupported(.sharedIdentity) = $0.assignmentState {
-                return true
-            }
-            return false
-        }
-    )
-
-    model.cancelManualDesignation()
-    #expect(model.manualDesignationPhase == .idle)
-    #expect(designationStore.allDesignations().isEmpty)
-}
-
-@Test("Empty confirmed name is incomplete evidence and creates no designation")
-@MainActor
-func emptyConfirmedNameIsIncompleteEvidenceAndCreatesNoDesignation() {
-    let recordStore = InMemoryPhysicalKeyboardRecordStore()
-    let designationStore = InMemoryManualPhysicalKeyboardDesignationStore()
-    let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
-    let model = makeDesignationModel(
-        recordStore: recordStore,
-        designationStore: designationStore,
-        integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
-        discoverer: discoverer
-    )
-
-    startAndCheck(model)
-    connectAmbiguousGroup(discoverer, serviceIDs: 241, 242, identity: "macos.keyboard.empty-name")
-    let keyboardID = model.physicalKeyboards[0].id
-    model.startManualDesignation(for: keyboardID)
-    discoverer.emit(.disconnected(serviceID: 241))
-    discoverer.emit(.disconnected(serviceID: 242))
-    connectAmbiguousGroup(discoverer, serviceIDs: 243, 244, identity: "macos.keyboard.empty-name")
-    #expect(
-        model.manualDesignationPhase
-            == .awaitingNameConfirmation(keyboardID, productName: "Ambiguous Board")
-    )
-
-    model.confirmManualDesignationName("   ")
-    #expect(
-        model.manualDesignationPhase
-            == .awaitingNameConfirmation(keyboardID, productName: "Ambiguous Board")
-    )
-    #expect(designationStore.designation(forIdentityKey: keyboardID.rawValue) == nil)
-    #expect(recordStore.record(forIdentityKey: keyboardID.rawValue) == nil)
-    #expect(model.physicalKeyboards.first { $0.id == keyboardID }?.isAssignable == false)
+    let designated = try #require(model.physicalKeyboards.first { $0.id == keyboardID })
+    #expect(designated.isAssignable)
+    #expect(designated.name == "Travel Board")
+    #expect(designated.keyboardAssignment == nil)
 }
 
 @Test("Identity change does not auto migrate Manual Physical Keyboard Designation")
@@ -364,15 +111,19 @@ func identityChangeDoesNotAutoMigrateManualDesignation() {
     startAndCheck(model)
     connectAmbiguousGroup(discoverer, serviceIDs: 221, 222, identity: "macos.keyboard.old-amb")
     let oldID = model.physicalKeyboards[0].id
-    model.startManualDesignation(for: oldID)
-    discoverer.emit(.disconnected(serviceID: 221))
-    discoverer.emit(.disconnected(serviceID: 222))
-    connectAmbiguousGroup(discoverer, serviceIDs: 223, 224, identity: "macos.keyboard.old-amb")
-    model.confirmManualDesignationName("Kept Name")
+    saveDesignation(
+        "Kept Name",
+        for: oldID,
+        recordStore: recordStore,
+        designationStore: designationStore,
+        integrityKey: integrityKey
+    )
+    startAndCheck(model)
+    connectAmbiguousGroup(discoverer, serviceIDs: 221, 222, identity: "macos.keyboard.old-amb")
     model.setKeyboardAssignment(oldID, inputSourceIdentifier: "com.example.us")
 
-    discoverer.emit(.disconnected(serviceID: 223))
-    discoverer.emit(.disconnected(serviceID: 224))
+    discoverer.emit(.disconnected(serviceID: 221))
+    discoverer.emit(.disconnected(serviceID: 222))
 
     connectAmbiguousGroup(discoverer, serviceIDs: 225, 226, identity: "macos.keyboard.new-amb")
     let newKeyboard = model.physicalKeyboards.first { $0.connectionState == .connected }
@@ -423,71 +174,36 @@ func tamperedDesignationEvidenceLeavesUnsupported() {
     #expect(model.physicalKeyboards.first { $0.id == keyboardID }?.isAssignable == false)
 }
 
-@Test("Replacing a Physical Keyboard drops the old Manual Physical Keyboard Designation")
+// MARK: - Helpers
+
+/// Saves a designation the way an earlier version of Keyameleon confirmed one.
 @MainActor
-func replacementDropsManualDesignationForOldIdentity() throws {
-    let recordStore = InMemoryPhysicalKeyboardRecordStore()
-    let designationStore = InMemoryManualPhysicalKeyboardDesignationStore()
-    let discoverer = DesignationTestPhysicalKeyboardDiscoverer()
-    let model = makeDesignationModel(
-        recordStore: recordStore,
-        designationStore: designationStore,
-        integrityKeyProvider: InMemoryInstallationIntegrityKeyProvider(),
-        discoverer: discoverer
-    )
-    let loggedMessages = Mutex<[String]>([])
-    Log.start(LogWriter { _, _, message in
-        loggedMessages.withLock { $0.append(message) }
-    })
-    defer { Log.stop() }
-
-    startAndCheck(model)
-    connectAmbiguousGroup(discoverer, serviceIDs: 251, 252, identity: "macos.keyboard.replaced")
-    let oldID = model.physicalKeyboards[0].id
-    model.startManualDesignation(for: oldID)
-    discoverer.emit(.disconnected(serviceID: 251))
-    discoverer.emit(.disconnected(serviceID: 252))
-    connectAmbiguousGroup(discoverer, serviceIDs: 253, 254, identity: "macos.keyboard.replaced")
-    model.confirmManualDesignationName("Kept Name")
-    model.setKeyboardAssignment(oldID, inputSourceIdentifier: "com.example.us")
-    discoverer.emit(.disconnected(serviceID: 253))
-    discoverer.emit(.disconnected(serviceID: 254))
-
-    discoverer.emit(
-        .connected(
-            makeDesignationHardwareFacts(
-                serviceID: 255,
-                identity: "macos.keyboard.replacement",
-                productID: 300,
-                serialNumber: "serial-replacement"
+private func saveDesignation(
+    _ confirmedName: String,
+    for keyboardID: PhysicalKeyboardRecordID,
+    recordStore: InMemoryPhysicalKeyboardRecordStore,
+    designationStore: InMemoryManualPhysicalKeyboardDesignationStore,
+    integrityKey: InMemoryInstallationIntegrityKeyProvider
+) {
+    designationStore.save(
+        SavedManualPhysicalKeyboardDesignation(
+            identityKey: keyboardID.rawValue,
+            productName: "Ambiguous Board",
+            confirmedName: confirmedName,
+            authenticationTag: ManualPhysicalKeyboardDesignationAuthenticator.authenticationTag(
+                identityKey: keyboardID.rawValue,
+                productName: "Ambiguous Board",
+                confirmedName: confirmedName,
+                integrityKey: integrityKey.integrityKey()
             )
         )
     )
-    let newID = try #require(
-        model.physicalKeyboards.first { $0.connectionState == .connected }?.id
+    recordStore.saveName(
+        identityKey: keyboardID.rawValue,
+        productName: "Ambiguous Board",
+        customName: confirmedName
     )
-    #expect(newID != oldID)
-
-    model.replaceSavedPhysicalKeyboard(oldID, with: newID)
-
-    let replaced = try #require(model.physicalKeyboards.first { $0.id == newID })
-    #expect(replaced.name == "Kept Name")
-    #expect(
-        loggedMessages.withLock { $0 }
-            .contains("Moved the saved Physical Keyboard record to Kept Name")
-    )
-    #expect(replaced.keyboardAssignment?.inputSourceIdentifier == "com.example.us")
-    #expect(recordStore.record(forIdentityKey: oldID.rawValue) == nil)
-    #expect(designationStore.designation(forIdentityKey: oldID.rawValue) == nil)
-
-    connectAmbiguousGroup(discoverer, serviceIDs: 256, 257, identity: "macos.keyboard.replaced")
-    let returned = try #require(model.physicalKeyboards.first { $0.id == oldID })
-    #expect(returned.customName == nil)
-    #expect(returned.assignmentState == .unsupported(.ambiguousIdentity))
-    #expect(returned.isAssignable == false)
 }
-
-// MARK: - Helpers
 
 @MainActor
 private func makeDesignationModel(

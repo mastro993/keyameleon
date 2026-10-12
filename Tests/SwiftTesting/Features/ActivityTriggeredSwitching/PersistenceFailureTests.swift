@@ -8,7 +8,7 @@ private enum PersistenceInjectedFailure: Error {
 }
 
 private enum FailedRecordEdit: CaseIterable {
-    case rename, assignment, delete, transfer, insert
+    case rename, assignment, transfer, insert
 
     @MainActor
     func apply(to store: SwiftDataPhysicalKeyboardRecordStore) throws {
@@ -20,8 +20,6 @@ private enum FailedRecordEdit: CaseIterable {
                 identityKey: "old", productName: "Keyboard",
                 assignment: KeyboardAssignment(inputSourceIdentifier: "com.example.italian")
             )
-        case .delete:
-            try store.deleteRecord(identityKey: "old")
         case .transfer:
             try store.transferRecord(fromIdentityKey: "old", toIdentityKey: "destination", productName: "Other")
         case .insert:
@@ -39,8 +37,6 @@ private enum FailedRecordEdit: CaseIterable {
             try retriedReader.record(forIdentityKey: "old")?.keyboardAssignment?.inputSourceIdentifier
                 == "com.example.italian"
         )
-    case .delete:
-        #expect(try retriedReader.record(forIdentityKey: "old") == nil)
     case .transfer:
         #expect(try retriedReader.record(forIdentityKey: "old") == nil)
         #expect(try retriedReader.record(forIdentityKey: "destination")?.customName == "Studio")
@@ -182,60 +178,6 @@ private func makePersistenceFailureModel(
     )
 }
 
-@Test("Compound forget rolls back records and designation together before successful retry")
-@MainActor
-private func compoundForgetRollsBackBothStores() throws {
-    let folder = URL.temporaryDirectory.appending(path: "KeyameleonForget-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: folder) }
-    let url = folder.appending(path: "records.store")
-    let container = try makePersistenceFailureContainer(at: url)
-    var fails = false
-    let session = SwiftDataPersistenceSession(modelContext: ModelContext(container), save: {
-        if fails { throw PersistenceInjectedFailure.unavailable }
-        try $0.save()
-    })
-    let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
-    let designations = SwiftDataManualPhysicalKeyboardDesignationStore(session: session)
-    let identityKey = "identity:old"
-    try records.saveName(identityKey: identityKey, productName: "Keyboard", customName: "Studio")
-    let designation = SavedManualPhysicalKeyboardDesignation(
-        identityKey: identityKey, productName: "Keyboard", confirmedName: "Studio", authenticationTag: Data([1, 2, 3])
-    )
-    try designations.save(designation)
-    let model = makePersistenceFailureModel(records: records, session: session)
-    let keyboard = try #require(model.physicalKeyboards.first)
-    var changes = 0
-    records.startObservingChanges { changes += 1 }
-
-    fails = true
-    model.forgetPhysicalKeyboard(keyboard.id)
-    #expect(model.persistenceError?.contains("wasn’t saved") == true)
-    #expect(model.physicalKeyboards.map(\.name) == ["Studio"])
-    #expect(changes == 0)
-
-    model.setPhysicalKeyboardName(keyboard.id, customName: "Must not replace pending forget")
-    model.retryPersistenceOperation()
-    #expect(model.persistenceError?.contains("wasn’t saved") == true)
-    #expect(changes == 0)
-    let readerContext = ModelContext(try makePersistenceFailureContainer(at: url))
-    let recordReader = SwiftDataPhysicalKeyboardRecordStore(modelContext: readerContext)
-    let designationReader = SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: readerContext)
-    #expect(try recordReader.record(forIdentityKey: identityKey)?.customName == "Studio")
-    #expect(try designationReader.designation(forIdentityKey: identityKey) == designation)
-
-    fails = false
-    model.retryPersistenceOperation()
-    #expect(model.persistenceError == nil)
-    #expect(model.physicalKeyboards.isEmpty)
-    #expect(changes == 1)
-    let retriedContext = ModelContext(try makePersistenceFailureContainer(at: url))
-    #expect(try SwiftDataPhysicalKeyboardRecordStore(modelContext: retriedContext).allRecords().isEmpty == true)
-    #expect(try SwiftDataManualPhysicalKeyboardDesignationStore(modelContext: retriedContext).allDesignations().isEmpty == true)
-    model.retryPersistenceOperation()
-    #expect(changes == 1)
-}
-
 @Test("Fetch failure propagates instead of inventing missing records or designations")
 @MainActor
 private func fetchFailureDoesNotInventMissingData() throws {
@@ -310,43 +252,4 @@ private func switchingReadFailurePreservesAssignment() throws {
     discovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 903, kind: .press))
     #expect(selector.selectCount == 2)
     #expect(selector.current == "com.example.us")
-}
-
-@Test("Canceling designation preserves an unrelated failed rename for Retry")
-@MainActor
-private func designationCancellationKeepsUnrelatedRetry() throws {
-    let container = try SwiftDataPhysicalKeyboardRecordStore.makeContainer(inMemory: true)
-    var fails = false
-    let session = SwiftDataPersistenceSession(modelContext: ModelContext(container), save: {
-        if fails { throw PersistenceInjectedFailure.unavailable }
-        try $0.save()
-    })
-    let records = SwiftDataPhysicalKeyboardRecordStore(session: session)
-    let discoverer = SetupModelTestPhysicalKeyboardDiscoverer()
-    let model = makePersistenceFailureModel(records: records, session: session, discoverer: discoverer)
-    startAndCheck(model)
-    for productID in [UInt32(100), 200] {
-        discoverer.emit(.connected(PhysicalKeyboardHardwareFacts(
-            serviceID: UInt64(productID),
-            identity: PhysicalKeyboardIdentity(
-                rawValue: "macos.keyboard.ambiguous", isBuiltIn: false, serialNumber: "same-serial"
-            ),
-            name: "Ambiguous Board", transport: .usb, isBuiltIn: false,
-            vendorID: 500, productID: productID, modelNumber: "Model", serialNumber: "same-serial"
-        )))
-    }
-    let ambiguous = try #require(model.physicalKeyboards.first { !$0.isAssignable })
-    model.startManualDesignation(for: ambiguous.id)
-    #expect(model.manualDesignationPhase == .awaitingRemoval(ambiguous.id))
-    discoverer.emit(.connected(makeSetupModelHardwareFacts(serviceID: 906)))
-    let keyboard = try #require(model.physicalKeyboards.first { $0.isAssignable })
-    fails = true
-    model.setPhysicalKeyboardName(keyboard.id, customName: "Travel")
-    model.cancelManualDesignation()
-    #expect(model.manualDesignationPhase == .idle)
-    #expect(model.persistenceError?.contains("wasn’t saved") == true)
-    fails = false
-    model.retryPersistenceOperation()
-    #expect(model.persistenceError == nil)
-    #expect(try records.record(forIdentityKey: keyboard.id.rawValue)?.customName == "Travel")
 }

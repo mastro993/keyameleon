@@ -5,15 +5,6 @@ enum UpdatePolicy {
     /// Sparkle may check on launch at most this often.
     static let minimumCheckInterval: TimeInterval = 24 * 60 * 60
 
-    /// Automatic download/install is never allowed. User approves every installation.
-    static let allowsAutomaticInstallation = false
-
-    /// Critical updates may warn; they must not bypass user approval.
-    static let criticalUpdatesBypassUserApproval = false
-
-    /// No Keyameleon-generated user or device identifier on update requests.
-    static let allowsAppGeneratedIdentifiers = false
-
     /// Anonymous system profiling is off.
     static let sendsSystemProfile = false
 

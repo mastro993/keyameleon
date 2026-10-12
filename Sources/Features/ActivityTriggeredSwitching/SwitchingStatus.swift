@@ -4,10 +4,6 @@ enum SwitchingStatus: String, Equatable, Sendable {
     case paused = "Paused"
     case temporarilyUnavailable = "Temporarily Unavailable"
 
-    var allowsActivityTriggeredSwitching: Bool {
-        self == .ready
-    }
-
     /// Discovery supports management while Ready or Paused. Key Content observation stays Ready-only.
     var allowsPhysicalKeyboardDiscovery: Bool {
         switch self {
