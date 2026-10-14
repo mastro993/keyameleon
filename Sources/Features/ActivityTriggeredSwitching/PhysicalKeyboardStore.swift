@@ -125,32 +125,47 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
     }
 
     nonisolated static func makeConfiguration(
-        inMemory: Bool = false
+        inMemory: Bool = false,
+        buildIdentity: AppBuildIdentity = .current
     ) -> ModelConfiguration {
         let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
         let legacyConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         guard !inMemory else { return legacyConfiguration }
         let storeURL = legacyConfiguration.url.deletingLastPathComponent()
-            .appending(path: "Keyameleon", directoryHint: .isDirectory)
+            .appending(path: buildIdentity.storageFolderName, directoryHint: .isDirectory)
             .appending(path: legacyConfiguration.url.lastPathComponent)
         return ModelConfiguration(schema: schema, url: storeURL)
     }
 
     static func makeContainer(
-        inMemory: Bool = false
+        inMemory: Bool = false,
+        buildIdentity: AppBuildIdentity = .current
     ) throws -> ModelContainer {
         let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
-        let configuration = makeConfiguration(inMemory: inMemory)
+        let configuration = makeConfiguration(inMemory: inMemory, buildIdentity: buildIdentity)
         if !inMemory {
-            try PhysicalKeyboardStoreMigration.prepareStore(
+            try prepareStore(
                 from: ModelConfiguration(schema: schema).url,
-                to: configuration.url
+                to: configuration.url,
+                buildIdentity: buildIdentity
             )
         }
         return try ModelContainer(
             for: schema,
             migrationPlan: PhysicalKeyboardMigrationPlan.self,
             configurations: [configuration]
+        )
+    }
+
+    /// Prepares the store folder; only the release imports the legacy store.
+    static func prepareStore(
+        from legacyURL: URL,
+        to storeURL: URL,
+        buildIdentity: AppBuildIdentity
+    ) throws {
+        try PhysicalKeyboardStoreMigration.prepareStore(
+            from: buildIdentity.importsLegacyStore ? legacyURL : nil,
+            to: storeURL
         )
     }
 

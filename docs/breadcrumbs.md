@@ -4,6 +4,36 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-14 — Debug builds get their own identity again
+
+- Debug and the installed release shared `dev.fedemas.keyameleon` but were
+  signed differently (Developer ID vs Apple Development). macOS keeps one Input
+  Monitoring row per bundle ID, matched to one designated requirement, so only
+  one build read granted, and Restart Keyameleon's stale-row
+  `tccutil reset ListenEvent` wiped the other build's grant. The shared store let
+  a Debug build with a newer schema rewrite the release's data; release 0.9.0
+  then dropped the tables it did not know, losing App Assignments.
+- Debug is now `dev.fedemas.keyameleon.debug`, shown as Keyameleon (Dev), with
+  `Keyameleon Dev` data and logs folders chosen from the bundle ID
+  (`AppBuildIdentity`). Only the release imports the legacy
+  `Application Support/default.store`. #190 already skips a file that is not
+  Keyameleon's, but a Keyameleon file there is an old release's data, which a
+  fresh Debug folder would otherwise copy.
+- Debug's bundle is `Keyameleon (Dev).app`: System Settings names an app after its
+  bundle file, so a display name alone left two rows called Keyameleon. The
+  module stays `Keyameleon`. Unlike #157, the ID is new rather than
+  `.development`, and the single `/dev/null` lock stays shared, so the two
+  builds never run together.
+- `run.sh reset` now erases only the Debug identity; `reset --release` is
+  required for the release. `run.sh open` checks both IDs before launching, so it
+  refuses while the release runs instead of waiting for a blocked launch.
+  `run.sh test` builds into `build/test`, so it no longer replaces the signed app
+  and its grant, and unregisters that test host afterwards so Quit & Reopen
+  cannot pick it; CI's package cache moved with it.
+- Hosted tests now run under the Debug identity, so they no longer touch the
+  release's defaults domain.
+- ADR 0008 records the reasons, so the identities are not merged a third time.
+
 ## 2026-10-14 — Import the legacy store only when it is Keyameleon's
 
 - When `Keyameleon/default.store` was missing, `PhysicalKeyboardStoreMigration`

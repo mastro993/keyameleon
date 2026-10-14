@@ -6,7 +6,15 @@ cd "${script_dir}/.."
 
 DERIVED_DATA_PATH="${PWD}/build"
 PRODUCTS_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug"
-BUNDLE_ID='dev.fedemas.keyameleon'
+# `test` builds an ad hoc app. Its own derived data keeps it from replacing the
+# signed app that `open` builds, whose Input Monitoring grant needs that signature.
+TEST_DERIVED_DATA_PATH="${DERIVED_DATA_PATH}/test"
+TEST_PRODUCTS_PATH="${TEST_DERIVED_DATA_PATH}/Build/Products/Debug"
+# Debug builds have their own identity; the release one belongs to the installed
+# app (docs/adr/0008-separate-debug-identity.md).
+BUNDLE_ID='dev.fedemas.keyameleon.debug'
+DEBUG_APP_NAME='Keyameleon (Dev)'
+RELEASE_BUNDLE_ID='dev.fedemas.keyameleon'
 LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
 audit_sources() {
@@ -104,19 +112,21 @@ generate_project() {
 }
 
 kill_leftover_derived_data_keyameleon() {
-    local pid command
+    local pid command products
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
-        case "${command}" in
-            "${PRODUCTS_PATH}/Keyameleon.app/Contents/MacOS/Keyameleon"|\
-            "${PRODUCTS_PATH}/Keyameleon.app/Contents/MacOS/Keyameleon "*)
-                kill "${pid}" 2>/dev/null || true
-                ;;
-        esac
+        for products in "${PRODUCTS_PATH}" "${TEST_PRODUCTS_PATH}"; do
+            case "${command}" in
+                "${products}/${DEBUG_APP_NAME}.app/Contents/MacOS/Keyameleon"|\
+                "${products}/${DEBUG_APP_NAME}.app/Contents/MacOS/Keyameleon "*)
+                    kill "${pid}" 2>/dev/null || true
+                    ;;
+            esac
+        done
     done
 }
 
 run_tests() {
-    local script
+    local script test_status=0
     for script in \
         Scripts/official-release-notes.sh \
         Scripts/publish-release-pages.sh \
@@ -133,7 +143,7 @@ run_tests() {
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        -derivedDataPath "${TEST_DERIVED_DATA_PATH}" \
         CODE_SIGN_IDENTITY="-" \
         CODE_SIGNING_REQUIRED=NO
 
@@ -142,10 +152,14 @@ run_tests() {
         -scheme Keyameleon \
         -destination 'platform=macOS,arch=arm64' \
         -parallel-testing-enabled NO \
-        -derivedDataPath "${DERIVED_DATA_PATH}" \
+        -derivedDataPath "${TEST_DERIVED_DATA_PATH}" \
         CODE_SIGN_IDENTITY="-" \
-        CODE_SIGNING_REQUIRED=NO
+        CODE_SIGNING_REQUIRED=NO || test_status=$?
     kill_leftover_derived_data_keyameleon
+    # Quit & Reopen picks any registered copy with the bundle ID, so the ad hoc test
+    # host must not stay registered beside the signed Debug app.
+    "${LSREGISTER}" -u "${TEST_PRODUCTS_PATH}/${DEBUG_APP_NAME}.app" 2>/dev/null || true
+    return "${test_status}"
 }
 
 build_app() {
@@ -183,16 +197,22 @@ build_development_app() {
         CODE_SIGNING_REQUIRED=YES
 }
 
-# Prints one "PID<TAB>bundle path" line for each running Keyameleon of this user.
+# Prints one "PID<TAB>bundle path" line for each running Keyameleon of this user
+# with one of the given bundle IDs; by default, Debug and release. Both hold the
+# same single-instance lock (ADR 0002).
 running_keyameleon_apps() {
-    /usr/bin/osascript -l JavaScript -e \
-        'ObjC.import("AppKit"); $.NSRunningApplication.runningApplicationsWithBundleIdentifier("dev.fedemas.keyameleon").js.map(app => app.processIdentifier + "\t" + app.bundleURL.path.js).join("\n")'
+    (( $# )) || set -- "${BUNDLE_ID}" "${RELEASE_BUNDLE_ID}"
+    /usr/bin/osascript -l JavaScript \
+        -e 'ObjC.import("AppKit")' \
+        -e 'function run(ids) { return ids.flatMap(id => $.NSRunningApplication.runningApplicationsWithBundleIdentifier(id).js.map(app => app.processIdentifier + "\t" + app.bundleURL.path.js)).join("\n") }' \
+        "$@"
 }
 
+# Takes the same bundle IDs as running_keyameleon_apps.
 wait_until_no_keyameleon_runs() {
     local attempt running
     for (( attempt = 0; attempt < 50; attempt++ )); do
-        running="$(running_keyameleon_apps)" || return 1
+        running="$(running_keyameleon_apps "$@")" || return 1
         [[ -z "${running}" ]] && return 0
         sleep 0.2
     done
@@ -200,30 +220,46 @@ wait_until_no_keyameleon_runs() {
     return 1
 }
 
-# Prints every bundle path LaunchServices has registered for the bundle ID.
+# Prints every bundle path LaunchServices has registered for BUNDLE_ID.
 # macOS's Quit & Reopen (offered after an Input Monitoring change) relaunches by
 # bundle ID, so with stale copies registered it can open a different Keyameleon.
 registered_keyameleon_apps() {
-    "${LSREGISTER}" -dump 2>/dev/null | awk '
+    "${LSREGISTER}" -dump 2>/dev/null | awk -v id="${BUNDLE_ID}" '
         /^path:/ { sub(/^path:[[:space:]]+/, ""); sub(/ \(0x[0-9a-f]+\)$/, ""); path = $0 }
-        /^identifier:[[:space:]]+dev\.fedemas\.keyameleon$/ { print path }
+        /^identifier:/ && NF == 2 && $2 == id { print path }
     ' | sort -u
 }
 
-# Returns this Mac to a never-installed state for Keyameleon, so the next launch
-# is a first run. Quits every running copy, including an installed release.
+# Returns this Mac to a never-installed state for one identity, so its next launch
+# is a first run: the Debug identity, or the installed release's with --release.
+# The other identity's running copies, permissions, Launch at Login item,
+# preferences, and data stay untouched.
 # The Keychain integrity key stays: it lives in the data-protection keychain,
 # which the security CLI cannot reach, and it only signs data this reset deletes.
 reset_local_state() {
     local pid bundle app running
+    local -a apps
+    # The functions called below read BUNDLE_ID, so --release switches them too.
+    local BUNDLE_ID="${BUNDLE_ID}" folder='Keyameleon Dev'
+    case "$*" in
+        '') ;;
+        --release)
+            BUNDLE_ID="${RELEASE_BUNDLE_ID}"
+            folder='Keyameleon'
+            ;;
+        *)
+            print -u2 'usage: run.sh reset [--release]'
+            return 64
+            ;;
+    esac
 
-    running="$(running_keyameleon_apps)" || return 1
+    running="$(running_keyameleon_apps "${BUNDLE_ID}")" || return 1
     while IFS=$'\t' read -r pid bundle; do
         [[ -n "${pid}" ]] || continue
         print "Quitting Keyameleon PID ${pid} at ${bundle}"
         kill "${pid}" 2>/dev/null || true
     done <<< "${running}"
-    wait_until_no_keyameleon_runs || return 1
+    wait_until_no_keyameleon_runs "${BUNDLE_ID}" || return 1
 
     # tccutil resolves the bundle ID through LaunchServices, so it runs while
     # copies are still registered. With none registered it fails with -10814.
@@ -231,19 +267,52 @@ reset_local_state() {
         print -u2 'Could not reset privacy permissions; no registered copy of Keyameleon was found.'
     fi
     # Launch at Login is a Background Task Management item that outlives the app.
-    if ! osascript -e 'tell application "System Events" to delete every login item whose name is "Keyameleon"'; then
+    # Debug builds made before ADR 0008 are named Keyameleon too, so only items at
+    # this identity's registered paths are removed.
+    apps=(${(f)"$(registered_keyameleon_apps)"}) || {
+        print -u2 'Could not list the registered copies of Keyameleon.'
+        return 1
+    }
+    if (( ${#apps} )) && ! osascript \
+        -e 'on run appPaths' \
+        -e 'repeat with appPath in appPaths' \
+        -e 'set appPathText to contents of appPath' \
+        -e 'tell application "System Events" to delete (every login item whose path is appPathText)' \
+        -e 'end repeat' \
+        -e 'end run' \
+        "${apps[@]}"; then
         print -u2 'Could not remove the Launch at Login item; turn it off in System Settings > General > Login Items.'
     fi
     defaults delete "${BUNDLE_ID}" 2>/dev/null || true
-    rm -rf "${HOME}/Library/Application Support/Keyameleon" "${HOME}/Library/Logs/Keyameleon" \
+    rm -rf "${HOME}/Library/Application Support/${folder}" "${HOME}/Library/Logs/${folder}" \
         "${HOME}/Library/Caches/${BUNDLE_ID}" "${HOME}/Library/HTTPStorages/${BUNDLE_ID}"
 
-    # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
-    # copies it into the Keyameleon folder again. Other apps may use that path, so
-    # delete it only when Keyameleon's keyboard table is there and every other
-    # table is Keyameleon's or Core Data's own. Launch imports the file only under
-    # the same query (PhysicalKeyboardStoreMigration.keyameleonStoreQuery), so any
-    # other file is left untouched.
+    # Only the release imports the legacy store, so only its reset deletes it.
+    if [[ "${BUNDLE_ID}" == "${RELEASE_BUNDLE_ID}" ]]; then
+        delete_legacy_store || return 1
+    fi
+
+    # Last, because tccutil above needs a registered copy. The next launched copy
+    # registers itself again and becomes the one Quit & Reopen finds. Records for
+    # deleted copies are never launched.
+    for app in "${apps[@]}"; do
+        [[ -d "${app}" ]] || continue
+        print "Unregistering ${app}"
+        if ! "${LSREGISTER}" -u "${app}"; then
+            print -u2 "Could not unregister ${app}; Quit & Reopen may still open it."
+            return 1
+        fi
+    done
+    print "${folder} local state reset."
+}
+
+# Before 0.4.6 the store lived at SwiftData's shared default path, and a release
+# launch copies it into the Keyameleon folder again. Other apps may use that path,
+# so delete it only when Keyameleon's keyboard table is there and every other
+# table is Keyameleon's or Core Data's own. Launch imports the file only under the
+# same query (PhysicalKeyboardStoreMigration.keyameleonStoreQuery), so any other
+# file is left untouched.
+delete_legacy_store() {
     local legacy_store="${HOME}/Library/Application Support/default.store"
     local legacy_store_query="
         SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
@@ -262,25 +331,12 @@ reset_local_state() {
         print "Deleting legacy store ${legacy_store}"
         rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
     fi
-
-    # Last, because tccutil above needs a registered copy. The next launched copy
-    # registers itself again and becomes the one Quit & Reopen finds. Records for
-    # deleted copies are never launched.
-    registered_keyameleon_apps | while IFS= read -r app; do
-        [[ -d "${app}" ]] || continue
-        print "Unregistering ${app}"
-        if ! "${LSREGISTER}" -u "${app}"; then
-            print -u2 "Could not unregister ${app}; Quit & Reopen may still open it."
-            return 1
-        fi
-    done || return 1
-    print 'Keyameleon local state reset.'
 }
 
-# Replaces only this checkout's Debug app. Any other running Keyameleon, such as an
+# Replaces only this checkout's Debug app. Any other running Keyameleon, Debug or an
 # installed release, holds the single-instance lock and is never stopped here.
 open_development_app() {
-    local app="${PRODUCTS_PATH}/Keyameleon.app"
+    local app="${PRODUCTS_PATH}/${DEBUG_APP_NAME}.app"
     local executable="${app}/Contents/MacOS/Keyameleon"
     local pid bundle attempt running
     local -a pids
@@ -337,7 +393,8 @@ case "${1:-test}" in
         run_tests
         ;;
     reset)
-        reset_local_state
+        shift
+        reset_local_state "$@"
         ;;
     open)
         generate_project
@@ -349,7 +406,7 @@ case "${1:-test}" in
         exec "${0:A:h}/verify-official-release-tag.sh" "$@"
         ;;
     *)
-        print -u2 'usage: run.sh audit|lint|generate|build|test|open|reset|release-tag'
+        print -u2 'usage: run.sh audit|lint|generate|build|test|open|reset [--release]|release-tag'
         exit 64
         ;;
 esac

@@ -54,15 +54,16 @@ func aboutVersionLabelFallsBackToShortVersion() {
     #expect(unknown.aboutVersionLabel == "—")
 }
 
-@Test("About info exposes the production store folder and source")
-func aboutInfoExposesProductionStoreFolderAndSource() {
+@Test("About info exposes the release store folder and source")
+func aboutInfoExposesReleaseStoreFolderAndSource() {
     let info = AboutInfo(
         identity: AppIdentity(
             infoDictionary: [
                 "CFBundleDisplayName": "Keyameleon",
                 "CFBundleShortVersionString": "1.2.3"
             ]
-        )
+        ),
+        buildIdentity: .release
     )
 
     #expect(info.repositoryURL.absoluteString == "https://github.com/mastro993/Keyameleon")
@@ -71,19 +72,35 @@ func aboutInfoExposesProductionStoreFolderAndSource() {
         schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
         isStoredInMemoryOnly: false
     )
-    let productionConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration()
+    let releaseConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration(buildIdentity: .release)
     let expectedStoreURL = legacyConfiguration.url.deletingLastPathComponent()
         .appending(path: "Keyameleon/default.store")
-    #expect(productionConfiguration.url == expectedStoreURL)
-    #expect(productionConfiguration.url != legacyConfiguration.url)
-    #expect(!productionConfiguration.isStoredInMemoryOnly)
-    #expect(info.appDataFolderURL == productionConfiguration.url.deletingLastPathComponent())
+    #expect(releaseConfiguration.url == expectedStoreURL)
+    #expect(releaseConfiguration.url != legacyConfiguration.url)
+    #expect(!releaseConfiguration.isStoredInMemoryOnly)
+    #expect(info.appDataFolderURL == releaseConfiguration.url.deletingLastPathComponent())
     #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon"))
 }
 
-@Test("The Debug test host is the shipped Keyameleon app")
-func debugHostIsShippedApp() {
-    #expect(Bundle.main.bundleIdentifier == "dev.fedemas.keyameleon")
-    #expect(Bundle.main.bundleURL.lastPathComponent == "Keyameleon.app")
-    #expect(AppIdentity.current.name == "Keyameleon")
+@Test("About info points a Debug build at its own data and logs folders")
+func aboutInfoExposesDebugFolders() {
+    let info = AboutInfo(identity: AppIdentity(infoDictionary: [:]), buildIdentity: .debug)
+    let legacyConfiguration = ModelConfiguration(
+        schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
+        isStoredInMemoryOnly: false
+    )
+    let debugConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration(buildIdentity: .debug)
+
+    #expect(debugConfiguration.url == legacyConfiguration.url.deletingLastPathComponent()
+        .appending(path: "Keyameleon Dev/default.store"))
+    #expect(info.appDataFolderURL == debugConfiguration.url.deletingLastPathComponent())
+    #expect(info.logsFolderURL.path.hasSuffix("/Library/Logs/Keyameleon Dev"))
+}
+
+@Test("The Debug test host runs under the Debug identity")
+func debugHostUsesDebugIdentity() {
+    #expect(Bundle.main.bundleIdentifier == "dev.fedemas.keyameleon.debug")
+    #expect(Bundle.main.bundleURL.lastPathComponent == "Keyameleon (Dev).app")
+    #expect(AppBuildIdentity.current == .debug)
+    #expect(AppIdentity.current.name == "Keyameleon (Dev)")
 }

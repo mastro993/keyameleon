@@ -2,7 +2,10 @@ import Foundation
 import SQLite3
 
 enum PhysicalKeyboardStoreMigration {
-    static func prepareStore(from legacyURL: URL, to destinationURL: URL) throws {
+    /// Creates the store folder and, given a `legacyURL`, imports that store.
+    /// Orphan destination sidecars always fail, so a store is never recreated
+    /// over unreadable data.
+    static func prepareStore(from legacyURL: URL?, to destinationURL: URL) throws {
         let fileManager = FileManager.default
         guard !fileManager.fileExists(atPath: destinationURL.path) else {
             return
@@ -16,7 +19,7 @@ enum PhysicalKeyboardStoreMigration {
 
         let folder = destinationURL.deletingLastPathComponent()
         try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
-        guard fileManager.fileExists(atPath: legacyURL.path) else {
+        guard let legacyURL, fileManager.fileExists(atPath: legacyURL.path) else {
             return
         }
 
@@ -43,7 +46,7 @@ enum PhysicalKeyboardStoreMigration {
 
     /// Before 0.4.6 the store lived at SwiftData's shared default path, which any other non-sandboxed SwiftData
     /// app can own. A store is Keyameleon's when it has the keyboard table and every other table is Keyameleon's
-    /// or Core Data's own; `reset_local_state` in `Scripts/run.sh` runs the same query.
+    /// or Core Data's own; `delete_legacy_store` in `Scripts/run.sh` runs the same query.
     /// A mixed store is skipped too: its model metadata may be the other app's, so SwiftData could fail to
     /// open the copy on every launch, and the copy would carry that app's data into Keyameleon's folder.
     private static let keyameleonStoreQuery = """

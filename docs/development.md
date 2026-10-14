@@ -19,12 +19,12 @@ Everything goes through `Scripts/run.sh`. Every command runs the [safety audit](
 | `./Scripts/run.sh test` | SwiftLint, then generate, then script tests, Swift Testing, and XCTest (the default command) |
 | `./Scripts/run.sh generate` | Select your signing certificate and regenerate `Keyameleon.xcodeproj` |
 | `./Scripts/run.sh build` | Generate and build the Debug app without launching it |
-| `./Scripts/run.sh reset` | Quit every Keyameleon and erase its local state for a first-run test (see [Resetting local state](#resetting-local-state)) |
+| `./Scripts/run.sh reset` | Quit the Debug app and erase its local state for a first-run test; `reset --release` does the same for the installed release (see [Resetting local state](#resetting-local-state)) |
 | `./Scripts/run.sh lint` | SwiftLint only |
 | `./Scripts/run.sh audit` | Safety audit only |
 | `./Scripts/run.sh release-tag vX.Y.Z` | Validate an Official Release tag name |
 
-Build products land in `./build`.
+Build products land in `./build`, and test builds in `./build/test` (see [Signing](#signing)).
 
 ## Xcode project
 
@@ -38,34 +38,50 @@ Debug builds, including **Run** in Xcode, require an Apple Development certifica
 
 - Run `./Scripts/run.sh generate` before your first Xcode Run and again after you change certificates. It writes the fingerprint of the first installed Apple Development certificate to the ignored `Config/Development.local.xcconfig`.
 - Without a certificate, generation still succeeds (CI relies on this), but Debug builds fail rather than fall back to ad hoc signing.
-- `run.sh test` signs the test host and bundles ad hoc, so tests need no certificate.
+- `run.sh test` signs the test host and bundles ad hoc, so tests need no certificate. It builds them in `./build/test`, so the ad hoc app never replaces the signed Debug app and its grant, and unregisters the test host from LaunchServices afterwards so Quit & Reopen cannot open it.
 - No personal team or certificate identity is committed. Release signing is separate; see [Official Release](release/official-release.md).
 
-## Debug and Release share one identity
+## Debug has its own identity
 
-Debug builds are the same app as the installed release: same bundle ID `dev.fedemas.keyameleon`, preferences, data and log folders, Keychain item, and [single-instance lock](adr/0002-one-keyameleon-instance-per-mac.md). Consequences:
+Debug builds, including Xcode Run, `run.sh open`, and the hosted test app, are a separate app to macOS ([ADR 0008](adr/0008-separate-debug-identity.md)):
 
-- A Debug build reads and changes the settings and saved keyboards of an installed release.
-- Only one of them runs at a time. `run.sh open` replaces this checkout's Debug app, but stops with an error if another Keyameleon is running and never quits it.
+| | Release, including Official Releases | Debug |
+| --- | --- | --- |
+| Bundle ID and preferences domain | `dev.fedemas.keyameleon` | `dev.fedemas.keyameleon.debug` |
+| Name in System Settings, Finder, and Keyameleon's own windows | Keyameleon | Keyameleon (Dev) |
+| Bundle | `Keyameleon.app` | `Keyameleon (Dev).app` |
+| Saved keyboards | `~/Library/Application Support/Keyameleon` | `~/Library/Application Support/Keyameleon Dev` |
+| Log File | `~/Library/Logs/Keyameleon` | `~/Library/Logs/Keyameleon Dev` |
+| Input Monitoring | its own row | its own row |
+
+- A Debug build never reads or changes the installed release's settings, saved keyboards, logs, or Input Monitoring grant. Restart Keyameleon's stale-row reset (`tccutil reset ListenEvent <bundle ID>`) clears only the running build's own row.
+- The Debug store starts empty. It never imports the pre-0.4.6 store at `~/Library/Application Support/default.store`: even a Keyameleon store there holds an old release's data. Only the release imports it, and only when it is Keyameleon's.
+- Folder names follow the bundle ID, not the display name, so renaming or localizing the app never moves data. The Debug folders are `Keyameleon Dev`, not `Keyameleon (Dev)`, which holds the retired app's data.
+- Debug's `PRODUCT_NAME` is `Keyameleon (Dev)`, because System Settings and Finder name an app after its bundle file. `PRODUCT_MODULE_NAME` and `EXECUTABLE_NAME` stay `Keyameleon` in both, so `@testable import Keyameleon` and the executable inside the bundle are unchanged.
+- Both share the [single-instance lock](adr/0002-one-keyameleon-instance-per-mac.md), so only one Keyameleon runs at a time and two never fight over the Input Source. `run.sh open` replaces this checkout's Debug app, but stops with an error if any other Keyameleon, including the installed release, is running, and never quits it.
+- The Keychain item keeps the same service name. Each build uses the integrity key only to sign designations in its own store, so whether the two builds see the same item changes nothing.
 - Debug and CI builds lack the release `SUPublicEDKey`, so they never start Sparkle.
-- The two builds have different signatures. After switching between them, check Input Monitoring in System Settings.
+- Code that recognizes Keyameleon itself by bundle ID must accept both IDs.
+
+Data from the retired `Keyameleon (Dev)` app (`dev.fedemas.keyameleon.development`) stays in its own folders, preferences domain, and Keychain item. Keyameleon neither imports nor deletes it.
 
 ### Resetting local state
 
-Every build you launch, in any worktree, DerivedData folder, mounted DMG or the Trash, stays registered with LaunchServices under the same bundle ID. When you change Input Monitoring, System Settings offers **Quit & Reopen**, which reopens Keyameleon by bundle ID, not by path. LaunchServices then picks one of the registered copies, which may not be the build you were testing.
+Every build you launch, in any worktree, DerivedData folder, mounted DMG or the Trash, stays registered with LaunchServices under its bundle ID. When you change Input Monitoring, System Settings offers **Quit & Reopen**, which reopens Keyameleon by bundle ID, not by path. LaunchServices then picks one of the registered copies with that ID, which may not be the build you were testing.
 
-`./Scripts/run.sh reset` returns the Mac to a never-installed state:
+Debug apps built before Debug got its own identity, or from a branch without it, still carry the release ID and stay registered under it, so Quit & Reopen for the installed release could open one. Rebuild them, or delete their `build` folders and unregister each copy with `lsregister -u <path to Keyameleon.app>`, using the `LSREGISTER` path from `Scripts/run.sh`.
 
-- Quits every running Keyameleon, including an installed release.
-- Resets Keyameleon's privacy permissions (`tccutil reset All dev.fedemas.keyameleon`). `tccutil` finds the app through LaunchServices, so this runs before any copy is unregistered. If no copy is registered, it warns and the reset continues.
-- Removes the Launch at Login item. If System Events can't remove it, the reset warns and continues; turn it off in System Settings > General > Login Items.
-- Deletes its preferences, including Guided setup progress, the saved keyboards in `~/Library/Application Support/Keyameleon`, `~/Library/Logs/Keyameleon`, and its caches.
-- Deletes the pre-0.4.6 store at `~/Library/Application Support/default.store`, which launch would otherwise copy back. Other apps can use that path, so it is deleted only when it holds Keyameleon's keyboard table and no tables other than Keyameleon's and Core Data's own. Launch imports only such a store, so any other file, including one that also holds Keyameleon's tables, is kept.
-- Unregisters every registered copy from LaunchServices, last, and fails if one can't be unregistered. The next copy you launch registers itself again, so Quit & Reopen finds it.
+`./Scripts/run.sh reset` returns the Mac to a never-installed state for the Debug identity. It never touches the installed release:
 
-It keeps the Keychain integrity key. The key lives in the data-protection keychain, which the `security` CLI can't reach, and it only signs data the reset deletes, so the next launch still behaves as a first run.
+- Quits every running Debug copy.
+- Resets the Debug privacy permissions (`tccutil reset All dev.fedemas.keyameleon.debug`). `tccutil` finds the app through LaunchServices, so this runs before any copy is unregistered. If no copy is registered, it warns and the reset continues.
+- Removes the Launch at Login item of every registered Debug copy. Debug builds made before this change are named Keyameleon too, so items are matched by path. If System Events can't remove them, the reset warns and continues; turn it off in System Settings > General > Login Items.
+- Deletes the Debug preferences, including Guided setup progress, `~/Library/Application Support/Keyameleon Dev`, `~/Library/Logs/Keyameleon Dev`, and its caches.
+- Unregisters every registered Debug copy from LaunchServices, last, and fails if one can't be unregistered. The next copy you launch registers itself again, so Quit & Reopen finds it.
 
-Data from the retired `Keyameleon (Dev)` app stays in its own folders, preferences domain, and Keychain item. Keyameleon neither imports nor deletes it.
+`./Scripts/run.sh reset --release` does the same for the release identity, `dev.fedemas.keyameleon`: it quits an installed release and erases its permissions, Launch at Login item, preferences, saved keyboards in `~/Library/Application Support/Keyameleon`, and `~/Library/Logs/Keyameleon`. Use it only on a Mac whose Keyameleon data you can lose. It also deletes the pre-0.4.6 store at `~/Library/Application Support/default.store`, which a release launch would otherwise copy back. Other apps can use that path, so it is deleted only when it holds Keyameleon's keyboard table and no tables other than Keyameleon's and Core Data's own. Launch imports only such a store, so any other file, including one that also holds Keyameleon's tables, is kept. Debug state stays.
+
+Both keep the Keychain integrity key. The key lives in the data-protection keychain, which the `security` CLI can't reach, and it only signs data the reset deletes, so the next launch still behaves as a first run.
 
 ## Repository layout
 
