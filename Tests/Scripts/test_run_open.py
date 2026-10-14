@@ -11,7 +11,9 @@ source <(sed -n -e '/^wait_until_no_keyameleon_runs()/,/^}/p' -e '/^open_develop
 PRODUCTS_PATH="$1"
 running_path="$2"
 log_path="$3"
+# With no bundle IDs, the query covers Debug and the release.
 running_keyameleon_apps() {
+    (( $# == 0 )) || return 1
     cat "$running_path"
     : > "$running_path"
 }
@@ -24,10 +26,28 @@ open_development_app
 
 
 class DevelopmentOpenTests(unittest.TestCase):
+    def test_running_apps_query_covers_debug_and_release_by_default(self):
+        script = r'''
+source <(sed -n -e '/^BUNDLE_ID=/p' -e '/^RELEASE_BUNDLE_ID=/p' \
+    -e '/^running_keyameleon_apps()/,/^}/p' Scripts/run.sh)
+functions[/usr/bin/osascript]='while [[ "$1" == -l || "$1" == -e ]]; do shift 2; done; print -r -- "$*"'
+running_keyameleon_apps
+running_keyameleon_apps "$BUNDLE_ID"
+'''
+        result = subprocess.run(
+            ("zsh", "-c", script), cwd=ROOT, capture_output=True, text=True, check=True,
+        )
+        self.assertEqual(
+            result.stdout,
+            "dev.fedemas.keyameleon.debug dev.fedemas.keyameleon\n"
+            "dev.fedemas.keyameleon.debug\n",
+        )
+
     def test_cleanup_stops_only_development_executables_in_derived_data(self):
         script = r'''
-source <(sed -n '/^kill_leftover_derived_data_keyameleon()/,/^}/p' Scripts/run.sh)
-PRODUCTS_PATH=/tmp/keyameleon-cleanup-test/build/Build/Products/Debug
+DERIVED_DATA_PATH=/tmp/keyameleon-cleanup-test/build
+source <(sed -n -e '/^PRODUCTS_PATH=/p' -e '/^TEST_DERIVED_DATA_PATH=/p' -e '/^TEST_PRODUCTS_PATH=/p' \
+    -e '/^kill_leftover_derived_data_keyameleon()/,/^}/p' Scripts/run.sh)
 input="$1"
 terminated="$2"
 functions[/bin/ps]='cat "$input"'
@@ -35,6 +55,7 @@ kill() { print -r -- "$1" >> "$terminated"; }
 kill_leftover_derived_data_keyameleon
 '''
         development = "/tmp/keyameleon-cleanup-test/build/Build/Products/Debug/Keyameleon.app/Contents/MacOS/Keyameleon"
+        test_host = "/tmp/keyameleon-cleanup-test/build/test/Build/Products/Debug/Keyameleon.app/Contents/MacOS/Keyameleon"
         with tempfile.TemporaryDirectory() as directory:
             process_list = Path(directory) / "processes"
             terminated = Path(directory) / "terminated"
@@ -43,14 +64,16 @@ kill_leftover_derived_data_keyameleon
                 f"2 {development} -NSDocumentRevisionsDebugMode YES\n"
                 "3 /tmp/keyameleon-cleanup-test/build/Build/Products/Release/Keyameleon.app/Contents/MacOS/Keyameleon\n"
                 "4 /Applications/Keyameleon.app/Contents/MacOS/Keyameleon\n"
-                f"5 {development}-other\n",
+                f"5 {development}-other\n"
+                f"6 {test_host}\n"
+                f"7 {test_host} -XCTest All\n",
                 encoding="utf-8",
             )
             subprocess.run(
                 ("zsh", "-c", script, "test", str(process_list), str(terminated)),
                 cwd=ROOT, capture_output=True, text=True, check=True,
             )
-            self.assertEqual(terminated.read_text(encoding="utf-8"), "1\n2\n")
+            self.assertEqual(terminated.read_text(encoding="utf-8"), "1\n2\n6\n7\n")
 
     def test_open_replaces_only_this_checkouts_debug_app(self):
         app = f"{PRODUCTS}/Keyameleon.app"

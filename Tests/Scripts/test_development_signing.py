@@ -12,12 +12,16 @@ class DevelopmentSigningTests(unittest.TestCase):
     def test_only_hosted_test_commands_opt_into_ad_hoc_signing(self):
         script = r'''
 set -euo pipefail
+cd -P .
+source <(sed -n -e '/^DERIVED_DATA_PATH=/p' -e '/^TEST_DERIVED_DATA_PATH=/p' \
+    -e '/^TEST_PRODUCTS_PATH=/p' Scripts/run.sh)
 source <(sed -n '/^run_tests()/,/^}/p' Scripts/run.sh)
 source <(sed -n '/^build_app()/,/^}/p' Scripts/run.sh)
-DERIVED_DATA_PATH=/tmp/keyameleon-signing-test
 python3() { :; }
 kill_leftover_derived_data_keyameleon() { :; }
 xcodebuild() { printf '%s\t' "$@"; printf '\n'; }
+LSREGISTER=lsregister_stub
+lsregister_stub() { printf 'lsregister\t%s\t%s\n' "$@"; }
 run_tests
 build_app
 '''
@@ -27,11 +31,22 @@ build_app
         )
         commands = [line.rstrip("\t").split("\t") for line in result.stdout.splitlines()]
         self.assertEqual([command[0] for command in commands],
-                         ["build-for-testing", "test-without-building", "build"])
+                         ["build-for-testing", "test-without-building", "lsregister", "build"])
+        # Only the signed Debug app stays registered for Quit & Reopen.
+        self.assertEqual(commands[2], ["lsregister", "-u",
+                                       f"{ROOT}/build/test/Build/Products/Debug/Keyameleon.app"])
+        del commands[2]
         for command in commands[:2]:
             self.assertIn("CODE_SIGN_IDENTITY=-", command)
             self.assertIn("CODE_SIGNING_REQUIRED=NO", command)
         self.assertFalse(any(argument.startswith("CODE_SIGN") for argument in commands[2]))
+
+        # The ad hoc test app must never replace the signed app that `open` builds.
+        def derived_data(command):
+            return command[command.index("-derivedDataPath") + 1]
+        for command in commands[:2]:
+            self.assertEqual(derived_data(command), f"{ROOT}/build/test")
+        self.assertEqual(derived_data(commands[2]), f"{ROOT}/build")
 
     def test_generate_selects_a_local_certificate_and_clears_stale_selection(self):
         functions = ROOT / "Scripts/run.sh"

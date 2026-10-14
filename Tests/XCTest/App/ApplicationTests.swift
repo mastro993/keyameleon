@@ -4,8 +4,9 @@ import XCTest
 @testable import Keyameleon
 
 final class ApplicationTests: XCTestCase {
+    /// The hosted app is always a Debug build (ADR 0008).
     private var keyameleonBundle: Bundle? {
-        Bundle(identifier: "dev.fedemas.keyameleon")
+        Bundle(identifier: "dev.fedemas.keyameleon.debug")
     }
 
     @MainActor

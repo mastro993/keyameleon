@@ -255,6 +255,38 @@ private func expectLegacyStoreSkipped(alsoHoldsKeyboards: Bool) throws {
     #expect(try context.fetchCount(FetchDescriptor<ForeignAppRequestModel>()) == 1)
 }
 
+@Test("Only the release imports the legacy store; a Debug store starts empty", arguments: [
+    AppBuildIdentity.release, AppBuildIdentity.debug
+])
+@MainActor
+func legacyStoreImportFollowsBuildIdentity(buildIdentity: AppBuildIdentity) throws {
+    let root = try migrationTestDirectory()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let legacyURL = root.appending(path: "default.store")
+    let storeURL = root.appending(path: buildIdentity.storageFolderName).appending(path: "default.store")
+    let legacy = try migrationTestContainer(at: legacyURL)
+    let legacyContext = ModelContext(legacy)
+    legacyContext.insert(PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel(
+        identityKey: "keyboard",
+        productName: "Test Keyboard",
+        customName: "Legacy",
+        assignedInputSourceIdentifier: nil
+    ))
+    try legacyContext.save()
+    let legacyBytes = try Data(contentsOf: legacyURL)
+
+    try SwiftDataPhysicalKeyboardRecordStore.prepareStore(
+        from: legacyURL, to: storeURL, buildIdentity: buildIdentity
+    )
+
+    #expect(try Data(contentsOf: legacyURL) == legacyBytes)
+    #expect(FileManager.default.fileExists(atPath: storeURL.deletingLastPathComponent().path))
+    #expect(FileManager.default.fileExists(atPath: storeURL.path) == buildIdentity.importsLegacyStore)
+    let store = SwiftDataPhysicalKeyboardRecordStore(modelContext: ModelContext(try migrationTestContainer(at: storeURL)))
+    let imported = try store.record(forIdentityKey: "keyboard")?.customName
+    #expect(imported == (buildIdentity == .release ? "Legacy" : nil))
+}
+
 private func migrationTestDirectory() throws -> URL {
     let url = URL.temporaryDirectory.appending(path: "KeyameleonMigration-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)

@@ -6,9 +6,9 @@
 ./Scripts/run.sh test
 ```
 
-This runs the safety audit, SwiftLint, the Python script tests, and then the Swift Testing and XCTest bundles, one after the other, on macOS 26. Afterwards it stops any leftover Keyameleon process whose executable is the Debug app under `./build`.
+This runs the safety audit, SwiftLint, the Python script tests, and then the Swift Testing and XCTest bundles, one after the other, on macOS 26. Afterwards it stops any leftover Keyameleon process whose executable is the Debug app or the test host under `./build`, and unregisters the test host from LaunchServices so Quit & Reopen cannot open it.
 
-Hosted tests launch Keyameleon itself, so **quit any running Keyameleon first**; otherwise the test host exits under the single-instance lock. Tests use ad hoc signing and need no certificate. See [Development](development.md) for setup and SwiftLint policy.
+Hosted tests launch Keyameleon itself, so **quit any running Keyameleon first**; otherwise the test host exits under the single-instance lock. Tests use ad hoc signing, need no certificate, and build into `./build/test`, so they never replace the signed app from `run.sh open`. The test host runs under the Debug identity, `dev.fedemas.keyameleon.debug` ([ADR 0008](adr/0008-separate-debug-identity.md)). See [Development](development.md) for setup and SwiftLint policy.
 
 ## What to test
 
@@ -149,10 +149,10 @@ A grant made to an earlier ad hoc build may need replacing once for the newly si
 
 ### Input Monitoring recovery
 
-`InputMonitoringRecoveryTests` covers the actions per decision, the Settings deep link, the relaunch guard, the one-time stale reset, and that a manual launch never resets with injected side effects, so tests never open System Settings, run `tccutil`, or quit. `SetupModelTests` covers a grant advancing setup through the permission watch. Check the real behavior on macOS 26 with a disposable permission identity, because a reset removes the real row for `dev.fedemas.keyameleon`:
+`InputMonitoringRecoveryTests` covers the actions per decision, the Settings deep link, the relaunch guard, the one-time stale reset, and that a manual launch never resets with injected side effects, so tests never open System Settings, run `tccutil`, or quit. `SetupModelTests` covers a grant advancing setup through the permission watch. Check the real behavior on macOS 26 with the Debug identity, never the installed release's: every reset below removes only the row for `dev.fedemas.keyameleon.debug` ([ADR 0008](adr/0008-separate-debug-identity.md)). Afterwards, quit the Debug app and open the installed release: it must still read Input Monitoring as granted.
 
-1. **Unknown.** Run `tccutil reset ListenEvent dev.fedemas.keyameleon`, then open Keyameleon. Guided setup and the menu notice offer only Allow Input Monitoring. Choosing it shows the macOS alert, Keyameleon appears switched off in Input Monitoring, and the UI switches to Open System Settings with Restart Keyameleon.
+1. **Unknown.** Run `tccutil reset ListenEvent dev.fedemas.keyameleon.debug`, then open the Debug app with `./Scripts/run.sh open`. Guided setup and the menu notice offer only Allow Input Monitoring. Choosing it shows the macOS alert, Keyameleon appears switched off in Input Monitoring, and the UI switches to Open System Settings with Restart Keyameleon.
 2. **Grant.** Choose Open System Settings: Input Monitoring opens, including when System Settings is already open on another pane. Turn Keyameleon on and choose Quit & Reopen: Keyameleon reopens Ready, and Guided setup continues at Keyboards.
 3. **Later.** Repeat with Later instead. If the status does not recover within a few seconds, Restart Keyameleon reopens it Ready.
-4. **Stale row.** With the switch on for the Developer ID build, run an ad hoc build with the same bundle identifier (`./Scripts/run.sh open` without a development certificate). It reads Input Monitoring is off. Choose Restart Keyameleon: after reopening, the macOS alert appears and Keyameleon is listed switched off. Turn it on and Quit & Reopen: Ready.
+4. **Stale row.** With the switch on for the signed Debug app, quit it and open the ad hoc test app that `./Scripts/run.sh test` built, `build/test/Build/Products/Debug/Keyameleon.app`. It has the same Debug bundle identifier but a different signature, so it reads Input Monitoring is off. Choose Restart Keyameleon: after reopening, the macOS alert appears and Keyameleon is listed switched off. Turn it on, choose Later, then Restart Keyameleon: Ready. Restart Keyameleon reopens this copy by path, while Quit & Reopen could open the signed copy instead. To give the row back to the signed app, quit the test app, run `./Scripts/run.sh open`, and repeat the same steps.
 5. Quit Keyameleon normally and reopen: nothing is reset and no alert appears.

@@ -91,7 +91,7 @@ jobs:
       - name: Cache Swift package sources
         uses: actions/cache@v6
         with:
-          path: build/SourcePackages
+          path: build/test/SourcePackages
           key: swift-packages-${{ runner.os }}-${{ runner.arch }}-${{ steps.xcode.outputs.version }}-${{ hashFiles('Keyameleon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
 
       - name: Run tests and safety audit

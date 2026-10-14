@@ -144,7 +144,8 @@ reviews:
         roll back and keep the request for an exact Retry. Unreadable data keeps the last good state and shows a
         Retry notice; never delete, recreate, or substitute an in-memory store at runtime. Any SwiftData model
         change must come with a migration and tests. Renamed or removed UserDefaults keys and Keychain items need
-        an explicit migration story, because Debug and Release builds share one identity.
+        an explicit migration story for installed releases. Debug builds have their own identity and data
+        (docs/adr/0008-separate-debug-identity.md); storage paths must follow the bundle ID, not the display name.
 
     - path: "Sources/Features/Shared/Log*.swift"
       instructions: |
@@ -202,8 +203,9 @@ reviews:
       instructions: |
         Bash under `set -euo pipefail`. Check quoting, failure propagation through pipes and subshells, and that
         destructive steps (`run.sh reset`, `tccutil`, LaunchServices unregistering, deleting data folders) target
-        only Keyameleon's own bundle ID and paths. The safety audit in `run.sh` is a security control; flag any
-        weakening of its patterns. Release scripts must keep releases immutable: an existing version fails and
+        only Keyameleon's own bundle IDs and paths, and that the default `run.sh reset` never touches the
+        release identity (docs/adr/0008-separate-debug-identity.md). The safety audit in `run.sh` is a security
+        control; flag any weakening of its patterns. Release scripts must keep releases immutable: an existing version fails and
         retries reuse the exact signed bytes. Secrets never reach logs or command arguments visible in CI output.
 
     - path: "Scripts/**/*.py"

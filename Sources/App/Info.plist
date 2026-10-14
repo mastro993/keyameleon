@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>$(KEYAMELEON_DISPLAY_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -20,12 +20,12 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSMultipleInstancesProhibited</key>
+	<true/>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSInputMonitoringUsageDescription</key>
 	<string>Keyameleon observes Activation Activity from each Physical Keyboard so Activity-Triggered Switching can select the assigned Input Source.</string>
-	<key>LSMultipleInstancesProhibited</key>
-	<true/>
 	<key>SUAllowsAutomaticUpdates</key>
 	<false/>
 	<key>SUAutomaticallyUpdate</key>
