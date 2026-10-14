@@ -1,6 +1,9 @@
 import Foundation
 
 /// Assigned-only filter/order seam for the menu-bar panel. Actions stay out.
+///
+/// While the Frontmost App's App Assignment decides the Wanted Input Source,
+/// its pill comes first and takes the accent from the Active Physical Keyboard.
 struct MenuBarAssignmentList: Equatable, Sendable {
     static var emptyTitle: String { String(localized: .menuNoAssignedKeyboards) }
     static var emptyDescription: String { String(localized: .menuAssignKeyboardsInSettings) }
@@ -28,7 +31,8 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
     struct Row: Equatable, Identifiable, Sendable {
         let id: String
-        /// The Physical Keyboard Name. Custom name when set, product name otherwise.
+        /// The Physical Keyboard Name (custom name when set, product name
+        /// otherwise), or the app name of an App Assignment.
         let physicalKeyboardName: String
         let assignedInputSourceName: String
         /// Locale code of the assigned Input Source, such as `US` or `IT`.
@@ -38,6 +42,8 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         let isDimmed: Bool
         /// `nil` when nothing needs action.
         let warningNote: String?
+        /// Set for the Frontmost App's App Assignment, which shows the app icon.
+        var appBundleIdentifier: String?
 
         /// Whether the pill draws its warning triangle. Derived from `warningNote`.
         var showsWarningSymbol: Bool {
@@ -73,11 +79,24 @@ struct MenuBarAssignmentList: Equatable, Sendable {
 
     init(
         physicalKeyboards: [PhysicalKeyboard],
-        assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource]
+        assignedInputSources: [PhysicalKeyboardRecordID: EligibleInputSource],
+        frontmostAppAssignment: ActivityTriggeredSwitchingAppAssignment? = nil
     ) {
         let assigned = physicalKeyboards.filter { $0.keyboardAssignment != nil }
         let ordered = PhysicalKeyboardListOrdering.sorted(assigned)
-        rows = ordered.map { physicalKeyboard in
+        let appRows = frontmostAppAssignment.map { app in
+            [Row(
+                id: "app:\(app.bundleIdentifier)",
+                physicalKeyboardName: app.appName,
+                assignedInputSourceName: app.inputSource?.name ?? Self.unavailableInputSourceName,
+                assignedLocaleCode: app.inputSource?.localeCode,
+                connectionMark: .active,
+                isDimmed: false,
+                warningNote: app.inputSource == nil ? Self.unavailableNote : nil,
+                appBundleIdentifier: app.bundleIdentifier
+            )]
+        } ?? []
+        rows = appRows + ordered.map { physicalKeyboard in
             let savedSource = assignedInputSources[physicalKeyboard.id]
             let isUnavailable = savedSource == nil
             return Row(
@@ -85,7 +104,10 @@ struct MenuBarAssignmentList: Equatable, Sendable {
                 physicalKeyboardName: physicalKeyboard.name,
                 assignedInputSourceName: savedSource?.name ?? Self.unavailableInputSourceName,
                 assignedLocaleCode: savedSource?.localeCode,
-                connectionMark: Self.connectionMark(for: physicalKeyboard),
+                connectionMark: Self.connectionMark(
+                    for: physicalKeyboard,
+                    appAssignmentWins: frontmostAppAssignment != nil
+                ),
                 isDimmed: physicalKeyboard.connectionState == .disconnected,
                 warningNote: isUnavailable ? Self.unavailableNote : nil
             )
@@ -94,8 +116,11 @@ struct MenuBarAssignmentList: Equatable, Sendable {
         emptyDescription = rows.isEmpty ? Self.emptyDescription : nil
     }
 
-    private static func connectionMark(for physicalKeyboard: PhysicalKeyboard) -> ConnectionMark {
-        if physicalKeyboard.isActive {
+    private static func connectionMark(
+        for physicalKeyboard: PhysicalKeyboard,
+        appAssignmentWins: Bool
+    ) -> ConnectionMark {
+        if physicalKeyboard.isActive, !appAssignmentWins {
             return .active
         }
 

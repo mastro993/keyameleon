@@ -69,7 +69,7 @@ func aboutInfoExposesReleaseStoreFolderAndSource() {
     #expect(info.repositoryURL.absoluteString == "https://github.com/mastro993/Keyameleon")
     #expect(info.identity.versionLabel == "v1.2.3")
     let legacyConfiguration = ModelConfiguration(
-        schema: Schema(versionedSchema: PhysicalKeyboardSchemaV1.self),
+        schema: Schema(versionedSchema: PhysicalKeyboardSchemaV2.self),
         isStoredInMemoryOnly: false
     )
     let releaseConfiguration = SwiftDataPhysicalKeyboardRecordStore.makeConfiguration(buildIdentity: .release)

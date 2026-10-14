@@ -21,6 +21,19 @@ struct ActivityTriggeredSwitchingActivePhysicalKeyboard: Equatable, Sendable {
 struct ActivityTriggeredSwitchingMismatch: Equatable, Sendable {
     let currentName: String
     let assignedName: String
+    /// The Frontmost App whose App Assignment is wanted, or nil when the
+    /// Active Physical Keyboard's Keyboard Assignment is.
+    var appName: String?
+}
+
+/// The Frontmost App's App Assignment. It decides the Wanted Input Source
+/// whenever it is present.
+struct ActivityTriggeredSwitchingAppAssignment: Equatable, Sendable {
+    /// Lets views show the app's icon.
+    let bundleIdentifier: String
+    let appName: String
+    /// Nil when the App Assignment is unavailable.
+    let inputSource: EligibleInputSource?
 }
 
 struct ActivityTriggeredSwitchingWarning: Identifiable, Equatable, Hashable, Sendable {
@@ -34,12 +47,10 @@ struct ActivityTriggeredSwitchingWarning: Identifiable, Equatable, Hashable, Sen
             "selection-failed"
         case .unavailableKeyboardAssignment:
             "unavailable-keyboard-assignment"
+        case .unavailableAppAssignment:
+            "unavailable-app-assignment"
         }
         return [categoryKey, physicalKeyboardName ?? ""].joined(separator: "|")
-    }
-
-    var supportsRetryNow: Bool {
-        recoveryAction == .retryNow
     }
 }
 
@@ -95,6 +106,7 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
     /// The External Change Response keeping the current Input Source, or nil
     /// when no Input Source Hold is running.
     var inputSourceHold: ExternalChangeResponse?
+    var frontmostAppAssignment: ActivityTriggeredSwitchingAppAssignment?
 
     static let initial = ActivityTriggeredSwitchingOutcome(
         switchingStatus: .permissionRequired,
@@ -131,7 +143,8 @@ struct ActivityTriggeredSwitchingOutcome: Equatable, Sendable {
                 warnings: warnings,
                 isPaused: isPaused
             ),
-            inputSourceHold: inputSourceHold
+            inputSourceHold: inputSourceHold,
+            frontmostAppAssignment: frontmostAppAssignment
         )
     }
 }

@@ -4,10 +4,6 @@ enum SwitchingStatus: String, Equatable, Sendable {
     case paused = "Paused"
     case temporarilyUnavailable = "Temporarily Unavailable"
 
-    var allowsActivityTriggeredSwitching: Bool {
-        self == .ready
-    }
-
     /// Discovery supports management while Ready or Paused. Key Content observation stays Ready-only.
     var allowsPhysicalKeyboardDiscovery: Bool {
         switch self {
@@ -65,6 +61,35 @@ enum SwitchingUnavailableReason: Equatable, Hashable, Sendable {
             reasons.insert(.protectedDataUnavailable)
         }
         return priority.filter { reasons.contains($0) }
+    }
+
+    /// The reasons in priority order after one reason starts or stops.
+    static func updating(
+        _ reasons: [SwitchingUnavailableReason],
+        _ reason: SwitchingUnavailableReason,
+        isActive: Bool
+    ) -> [SwitchingUnavailableReason] {
+        var updated = Set(reasons)
+        if isActive {
+            updated.insert(reason)
+        } else {
+            updated.remove(reason)
+        }
+        return priority.filter { updated.contains($0) }
+    }
+
+    /// The reasons in priority order with Secure Input and protected data reread.
+    static func reconciling(
+        _ reasons: [SwitchingUnavailableReason],
+        protectedState: ProtectedStateSnapshot,
+        eventProtectedDataUnavailable: Bool
+    ) -> [SwitchingUnavailableReason] {
+        let protectedDataUnavailable = !protectedState.isProtectedDataAvailable || eventProtectedDataUnavailable
+        return updating(
+            updating(reasons, .secureInput, isActive: protectedState.isSecureInputEnabled),
+            .protectedDataUnavailable,
+            isActive: protectedDataUnavailable
+        )
     }
 }
 

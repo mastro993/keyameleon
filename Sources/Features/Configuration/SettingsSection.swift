@@ -4,6 +4,7 @@ import Observation
 enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
     case general
     case keyboards
+    case apps
     case about
 
     var id: Self { self }
@@ -12,6 +13,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         switch self {
         case .general: .settingsGeneral
         case .keyboards: .keyboards
+        case .apps: .settingsApps
         case .about: .settingsAbout
         }
     }
@@ -21,6 +23,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         switch self {
         case .general: isSelected ? "gearshape.fill" : "gearshape"
         case .keyboards: isSelected ? "keyboard.fill" : "keyboard"
+        case .apps: isSelected ? "square.grid.2x2.fill" : "square.grid.2x2"
         case .about: isSelected ? "info.circle.fill" : "info.circle"
         }
     }

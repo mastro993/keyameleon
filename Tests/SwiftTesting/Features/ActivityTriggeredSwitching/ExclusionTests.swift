@@ -293,12 +293,12 @@ func excludingDeviceCancelsWantedKeyboardAssignment() {
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery
         .handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 481, kind: .press))
 
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment != nil)
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource != nil)
     #expect(model.activityTriggeredSwitching.outcome.availableActions.contains(.retryNow))
 
     model.excludePhysicalKeyboard(keyboardID)
 
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment == nil)
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource == nil)
     #expect(!model.activityTriggeredSwitching.outcome.availableActions.contains(.retryNow))
     #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
 }

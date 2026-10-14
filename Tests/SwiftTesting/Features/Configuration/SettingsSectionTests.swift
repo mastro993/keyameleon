@@ -2,11 +2,12 @@ import Foundation
 import Testing
 @testable import Keyameleon
 
-@Test("Settings sections are General, Keyboards, then About")
-func settingsSectionsAreGeneralKeyboardsThenAbout() {
-    #expect(SettingsSection.allCases == [.general, .keyboards, .about])
+@Test("Settings sections are General, Keyboards, Apps, then About")
+func settingsSectionsAreGeneralKeyboardsAppsThenAbout() {
+    #expect(SettingsSection.allCases == [.general, .keyboards, .apps, .about])
     #expect(String(localized: SettingsSection.general.title) == "General")
     #expect(String(localized: SettingsSection.keyboards.title) == "Keyboards")
+    #expect(String(localized: SettingsSection.apps.title) == "Apps")
     #expect(String(localized: SettingsSection.about.title) == "About")
     for section in SettingsSection.allCases {
         #expect(!String(localized: section.title).isEmpty)

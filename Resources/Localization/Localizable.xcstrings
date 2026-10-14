@@ -1081,6 +1081,66 @@
         }
       }
     },
+    "addAppEllipsis" : {
+      "comment" : "Button that adds an App Assignment.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إضافة تطبيق…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add App…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir app…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter une app…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungi app…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appを追加…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 추가…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加 App…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入 App…"
+          }
+        }
+      }
+    },
     "allowInputMonitoring" : {
       "comment" : "Guided setup button that shows the macOS permission prompt.",
       "extractionState" : "manual",
@@ -1197,6 +1257,426 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允許輸入監控⋯"
+          }
+        }
+      }
+    },
+    "appActions" : {
+      "comment" : "Accessibility label and tooltip of an app row's ⋯ actions menu.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إجراءات التطبيق"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App actions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acciones de la app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actions de l’app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Azioni app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appのアクション"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 동작"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 動作"
+          }
+        }
+      }
+    },
+    "appNotInstalled" : {
+      "comment" : "Subtitle of an app row whose app is not installed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غير مثبّت"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not installed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No instalada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non installée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non installata"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インストールされていません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설치되지 않음"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安裝"
+          }
+        }
+      }
+    },
+    "appsEmptyDescription" : {
+      "comment" : "Apps settings empty state description.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أضف تطبيقًا يجب أن يستخدم دائمًا مصدر إدخال واحدًا."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add an app that should always use one input source."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añade una app que deba usar siempre la misma fuente de entrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez une app qui doit toujours utiliser la même méthode de saisie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungi un’app che deve usare sempre la stessa sorgente di input."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "常に同じ入力ソースを使うAppを追加します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "항상 같은 입력 소스를 사용할 앱을 추가하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加一个始终使用同一输入法的 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入一個一律使用同一輸入方式的 App。"
+          }
+        }
+      }
+    },
+    "appsEmptyTitle" : {
+      "comment" : "Apps settings empty state title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا توجد تطبيقات"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No apps"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay apps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessuna app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appはありません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 없음"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有 App"
+          }
+        }
+      }
+    },
+    "appsHeaderDescription" : {
+      "comment" : "Apps settings explanation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عندما يكون أحد هذه التطبيقات في المقدمة، يبدّل Keyameleon إلى مصدر الإدخال الخاص به على كل لوحات المفاتيح."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While one of these apps is in front, Keyameleon switches to its input source on every keyboard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mientras una de estas apps esté en primer plano, Keyameleon cambiará a su fuente de entrada en todos los teclados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lorsque l’une de ces apps est au premier plan, Keyameleon passe à sa méthode de saisie sur tous les claviers."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando una di queste app è in primo piano, Keyameleon passa alla sua sorgente di input su tutte le tastiere."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらのAppのいずれかが最前面にある間、KeyameleonはすべてのキーボードでそのAppの入力ソースに切り替えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱 중 하나가 맨 앞에 있는 동안 Keyameleon은 모든 키보드에서 해당 앱의 입력 소스로 전환합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当其中某个 App 位于最前面时，Keyameleon 会在所有键盘上切换到该 App 的输入法。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當其中某個 App 位於最前方時，Keyameleon 會在所有鍵盤上切換到該 App 的輸入方式。"
+          }
+        }
+      }
+    },
+    "appsHeaderTitle" : {
+      "comment" : "Apps settings section header.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مصادر الإدخال حسب التطبيق"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Input sources by app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes de entrada por app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Méthodes de saisie par app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorgenti di input per app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appごとの入力ソース"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱별 입력 소스"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 App 设定输入法"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 App 設定輸入方式"
+          }
+        }
+      }
+    },
+    "appsListFooter" : {
+      "comment" : "Footer below the apps list. Explains a conflicting macOS keyboard option without naming it.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إذا كان macOS يبدّل مصادر الإدخال حسب المستند أيضًا، فأوقف ذلك في إعدادات لوحة المفاتيح حتى لا يتعارضا."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If macOS also switches input sources per document, turn that off in Keyboard settings so the two don’t conflict."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si macOS también cambia la fuente de entrada según el documento, desactívalo en los ajustes de Teclado para que no entren en conflicto."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si macOS change aussi de méthode de saisie selon le document, désactivez cette option dans les réglages Clavier pour éviter les conflits."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se macOS cambia la sorgente di input anche in base al documento, disattiva questa opzione nelle impostazioni Tastiera per evitare conflitti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOSが書類ごとにも入力ソースを切り替える場合は、競合しないように「キーボード」設定でその機能をオフにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS가 문서별로도 입력 소스를 전환하는 경우, 충돌하지 않도록 키보드 설정에서 해당 기능을 끄세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果 macOS 也会按文稿切换输入法，请在“键盘”设置中将其关闭，以免两者冲突。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果 macOS 也會依文件切換輸入方式，請在「鍵盤」設定中將其關閉，以免兩者衝突。"
           }
         }
       }
@@ -1965,6 +2445,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "為 %1$@ 和 %2$@ 選擇輸入方式。"
+          }
+        }
+      }
+    },
+    "chooseOtherAppEllipsis" : {
+      "comment" : "Add App menu item that opens a file panel to pick any app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختيار تطبيق آخر…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Other App…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir otra app…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir une autre app…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli un’altra app…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ほかのAppを選択…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 앱 선택…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选取其他 App…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇其他 App…"
           }
         }
       }
@@ -3056,55 +3596,55 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يبقى %@ حتى تكتب على لوحة مفاتيح أخرى."
+            "value" : "يبقى %@ حتى تكتب على لوحة مفاتيح أخرى أو تنتقل إلى تطبيق آخر."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ stays until you type on another keyboard."
+            "value" : "%@ stays until you type on another keyboard or switch apps."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ se mantiene hasta que escribas en otro teclado."
+            "value" : "%@ se mantiene hasta que escribas en otro teclado o cambies de app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La méthode %@ reste en place jusqu’à ce que vous tapiez sur un autre clavier."
+            "value" : "La méthode %@ reste en place jusqu’à ce que vous tapiez sur un autre clavier ou changiez d’app."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ resta attiva finché non scrivi su un’altra tastiera."
+            "value" : "%@ resta attiva finché non scrivi su un’altra tastiera o cambi app."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@は、別のキーボードで入力するまで維持されます。"
+            "value" : "%@は、別のキーボードで入力するか、Appを切り替えるまで維持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 입력 소스는 다른 키보드로 입력할 때까지 유지됩니다."
+            "value" : "%@ 입력 소스는 다른 키보드로 입력하거나 앱을 전환할 때까지 유지됩니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 将保持不变，直到你在其他键盘上打字。"
+            "value" : "%@ 将保持不变，直到你在其他键盘上打字或切换 App。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 會保留到你在其他鍵盤上打字。"
+            "value" : "%@ 會保留到你在其他鍵盤上打字或切換 App。"
           }
         }
       }
@@ -3116,55 +3656,55 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يبقى مصدر الإدخال حتى تكتب على لوحة مفاتيح أخرى."
+            "value" : "يبقى مصدر الإدخال حتى تكتب على لوحة مفاتيح أخرى أو تنتقل إلى تطبيق آخر."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The input source stays until you type on another keyboard."
+            "value" : "The input source stays until you type on another keyboard or switch apps."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La fuente de entrada se mantiene hasta que escribas en otro teclado."
+            "value" : "La fuente de entrada se mantiene hasta que escribas en otro teclado o cambies de app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La méthode de saisie reste en place jusqu’à ce que vous tapiez sur un autre clavier."
+            "value" : "La méthode de saisie reste en place jusqu’à ce que vous tapiez sur un autre clavier ou changiez d’app."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La sorgente di input resta attiva finché non scrivi su un’altra tastiera."
+            "value" : "La sorgente di input resta attiva finché non scrivi su un’altra tastiera o cambi app."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入力ソースは、別のキーボードで入力するまで維持されます。"
+            "value" : "入力ソースは、別のキーボードで入力するか、Appを切り替えるまで維持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "입력 소스는 다른 키보드로 입력할 때까지 유지됩니다."
+            "value" : "입력 소스는 다른 키보드로 입력하거나 앱을 전환할 때까지 유지됩니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入法将保持不变，直到你在其他键盘上打字。"
+            "value" : "输入法将保持不变，直到你在其他键盘上打字或切换 App。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此輸入方式會保留到你在其他鍵盤上打字。"
+            "value" : "此輸入方式會保留到你在其他鍵盤上打字或切換 App。"
           }
         }
       }
@@ -3176,55 +3716,55 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يبقى %@ حتى تكتب على لوحة مفاتيح عُيّن لها."
+            "value" : "يبقى %@ حتى تكتب على لوحة مفاتيح عُيّن لها أو تنتقل إلى تطبيق آخر."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ stays until you type on a keyboard assigned to it."
+            "value" : "%@ stays until you type on a keyboard assigned to it or switch apps."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ se mantiene hasta que escribas en un teclado que la tenga asignada."
+            "value" : "%@ se mantiene hasta que escribas en un teclado que la tenga asignada o cambies de app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La méthode %@ reste en place jusqu’à ce que vous tapiez sur un clavier auquel elle est attribuée."
+            "value" : "La méthode %@ reste en place jusqu’à ce que vous tapiez sur un clavier auquel elle est attribuée ou changiez d’app."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ resta attiva finché non scrivi su una tastiera a cui è assegnata."
+            "value" : "%@ resta attiva finché non scrivi su una tastiera a cui è assegnata o cambi app."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@は、割り当てられたキーボードで入力するまで維持されます。"
+            "value" : "%@は、割り当てられたキーボードで入力するか、Appを切り替えるまで維持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 입력 소스는 지정된 키보드로 입력할 때까지 유지됩니다."
+            "value" : "%@ 입력 소스는 지정된 키보드로 입력하거나 앱을 전환할 때까지 유지됩니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 将保持不变，直到你在为其指定的键盘上打字。"
+            "value" : "%@ 将保持不变，直到你在为其指定的键盘上打字或切换 App。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 會保留到你在指定給它的鍵盤上打字。"
+            "value" : "%@ 會保留到你在指定給它的鍵盤上打字或切換 App。"
           }
         }
       }
@@ -3236,55 +3776,55 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يبقى مصدر الإدخال حتى تكتب على لوحة مفاتيح عُيّن لها."
+            "value" : "يبقى مصدر الإدخال حتى تكتب على لوحة مفاتيح عُيّن لها أو تنتقل إلى تطبيق آخر."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The input source stays until you type on a keyboard assigned to it."
+            "value" : "The input source stays until you type on a keyboard assigned to it or switch apps."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La fuente de entrada se mantiene hasta que escribas en un teclado que la tenga asignada."
+            "value" : "La fuente de entrada se mantiene hasta que escribas en un teclado que la tenga asignada o cambies de app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La méthode de saisie reste en place jusqu’à ce que vous tapiez sur un clavier auquel elle est attribuée."
+            "value" : "La méthode de saisie reste en place jusqu’à ce que vous tapiez sur un clavier auquel elle est attribuée ou changiez d’app."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La sorgente di input resta attiva finché non scrivi su una tastiera a cui è assegnata."
+            "value" : "La sorgente di input resta attiva finché non scrivi su una tastiera a cui è assegnata o cambi app."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入力ソースは、割り当てられたキーボードで入力するまで維持されます。"
+            "value" : "入力ソースは、割り当てられたキーボードで入力するか、Appを切り替えるまで維持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "입력 소스는 지정된 키보드로 입력할 때까지 유지됩니다."
+            "value" : "입력 소스는 지정된 키보드로 입력하거나 앱을 전환할 때까지 유지됩니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入法将保持不变，直到你在为其指定的键盘上打字。"
+            "value" : "输入法将保持不变，直到你在为其指定的键盘上打字或切换 App。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此輸入方式會保留到你在指定給它的鍵盤上打字。"
+            "value" : "此輸入方式會保留到你在指定給它的鍵盤上打字或切換 App。"
           }
         }
       }
@@ -3825,6 +4365,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入方式不同"
+          }
+        }
+      }
+    },
+    "inputSourceDiffersApp" : {
+      "comment" : "Menu bar notice detail. %1$@ is an app name, %2$@ the current input source, %3$@ the input source assigned to the app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم %1$@ المصدر %2$@ بدلًا من %3$@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ is using %2$@ instead of %3$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ está usando %2$@ en lugar de %3$@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ utilise %2$@ au lieu de %3$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ sta usando %2$@ invece di %3$@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@で%3$@ではなく%2$@が使われています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %3$@ 대신 %2$@ 사용 중입니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 正在使用 %2$@，而不是 %3$@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 正在使用 %2$@，而不是 %3$@。"
           }
         }
       }
@@ -6469,6 +7069,66 @@
         }
       }
     },
+    "readyAppsInSettings" : {
+      "comment" : "Guided setup final step note about App Assignments.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لتخصيص مصدر إدخال لتطبيق على كل لوحات المفاتيح، افتح الإعدادات › التطبيقات."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To give an app its own input source on every keyboard, open Settings › Apps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que una app tenga su propia fuente de entrada en todos los teclados, abre Ajustes › Apps."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour attribuer à une app sa propre méthode de saisie sur tous les claviers, ouvrez Réglages › Apps."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per assegnare a un’app la sua sorgente di input su tutte le tastiere, apri Impostazioni › App."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appにすべてのキーボードで使う入力ソースを割り当てるには、「設定」›「App」を開きます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 키보드에서 앱에 고유한 입력 소스를 지정하려면 설정 › 앱을 여세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要为 App 在所有键盘上指定专属输入法，请打开“设置”›“App”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "若要為 App 在所有鍵盤上指定專屬輸入方式，請打開「設定」›「App」。"
+          }
+        }
+      }
+    },
     "readyDescription" : {
       "comment" : "Guided setup final step description.",
       "extractionState" : "manual",
@@ -7117,6 +7777,66 @@
         }
       }
     },
+    "removeApp" : {
+      "comment" : "App row action that deletes its App Assignment.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إزالة"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimuovi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "削除"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제거"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除"
+          }
+        }
+      }
+    },
     "renameEllipsis" : {
       "comment" : "Keyboard actions menu item that renames the keyboard.",
       "extractionState" : "manual",
@@ -7717,6 +8437,126 @@
         }
       }
     },
+    "savedAppsClickRetry" : {
+      "comment" : "Detail of the saved apps unavailable notice. 'them' is the saved apps.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انقر على «إعادة المحاولة» لقراءتها مرة أخرى."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click Retry to read them again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic en Reintentar para volver a leerlas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliquez sur Réessayer pour les relire."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fai clic su Riprova per leggerle di nuovo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「再試行」をクリックすると、もう一度読み込みます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 읽어 오려면 '재시도'를 클릭하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按“重试”以重新读取。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下「重試」再讀取一次。"
+          }
+        }
+      }
+    },
+    "savedAppsUnavailable" : {
+      "comment" : "Title of a notice shown when Keyameleon can't read or write its saved apps.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التطبيقات المحفوظة غير متاحة"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved apps unavailable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps guardadas no disponibles"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps enregistrées indisponibles"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App salvate non disponibili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存済みのAppを利用できません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장된 앱을 사용할 수 없음"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法使用已存储的 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取用已儲存的 App"
+          }
+        }
+      }
+    },
     "savedKeyboardsUnavailable" : {
       "comment" : "Title of a notice shown when Keyameleon can't read or write its saved keyboards.",
       "extractionState" : "manual",
@@ -8253,6 +9093,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "關於"
+          }
+        }
+      }
+    },
+    "settingsApps" : {
+      "comment" : "Settings sidebar section for App Assignments.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التطبيقات"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
           }
         }
       }

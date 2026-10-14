@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct MenuBarAssignmentPill: View {
@@ -7,8 +8,13 @@ struct MenuBarAssignmentPill: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: Theme.Menu.rowGap) {
-            MenuBarConnectionMark(mark: row.connectionMark)
-                .opacity(contentOpacity)
+            if let bundleIdentifier = row.appBundleIdentifier {
+                AppIconView(url: NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier))
+                    .frame(width: Theme.Menu.statusSize, height: Theme.Menu.statusSize)
+            } else {
+                MenuBarConnectionMark(mark: row.connectionMark)
+                    .opacity(contentOpacity)
+            }
 
             Text(row.physicalKeyboardName)
                 .font(Theme.Typography.rowTitle)
@@ -119,6 +125,22 @@ private struct MenuBarAssignmentPillStyle: ViewModifier {
     .frame(width: MenuBarPanelContent.panelWidth)
     .padding()
     .preferredColorScheme(.dark)
+}
+#Preview("Assignment pill app") {
+    MenuBarAssignmentPill(
+        row: MenuBarAssignmentList.Row(
+            id: "app:com.apple.Terminal",
+            physicalKeyboardName: "Terminal",
+            assignedInputSourceName: "U.S.",
+            assignedLocaleCode: "US",
+            connectionMark: .active,
+            isDimmed: false,
+            warningNote: nil,
+            appBundleIdentifier: "com.apple.Terminal"
+        )
+    )
+    .frame(width: MenuBarPanelContent.panelWidth)
+    .padding()
 }
 #Preview("Assignment pill") {
     MenuBarAssignmentPill(

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Input Source control of a Physical Keyboard row.
+/// The Input Source control of a Physical Keyboard or App Assignment row.
 ///
 /// A `PopUpPicker` keeps the System Settings pop-up box visible and fills one
 /// fixed column, so rows with short and long Input Source names line up.
@@ -9,6 +9,8 @@ struct InputSourceMenu: View {
     let title: String
     @Binding var selection: String?
     let inputSources: [EligibleInputSource]
+    /// An App Assignment always has an Input Source; removing it is a separate action.
+    var allowsUnassigned = true
 
     var body: some View {
         PopUpPicker(
@@ -28,7 +30,9 @@ struct InputSourceMenu: View {
     }
 
     private var choices: [Choice] {
-        var choices = [Choice(title: String(localized: .inputSourceUnassigned), identifier: nil)]
+        var choices = allowsUnassigned
+            ? [Choice(title: String(localized: .inputSourceUnassigned), identifier: nil)]
+            : []
         if let selection, unavailable {
             choices.append(Choice(
                 title: String(localized: .inputSourceUnavailable),

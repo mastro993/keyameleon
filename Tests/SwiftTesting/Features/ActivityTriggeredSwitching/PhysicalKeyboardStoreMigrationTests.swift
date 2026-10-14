@@ -12,7 +12,7 @@ func storeRelocationPreservesSavedKeyboardDataAndLiveWAL() throws {
     defer { try? FileManager.default.removeItem(at: root) }
     let legacyURL = root.appending(path: "default.store")
     let destinationURL = root.appending(path: "Keyameleon/default.store")
-    let legacy = try migrationTestContainer(at: legacyURL)
+    let legacy = try legacyTestContainer(at: legacyURL)
     let context = ModelContext(legacy)
     let identityKey = "identity:test-keyboard|anchor:serial:studio"
     let tag = Data((0..<32).map(UInt8.init))
@@ -65,7 +65,7 @@ func storeRelocationKeepsExistingDestination() throws {
     try FileManager.default.createDirectory(
         at: destinationURL.deletingLastPathComponent(), withIntermediateDirectories: true
     )
-    let legacy = try migrationTestContainer(at: legacyURL)
+    let legacy = try legacyTestContainer(at: legacyURL)
     let destination = try migrationTestContainer(at: destinationURL)
     let legacyContext = ModelContext(legacy)
     let destinationContext = ModelContext(destination)
@@ -95,7 +95,7 @@ func storeRelocationRetriesInterruptedStaging() throws {
     defer { try? FileManager.default.removeItem(at: root) }
     let legacyURL = root.appending(path: "default.store")
     let destinationURL = root.appending(path: "Keyameleon/default.store")
-    let legacy = try migrationTestContainer(at: legacyURL)
+    let legacy = try legacyTestContainer(at: legacyURL)
     let context = ModelContext(legacy)
     context.insert(PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel(
         identityKey: "keyboard", productName: "Test Keyboard", customName: "Recovered"
@@ -264,7 +264,7 @@ func legacyStoreImportFollowsBuildIdentity(buildIdentity: AppBuildIdentity) thro
     defer { try? FileManager.default.removeItem(at: root) }
     let legacyURL = root.appending(path: "default.store")
     let storeURL = root.appending(path: buildIdentity.storageFolderName).appending(path: "default.store")
-    let legacy = try migrationTestContainer(at: legacyURL)
+    let legacy = try legacyTestContainer(at: legacyURL)
     let legacyContext = ModelContext(legacy)
     legacyContext.insert(PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel(
         identityKey: "keyboard",
@@ -315,10 +315,54 @@ private func migrationTestDirectory() throws -> URL {
 
 @MainActor
 private func migrationTestContainer(at url: URL) throws -> ModelContainer {
-    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
     return try ModelContainer(
         for: schema,
         migrationPlan: PhysicalKeyboardMigrationPlan.self,
         configurations: [ModelConfiguration(schema: schema, url: url)]
     )
+}
+
+/// Releases before 0.4.6 wrote the legacy store with schema version 1, so it has no App Assignments table.
+@MainActor
+private func legacyTestContainer(at url: URL) throws -> ModelContainer {
+    let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+    return try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)])
+}
+
+@Test("Opening a version 1 store keeps saved keyboards and adds empty App Assignments")
+@MainActor
+func schemaUpgradeKeepsSavedKeyboardsAndAddsAppAssignments() throws {
+    let root = try migrationTestDirectory()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let url = root.appending(path: "default.store")
+    let identityKey = "identity:test-keyboard|anchor:serial:studio"
+    do {
+        let versionOneSchema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        let versionOne = try ModelContainer(
+            for: versionOneSchema,
+            configurations: [ModelConfiguration(schema: versionOneSchema, url: url)]
+        )
+        let context = ModelContext(versionOne)
+        context.insert(PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel(
+            identityKey: identityKey,
+            productName: "Test Keyboard",
+            assignedInputSourceIdentifier: "com.apple.keylayout.Italian"
+        ))
+        try context.save()
+    }
+
+    let upgraded = ModelContext(try migrationTestContainer(at: url))
+    let saved = try SwiftDataPhysicalKeyboardRecordStore(modelContext: upgraded).record(forIdentityKey: identityKey)
+    #expect(saved?.keyboardAssignment == KeyboardAssignment(inputSourceIdentifier: "com.apple.keylayout.Italian"))
+    let appAssignments = SwiftDataAppAssignmentStore(session: SwiftDataPersistenceSession(modelContext: upgraded))
+    #expect(try appAssignments.allAppAssignments().isEmpty)
+
+    let terminal = AppAssignment(
+        bundleIdentifier: "com.apple.Terminal",
+        appName: "Terminal",
+        inputSourceIdentifier: "com.apple.keylayout.US"
+    )
+    try appAssignments.saveAppAssignment(terminal)
+    #expect(try appAssignments.allAppAssignments() == [terminal])
 }

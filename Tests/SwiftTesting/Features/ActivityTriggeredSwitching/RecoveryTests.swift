@@ -37,13 +37,12 @@ func selectionFailureLeavesNormalInputUnchangedAndOpensOneWarningEpisode() {
 
     #expect(selector.selectCount == 3)
     #expect(selector.currentInputSourceIdentifier() == "com.example.other")
-    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == nil)
+    #expect(model.activityTriggeredSwitching.testingVerifiedInputSourceIdentifier == nil)
     #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
     #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
     #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].category == .selectionFailed)
     #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].recoveryAction == .retryNow)
-    #expect(model.activityTriggeredSwitching.testingActiveWarnings[0].supportsRetryNow)
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource?.inputSourceIdentifier == "com.example.us")
 }
 
 @Test("Retry Now retries current wanted Keyboard Assignment")
@@ -88,7 +87,7 @@ func retryNowRetriesCurrentWantedKeyboardAssignment() {
     selector.verifySuccess = true
     model.activityTriggeredSwitching.retryNow()
     #expect(selector.selectCount == 3)
-    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedInputSourceIdentifier == "com.example.us")
     #expect(model.activityTriggeredSwitching.testingActiveWarnings.isEmpty)
     #expect(selector.currentInputSourceIdentifier() == "com.example.us")
 }
@@ -147,13 +146,13 @@ func laterAssignedActivationActivityReplacesWantedStateAndCanStartNewRequest() {
     model.setKeyboardAssignment(keyboardB.id, inputSourceIdentifier: "com.example.it")
 
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 303, kind: .press))
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource?.inputSourceIdentifier == "com.example.us")
     #expect(selector.lastRequestedIdentifier == "com.example.us")
 
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 304, kind: .press))
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.it")
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource?.inputSourceIdentifier == "com.example.it")
     #expect(selector.lastRequestedIdentifier == "com.example.it")
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.physicalKeyboardID == keyboardB.id)
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource?.physicalKeyboardID == keyboardB.id)
     // Still one selection-failure warning cause, not one per event.
     #expect(model.activityTriggeredSwitching.testingWarningEpisodeCount == 1)
     #expect(model.activityTriggeredSwitching.testingActiveWarnings.count == 1)
@@ -242,7 +241,7 @@ func exactInputSourceReturnEndsUnavailableConditionAndRestoresSwitching() {
     model.activityTriggeredSwitching.testingPhysicalKeyboardDiscovery.handlePhysicalKeyboardEventForTesting(PhysicalKeyboardEvent(serviceID: 306, kind: .press))
     #expect(selector.selectCount == 1)
     #expect(selector.lastRequestedIdentifier == "com.example.us")
-    #expect(model.activityTriggeredSwitching.testingVerifiedKeyboardAssignmentIdentifier == "com.example.us")
+    #expect(model.activityTriggeredSwitching.testingVerifiedInputSourceIdentifier == "com.example.us")
 }
 
 @Test("Change Assignment and Remove Assignment clear Unavailable Keyboard Assignment")
@@ -403,5 +402,5 @@ func changeAssignmentClearsSelectionFailureWarningForThatWantedKeyboard() {
 
     model.setKeyboardAssignment(keyboardID, inputSourceIdentifier: "com.example.it")
     #expect(!model.activityTriggeredSwitching.testingActiveWarnings.contains { $0.cause == .selectionFailure })
-    #expect(model.activityTriggeredSwitching.testingWantedKeyboardAssignment?.inputSourceIdentifier == "com.example.it")
+    #expect(model.activityTriggeredSwitching.testingWantedInputSource?.inputSourceIdentifier == "com.example.it")
 }

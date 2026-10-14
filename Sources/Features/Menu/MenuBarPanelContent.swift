@@ -34,10 +34,6 @@ struct MenuBarPanelContent: Equatable, Sendable {
     let footer: Footer
     let notice: MenuBarPanelNotice?
 
-    var actionTitles: [String] {
-        footer.actions.map(\.title)
-    }
-
     init(
         outcome: ActivityTriggeredSwitchingOutcome,
         physicalKeyboards: [PhysicalKeyboard],
@@ -59,7 +55,8 @@ struct MenuBarPanelContent: Equatable, Sendable {
         )
         self.assignmentList = MenuBarAssignmentList(
             physicalKeyboards: physicalKeyboards,
-            assignedInputSources: assignedInputSources
+            assignedInputSources: assignedInputSources,
+            frontmostAppAssignment: outcome.frontmostAppAssignment
         )
         self.footer = Footer(
             actions: Self.makeActions(

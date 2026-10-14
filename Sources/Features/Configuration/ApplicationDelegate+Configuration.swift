@@ -16,6 +16,7 @@ extension ApplicationDelegate {
             settingsWindowController = SettingsWindowController(
                 model: generalSettingsModel,
                 setupModel: setupModel,
+                appAssignmentsModel: appAssignmentsModel,
                 selection: settingsSelection
             )
         }

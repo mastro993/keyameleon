@@ -17,7 +17,6 @@ protocol PhysicalKeyboardRecordStoring: AnyObject {
         productName: String,
         assignment: KeyboardAssignment?
     ) throws
-    func deleteRecord(identityKey: String) throws
     func transferRecord(
         fromIdentityKey: String,
         toIdentityKey: String,
@@ -30,7 +29,7 @@ extension PhysicalKeyboardRecordStoring {
     func stopObservingChanges() {}
 
     /// Moves the only old built-in record to the fixed local identity.
-    /// Multiple old records are left untouched for the replacement flow.
+    /// Multiple old records are left untouched; nothing picks one automatically.
     @discardableResult
     func migrateSingleOldBuiltInRecord(
         toIdentityKey identityKey: String,
@@ -102,12 +101,12 @@ enum PhysicalKeyboardSchemaV1: VersionedSchema {
 
 enum PhysicalKeyboardMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [PhysicalKeyboardSchemaV1.self]
+        [PhysicalKeyboardSchemaV1.self, PhysicalKeyboardSchemaV2.self]
     }
 
-    // Explicit empty plan: V1 is the baseline. Future schema versions add stages here.
+    /// V2 only adds App Assignments, so existing records and designations carry over unchanged.
     static var stages: [MigrationStage] {
-        []
+        [.lightweight(fromVersion: PhysicalKeyboardSchemaV1.self, toVersion: PhysicalKeyboardSchemaV2.self)]
     }
 }
 
@@ -128,7 +127,7 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         inMemory: Bool = false,
         buildIdentity: AppBuildIdentity = .current
     ) -> ModelConfiguration {
-        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
         let legacyConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         guard !inMemory else { return legacyConfiguration }
         let storeURL = legacyConfiguration.url.deletingLastPathComponent()
@@ -141,7 +140,7 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         inMemory: Bool = false,
         buildIdentity: AppBuildIdentity = .current
     ) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV1.self)
+        let schema = Schema(versionedSchema: PhysicalKeyboardSchemaV2.self)
         let configuration = makeConfiguration(inMemory: inMemory, buildIdentity: buildIdentity)
         if !inMemory {
             try prepareStore(
@@ -208,17 +207,6 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         try session.transaction {
             let model = try upsertModel(identityKey: identityKey, productName: productName)
             model.assignedInputSourceIdentifier = assignment?.inputSourceIdentifier
-            session.didChange { [weak self] in self?.onChange?() }
-        }
-    }
-
-    func deleteRecord(identityKey: String) throws {
-        try session.transaction {
-            guard let model = try fetchModel(identityKey: identityKey) else {
-                return
-            }
-
-            try session.modelContext().delete(model)
             session.didChange { [weak self] in self?.onChange?() }
         }
     }

@@ -10,6 +10,7 @@ struct KeyameleonApp: App {
             SettingsView(
                 model: applicationDelegate.generalSettingsModel,
                 setupModel: applicationDelegate.setupModel,
+                appAssignmentsModel: applicationDelegate.appAssignmentsModel,
                 selection: applicationDelegate.settingsSelection
             )
         }

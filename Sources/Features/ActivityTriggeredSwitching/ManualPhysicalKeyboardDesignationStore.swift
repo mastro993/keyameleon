@@ -5,8 +5,6 @@ import Foundation
 protocol ManualPhysicalKeyboardDesignationStoring: AnyObject {
     func designation(forIdentityKey identityKey: String) throws -> SavedManualPhysicalKeyboardDesignation?
     func allDesignations() throws -> [SavedManualPhysicalKeyboardDesignation]
-    func save(_ designation: SavedManualPhysicalKeyboardDesignation) throws
-    func delete(identityKey: String) throws
 }
 
 @MainActor
@@ -21,12 +19,9 @@ final class InMemoryManualPhysicalKeyboardDesignationStore: ManualPhysicalKeyboa
         Array(designations.values)
     }
 
+    /// Seeds a designation saved by an earlier version. Keyameleon no longer creates designations.
     func save(_ designation: SavedManualPhysicalKeyboardDesignation) {
         designations[designation.identityKey] = designation
-    }
-
-    func delete(identityKey: String) {
-        designations.removeValue(forKey: identityKey)
     }
 }
 
@@ -90,37 +85,6 @@ final class SwiftDataManualPhysicalKeyboardDesignationStore: ManualPhysicalKeybo
             FetchDescriptor<ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel>()
         )
             .map(\.savedDesignation)
-    }
-
-    func save(_ designation: SavedManualPhysicalKeyboardDesignation) throws {
-        try session.transaction {
-            if let existing = try fetchModel(identityKey: designation.identityKey) {
-                existing.productName = designation.productName
-                existing.confirmedName = designation.confirmedName
-                existing.authenticationTag = designation.authenticationTag
-            } else {
-                try session.modelContext().insert(
-                    ManualPhysicalKeyboardDesignationSchemaV1.ManualPhysicalKeyboardDesignationModel(
-                        identityKey: designation.identityKey,
-                        productName: designation.productName,
-                        confirmedName: designation.confirmedName,
-                        authenticationTag: designation.authenticationTag
-                    )
-                )
-            }
-            session.didChange()
-        }
-    }
-
-    func delete(identityKey: String) throws {
-        try session.transaction {
-            guard let model = try fetchModel(identityKey: identityKey) else {
-                return
-            }
-
-            try session.modelContext().delete(model)
-            session.didChange()
-        }
     }
 
     private func fetchModel(

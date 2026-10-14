@@ -64,7 +64,9 @@ struct MenuBarPanelNotice: Equatable, Sendable {
             }
 
             if let mismatch = outcome.mismatch {
-                let detail: LocalizedStringResource = if let keyboardName = outcome.activePhysicalKeyboard?.name {
+                let detail: LocalizedStringResource = if let appName = mismatch.appName {
+                    .inputSourceDiffersApp(appName, mismatch.currentName, mismatch.assignedName)
+                } else if let keyboardName = outcome.activePhysicalKeyboard?.name {
                     .inputSourceDiffersKeyboard(keyboardName, mismatch.currentName, mismatch.assignedName)
                 } else {
                     .inputSourceDiffersNoKeyboard(mismatch.currentName, mismatch.assignedName)

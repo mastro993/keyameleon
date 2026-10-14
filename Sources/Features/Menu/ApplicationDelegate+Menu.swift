@@ -94,6 +94,7 @@ extension ApplicationDelegate {
         let outcome = activityTriggeredSwitching.outcome
         let hasItemConditionsNeedingAction = !setupModel.physicalKeyboardActionConditions.isEmpty
             || outcome.mismatch != nil
+            || outcome.warnings.contains { $0.category == .unavailableAppAssignment }
         let mark = MenuBarIconMark.resolve(
             switchingStatus: outcome.switchingStatus,
             hasItemConditionsNeedingAction: hasItemConditionsNeedingAction

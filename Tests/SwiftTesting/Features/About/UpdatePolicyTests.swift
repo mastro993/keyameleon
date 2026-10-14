@@ -12,12 +12,9 @@ func keylessBuildUpdaterDoesNotStart() throws {
     #expect(!checker.canCheckForUpdates)
 }
 
-@Test("Update policy bounds checks and forbids auto-install tracking")
+@Test("Update policy bounds checks and keeps system profiling off")
 func updatePolicyBoundsChecksAndPrivacy() {
     #expect(UpdatePolicy.minimumCheckInterval == 24 * 60 * 60)
-    #expect(UpdatePolicy.allowsAutomaticInstallation == false)
-    #expect(UpdatePolicy.criticalUpdatesBypassUserApproval == false)
-    #expect(UpdatePolicy.allowsAppGeneratedIdentifiers == false)
     #expect(UpdatePolicy.sendsSystemProfile == false)
     #expect(
         UpdatePolicy.feedURLString

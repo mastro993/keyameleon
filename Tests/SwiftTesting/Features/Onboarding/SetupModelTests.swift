@@ -44,7 +44,6 @@ func firstLaunchChecksListenPermissionWithoutRequestingIt() {
     #expect(permissionProvider.checkCount == 1)
     #expect(permissionProvider.requestCount == 0)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .permissionRequired)
-    #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
     #expect(!model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
     #expect(model.guidedSetupStep == .permission)
 }
@@ -137,7 +136,6 @@ func checkAgainRefreshesPermissionWithoutRequestingIt() {
     #expect(permissionProvider.checkCount == 2)
     #expect(permissionProvider.requestCount == 0)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus == .ready)
-    #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsActivityTriggeredSwitching)
     #expect(model.activityTriggeredSwitching.outcome.switchingStatus.allowsPhysicalKeyboardDiscovery)
 }
 

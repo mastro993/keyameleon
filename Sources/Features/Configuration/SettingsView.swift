@@ -6,17 +6,20 @@ import SwiftUI
 struct SettingsView: View {
     private let model: GeneralSettingsModel
     private let setupModel: SetupModel
+    private let appAssignmentsModel: AppAssignmentsModel
     private let selection: SettingsSelection
     private let aboutInfo: AboutInfo
 
     init(
         model: GeneralSettingsModel,
         setupModel: SetupModel,
+        appAssignmentsModel: AppAssignmentsModel,
         selection: SettingsSelection,
         aboutInfo: AboutInfo = .current
     ) {
         self.model = model
         self.setupModel = setupModel
+        self.appAssignmentsModel = appAssignmentsModel
         self.selection = selection
         self.aboutInfo = aboutInfo
     }
@@ -47,6 +50,8 @@ struct SettingsView: View {
             GeneralSettingsPane(model: model)
         case .keyboards:
             KeyboardSettingsPane(model: setupModel)
+        case .apps:
+            AppSettingsPane(model: appAssignmentsModel, eligibleInputSources: setupModel.eligibleInputSources)
         case .about:
             AboutSettingsPane(model: model, info: aboutInfo)
         }
@@ -79,6 +84,7 @@ private struct SettingsPreviewHost: View {
         SettingsView(
             model: model,
             setupModel: setupModel,
+            appAssignmentsModel: PreviewFixtures.appAssignments(),
             selection: selection,
             aboutInfo: aboutInfo
         )
@@ -130,6 +136,15 @@ private struct SettingsPreviewHost: View {
         aboutInfo: PreviewFixtures.aboutInfo
     )
     .environment(\.dynamicTypeSize, .xxxLarge)
+}
+
+#Preview("Settings apps") {
+    SettingsPreviewHost(
+        section: .apps,
+        model: PreviewFixtures.general(),
+        setupModel: PreviewFixtures.setup(.pencilAssignments).model,
+        aboutInfo: PreviewFixtures.aboutInfo
+    )
 }
 
 #Preview("Settings about") {

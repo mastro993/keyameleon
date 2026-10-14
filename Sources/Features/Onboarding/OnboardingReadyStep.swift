@@ -16,6 +16,9 @@ struct OnboardingReadyStep: View {
                 .lineSpacing(2)
                 .padding(.vertical, 1)
                 .foregroundStyle(OnboardingPalette.secondary)
+            Text(.readyAppsInSettings)
+                .font(.callout)
+                .foregroundStyle(OnboardingPalette.secondary)
             HStack(spacing: 10) {
                 Image(systemName: assignmentCount > 0 ? "checkmark.circle.fill" : "info.circle.fill")
                     .resizable()

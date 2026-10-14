@@ -16,16 +16,17 @@ struct ActivityTriggeredSwitchingComposition {
     let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
     let exclusionStore: any PhysicalKeyboardExclusionStoring
     let integrityKeyProvider: any InstallationIntegrityKeyProviding
+    let appAssignmentStore: any AppAssignmentStoring
 }
 
 @MainActor
 enum ProductionFactory {
-    /// Builds the live application composition. Persistence adapters are passed
-    /// in because the application owns their model containers.
+    /// Builds the live application composition. The persistence session is
+    /// passed in because the application owns its model container; saved
+    /// records, designations, and App Assignments share it.
     static func makeLiveComposition(
         setupStore: any SetupDecisionStoring,
-        physicalKeyboardRecordStore: any PhysicalKeyboardRecordStoring,
-        designationStore: any ManualPhysicalKeyboardDesignationStoring,
+        persistenceSession: SwiftDataPersistenceSession,
         exclusionStore: any PhysicalKeyboardExclusionStoring,
         integrityKeyProvider: any InstallationIntegrityKeyProviding
     ) -> ActivityTriggeredSwitchingComposition {
@@ -39,10 +40,12 @@ enum ProductionFactory {
             inputSourceProvider: inputSources,
             inputSourceSelector: inputSources,
             inputSourceChangeObserver: SystemInputSourceChangeObserver(),
-            physicalKeyboardRecordStore: physicalKeyboardRecordStore,
-            designationStore: designationStore,
+            physicalKeyboardRecordStore: SwiftDataPhysicalKeyboardRecordStore(session: persistenceSession),
+            designationStore: SwiftDataManualPhysicalKeyboardDesignationStore(session: persistenceSession),
             exclusionStore: exclusionStore,
-            integrityKeyProvider: integrityKeyProvider
+            integrityKeyProvider: integrityKeyProvider,
+            appAssignmentStore: SwiftDataAppAssignmentStore(session: persistenceSession),
+            frontmostAppObserver: SystemFrontmostAppObserver()
         )
     }
 
@@ -65,23 +68,17 @@ enum ProductionFactory {
         exclusionStore: any PhysicalKeyboardExclusionStoring =
             InMemoryPhysicalKeyboardExclusionStore(),
         integrityKeyProvider: any InstallationIntegrityKeyProviding =
-            InMemoryInstallationIntegrityKeyProvider()
+            InMemoryInstallationIntegrityKeyProvider(),
+        appAssignmentStore: any AppAssignmentStoring = InMemoryAppAssignmentStore(),
+        frontmostAppObserver: any FrontmostAppObserving = NoOpFrontmostAppObserver()
     ) -> ActivityTriggeredSwitchingComposition {
         let savedPhysicalKeyboardChanges: SavedPhysicalKeyboardChanges
-        if let records = physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore,
-           let designations = designationStore as? SwiftDataManualPhysicalKeyboardDesignationStore {
-            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(
-                records: records,
-                designations: designations
-            )
-        } else if let records = physicalKeyboardRecordStore as? InMemoryPhysicalKeyboardRecordStore,
-                  let designations = designationStore as? InMemoryManualPhysicalKeyboardDesignationStore {
-            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(
-                records: records,
-                designations: designations
-            )
+        if let records = physicalKeyboardRecordStore as? SwiftDataPhysicalKeyboardRecordStore {
+            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(records: records)
+        } else if let records = physicalKeyboardRecordStore as? InMemoryPhysicalKeyboardRecordStore {
+            savedPhysicalKeyboardChanges = SavedPhysicalKeyboardChanges(records: records)
         } else {
-            preconditionFailure("Saved Physical Keyboard changes require matching record and designation stores")
+            preconditionFailure("Saved Physical Keyboard changes require a SwiftData or in-memory record store")
         }
 
         let physicalKeyboardDiscovery = PhysicalKeyboardDiscovery(
@@ -102,7 +99,9 @@ enum ProductionFactory {
             physicalKeyboardRecordStore: physicalKeyboardRecordStore,
             designationStore: designationStore,
             exclusionStore: exclusionStore,
-            integrityKeyProvider: integrityKeyProvider
+            integrityKeyProvider: integrityKeyProvider,
+            appAssignmentStore: appAssignmentStore,
+            frontmostAppObserver: frontmostAppObserver
         )
 
         return ActivityTriggeredSwitchingComposition(
@@ -115,7 +114,8 @@ enum ProductionFactory {
             designationStore: designationStore,
             savedPhysicalKeyboardChanges: savedPhysicalKeyboardChanges,
             exclusionStore: exclusionStore,
-            integrityKeyProvider: integrityKeyProvider
+            integrityKeyProvider: integrityKeyProvider,
+            appAssignmentStore: appAssignmentStore
         )
     }
 }

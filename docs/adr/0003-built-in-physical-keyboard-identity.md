@@ -21,10 +21,13 @@ Keyboard Identities.
 
 When multiple old built-in records exist, Keyameleon does not migrate or delete
 them automatically. It shows the built-in Physical Keyboard as unassigned and
-keeps the old records. The user can use the existing replacement flow to move
-the Physical Keyboard Name and Keyboard Assignment from one selected old
-record. The user can also create a new Keyboard Assignment or forget old
-records.
+keeps the old records. The user can create a new Keyboard Assignment for the
+built-in Physical Keyboard.
+
+_Updated 2026-10-12:_ this decision originally also offered a replacement flow
+to move the name and assignment from one selected old record, and a way to
+forget old records. Neither had an entry point after the Settings rebuild, and
+both were removed.
 
 The migration keeps nothing per identity beyond the Physical Keyboard Name and
 Keyboard Assignment it moves. Log files are not linked to a Physical Keyboard

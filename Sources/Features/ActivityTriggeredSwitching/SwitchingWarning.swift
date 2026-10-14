@@ -4,6 +4,7 @@ import Foundation
 enum SwitchingFailureCategory: Equatable, Sendable {
     case selectionFailed
     case unavailableKeyboardAssignment
+    case unavailableAppAssignment
 }
 
 /// Explicit recovery the user can take for an active warning.
@@ -15,10 +16,12 @@ enum SwitchingRecoveryAction: Equatable, Sendable {
 /// One active cause of switching trouble. Repeated Physical Keyboard Events share this warning.
 struct SwitchingWarning: Identifiable, Equatable, Sendable {
     enum Cause: Hashable, Sendable {
-        /// Exact Input Source selection or readback failed for the current wanted Keyboard Assignment.
+        /// Exact Input Source selection or readback failed for the current Wanted Input Source.
         case selectionFailure
         /// Saved Keyboard Assignment whose Input Source is not available.
         case unavailableKeyboardAssignment(PhysicalKeyboardRecordID)
+        /// Saved App Assignment, by bundle identifier, whose Input Source is not available.
+        case unavailableAppAssignment(String)
     }
 
     let cause: Cause
@@ -33,11 +36,9 @@ struct SwitchingWarning: Identifiable, Equatable, Sendable {
             "selectionFailure"
         case let .unavailableKeyboardAssignment(physicalKeyboardID):
             "unavailable:\(physicalKeyboardID.rawValue)"
+        case let .unavailableAppAssignment(bundleIdentifier):
+            "unavailable-app:\(bundleIdentifier)"
         }
-    }
-
-    var supportsRetryNow: Bool {
-        recoveryAction == .retryNow
     }
 
     static func selectionFailure(inputSourceIdentifier: String) -> SwitchingWarning {
@@ -47,6 +48,34 @@ struct SwitchingWarning: Identifiable, Equatable, Sendable {
             recoveryAction: .retryNow,
             inputSourceIdentifier: inputSourceIdentifier
         )
+    }
+
+    static func unavailableAppAssignment(
+        bundleIdentifier: String,
+        inputSourceIdentifier: String
+    ) -> SwitchingWarning {
+        SwitchingWarning(
+            cause: .unavailableAppAssignment(bundleIdentifier),
+            category: .unavailableAppAssignment,
+            recoveryAction: .changeOrRemoveAssignment,
+            inputSourceIdentifier: inputSourceIdentifier
+        )
+    }
+
+    /// The warning for a Wanted Input Source whose assignment is unavailable.
+    static func unavailableAssignment(for wanted: WantedInputSource) -> SwitchingWarning {
+        switch wanted.origin {
+        case let .keyboard(physicalKeyboardID):
+            .unavailableKeyboardAssignment(
+                physicalKeyboardID: physicalKeyboardID,
+                inputSourceIdentifier: wanted.inputSourceIdentifier
+            )
+        case let .app(bundleIdentifier, _):
+            .unavailableAppAssignment(
+                bundleIdentifier: bundleIdentifier,
+                inputSourceIdentifier: wanted.inputSourceIdentifier
+            )
+        }
     }
 
     static func unavailableKeyboardAssignment(
@@ -60,12 +89,6 @@ struct SwitchingWarning: Identifiable, Equatable, Sendable {
             inputSourceIdentifier: inputSourceIdentifier
         )
     }
-}
-
-/// Latest wanted Keyboard Assignment for Retry Now and Activation Activity replacement.
-struct WantedKeyboardAssignment: Equatable, Sendable {
-    let physicalKeyboardID: PhysicalKeyboardRecordID
-    let inputSourceIdentifier: String
 }
 
 enum KeyboardAssignmentAvailability {
