@@ -287,6 +287,26 @@ func legacyStoreImportFollowsBuildIdentity(buildIdentity: AppBuildIdentity) thro
     #expect(imported == (buildIdentity == .release ? "Legacy" : nil))
 }
 
+@Test("A Debug store also refuses orphan sidecars", arguments: ["-wal", "-shm"])
+@MainActor
+func debugStoreRejectsOrphanSidecars(suffix: String) throws {
+    let root = try migrationTestDirectory()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let storeURL = root.appending(path: "Keyameleon Dev/default.store")
+    try FileManager.default.createDirectory(
+        at: storeURL.deletingLastPathComponent(), withIntermediateDirectories: true
+    )
+    let sidecarURL = URL(fileURLWithPath: storeURL.path + suffix)
+    try Data("orphan sidecar".utf8).write(to: sidecarURL)
+
+    #expect(throws: (any Error).self) {
+        try SwiftDataPhysicalKeyboardRecordStore.prepareStore(
+            from: root.appending(path: "default.store"), to: storeURL, buildIdentity: .debug
+        )
+    }
+    #expect(!FileManager.default.fileExists(atPath: storeURL.path))
+}
+
 private func migrationTestDirectory() throws -> URL {
     let url = URL.temporaryDirectory.appending(path: "KeyameleonMigration-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)

@@ -157,20 +157,16 @@ final class SwiftDataPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring 
         )
     }
 
-    /// Creates the store folder, and for the release imports the legacy store.
+    /// Prepares the store folder; only the release imports the legacy store.
     static func prepareStore(
         from legacyURL: URL,
         to storeURL: URL,
         buildIdentity: AppBuildIdentity
     ) throws {
-        if buildIdentity.importsLegacyStore {
-            try PhysicalKeyboardStoreMigration.prepareStore(from: legacyURL, to: storeURL)
-        } else {
-            try FileManager.default.createDirectory(
-                at: storeURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-        }
+        try PhysicalKeyboardStoreMigration.prepareStore(
+            from: buildIdentity.importsLegacyStore ? legacyURL : nil,
+            to: storeURL
+        )
     }
 
     func record(forIdentityKey identityKey: String) throws -> SavedPhysicalKeyboardRecord? {

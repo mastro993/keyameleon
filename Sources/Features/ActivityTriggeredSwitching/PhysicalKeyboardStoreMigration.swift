@@ -2,7 +2,10 @@ import Foundation
 import SQLite3
 
 enum PhysicalKeyboardStoreMigration {
-    static func prepareStore(from legacyURL: URL, to destinationURL: URL) throws {
+    /// Creates the store folder and, given a `legacyURL`, imports that store.
+    /// Orphan destination sidecars always fail, so a store is never recreated
+    /// over unreadable data.
+    static func prepareStore(from legacyURL: URL?, to destinationURL: URL) throws {
         let fileManager = FileManager.default
         guard !fileManager.fileExists(atPath: destinationURL.path) else {
             return
@@ -16,7 +19,7 @@ enum PhysicalKeyboardStoreMigration {
 
         let folder = destinationURL.deletingLastPathComponent()
         try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
-        guard fileManager.fileExists(atPath: legacyURL.path) else {
+        guard let legacyURL, fileManager.fileExists(atPath: legacyURL.path) else {
             return
         }
 
