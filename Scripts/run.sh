@@ -13,7 +13,7 @@ TEST_PRODUCTS_PATH="${TEST_DERIVED_DATA_PATH}/Build/Products/Debug"
 # Debug builds have their own identity; the release one belongs to the installed
 # app (docs/adr/0008-separate-debug-identity.md).
 BUNDLE_ID='dev.fedemas.keyameleon.debug'
-DEBUG_APP_NAME='Keyameleon Dev'
+DEBUG_APP_NAME='Keyameleon (Dev)'
 RELEASE_BUNDLE_ID='dev.fedemas.keyameleon'
 LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 

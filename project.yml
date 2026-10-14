@@ -72,11 +72,11 @@ targets:
       configs:
         # Debug is its own app to macOS: Input Monitoring row, defaults domain,
         # data and logs (docs/adr/0008-separate-debug-identity.md). Its bundle is
-        # Keyameleon Dev.app, so System Settings and Finder can tell it apart;
+        # Keyameleon (Dev).app, so System Settings and Finder can tell it apart;
         # the module and executable stay Keyameleon.
         Debug:
           PRODUCT_BUNDLE_IDENTIFIER: dev.fedemas.keyameleon.debug
-          PRODUCT_NAME: Keyameleon Dev
+          PRODUCT_NAME: Keyameleon (Dev)
     info:
       path: Sources/App/Info.plist
       properties:
@@ -124,7 +124,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
       configs:
         Debug:
-          TEST_HOST: $(BUILT_PRODUCTS_DIR)/Keyameleon Dev.app/Contents/MacOS/Keyameleon
+          TEST_HOST: $(BUILT_PRODUCTS_DIR)/Keyameleon (Dev).app/Contents/MacOS/Keyameleon
     dependencies:
       - target: Keyameleon
 
@@ -139,7 +139,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
       configs:
         Debug:
-          TEST_HOST: $(BUILT_PRODUCTS_DIR)/Keyameleon Dev.app/Contents/MacOS/Keyameleon
+          TEST_HOST: $(BUILT_PRODUCTS_DIR)/Keyameleon (Dev).app/Contents/MacOS/Keyameleon
     dependencies:
       - target: Keyameleon
 

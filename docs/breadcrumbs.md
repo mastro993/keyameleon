@@ -13,13 +13,13 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
   `tccutil reset ListenEvent` wiped the other build's grant. The shared store let
   a Debug build with a newer schema rewrite the release's data; release 0.9.0
   then dropped the tables it did not know, losing App Assignments.
-- Debug is now `dev.fedemas.keyameleon.debug`, shown as Keyameleon Dev, with
+- Debug is now `dev.fedemas.keyameleon.debug`, shown as Keyameleon (Dev), with
   `Keyameleon Dev` data and logs folders chosen from the bundle ID
   (`AppBuildIdentity`). Only the release imports the legacy
   `Application Support/default.store`. #190 already skips a file that is not
   Keyameleon's, but a Keyameleon file there is an old release's data, which a
   fresh Debug folder would otherwise copy.
-- Debug's bundle is `Keyameleon Dev.app`: System Settings names an app after its
+- Debug's bundle is `Keyameleon (Dev).app`: System Settings names an app after its
   bundle file, so a display name alone left two rows called Keyameleon. The
   module stays `Keyameleon`. Unlike #157, the ID is new rather than
   `.development`, and the single `/dev/null` lock stays shared, so the two

@@ -86,7 +86,7 @@ class ResetLocalStateTests(unittest.TestCase):
         (support / "default.store-wal").touch()
 
         release = home / "stale/Keyameleon.app"
-        debug = home / "build/Keyameleon Dev.app"
+        debug = home / "build/Keyameleon (Dev).app"
         other = home / "other/Other.app"
         for app in (release, debug, other):
             app.mkdir(parents=True)

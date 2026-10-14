@@ -6,7 +6,7 @@ Quick reference for agents. Native macOS 26 `LSUIElement` menu bar app (Swift 6,
 - Test: `./Scripts/run.sh test` (audit, SwiftLint, script tests, Swift Testing, XCTest; no UI-test target)
 - Audit only: `./Scripts/run.sh audit`
 - Regenerate after `project.yml` edits: `./Scripts/run.sh generate`
-- Bundle IDs: Release `dev.fedemas.keyameleon`; Debug `dev.fedemas.keyameleon.debug`, built as `Keyameleon Dev.app` (module and executable still `Keyameleon`), with its own Input Monitoring row, defaults, and `Keyameleon Dev` data and logs folders (ADR 0008). Both share the single-instance lock.
+- Bundle IDs: Release `dev.fedemas.keyameleon`; Debug `dev.fedemas.keyameleon.debug`, built as `Keyameleon (Dev).app` (module and executable still `Keyameleon`), with its own Input Monitoring row, defaults, and `Keyameleon Dev` data and logs folders (ADR 0008). Both share the single-instance lock.
 - Derived data: `./build`; `run.sh test` uses `./build/test`
 - `run.sh reset` erases only the Debug identity; `reset --release` erases the installed release's permissions and data.
 - Scheme: `Keyameleon` (app, `KeyameleonSwiftTesting`, `KeyameleonXCTest`)

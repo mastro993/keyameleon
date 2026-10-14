@@ -34,7 +34,7 @@ build_app
                          ["build-for-testing", "test-without-building", "lsregister", "build"])
         # Only the signed Debug app stays registered for Quit & Reopen.
         self.assertEqual(commands[2], ["lsregister", "-u",
-                                       f"{ROOT}/build/test/Build/Products/Debug/Keyameleon Dev.app"])
+                                       f"{ROOT}/build/test/Build/Products/Debug/Keyameleon (Dev).app"])
         del commands[2]
         for command in commands[:2]:
             self.assertIn("CODE_SIGN_IDENTITY=-", command)

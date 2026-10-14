@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # Debug has its own bundle ID, so macOS keeps a separate Input Monitoring row and
 # defaults domain for it (docs/adr/0008-separate-debug-identity.md).
 IDENTITIES = {
-    "Debug": ("dev.fedemas.keyameleon.debug", "Keyameleon Dev"),
+    "Debug": ("dev.fedemas.keyameleon.debug", "Keyameleon (Dev)"),
     "Release": ("dev.fedemas.keyameleon", "Keyameleon"),
 }
 

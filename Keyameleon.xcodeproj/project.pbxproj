@@ -1137,7 +1137,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "dev.fedemas.keyameleon.tests.swift-testing";
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon Dev.app/Contents/MacOS/Keyameleon";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon (Dev).app/Contents/MacOS/Keyameleon";
 			};
 			name = Debug;
 		};
@@ -1336,7 +1336,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.tests.xctest;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon Dev.app/Contents/MacOS/Keyameleon";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keyameleon (Dev).app/Contents/MacOS/Keyameleon";
 			};
 			name = Debug;
 		};
@@ -1358,7 +1358,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = dev.fedemas.keyameleon.debug;
 				PRODUCT_MODULE_NAME = Keyameleon;
-				PRODUCT_NAME = "Keyameleon Dev";
+				PRODUCT_NAME = "Keyameleon (Dev)";
 				SDKROOT = macosx;
 			};
 			name = Debug;

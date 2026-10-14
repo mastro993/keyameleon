@@ -1,12 +1,13 @@
 # Debug builds have their own identity
 
 Debug builds, including Xcode Run, `run.sh open`, and the hosted test app, use
-bundle ID `dev.fedemas.keyameleon.debug` and show the name Keyameleon Dev.
+bundle ID `dev.fedemas.keyameleon.debug` and show the name Keyameleon (Dev).
 Release builds, including every Official Release, keep `dev.fedemas.keyameleon`.
 Each identity has its own Input Monitoring row, preferences domain, SwiftData
 store, and Log File folder. The folder name follows the bundle ID, never the
 display name, so renaming or localizing the app cannot move user data:
-`Keyameleon` for the release ID and `Keyameleon Dev` for any other. Only the
+`Keyameleon` for the release ID and `Keyameleon Dev` for any other. The folder
+is not `Keyameleon (Dev)`, which belongs to the app retired in #163. Only the
 release imports the pre-0.4.6 store at `~/Library/Application Support/default.store`.
 Even when that file is Keyameleon's (#190), it holds an old release's data, so a
 Debug store starts empty.
@@ -33,7 +34,7 @@ do not merge the identities again.
 What differs from #157:
 
 - The ID is new. Leftovers of the retired `.development` app stay untouched.
-- The Debug bundle is `Keyameleon Dev.app`. System Settings, Finder, and other
+- The Debug bundle is `Keyameleon (Dev).app`. System Settings, Finder, and other
   LaunchServices lists name an app after its bundle file, so a display name alone
   would leave both builds listed as Keyameleon. The module and the executable
   inside the bundle stay `Keyameleon` in both.
