@@ -49,7 +49,7 @@ REMOVE_LOGIN_ITEM = (
 
 
 class ResetLocalStateTests(unittest.TestCase):
-    def run_reset(self, home, legacy_tables, status=0):
+    def run_reset(self, home, legacy_tables):
         support = home / "Library/Application Support"
         (support / "Keyameleon").mkdir(parents=True)
         (home / "Library/Logs/Keyameleon").mkdir(parents=True)
@@ -82,18 +82,15 @@ class ResetLocalStateTests(unittest.TestCase):
             ("zsh", "-c", RESET_SCRIPT, "test", str(home), str(dump), str(log)),
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
-        self.assertEqual(result.returncode, status, result.stderr)
-        if status:
-            self.assertIn("The next launch copies those keyboards back.", result.stderr)
-        else:
-            self.assertIn("Keyameleon local state reset.", result.stdout)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Keyameleon local state reset.", result.stdout)
         self.assertEqual(
             log.read_text(encoding="utf-8"),
             "kill 42\n"
             "tccutil reset All dev.fedemas.keyameleon\n"
             f"{REMOVE_LOGIN_ITEM}\n"
             "defaults delete dev.fedemas.keyameleon\n"
-            + ("" if status else f"lsregister -u {stale}\n"),
+            f"lsregister -u {stale}\n",
         )
         self.assertFalse((support / "Keyameleon").exists())
         self.assertFalse((home / "Library/Logs/Keyameleon").exists())
@@ -116,13 +113,13 @@ class ResetLocalStateTests(unittest.TestCase):
             self.assertFalse((support / "default.store-wal").exists())
 
     def test_reset_keeps_a_default_store_with_another_apps_tables(self):
-        for name, tables, status in (
-            ("another app", ("ZOTHERMODEL",), 0),
-            ("shared", ("ZPHYSICALKEYBOARDRECORDMODEL", "ZOTHERMODEL"), 1),
-            ("shared, plain SQLite table", ("ZPHYSICALKEYBOARDRECORDMODEL", "other_app_records"), 1),
+        for name, tables in (
+            ("another app", ("ZOTHERMODEL",)),
+            ("shared", ("ZPHYSICALKEYBOARDRECORDMODEL", "ZOTHERMODEL")),
+            ("shared, plain SQLite table", ("ZPHYSICALKEYBOARDRECORDMODEL", "other_app_records")),
         ):
             with self.subTest(name), tempfile.TemporaryDirectory() as directory:
-                support = self.run_reset(Path(directory), tables, status)
+                support = self.run_reset(Path(directory), tables)
                 self.assertTrue((support / "default.store").exists())
                 self.assertTrue((support / "default.store-wal").exists())
 

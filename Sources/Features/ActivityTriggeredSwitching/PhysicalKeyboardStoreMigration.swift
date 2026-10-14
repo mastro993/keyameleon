@@ -33,7 +33,49 @@ enum PhysicalKeyboardStoreMigration {
         guard !fileManager.fileExists(atPath: stagingURL.path + "-wal") else {
             throw CocoaError(.fileReadCorruptFile)
         }
+        // Inspect the snapshot, so the legacy file is opened once and the check sees exactly what would be imported.
+        guard try isKeyameleonStore(at: stagingURL) else {
+            Log.warning(.app, "Skipped the legacy store because it holds another app's data")
+            return
+        }
         try fileManager.moveItem(at: stagingURL, to: destinationURL)
+    }
+
+    /// Before 0.4.6 the store lived at SwiftData's shared default path, which any other non-sandboxed SwiftData
+    /// app can own. A store is Keyameleon's when it has the keyboard table and every other table is Keyameleon's
+    /// or Core Data's own; `reset_local_state` in `Scripts/run.sh` runs the same query.
+    /// A mixed store is skipped too: its model metadata may be the other app's, so SwiftData could fail to
+    /// open the copy on every launch, and the copy would carry that app's data into Keyameleon's folder.
+    private static let keyameleonStoreQuery = """
+        SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
+            AND NOT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name NOT GLOB 'sqlite_*'
+                AND name NOT IN (
+                    'ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL',
+                    'Z_PRIMARYKEY', 'Z_METADATA', 'Z_MODELCACHE',
+                    'ACHANGE', 'ATRANSACTION', 'ATRANSACTIONSTRING'))
+        """
+
+    private static func isKeyameleonStore(at url: URL) throws -> Bool {
+        var database: OpaquePointer?
+        var statement: OpaquePointer?
+        defer {
+            sqlite3_finalize(statement)
+            if let database { sqlite3_close(database) }
+        }
+
+        let openResult = sqlite3_open_v2(url.path, &database, SQLITE_OPEN_READONLY, nil)
+        guard openResult == SQLITE_OK, let database else {
+            throw NSError(domain: "SQLite", code: Int(openResult))
+        }
+        let prepareResult = sqlite3_prepare_v2(database, keyameleonStoreQuery, -1, &statement, nil)
+        guard prepareResult == SQLITE_OK else {
+            throw NSError(domain: "SQLite", code: Int(prepareResult))
+        }
+        let stepResult = sqlite3_step(statement)
+        guard stepResult == SQLITE_ROW else {
+            throw NSError(domain: "SQLite", code: Int(stepResult))
+        }
+        return sqlite3_column_int(statement, 0) == 1
     }
 
     private static func copySnapshot(from sourceURL: URL, to destinationURL: URL) throws {

@@ -1,5 +1,7 @@
 import Foundation
+import SQLite3
 @preconcurrency import SwiftData
+import Synchronization
 import Testing
 @testable import Keyameleon
 
@@ -129,6 +131,40 @@ func storeRelocationRejectsCorruptLegacyData() throws {
     #expect(!FileManager.default.fileExists(atPath: destinationURL.path))
 }
 
+@Test("A legacy store that belongs to another app is not imported")
+@MainActor
+func storeRelocationSkipsForeignLegacyStore() throws {
+    try expectLegacyStoreSkipped(alsoHoldsKeyboards: false)
+}
+
+@Test("A legacy store that mixes Keyameleon's keyboards with another app's data is not imported")
+@MainActor
+func storeRelocationSkipsMixedLegacyStore() throws {
+    try expectLegacyStoreSkipped(alsoHoldsKeyboards: true)
+}
+
+@Test("Only a store with Keyameleon's keyboard table and no other app's tables is imported", arguments: [
+    ("CREATE TABLE ZPHYSICALKEYBOARDRECORDMODEL (Z_PK INTEGER PRIMARY KEY AUTOINCREMENT)", true),
+    ("PRAGMA user_version = 1", false),
+    ("CREATE TABLE Z_METADATA (Z_VERSION INTEGER); CREATE TABLE Z_PRIMARYKEY (Z_ENT INTEGER)", false),
+    ("CREATE TABLE ZPHYSICALKEYBOARDRECORDMODEL (Z_PK INTEGER); CREATE TABLE other_app_records (id INTEGER)", false),
+])
+func storeRelocationImportsOnlyKeyameleonTables(legacySQL: String, isImported: Bool) throws {
+    let root = try migrationTestDirectory()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let legacyURL = root.appending(path: "default.store")
+    let destinationURL = root.appending(path: "Keyameleon/default.store")
+    var database: OpaquePointer?
+    try #require(sqlite3_open(legacyURL.path, &database) == SQLITE_OK)
+    let execResult = sqlite3_exec(database, legacySQL, nil, nil, nil)
+    sqlite3_close(database)
+    try #require(execResult == SQLITE_OK)
+
+    try PhysicalKeyboardStoreMigration.prepareStore(from: legacyURL, to: destinationURL)
+
+    #expect(FileManager.default.fileExists(atPath: destinationURL.path) == isImported)
+}
+
 @Test("Fresh installs create their first SwiftData store in the application folder")
 @MainActor
 func freshInstallCreatesApplicationStore() throws {
@@ -165,6 +201,58 @@ func storeRelocationRejectsOrphanDestinationSidecars(suffix: String) throws {
 
     #expect(try Data(contentsOf: sidecarURL) == bytes)
     #expect(!FileManager.default.fileExists(atPath: destinationURL.path))
+}
+
+/// Stands in for another app's model at SwiftData's shared default path.
+@Model
+final class ForeignAppRequestModel {
+    var url: String
+
+    init(url: String) {
+        self.url = url
+    }
+}
+
+@MainActor
+private func expectLegacyStoreSkipped(alsoHoldsKeyboards: Bool) throws {
+    let root = try migrationTestDirectory()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let legacyURL = root.appending(path: "default.store")
+    let destinationURL = root.appending(path: "Keyameleon/default.store")
+    let models: [any PersistentModel.Type] = alsoHoldsKeyboards
+        ? [ForeignAppRequestModel.self, PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel.self]
+        : [ForeignAppRequestModel.self]
+    let schema = Schema(models)
+    let legacy = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: legacyURL)])
+    let context = ModelContext(legacy)
+    context.insert(ForeignAppRequestModel(url: "https://example.com"))
+    if alsoHoldsKeyboards {
+        context.insert(PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel(
+            identityKey: "keyboard", productName: "Test Keyboard", customName: "Studio"
+        ))
+    }
+    try context.save()
+    let legacyBytes = try Data(contentsOf: legacyURL)
+    let walURL = URL(fileURLWithPath: legacyURL.path + "-wal")
+    let walBytes = try Data(contentsOf: walURL)
+    let warnings = Mutex<[String]>([])
+    Log.start(LogWriter { level, _, message in
+        if level == .warning { warnings.withLock { $0.append(message) } }
+    })
+    defer { Log.stop() }
+
+    try PhysicalKeyboardStoreMigration.prepareStore(from: legacyURL, to: destinationURL)
+
+    #expect(warnings.withLock { $0 }.contains("Skipped the legacy store because it holds another app's data"))
+    #expect(try Data(contentsOf: legacyURL) == legacyBytes)
+    #expect(try Data(contentsOf: walURL) == walBytes)
+    #expect(!FileManager.default.fileExists(atPath: destinationURL.path))
+    let stagingURL = destinationURL.deletingLastPathComponent().appending(path: ".store-migration")
+    #expect(!FileManager.default.fileExists(atPath: stagingURL.path))
+    let fresh = try migrationTestContainer(at: destinationURL)
+    let descriptor = FetchDescriptor<PhysicalKeyboardSchemaV1.PhysicalKeyboardRecordModel>()
+    #expect(try ModelContext(fresh).fetchCount(descriptor) == 0)
+    #expect(try context.fetchCount(FetchDescriptor<ForeignAppRequestModel>()) == 1)
 }
 
 private func migrationTestDirectory() throws -> URL {

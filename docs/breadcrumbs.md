@@ -4,6 +4,37 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-14 — Import the legacy store only when it is Keyameleon's
+
+- When `Keyameleon/default.store` was missing, `PhysicalKeyboardStoreMigration`
+  copied whatever sat at SwiftData's shared default path,
+  `Application Support/default.store`. Keyameleon is not sandboxed, so any other
+  non-sandboxed SwiftData app can own that file; on the developer's Mac it held
+  another app's tables (`ZAPIREQUESTMODEL` plus Core Data's own).
+- With schema V1 the copy opened quietly as Keyameleon's store. With a staged
+  V1→V2 migration plan it fails with NSCocoaErrorDomain 134504, "Cannot use
+  staged migration with an unknown model version", and saved keyboards stay
+  unavailable on every launch; Retry cannot help.
+- The staged snapshot is now checked with the table rule that
+  `run.sh reset_local_state` already used: `ZPHYSICALKEYBOARDRECORDMODEL` must
+  exist and every other non-`sqlite_*` table must be Keyameleon's or Core
+  Data's own. Otherwise the snapshot is discarded, one warning line is logged,
+  and SwiftData creates a fresh store.
+- Checking the snapshot instead of the legacy file keeps the foreign file to
+  the one read-only open the backup already made, and the check sees exactly
+  the bytes that would be imported.
+- Every release before 0.4.6 kept only the two Keyameleon tables in that file;
+  Diagnostic Data (0.1.0–0.3.x) used its own `DiagnosticData.store`. So the
+  allowlist accepts every real legacy store.
+- A store mixing Keyameleon's tables with another app's is not imported: its
+  model metadata may be the other app's, and the copy would bring that app's
+  data along. `run.sh reset` therefore no longer fails on such a file, since
+  launch leaves it alone too. The script now runs the app's exact query instead
+  of a two-digit code, so the rule has one wording in both places.
+- New tests build a foreign and a mixed SwiftData store at the legacy path,
+  plus raw SQLite stores for the empty, Core-Data-only and `sqlite_sequence`
+  cases. Against the old code, every skip case imported the file.
+
 ## 2026-10-11 — The app speaks the website's languages
 
 - Keyameleon now ships Arabic, French, Italian, Japanese, Korean, Simplified
