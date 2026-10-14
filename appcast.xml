@@ -3,12 +3,12 @@
     <channel>
         <title>Keyameleon</title>
         <item>
-            <title>0.9.0</title>
-            <pubDate>Sun, 11 Oct 2026 19:03:26 +0000</pubDate>
-            <sparkle:version>0.9.0</sparkle:version>
-            <sparkle:shortVersionString>0.9.0</sparkle:shortVersionString>
+            <title>0.10.0</title>
+            <pubDate>Wed, 14 Oct 2026 20:05:53 +0000</pubDate>
+            <sparkle:version>0.10.0</sparkle:version>
+            <sparkle:shortVersionString>0.10.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/mastro993/Keyameleon/releases/download/v0.9.0/Keyameleon-0.9.0.dmg" length="10451261" type="application/octet-stream" sparkle:edSignature="QZSuI1s+QKIXtdrxg2Py/VrWGIkAvGsseEtqW8l0P298QxlFbvAhtAEw2VbmjPrYvmTkP0sbty1i81aHCv6xBw=="/>
+            <enclosure url="https://github.com/mastro993/Keyameleon/releases/download/v0.10.0/Keyameleon-0.10.0.dmg" length="10578684" type="application/octet-stream" sparkle:edSignature="4jp66I3OnEhhkRB+6gb5T1xpGzW5FmhQjsvqIU6qhw9OdeIkAdNCJSM7yBnB4CBPZTGdCPJrIi6cMk+Qe8DTCQ=="/>
         </item>
     </channel>
 </rss>
