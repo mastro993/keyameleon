@@ -31,8 +31,8 @@ enum AppBuildIdentity: Equatable, Sendable {
     }
 
     /// Only the release copies the pre-0.4.6 store from SwiftData's shared
-    /// default path. That path can belong to another app, so a Debug store
-    /// always starts empty.
+    /// default path. A Keyameleon store there holds an old release's data, so
+    /// a Debug store always starts empty instead of taking it.
     var importsLegacyStore: Bool {
         self == .release
     }

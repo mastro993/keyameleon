@@ -54,7 +54,7 @@ Debug builds, including Xcode Run, `run.sh open`, and the hosted test app, are a
 | Input Monitoring | its own row | its own row |
 
 - A Debug build never reads or changes the installed release's settings, saved keyboards, logs, or Input Monitoring grant. Restart Keyameleon's stale-row reset (`tccutil reset ListenEvent <bundle ID>`) clears only the running build's own row.
-- The Debug store starts empty. It never imports the pre-0.4.6 store at `~/Library/Application Support/default.store`, which another app can own; only the release does.
+- The Debug store starts empty. It never imports the pre-0.4.6 store at `~/Library/Application Support/default.store`: even a Keyameleon store there holds an old release's data. Only the release imports it, and only when it is Keyameleon's.
 - Folder names follow the bundle ID, not the display name, so renaming or localizing the app never moves data.
 - The bundle is `Keyameleon.app` in both, because `PRODUCT_NAME` stays `Keyameleon`; only `CFBundleDisplayName` comes from the `KEYAMELEON_DISPLAY_NAME` build setting. Finder and other LaunchServices lists name a bundle after its file, so they may show the Debug app as Keyameleon.
 - Both share the [single-instance lock](adr/0002-one-keyameleon-instance-per-mac.md), so only one Keyameleon runs at a time and two never fight over the Input Source. `run.sh open` replaces this checkout's Debug app, but stops with an error if any other Keyameleon, including the installed release, is running, and never quits it.

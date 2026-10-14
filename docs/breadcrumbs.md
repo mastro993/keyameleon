@@ -16,8 +16,9 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
 - Debug is now `dev.fedemas.keyameleon.debug`, shown as Keyameleon Dev, with
   `Keyameleon Dev` data and logs folders chosen from the bundle ID
   (`AppBuildIdentity`). Only the release imports the legacy
-  `Application Support/default.store`; on a developer Mac that file can belong
-  to another app, and a fresh Debug folder would otherwise copy it.
+  `Application Support/default.store`. #190 already skips a file that is not
+  Keyameleon's, but a Keyameleon file there is an old release's data, which a
+  fresh Debug folder would otherwise copy.
 - Unlike #157, `PRODUCT_NAME` stays `Keyameleon` (only `CFBundleDisplayName`
   changes), the ID is new rather than `.development`, and the single `/dev/null`
   lock stays shared, so the two builds never run together.

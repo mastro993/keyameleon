@@ -7,8 +7,9 @@ Each identity has its own Input Monitoring row, preferences domain, SwiftData
 store, and Log File folder. The folder name follows the bundle ID, never the
 display name, so renaming or localizing the app cannot move user data:
 `Keyameleon` for the release ID and `Keyameleon Dev` for any other. Only the
-release imports the pre-0.4.6 store at `~/Library/Application Support/default.store`;
-another app can own that file, so a Debug store starts empty.
+release imports the pre-0.4.6 store at `~/Library/Application Support/default.store`.
+Even when that file is Keyameleon's (#190), it holds an old release's data, so a
+Debug store starts empty.
 
 macOS keeps one Input Monitoring row per bundle ID, and the row matches one
 code-signing designated requirement. The release is signed with Developer ID and
