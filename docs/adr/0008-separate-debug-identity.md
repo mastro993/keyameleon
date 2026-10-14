@@ -33,12 +33,10 @@ do not merge the identities again.
 What differs from #157:
 
 - The ID is new. Leftovers of the retired `.development` app stay untouched.
-- `PRODUCT_NAME` stays `Keyameleon`. Only `CFBundleDisplayName` changes, through
-  the `KEYAMELEON_DISPLAY_NAME` build setting, so the bundle is still
-  `Keyameleon.app` and the module, test host, and `run.sh` paths do not change.
-  Finder and other LaunchServices lists name a bundle after its file, so they
-  may show the Debug app as Keyameleon; Keyameleon's own menu, notices, and
-  windows show Keyameleon Dev.
+- The Debug bundle is `Keyameleon Dev.app`. System Settings, Finder, and other
+  LaunchServices lists name an app after its bundle file, so a display name alone
+  would leave both builds listed as Keyameleon. The module and the executable
+  inside the bundle stay `Keyameleon` in both.
 - Both identities keep the single `/dev/null` lock of
   [ADR 0002](0002-one-keyameleon-instance-per-mac.md). Two running switchers
   would fight over the Input Source, so Debug never runs beside the release.

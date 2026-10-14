@@ -19,9 +19,11 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
   `Application Support/default.store`. #190 already skips a file that is not
   Keyameleon's, but a Keyameleon file there is an old release's data, which a
   fresh Debug folder would otherwise copy.
-- Unlike #157, `PRODUCT_NAME` stays `Keyameleon` (only `CFBundleDisplayName`
-  changes), the ID is new rather than `.development`, and the single `/dev/null`
-  lock stays shared, so the two builds never run together.
+- Debug's bundle is `Keyameleon Dev.app`: System Settings names an app after its
+  bundle file, so a display name alone left two rows called Keyameleon. The
+  module stays `Keyameleon`. Unlike #157, the ID is new rather than
+  `.development`, and the single `/dev/null` lock stays shared, so the two
+  builds never run together.
 - `run.sh reset` now erases only the Debug identity; `reset --release` is
   required for the release. `run.sh open` checks both IDs before launching, so it
   refuses while the release runs instead of waiting for a blocked launch.

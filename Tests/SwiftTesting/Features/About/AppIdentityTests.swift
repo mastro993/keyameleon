@@ -100,7 +100,7 @@ func aboutInfoExposesDebugFolders() {
 @Test("The Debug test host runs under the Debug identity")
 func debugHostUsesDebugIdentity() {
     #expect(Bundle.main.bundleIdentifier == "dev.fedemas.keyameleon.debug")
-    #expect(Bundle.main.bundleURL.lastPathComponent == "Keyameleon.app")
+    #expect(Bundle.main.bundleURL.lastPathComponent == "Keyameleon Dev.app")
     #expect(AppBuildIdentity.current == .debug)
     #expect(AppIdentity.current.name == "Keyameleon Dev")
 }

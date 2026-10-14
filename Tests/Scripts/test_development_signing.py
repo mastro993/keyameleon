@@ -14,7 +14,7 @@ class DevelopmentSigningTests(unittest.TestCase):
 set -euo pipefail
 cd -P .
 source <(sed -n -e '/^DERIVED_DATA_PATH=/p' -e '/^TEST_DERIVED_DATA_PATH=/p' \
-    -e '/^TEST_PRODUCTS_PATH=/p' Scripts/run.sh)
+    -e '/^TEST_PRODUCTS_PATH=/p' -e '/^DEBUG_APP_NAME=/p' Scripts/run.sh)
 source <(sed -n '/^run_tests()/,/^}/p' Scripts/run.sh)
 source <(sed -n '/^build_app()/,/^}/p' Scripts/run.sh)
 python3() { :; }
@@ -34,7 +34,7 @@ build_app
                          ["build-for-testing", "test-without-building", "lsregister", "build"])
         # Only the signed Debug app stays registered for Quit & Reopen.
         self.assertEqual(commands[2], ["lsregister", "-u",
-                                       f"{ROOT}/build/test/Build/Products/Debug/Keyameleon.app"])
+                                       f"{ROOT}/build/test/Build/Products/Debug/Keyameleon Dev.app"])
         del commands[2]
         for command in commands[:2]:
             self.assertIn("CODE_SIGN_IDENTITY=-", command)

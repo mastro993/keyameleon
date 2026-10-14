@@ -7,7 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = "/tmp/keyameleon-run-open-test/build/Build/Products/Debug"
 OPEN_SCRIPT = r'''
-source <(sed -n -e '/^wait_until_no_keyameleon_runs()/,/^}/p' -e '/^open_development_app()/,/^}/p' Scripts/run.sh)
+source <(sed -n -e '/^DEBUG_APP_NAME=/p' -e '/^wait_until_no_keyameleon_runs()/,/^}/p' \
+    -e '/^open_development_app()/,/^}/p' Scripts/run.sh)
 PRODUCTS_PATH="$1"
 running_path="$2"
 log_path="$3"
@@ -20,7 +21,7 @@ running_keyameleon_apps() {
 kill() { print -r -- "kill $1" >> "$log_path"; }
 open() { print -r -- "open $*" >> "$log_path"; }
 sleep() { :; }
-functions[/bin/ps]='print -r -- "$PRODUCTS_PATH/Keyameleon.app/Contents/MacOS/Keyameleon"'
+functions[/bin/ps]='print -r -- "$PRODUCTS_PATH/Keyameleon Dev.app/Contents/MacOS/Keyameleon"'
 open_development_app
 '''
 
@@ -47,6 +48,7 @@ running_keyameleon_apps "$BUNDLE_ID"
         script = r'''
 DERIVED_DATA_PATH=/tmp/keyameleon-cleanup-test/build
 source <(sed -n -e '/^PRODUCTS_PATH=/p' -e '/^TEST_DERIVED_DATA_PATH=/p' -e '/^TEST_PRODUCTS_PATH=/p' \
+    -e '/^DEBUG_APP_NAME=/p' \
     -e '/^kill_leftover_derived_data_keyameleon()/,/^}/p' Scripts/run.sh)
 input="$1"
 terminated="$2"
@@ -54,8 +56,8 @@ functions[/bin/ps]='cat "$input"'
 kill() { print -r -- "$1" >> "$terminated"; }
 kill_leftover_derived_data_keyameleon
 '''
-        development = "/tmp/keyameleon-cleanup-test/build/Build/Products/Debug/Keyameleon.app/Contents/MacOS/Keyameleon"
-        test_host = "/tmp/keyameleon-cleanup-test/build/test/Build/Products/Debug/Keyameleon.app/Contents/MacOS/Keyameleon"
+        development = "/tmp/keyameleon-cleanup-test/build/Build/Products/Debug/Keyameleon Dev.app/Contents/MacOS/Keyameleon"
+        test_host = "/tmp/keyameleon-cleanup-test/build/test/Build/Products/Debug/Keyameleon Dev.app/Contents/MacOS/Keyameleon"
         with tempfile.TemporaryDirectory() as directory:
             process_list = Path(directory) / "processes"
             terminated = Path(directory) / "terminated"
@@ -76,7 +78,7 @@ kill_leftover_derived_data_keyameleon
             self.assertEqual(terminated.read_text(encoding="utf-8"), "1\n2\n6\n7\n")
 
     def test_open_replaces_only_this_checkouts_debug_app(self):
-        app = f"{PRODUCTS}/Keyameleon.app"
+        app = f"{PRODUCTS}/Keyameleon Dev.app"
         cases = (
             ("installed release", "4242\t/Applications/Keyameleon.app\n", 1, ""),
             ("another build", f"77\t{app}\n4242\t/tmp/other/Keyameleon.app\n", 1, ""),
@@ -100,7 +102,8 @@ kill_leftover_derived_data_keyameleon
 
     def test_lookup_failure_never_opens_app(self):
         script = r'''
-source <(sed -n -e '/^wait_until_no_keyameleon_runs()/,/^}/p' -e '/^open_development_app()/,/^}/p' Scripts/run.sh)
+source <(sed -n -e '/^DEBUG_APP_NAME=/p' -e '/^wait_until_no_keyameleon_runs()/,/^}/p' \
+    -e '/^open_development_app()/,/^}/p' Scripts/run.sh)
 PRODUCTS_PATH=/tmp/keyameleon-run-open-test
 counter_path="$1"
 opened_path="$2"
@@ -112,7 +115,7 @@ running_keyameleon_apps() {
     if (( calls == fail_on )); then
         return 73
     fi
-    (( calls == 1 )) && print -r -- $'99998\t/tmp/keyameleon-run-open-test/Keyameleon.app'
+    (( calls == 1 )) && print -r -- $'99998\t/tmp/keyameleon-run-open-test/Keyameleon Dev.app'
     return 0
 }
 kill() { return 0; }

@@ -13,6 +13,7 @@ TEST_PRODUCTS_PATH="${TEST_DERIVED_DATA_PATH}/Build/Products/Debug"
 # Debug builds have their own identity; the release one belongs to the installed
 # app (docs/adr/0008-separate-debug-identity.md).
 BUNDLE_ID='dev.fedemas.keyameleon.debug'
+DEBUG_APP_NAME='Keyameleon Dev'
 RELEASE_BUNDLE_ID='dev.fedemas.keyameleon'
 LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
@@ -115,8 +116,8 @@ kill_leftover_derived_data_keyameleon() {
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
         for products in "${PRODUCTS_PATH}" "${TEST_PRODUCTS_PATH}"; do
             case "${command}" in
-                "${products}/Keyameleon.app/Contents/MacOS/Keyameleon"|\
-                "${products}/Keyameleon.app/Contents/MacOS/Keyameleon "*)
+                "${products}/${DEBUG_APP_NAME}.app/Contents/MacOS/Keyameleon"|\
+                "${products}/${DEBUG_APP_NAME}.app/Contents/MacOS/Keyameleon "*)
                     kill "${pid}" 2>/dev/null || true
                     ;;
             esac
@@ -157,7 +158,7 @@ run_tests() {
     kill_leftover_derived_data_keyameleon
     # Quit & Reopen picks any registered copy with the bundle ID, so the ad hoc test
     # host must not stay registered beside the signed Debug app.
-    "${LSREGISTER}" -u "${TEST_PRODUCTS_PATH}/Keyameleon.app" 2>/dev/null || true
+    "${LSREGISTER}" -u "${TEST_PRODUCTS_PATH}/${DEBUG_APP_NAME}.app" 2>/dev/null || true
     return "${test_status}"
 }
 
@@ -266,8 +267,8 @@ reset_local_state() {
         print -u2 'Could not reset privacy permissions; no registered copy of Keyameleon was found.'
     fi
     # Launch at Login is a Background Task Management item that outlives the app.
-    # Every copy is named Keyameleon, so only items at this identity's registered
-    # paths are removed.
+    # Debug builds made before ADR 0008 are named Keyameleon too, so only items at
+    # this identity's registered paths are removed.
     apps=(${(f)"$(registered_keyameleon_apps)"}) || {
         print -u2 'Could not list the registered copies of Keyameleon.'
         return 1
@@ -335,7 +336,7 @@ delete_legacy_store() {
 # Replaces only this checkout's Debug app. Any other running Keyameleon, Debug or an
 # installed release, holds the single-instance lock and is never stopped here.
 open_development_app() {
-    local app="${PRODUCTS_PATH}/Keyameleon.app"
+    local app="${PRODUCTS_PATH}/${DEBUG_APP_NAME}.app"
     local executable="${app}/Contents/MacOS/Keyameleon"
     local pid bundle attempt running
     local -a pids

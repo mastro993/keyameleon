@@ -48,7 +48,8 @@ Debug builds, including Xcode Run, `run.sh open`, and the hosted test app, are a
 | | Release, including Official Releases | Debug |
 | --- | --- | --- |
 | Bundle ID and preferences domain | `dev.fedemas.keyameleon` | `dev.fedemas.keyameleon.debug` |
-| Name in Keyameleon's menu, notices, and windows | Keyameleon | Keyameleon Dev |
+| Name in System Settings, Finder, and Keyameleon's own windows | Keyameleon | Keyameleon Dev |
+| Bundle | `Keyameleon.app` | `Keyameleon Dev.app` |
 | Saved keyboards | `~/Library/Application Support/Keyameleon` | `~/Library/Application Support/Keyameleon Dev` |
 | Log File | `~/Library/Logs/Keyameleon` | `~/Library/Logs/Keyameleon Dev` |
 | Input Monitoring | its own row | its own row |
@@ -56,7 +57,7 @@ Debug builds, including Xcode Run, `run.sh open`, and the hosted test app, are a
 - A Debug build never reads or changes the installed release's settings, saved keyboards, logs, or Input Monitoring grant. Restart Keyameleon's stale-row reset (`tccutil reset ListenEvent <bundle ID>`) clears only the running build's own row.
 - The Debug store starts empty. It never imports the pre-0.4.6 store at `~/Library/Application Support/default.store`: even a Keyameleon store there holds an old release's data. Only the release imports it, and only when it is Keyameleon's.
 - Folder names follow the bundle ID, not the display name, so renaming or localizing the app never moves data.
-- The bundle is `Keyameleon.app` in both, because `PRODUCT_NAME` stays `Keyameleon`; only `CFBundleDisplayName` comes from the `KEYAMELEON_DISPLAY_NAME` build setting. Finder and other LaunchServices lists name a bundle after its file, so they may show the Debug app as Keyameleon.
+- Debug's `PRODUCT_NAME` is `Keyameleon Dev`, because System Settings and Finder name an app after its bundle file. `PRODUCT_MODULE_NAME` and `EXECUTABLE_NAME` stay `Keyameleon` in both, so `@testable import Keyameleon` and the executable inside the bundle are unchanged.
 - Both share the [single-instance lock](adr/0002-one-keyameleon-instance-per-mac.md), so only one Keyameleon runs at a time and two never fight over the Input Source. `run.sh open` replaces this checkout's Debug app, but stops with an error if any other Keyameleon, including the installed release, is running, and never quits it.
 - The Keychain item keeps the same service name. Each build uses the integrity key only to sign designations in its own store, so whether the two builds see the same item changes nothing.
 - Debug and CI builds lack the release `SUPublicEDKey`, so they never start Sparkle.
@@ -74,7 +75,7 @@ Debug apps built before Debug got its own identity, or from a branch without it,
 
 - Quits every running Debug copy.
 - Resets the Debug privacy permissions (`tccutil reset All dev.fedemas.keyameleon.debug`). `tccutil` finds the app through LaunchServices, so this runs before any copy is unregistered. If no copy is registered, it warns and the reset continues.
-- Removes the Launch at Login item of every registered Debug copy. Every copy is named Keyameleon, so items are matched by path. If System Events can't remove them, the reset warns and continues; turn it off in System Settings > General > Login Items.
+- Removes the Launch at Login item of every registered Debug copy. Debug builds made before this change are named Keyameleon too, so items are matched by path. If System Events can't remove them, the reset warns and continues; turn it off in System Settings > General > Login Items.
 - Deletes the Debug preferences, including Guided setup progress, `~/Library/Application Support/Keyameleon Dev`, `~/Library/Logs/Keyameleon Dev`, and its caches.
 - Unregisters every registered Debug copy from LaunchServices, last, and fails if one can't be unregistered. The next copy you launch registers itself again, so Quit & Reopen finds it.
 
