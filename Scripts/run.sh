@@ -241,33 +241,27 @@ reset_local_state() {
     # Before 0.4.6 the store lived at SwiftData's shared default path, and launch
     # copies it into the Keyameleon folder again. Other apps may use that path, so
     # delete it only when Keyameleon's keyboard table is there and every other
-    # table is Keyameleon's or Core Data's own. A store that also holds any other
-    # table is never edited; the reset fails instead.
+    # table is Keyameleon's or Core Data's own. Launch imports the file only under
+    # the same query (PhysicalKeyboardStoreMigration.keyameleonStoreQuery), so any
+    # other file is left untouched.
     local legacy_store="${HOME}/Library/Application Support/default.store"
     local legacy_store_query="
         SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ZPHYSICALKEYBOARDRECORDMODEL')
-            || EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name NOT GLOB 'sqlite_*'
+            AND NOT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name NOT GLOB 'sqlite_*'
                 AND name NOT IN (
                     'ZPHYSICALKEYBOARDRECORDMODEL', 'ZMANUALPHYSICALKEYBOARDDESIGNATIONMODEL',
                     'Z_PRIMARYKEY', 'Z_METADATA', 'Z_MODELCACHE',
                     'ACHANGE', 'ATRANSACTION', 'ATRANSACTIONSTRING'))"
-    local legacy_store_tables=''
+    local is_keyameleon_store=''
     if [[ -f "${legacy_store}" ]] \
-        && ! legacy_store_tables="$(sqlite3 -readonly "${legacy_store}" "${legacy_store_query}")"; then
+        && ! is_keyameleon_store="$(sqlite3 -readonly "${legacy_store}" "${legacy_store_query}")"; then
         print -u2 "Could not inspect ${legacy_store}, so it was kept. The next launch may copy its keyboards back."
         return 1
     fi
-    case "${legacy_store_tables}" in
-        10)
-            print "Deleting legacy store ${legacy_store}"
-            rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
-            ;;
-        11)
-            print -u2 "${legacy_store} holds Keyameleon's keyboards and another app's data, so it was kept."
-            print -u2 'The next launch copies those keyboards back. Remove them by hand for a first run.'
-            return 1
-            ;;
-    esac
+    if [[ "${is_keyameleon_store}" == 1 ]]; then
+        print "Deleting legacy store ${legacy_store}"
+        rm -f -- "${legacy_store}" "${legacy_store}-shm" "${legacy_store}-wal"
+    fi
 
     # Last, because tccutil above needs a registered copy. The next launched copy
     # registers itself again and becomes the one Quit & Reopen finds. Records for
