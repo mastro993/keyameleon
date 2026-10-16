@@ -1,4 +1,5 @@
 import CoreHID
+import Foundation
 import Testing
 @testable import Keyameleon
 
@@ -66,6 +67,14 @@ func externalIdentityWithoutSerialFactIsUnstable() {
     let facts = makeHardwareFacts(serviceID: 35, serialNumber: nil)
 
     #expect(facts.identityStability == .unstable)
+}
+
+@Test("Bluetooth address data encodes to twelve lowercase hex digits")
+func bluetoothAddressDataEncodesToNormalizedHex() {
+    let address = Data([0xFE, 0xF0, 0x58, 0x87, 0xAF, 0x5F])
+    #expect(PhysicalKeyboardIdentity.bluetoothAddress(fromAddressData: address) == "fef05887af5f")
+    #expect(PhysicalKeyboardIdentity.bluetoothAddress(fromAddressData: Data([0x0A, 0x00, 0x0B, 0x0C, 0x0D, 0x0E])) == "0a000b0c0d0e")
+    #expect(PhysicalKeyboardIdentity.bluetoothAddress(fromAddressData: Data([0x00])) == nil)
 }
 
 @Test("Bluetooth address without serial is a stable Physical Keyboard Identity")

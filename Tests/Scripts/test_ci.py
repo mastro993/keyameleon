@@ -27,7 +27,9 @@ class CIClassificationTests(unittest.TestCase):
             ("Keyameleon-icon.icon/Assets/keycap.png", "true"),
             ("LICENSE", "true"),
             ("THIRD_PARTY_NOTICES.md", "true"),
+            ("Tests/Scripts/test_source_policy.py", "true"),
             ("docs/testing.md", "false"),
+            ("AGENTS.md", "false"),
         )
         for path, required in cases:
             for change in ("modify", "delete"):

@@ -4,6 +4,24 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-16 — Encode agent corrections in lint, tests, and types
+
+- Recurring human corrections after agent PRs clustered around Debug/Release
+  identity (#157 → #163 → #191), SwiftUI `Picker` in Settings (#166 → #184),
+  legacy-store trust (#172 / #190), a capitalized Sparkle feed path (#115),
+  `CFArrayGetValueAtIndex` in optimized builds (#78), and Input Monitoring
+  relaunch flags (#171). AGENTS.md already listed generic SwiftUI style, which
+  did not stop those product failures.
+- SwiftLint custom rules now reject `ObservableObject`, GCD, `String(format:)`,
+  SwiftUI `Picker(`, and `CFArrayGetValueAtIndex`. `test_source_policy.py`
+  checks the identity split, lowercase feed path, `PopUpPicker`, hosted-test
+  skip, and relaunch argument, and CI runs those tests on Ubuntu on every
+  pull request. The one production `String(format:)` (Bluetooth address bytes)
+  moved onto `PhysicalKeyboardIdentity.bluetoothAddress(fromAddressData:)`.
+- AGENTS.md now holds only invariants the linter cannot see: copy matching the
+  UI, persistence fail-closed, the identity ladder, and verifying bot findings
+  against ADRs.
+
 ## 2026-10-14 — Debug builds get their own identity again
 
 - Debug and the installed release shared `dev.fedemas.keyameleon` but were

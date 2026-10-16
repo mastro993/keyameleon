@@ -25,3 +25,78 @@ identifier_name:
 
 cyclomatic_complexity:
   ignores_case_statements: true
+
+# Product and style invariants that agents copy from generic SwiftUI templates.
+# Keep these in lockstep with Tests/Scripts/test_source_policy.py.
+custom_rules:
+  no_observable_object:
+    name: "No ObservableObject"
+    regex: "ObservableObject|@Published|@StateObject|@ObservedObject|@EnvironmentObject"
+    message: "Use an @Observable class with @State, @Bindable, or @Environment."
+    severity: error
+
+  no_gcd:
+    name: "No GCD"
+    regex: "\\bDispatchQueue\\b"
+    message: "Use Swift concurrency instead of DispatchQueue."
+    severity: error
+
+  no_task_sleep_nanoseconds:
+    name: "No Task.sleep(nanoseconds:)"
+    regex: "Task\\.sleep\\(nanoseconds:"
+    message: "Use Task.sleep(for:) instead of Task.sleep(nanoseconds:)."
+    severity: error
+
+  no_legacy_formatter:
+    name: "No legacy Formatter"
+    regex: "\\b(DateFormatter|NumberFormatter|MeasurementFormatter)\\b"
+    message: "Use FormatStyle instead of Formatter subclasses."
+    severity: error
+
+  no_string_format:
+    name: "No String(format:)"
+    regex: "String\\(format:"
+    message: "Use FormatStyle, or String(_:radix:) for hex, instead of C-style String(format:)."
+    severity: error
+
+  no_replacing_occurrences:
+    name: "No replacingOccurrences"
+    regex: "replacingOccurrences\\("
+    message: "Use replacing(_:with:) instead of replacingOccurrences(of:with:)."
+    severity: error
+
+  no_foreground_color:
+    name: "No foregroundColor"
+    regex: "\\.foregroundColor\\("
+    message: "Use foregroundStyle() instead of foregroundColor()."
+    severity: error
+
+  no_swiftui_picker:
+    name: "No SwiftUI Picker"
+    regex: "(?<![A-Za-z0-9_])Picker\\s*\\("
+    message: "SwiftUI Picker in a grouped Form hides the System Settings pop-up box at rest on macOS 26. Use PopUpPicker."
+    severity: error
+
+  no_navigation_view:
+    name: "No NavigationView"
+    regex: "\\bNavigationView\\b"
+    message: "Use NavigationStack instead of NavigationView."
+    severity: error
+
+  no_tab_item:
+    name: "No tabItem"
+    regex: "\\.tabItem\\s*\\("
+    message: "Use the Tab API instead of tabItem()."
+    severity: error
+
+  no_nsscreen_main:
+    name: "No NSScreen.main"
+    regex: "NSScreen\\.main"
+    message: "Do not use NSScreen.main to read available space."
+    severity: error
+
+  no_cfarray_get_value:
+    name: "No CFArrayGetValueAtIndex"
+    regex: "CFArrayGetValueAtIndex"
+    message: "Bridge CF arrays to Swift arrays so elements stay owned. CFArrayGetValueAtIndex caused a use-after-free in optimized builds."
+    severity: error

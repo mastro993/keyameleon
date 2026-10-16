@@ -15,6 +15,11 @@ class SwiftLintPolicyTests(unittest.TestCase):
             (clean_source, configuration, None),
             (clean_source + " \n", configuration, "trailing_whitespace"),
             ('let value = "text" as! Int\n', configuration, "force_cast"),
+            ("class Example: ObservableObject {}\n", configuration, "no_observable_object"),
+            ("DispatchQueue.main.async { }\n", configuration, "no_gcd"),
+            ('Picker("Layout", selection: $value) { }\n', configuration, "no_swiftui_picker"),
+            ('let value = String(format: "%02x", 10)\n', configuration, "no_string_format"),
+            ("_ = CFArrayGetValueAtIndex(array, 0)\n", configuration, "no_cfarray_get_value"),
             (clean_source, configuration.replace('"0.65.1"', '"0.0.0"'),
              "configuration specified version 0.0.0"),
         )

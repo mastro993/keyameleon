@@ -14,7 +14,7 @@ To build and run the app, follow [`docs/development.md`](docs/development.md).
 
 Changes reach `main` only through pull requests. Each pull request should:
 
-1. **Pass CI.** The required check is **Required CI gate**. For code changes it runs `./Scripts/run.sh test` on macOS 26; documentation-only changes skip the macOS job. Run the same command locally before asking for review. Details are in [`docs/testing.md`](docs/testing.md#continuous-integration).
+1. **Pass CI.** The required check is **Required CI gate**. Every pull request runs the Linux **Source policy** job. For code changes it also runs `./Scripts/run.sh test` on macOS 26; documentation-only changes skip the macOS job. Run `./Scripts/run.sh test` locally before asking for review. Details are in [`docs/testing.md`](docs/testing.md#continuous-integration).
 2. **Include tests** for any behavior change. See [what to test](docs/testing.md#what-to-test).
 3. **Use the product vocabulary** from [`CONTEXT.md`](CONTEXT.md) for domain concepts, such as Physical Keyboard rather than "device".
 4. **Update the docs** in `docs/` that describe the behavior you changed.

@@ -14,5 +14,5 @@ Quick reference for agents. Native macOS 26 `LSUIElement` menu bar app (Swift 6,
 - Domain vocabulary: `CONTEXT.md`. Current design decisions: `docs/choices.md`.
 - Sparkle feed: `https://mastro993.github.io/keyameleon/appcast.xml`
 - Official Releases: Release `workflow_dispatch` on `main` only. DMG on GitHub Releases; appcast and evidence on GitHub Pages; cask in `mastro993/homebrew-tap` (ADR 0004, ADR 0006). Local `./Scripts/official-release.sh` output is never an Official Release.
-- CI: `Required CI gate`; `macos-26`, 8-minute limit. The Release workflow waits for it with `Scripts/wait-for-ci.sh`.
+- CI: `Required CI gate`; Ubuntu **Source policy** always, plus `macos-26` `./Scripts/run.sh test` when code changes (8-minute limit). The Release workflow waits for the gate with `Scripts/wait-for-ci.sh`.
 - Issues: `gh` CLI (`docs/agents/issue-tracker.md`).

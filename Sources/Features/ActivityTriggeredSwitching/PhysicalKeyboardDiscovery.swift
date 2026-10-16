@@ -151,8 +151,8 @@ enum PhysicalKeyboardHIDInspection {
             return PhysicalKeyboardIdentity.normalizedBluetoothAddress(address)
         }
 
-        if let data = property.unsafeObject as? Data, data.count == 6 {
-            return data.map { String(format: "%02x", $0) }.joined()
+        if let data = property.unsafeObject as? Data {
+            return PhysicalKeyboardIdentity.bluetoothAddress(fromAddressData: data)
         }
 
         return nil
