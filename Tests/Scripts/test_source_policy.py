@@ -155,6 +155,7 @@ class SourcePolicyTests(unittest.TestCase):
     def test_safety_audit_still_rejects_cfarray_element_access(self):
         run_script = (ROOT / "Scripts" / "run.sh").read_text(encoding="utf-8")
         self.assertIn("CFArrayGetValueAtIndex", run_script)
+        self.assertIn("--include='*.swift'", run_script)
 
     def test_ci_runs_these_policy_tests_on_linux(self):
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")

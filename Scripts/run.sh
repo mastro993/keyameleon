@@ -56,7 +56,7 @@ audit_sources() {
         return 1
     fi
 
-    if grep -REn 'CFArrayGetValueAtIndex' Sources Tests; then
+    if grep -REn --include='*.swift' 'CFArrayGetValueAtIndex' Sources Tests; then
         print -u2 "raw CFArray element access found; bridge the array so its elements stay owned"
         return 1
     fi
