@@ -562,12 +562,10 @@ struct PhysicalKeyboardCatalog: Sendable {
                 return record
             }
 
-        let identifiedServices = externalServices.compactMap {
-            facts -> (facts: PhysicalKeyboardHardwareFacts, groupingKey: String)? in
-            guard let groupingKey = facts.identity?.groupingKey else {
-                return nil
+        let identifiedServices = externalServices.compactMap { facts in
+            facts.identity.map { identity in
+                (facts: facts, groupingKey: identity.groupingKey)
             }
-            return (facts, groupingKey)
         }
         let identityGroups = Dictionary(grouping: identifiedServices, by: \.groupingKey)
 
