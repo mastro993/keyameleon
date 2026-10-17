@@ -13,6 +13,8 @@ class SwiftLintPolicyTests(unittest.TestCase):
         clean_source = "struct ValidName { let value = 1 }\n"
         cases = (
             (clean_source, configuration, None),
+            ("// DispatchQueue is deliberately avoided here\n" + clean_source, configuration, None),
+            ('let text = "DispatchQueue"\n' + clean_source, configuration, None),
             (clean_source + " \n", configuration, "trailing_whitespace"),
             ('let value = "text" as! Int\n', configuration, "force_cast"),
             ("class Example: ObservableObject {}\n", configuration, "no_observable_object"),
@@ -20,6 +22,7 @@ class SwiftLintPolicyTests(unittest.TestCase):
             ('Picker("Layout", selection: $value) { }\n', configuration, "no_swiftui_picker"),
             ('let value = String(format: "%02x", 10)\n', configuration, "no_string_format"),
             ("_ = CFArrayGetValueAtIndex(array, 0)\n", configuration, "no_cfarray_get_value"),
+            (".tabItem { EmptyView() }\n", configuration, "no_tab_item"),
             (clean_source, configuration.replace('"0.65.1"', '"0.0.0"'),
              "configuration specified version 0.0.0"),
         )

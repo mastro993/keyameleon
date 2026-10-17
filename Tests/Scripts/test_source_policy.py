@@ -152,6 +152,23 @@ class SourcePolicyTests(unittest.TestCase):
             with self.subTest(rule=rule):
                 self.assertIn(f"{rule}:", configuration)
 
+    def test_swiftlint_custom_rules_match_code_not_comments(self):
+        configuration = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
+        blocks = configuration.split("custom_rules:\n", 1)[1]
+        for rule in CUSTOM_RULES:
+            with self.subTest(rule=rule):
+                rest = blocks.split(f"  {rule}:\n", 1)[1]
+                next_rule = rest.find("\n  no_")
+                block = rest if next_rule == -1 else rest[:next_rule]
+                self.assertIn("match_kinds:", block)
+                self.assertNotIn("- comment", block)
+                self.assertNotIn("- string", block)
+        tab_item = blocks.split("  no_tab_item:\n", 1)[1]
+        next_rule = tab_item.find("\n  no_")
+        tab_item = tab_item if next_rule == -1 else tab_item[:next_rule]
+        self.assertIn("{", tab_item)
+        self.assertIn("(", tab_item)
+
     def test_safety_audit_still_rejects_cfarray_element_access(self):
         run_script = (ROOT / "Scripts" / "run.sh").read_text(encoding="utf-8")
         self.assertIn("CFArrayGetValueAtIndex", run_script)
