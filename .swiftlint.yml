@@ -38,6 +38,7 @@ custom_rules:
       - identifier
       - typeidentifier
       - attribute.builtin
+      - attribute.id
     message: "Use an @Observable class with @State, @Bindable, or @Environment."
     severity: error
 
@@ -69,7 +70,7 @@ custom_rules:
 
   no_string_format:
     name: "No String(format:)"
-    regex: "String\\(format:"
+    regex: "String\\(\\s*format:"
     match_kinds:
       - identifier
     message: "Use FormatStyle, or String(_:radix:) for hex, instead of C-style String(format:)."
@@ -93,6 +94,7 @@ custom_rules:
 
   no_swiftui_picker:
     name: "No SwiftUI Picker"
+    included: "Sources/Features/(Configuration|Onboarding|Shared|AppAssignments)/.*\\.swift"
     regex: "(?<![A-Za-z0-9_])Picker\\s*\\("
     match_kinds:
       - identifier

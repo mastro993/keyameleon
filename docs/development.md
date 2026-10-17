@@ -121,7 +121,7 @@ To add or change a string:
 
 ## Safety audit
 
-The audit greps `Sources`, `Tests`, and `project.yml` (Swift files only for `CFArrayGetValueAtIndex`, so policy tests can name that API) and fails the command when it finds:
+The audit greps `Sources`, `Tests`, and `project.yml` (`CFArrayGetValueAtIndex` skips `*.py` so policy tests can name that API, and still scans C and Objective-C) and fails the command when it finds:
 
 - APIs that could inject, seize, or tap input (`CGEvent*`, `IOHIDPostEvent`, virtual HID devices, private `CGS*` symbols)
 - Networking, analytics, or crash-upload APIs (`URLSession`, `Sentry`, `MetricKit`, and similar)

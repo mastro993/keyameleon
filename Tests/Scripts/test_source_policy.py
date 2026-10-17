@@ -5,6 +5,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCES = ROOT / "Sources"
+FORM_FEATURE_DIRS = (
+    SOURCES / "Features" / "Configuration",
+    SOURCES / "Features" / "Onboarding",
+    SOURCES / "Features" / "Shared",
+    SOURCES / "Features" / "AppAssignments",
+)
 SWIFT_PICKER = re.compile(r"(?<![A-Za-z0-9_])Picker\s*\(")
 GITHUB_PAGES_FEED_HOST = "mastro993.github.io/"
 LOWERCASE_FEED_PATH = "mastro993.github.io/keyameleon/"
@@ -26,23 +32,72 @@ CUSTOM_RULES = (
 FORBIDDEN_SOURCE_PATTERNS = (
     ("ObservableObject", re.compile(r"\bObservableObject\b")),
     ("DispatchQueue", re.compile(r"\bDispatchQueue\b")),
-    ("Task.sleep(nanoseconds:)", re.compile(r"Task\.sleep\(nanoseconds:")),
+    ("Task.sleep(nanoseconds:)", re.compile(r"Task\.sleep\(\s*nanoseconds:")),
     ("DateFormatter", re.compile(r"\bDateFormatter\b")),
-    ("String(format:", re.compile(r"String\(format:")),
+    ("String(format:", re.compile(r"String\(\s*format:")),
     ("CFArrayGetValueAtIndex", re.compile(r"CFArrayGetValueAtIndex")),
 )
 
 
-def swift_sources():
-    return sorted(SOURCES.rglob("*.swift"))
+def swift_sources(root=SOURCES):
+    return sorted(root.rglob("*.swift"))
 
 
-def uncommented_lines(path):
-    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        stripped = line.lstrip()
-        if stripped.startswith("//"):
+def keep_newlines(chunk):
+    return "".join("\n" if character == "\n" else " " for character in chunk)
+
+
+def blank_non_code(source):
+    """Replace Swift comments and string literals with spaces, keeping newlines."""
+    out = []
+    index = 0
+    length = len(source)
+    while index < length:
+        if source.startswith("/*", index):
+            end = source.find("*/", index + 2)
+            if end == -1:
+                out.append(keep_newlines(source[index:]))
+                break
+            out.append(keep_newlines(source[index:end + 2]))
+            index = end + 2
             continue
-        yield number, line
+        if source.startswith("//", index):
+            end = source.find("\n", index)
+            if end == -1:
+                out.append(" " * (length - index))
+                break
+            out.append(" " * (end - index))
+            index = end
+            continue
+        if source.startswith('"""', index):
+            end = source.find('"""', index + 3)
+            if end == -1:
+                out.append(keep_newlines(source[index:]))
+                break
+            out.append(keep_newlines(source[index:end + 3]))
+            index = end + 3
+            continue
+        if source[index] in "\"'":
+            quote = source[index]
+            cursor = index + 1
+            while cursor < length:
+                if source[cursor] == "\\":
+                    cursor += 2
+                    continue
+                if source[cursor] == quote:
+                    cursor += 1
+                    break
+                cursor += 1
+            out.append(keep_newlines(source[index:cursor]))
+            index = cursor
+            continue
+        out.append(source[index])
+        index += 1
+    return "".join(out)
+
+
+def line_of(source, offset):
+    return source.count("\n", 0, offset) + 1
 
 
 class SourcePolicyTests(unittest.TestCase):
@@ -91,10 +146,14 @@ class SourcePolicyTests(unittest.TestCase):
 
     def test_settings_and_setup_use_popup_picker_not_swiftui_picker(self):
         hits = []
-        for path in swift_sources():
-            for number, line in uncommented_lines(path):
-                if SWIFT_PICKER.search(line):
-                    hits.append(f"{path.relative_to(ROOT)}:{number}:{line.strip()}")
+        for directory in FORM_FEATURE_DIRS:
+            for path in swift_sources(directory):
+                source = path.read_text(encoding="utf-8")
+                code = blank_non_code(source)
+                for match in SWIFT_PICKER.finditer(code):
+                    hits.append(
+                        f"{path.relative_to(ROOT)}:{line_of(source, match.start())}"
+                    )
         self.assertEqual(
             hits,
             [],
@@ -138,13 +197,33 @@ class SourcePolicyTests(unittest.TestCase):
     def test_forbidden_agent_patterns_are_absent_from_sources(self):
         hits = []
         for path in swift_sources():
-            for number, line in uncommented_lines(path):
-                for name, pattern in FORBIDDEN_SOURCE_PATTERNS:
-                    if pattern.search(line):
-                        hits.append(
-                            f"{name}: {path.relative_to(ROOT)}:{number}:{line.strip()}"
-                        )
+            source = path.read_text(encoding="utf-8")
+            code = blank_non_code(source)
+            for name, pattern in FORBIDDEN_SOURCE_PATTERNS:
+                for match in pattern.finditer(code):
+                    hits.append(
+                        f"{name}: {path.relative_to(ROOT)}:{line_of(source, match.start())}"
+                    )
         self.assertEqual(hits, [])
+
+    def test_policy_scanner_ignores_comments_and_strings(self):
+        ignored = blank_non_code(
+            'let note = "DispatchQueue"\n'
+            "let value = 1 // avoid DateFormatter here\n"
+            "/* CFArrayGetValueAtIndex */\n"
+        )
+        self.assertIsNone(re.search(r"\bDispatchQueue\b", ignored))
+        self.assertIsNone(re.search(r"\bDateFormatter\b", ignored))
+        self.assertIsNone(re.search(r"CFArrayGetValueAtIndex", ignored))
+        self.assertIsNotNone(
+            re.search(r"\bDispatchQueue\b", blank_non_code("DispatchQueue.main.async { }\n"))
+        )
+        self.assertIsNotNone(
+            re.search(
+                r"String\(\s*format:",
+                blank_non_code('let value = String(\n    format: "%02x", 10)\n'),
+            )
+        )
 
     def test_swiftlint_encodes_the_agent_antipatterns(self):
         configuration = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
@@ -163,16 +242,26 @@ class SourcePolicyTests(unittest.TestCase):
                 self.assertIn("match_kinds:", block)
                 self.assertNotIn("- comment", block)
                 self.assertNotIn("- string", block)
+        observation = blocks.split("  no_observable_object:\n", 1)[1]
+        observation = observation[:observation.find("\n  no_")]
+        self.assertIn("attribute.id", observation)
+        picker = blocks.split("  no_swiftui_picker:\n", 1)[1]
+        picker = picker[:picker.find("\n  no_")]
+        self.assertIn("Configuration|Onboarding|Shared|AppAssignments", picker)
         tab_item = blocks.split("  no_tab_item:\n", 1)[1]
         next_rule = tab_item.find("\n  no_")
         tab_item = tab_item if next_rule == -1 else tab_item[:next_rule]
         self.assertIn("{", tab_item)
         self.assertIn("(", tab_item)
+        string_format = blocks.split("  no_string_format:\n", 1)[1]
+        string_format = string_format[:string_format.find("\n  no_")]
+        self.assertIn("\\s*", string_format)
 
     def test_safety_audit_still_rejects_cfarray_element_access(self):
         run_script = (ROOT / "Scripts" / "run.sh").read_text(encoding="utf-8")
         self.assertIn("CFArrayGetValueAtIndex", run_script)
-        self.assertIn("--include='*.swift'", run_script)
+        self.assertIn("--exclude='*.py'", run_script)
+        self.assertNotIn("--include='*.swift'", run_script)
 
     def test_ci_runs_these_policy_tests_on_linux(self):
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
