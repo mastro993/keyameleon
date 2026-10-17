@@ -120,6 +120,21 @@ struct PhysicalKeyboardIdentity: Hashable, Sendable {
         }
         return hex
     }
+
+    /// Six-byte CoreHID `DeviceAddress` data as a normalized Bluetooth address.
+    static func bluetoothAddress(fromAddressData data: Data) -> String? {
+        guard data.count == 6 else {
+            return nil
+        }
+
+        var hex = ""
+        hex.reserveCapacity(12)
+        for byte in data {
+            hex.append(String(byte >> 4, radix: 16))
+            hex.append(String(byte & 0x0F, radix: 16))
+        }
+        return normalizedBluetoothAddress(hex)
+    }
 }
 
 /// A device that can produce Activation Activity is a Physical Keyboard.
@@ -547,14 +562,18 @@ struct PhysicalKeyboardCatalog: Sendable {
                 return record
             }
 
-        let identityGroups = Dictionary(grouping: externalServices.compactMap { facts in
-            facts.identity == nil ? nil : facts
-        }, by: { $0.identity!.groupingKey })
+        let identifiedServices = externalServices.compactMap { facts in
+            facts.identity.map { identity in
+                (facts: facts, groupingKey: identity.groupingKey)
+            }
+        }
+        let identityGroups = Dictionary(grouping: identifiedServices, by: \.groupingKey)
 
         let identityRecords = identityGroups.values.map { group -> PhysicalKeyboard in
-            let record = makeIdentityRecord(for: Array(group))
-            for facts in group {
-                serviceToRecordID[facts.serviceID] = record.id
+            let facts = group.map(\.facts)
+            let record = makeIdentityRecord(for: facts)
+            for item in facts {
+                serviceToRecordID[item.serviceID] = record.id
             }
             return record
         }

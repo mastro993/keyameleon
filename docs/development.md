@@ -121,13 +121,13 @@ To add or change a string:
 
 ## Safety audit
 
-The audit greps `Sources`, `Tests`, and `project.yml` and fails the command when it finds:
+The audit greps `Sources`, `Tests`, and `project.yml` (`CFArrayGetValueAtIndex` skips `*.py` so policy tests can name that API, and still scans C and Objective-C) and fails the command when it finds:
 
 - APIs that could inject, seize, or tap input (`CGEvent*`, `IOHIDPostEvent`, virtual HID devices, private `CGS*` symbols)
 - Networking, analytics, or crash-upload APIs (`URLSession`, `Sentry`, `MetricKit`, and similar)
 - `print`, `NSLog`, or `os_log` (use the `Log` pipeline instead)
 - Key Content names (`KeyContent`, `rawReport`, `interpretedText`, `modifierState`) in the logging pipeline or at log call sites
-- `CFArrayGetValueAtIndex`, which caused a use-after-free in optimized builds; bridge CF arrays to Swift arrays instead
+- `CFArrayGetValueAtIndex`, which caused a use-after-free in optimized builds; bridge CF arrays to Swift arrays instead. SwiftLint's `no_cfarray_get_value` custom rule rejects the same API.
 
 Because the pattern is a plain grep, even naming a type such as `CGSize` in `Sources` trips the `CGS*` rule.
 
@@ -141,6 +141,7 @@ swiftlint lint --strict --quiet --no-cache --config .swiftlint.yml
 
 - It checks all of `Sources`, including preview fixtures. A different SwiftLint version, any warning, or any error fails the check. There is no violation baseline.
 - Default rules stay on. Size limits are raised so existing models and screens pass without a refactor while further growth still fails: 1000 lines per file, 800 per type body, 120 per function body. Type and identifier names may reach 60 characters so they can use full domain terms.
+- Custom rules reject generic SwiftUI templates that have already been corrected in review: `ObservableObject`, GCD, `String(format:)`, SwiftUI `Picker(` (use `PopUpPicker`), `CFArrayGetValueAtIndex`, and the others listed in [`.swiftlint.yml`](../.swiftlint.yml). `Tests/Scripts/test_source_policy.py` fails if those rules are removed.
 - Cyclomatic complexity ignores `switch` cases, so exhaustive enum mappings do not count; branches and loops still do.
 - CI and the Release workflow download the portable macOS archive and verify its SHA-256, `c1e429b0599cf1b516f369a2d9ec04eaf0e436f3c12b637df8851fa52ff694d0`.
 

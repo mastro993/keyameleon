@@ -111,10 +111,12 @@ reviews:
         hard-coded padding or stack spacing unless the design requires it, no `AnyView`, no `GeometryReader`
         when `containerRelativeFrame()` or `visualEffect()` works, no AppKit colors, `ForEach(x.enumerated(), ...)`
         without `Array(...)`, `.scrollIndicators(.hidden)`, `ScrollPosition` over `ScrollViewReader`,
-        and image buttons with a text label. Check accessibility: VoiceOver labels and values, Reduce Motion,
-        Increase Contrast, and larger text without clipping. Colors and type come from `Theme`; Guided setup and
-        Settings must not drift apart. Each view owns its user-visible strings; domain types expose typed facts,
-        not text.
+        and image buttons with a text label. Settings and Guided setup selectors must use `PopUpPicker`
+        (`NSPopUpButton` + `.flexiblePush`); SwiftUI `Picker` and bordered `Menu` in a grouped `Form` hide
+        the System Settings pop-up box at rest on macOS 26. Check accessibility: VoiceOver labels and values,
+        Reduce Motion, Increase Contrast, and larger text without clipping. Colors and type come from `Theme`;
+        Guided setup and Settings must not drift apart. Each view owns its user-visible strings; domain types
+        expose typed facts, not text.
         Do not repeat SwiftLint findings (file and function length, naming) unless they hide a real defect.
 
     - path: "Sources/Features/ActivityTriggeredSwitching/**"
@@ -217,7 +219,8 @@ reviews:
     - path: ".github/workflows/**"
       instructions: |
         `CI` must keep one stable required check, `Required CI gate`; do not make the conditional
-        `Build and test` job required. When build-affecting paths change, the `Check whether code changed` list
+        `Build and test` job required, and do not require `Source policy` separately — the gate already
+        depends on it. When build-affecting paths change, the `Check whether code changed` list
         must be updated. SwiftLint version and SHA-256 must match in `ci.yml`, `release.yml`, and `.swiftlint.yml`.
         The Release workflow runs only from `workflow_dispatch` on `main` (ADR 0004). Check least-privilege
         `permissions`, pinned actions, no secret exposure to pull requests from forks, and no untrusted input

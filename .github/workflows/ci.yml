@@ -56,6 +56,21 @@ jobs:
           fi
           echo "macos_required=${macos_required}" >> "${GITHUB_OUTPUT}"
 
+  policy:
+    name: Source policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run Linux-runnable policy tests
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s Tests/Scripts -p 'test_source_policy.py'
+          python3 -m unittest discover -s Tests/Scripts -p 'test_ci.py'
+          python3 -m unittest discover -s Tests/Scripts -p 'test_localization.py'
+
   macos:
     name: Build and test
     needs: changes
@@ -101,6 +116,7 @@ jobs:
     name: Required CI gate
     needs:
       - changes
+      - policy
       - macos
     if: always()
     runs-on: ubuntu-latest
@@ -109,11 +125,13 @@ jobs:
       - name: Require selected checks
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
+          POLICY_RESULT: ${{ needs.policy.result }}
           MACOS_REQUIRED: ${{ needs.changes.outputs.macos_required }}
           MACOS_RESULT: ${{ needs.macos.result }}
         run: |
           set -euo pipefail
           test "${CHANGES_RESULT}" = "success"
+          test "${POLICY_RESULT}" = "success"
           if [[ "${MACOS_REQUIRED}" == "true" ]]; then
             test "${MACOS_RESULT}" = "success"
           else

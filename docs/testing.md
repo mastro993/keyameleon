@@ -34,8 +34,9 @@ These rules are hard failures:
 
 The `CI` workflow reports one required check, **Required CI gate**, on every pull request and every push to `main`:
 
-- **Build-affecting changes** run `./Scripts/run.sh test` on a `macos-26` runner. These include `Sources`, `Resources`, `Keyameleon-icon.icon`, `LICENSE` and `THIRD_PARTY_NOTICES.md` (they are bundled in the app), `Tests`, `Scripts`, `project.yml`, the Xcode project and package files, `.swiftlint.yml`, and both workflow files. The `Check whether code changed` step in [`ci.yml`](../.github/workflows/ci.yml) holds the exact list.
-- **Everything else**, such as documentation, skips the macOS job and passes.
+- **Source policy** always runs on Ubuntu: `Tests/Scripts/test_source_policy.py`, `test_ci.py`, and `test_localization.py`. These catch Debug/Release identity merges, a capitalized Sparkle feed path, SwiftUI `Picker` in Settings, and missing translations without a macOS runner.
+- **Build-affecting changes** also run `./Scripts/run.sh test` on a `macos-26` runner. These include `Sources`, `Resources`, `Keyameleon-icon.icon`, `LICENSE` and `THIRD_PARTY_NOTICES.md` (they are bundled in the app), `Tests`, `Scripts`, `project.yml`, the Xcode project and package files, `.swiftlint.yml`, and both workflow files. The `Check whether code changed` step in [`ci.yml`](../.github/workflows/ci.yml) holds the exact list.
+- **Everything else**, such as documentation, skips the macOS job. The policy job still runs.
 
 The macOS job has an eight-minute limit and no automatic retry; a maintainer reruns infrastructure failures after inspection. The `main` ruleset requires **Required CI gate**. Do not require the conditional `Build and test` job instead: a skipped job can satisfy a required check even when the gate fails.
 
