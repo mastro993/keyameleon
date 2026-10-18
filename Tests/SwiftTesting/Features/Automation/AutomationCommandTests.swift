@@ -125,3 +125,38 @@ func setExternalChangeResponseSavesIt() throws {
     #expect(model.activityTriggeredSwitching.externalChangeResponse == .holdUntilKeyboardChange)
     #expect(setupStore.externalChangeResponse == .holdUntilKeyboardChange)
 }
+
+@Test("A short identifier, the last part of the identifier, selects in any language")
+@MainActor
+func selectFindsInputSourceByShortIdentifier() throws {
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
+    let switching = makeSwitching(selector: selector)
+
+    try AutomationCommand.selectInputSource(.identifier("Italian")).perform(on: switching)
+    #expect(selector.current == "com.example.italian")
+}
+
+@Test("A short identifier that fits two Input Sources selects neither")
+@MainActor
+func ambiguousShortIdentifierSelectsNothing() {
+    let selector = SetupModelTestInputSourceSelector(current: "com.example.us")
+    let model = SetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: SetupModelTestSetupDecisionStore(),
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
+        physicalKeyboardDiscoverer: SetupModelTestPhysicalKeyboardDiscoverer(),
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+                EligibleInputSource(identifier: "org.other.us", name: "U.S. (Other)"),
+            ]
+        ),
+        inputSourceSelector: selector
+    )
+    startAndCheck(model)
+
+    #expect(throws: AutomationError.inputSourceUnavailable("us")) {
+        try AutomationCommand.selectInputSource(.identifier("us")).perform(on: model.activityTriggeredSwitching)
+    }
+    #expect(selector.requestedIdentifiers.isEmpty)
+}

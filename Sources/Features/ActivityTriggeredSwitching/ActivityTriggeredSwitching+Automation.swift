@@ -14,13 +14,7 @@ extension ActivityTriggeredSwitching {
     /// happens next.
     func selectInputSource(_ reference: AutomationCommand.InputSourceReference) throws(AutomationError) {
         inputSources.refresh()
-        let inputSource = automationInputSources.first {
-            switch reference {
-            case let .identifier(identifier): $0.identifier == identifier
-            case let .name(name): $0.name == name
-            }
-        }
-        guard let inputSource else {
+        guard let inputSource = Self.inputSource(matching: reference, in: automationInputSources) else {
             switch reference {
             case let .identifier(text), let .name(text):
                 throw .inputSourceUnavailable(text)
@@ -33,6 +27,28 @@ extension ActivityTriggeredSwitching {
         handleInputSourceModuleChange()
         guard verified else {
             throw .selectionFailed(inputSource.name)
+        }
+    }
+
+    /// The exact identifier or name first. Otherwise a short identifier, the
+    /// part after the last dot such as `US` for `com.apple.keylayout.US`,
+    /// which stays the same in every language. A short identifier that fits
+    /// more than one Input Source selects none, so nothing is substituted.
+    private static func inputSource(
+        matching reference: AutomationCommand.InputSourceReference,
+        in inputSources: [EligibleInputSource]
+    ) -> EligibleInputSource? {
+        switch reference {
+        case let .name(name):
+            return inputSources.first { $0.name == name }
+        case let .identifier(identifier):
+            if let exact = inputSources.first(where: { $0.identifier == identifier }) {
+                return exact
+            }
+            let short = inputSources.filter {
+                $0.identifier.split(separator: ".").last?.caseInsensitiveCompare(identifier) == .orderedSame
+            }
+            return short.count == 1 ? short.first : nil
         }
     }
 }

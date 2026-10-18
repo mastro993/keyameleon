@@ -108,15 +108,15 @@ Keyameleon adds these actions to the Shortcuts app. Find them under Keyameleon w
 | **Select Input Source** | Selects one of your enabled keyboard layouts. |
 | **Get Active Keyboard and Input Source** | Returns the name of the keyboard you last typed on and the current input source. |
 
-Launchers, scripts, and the Terminal can use the same actions through URLs, for example `open keyameleon://pause`. In the Terminal, put a URL that contains `?` in single quotes, such as `open 'keyameleon://select-input-source?name=U.S.'`; otherwise zsh reports `no matches found`.
+Launchers, scripts, and the Terminal can use the same actions through URLs, for example `open keyameleon://pause`. In the Terminal, put a URL that contains `?` in single quotes, such as `open 'keyameleon://select-input-source?id=US'`; otherwise zsh reports `no matches found`.
 
 | URL | What it does |
 | --- | --- |
 | `keyameleon://pause` | Pauses automatic switching. |
 | `keyameleon://resume` | Resumes automatic switching. |
 | `keyameleon://toggle-pause` | Pauses when switching runs, and resumes when it is paused. |
-| `keyameleon://select-input-source?name=U.S.` | Selects an input source by its full name as Keyameleon's pickers show it, such as `U.S.` or `Italian`. The two-letter badge in the menu, such as `IT`, is not a name. |
-| `keyameleon://select-input-source?id=com.apple.keylayout.US` | Selects an input source by its macOS identifier, which does not change with your language. |
+| `keyameleon://select-input-source?id=US` | Selects an input source by its identifier, which is the same in every language. Use the full identifier, such as `com.apple.keylayout.US`, or only its last part, such as `US` or `Italian-Pro`. |
+| `keyameleon://select-input-source?name=U.S.` | Selects an input source by its full name as Keyameleon's pickers show it. Names follow your language: the same layout is `U.S.` in English and `USA` in Italian. The two-letter badge in the menu, such as `IT`, is not a name. |
 | `keyameleon://set-external-change-response?value=switch-back` | Sets **When input source changes externally** in **Settings → General**: `switch-back` (Switch back), `hold-until-match` (Keep until matching keyboard), or `hold-until-keyboard-change` (Keep until another keyboard). |
 
 Selecting an input source from a shortcut or a URL counts as a change outside Keyameleon, like picking one from the menu bar. With the default **Switch back**, your next key press on an assigned keyboard switches back; to keep the new input source, choose another option for **When input source changes externally**, or pause switching first. If Keyameleon is not running, a shortcut or URL opens it in the background.

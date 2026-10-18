@@ -10,6 +10,9 @@ been replaced. For current behavior, read [`choices.md`](choices.md).
   Active Keyboard and Input Source) and a `keyameleon://` URL scheme share
   `AutomationCommand`. Debug registers `keyameleon-dev://` (ADR 0008).
   A URL-only `set-external-change-response` sets the External Change Response.
+- `?name=U.S.` failed on an Italian Mac, where macOS names the layout `USA`.
+  `?id=` now also takes the short identifier (`US`), which is the same in every
+  language; one that fits two Input Sources selects none.
 - An automation selection is an External Input Source Change, chosen over an
   always-on hold so the External Change Response stays the only hold rule.
 - The App Intents metadata processor failed with "'LocalizedStringResource'
