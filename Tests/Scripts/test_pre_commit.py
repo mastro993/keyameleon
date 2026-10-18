@@ -48,6 +48,15 @@ class PreCommitSizeLimitTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertIn(f"{path}: ", result.stderr)
 
+    def test_rejects_symlink_replaced_by_oversized_file(self):
+        (self.repo / "Big.swift").symlink_to("target")
+        self.git("add", "Big.swift")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-q", "--no-verify", "-m", "link")
+        (self.repo / "Big.swift").unlink()
+        self.stage("Big.swift", b"a" * (LIMIT_BYTES + 1))
+
+        self.assertRejected("Big.swift")
+
     def test_allows_file_at_limit(self):
         self.stage("Sources/AtLimit.swift", b"a" * LIMIT_BYTES)
 

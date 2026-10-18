@@ -24,7 +24,9 @@ Split each file into smaller files of at most {MAX_BYTES:,} bytes, then commit a
        - Swift tests: split one `@Suite` or `XCTestCase` per behavior into
          `TypeBehaviorTests.swift`. Move shared fixtures to `TypeTestSupport.swift`.
        - Python tests: move each `TestCase` class to its own `test_<topic>.py`;
-         move shared helpers to a module without the `test_` prefix.
+         move shared helpers to a module without the `test_` prefix. If the
+         Source policy job in .github/workflows/ci.yml names the original
+         module, add each new module there too.
        - Markdown: split at `##` headings into `docs/<topic>/<part>.md` and leave
          the original as a short index that links each part. Fix inbound links.
   3. XcodeGen adds new files under Sources/ and Tests/ to their targets: run
@@ -50,7 +52,7 @@ def staged_blob(path: str) -> bytes:
 
 def staged_files() -> list[str]:
     output = git(
-        "diff", "--cached", "--name-only", "-z", "--no-renames", "--diff-filter=ACMR"
+        "diff", "--cached", "--name-only", "-z", "--no-renames", "--diff-filter=ACMRT"
     )
     return [path for path in output.split("\0") if path]
 
