@@ -38,6 +38,7 @@ Keyameleon is an automatic keyboard layout switcher for macOS. It lives in the m
 - **Guided setup.** One walkthrough grants Input Monitoring, assigns layouts, and confirms everything is ready.
 - **Rename and ignore devices.** Give keyboards your own names, and ignore devices (such as a mouse with shortcut keys) that macOS reports as keyboards.
 - **Pause and resume** with <kbd>⌘</kbd><kbd>P</kbd> from the menu.
+- **Shortcuts and URLs.** Pause, resume, or select an Input Source from the Shortcuts app or a `keyameleon://` URL, such as `keyameleon://select-input-source?name=U.S.`.
 - **Launch at login**, if you want it.
 - **Updates you approve.** Keyameleon checks for updates at most once a day and never installs one without your approval.
 - **Speaks your language.** English, Italian, French, Spanish, Japanese, Korean, Simplified and Traditional Chinese, and Arabic, following your macOS language.

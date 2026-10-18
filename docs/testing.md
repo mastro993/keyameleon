@@ -50,4 +50,5 @@ Unit tests cannot prove real permission grants, native menu tracking, display pl
 - [Menu bar menu](testing/manual-menu-and-switching.md#menu-bar-menu)
 - [External Input Source Changes](testing/manual-menu-and-switching.md#external-input-source-changes)
 - [App Assignments](testing/manual-menu-and-switching.md#app-assignments)
+- [Automation](testing/manual-menu-and-switching.md#automation)
 - [Input Monitoring recovery](testing/manual-input-monitoring.md#input-monitoring-recovery)

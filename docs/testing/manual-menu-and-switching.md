@@ -41,3 +41,11 @@ Checklists for [Manual verification](../testing.md#manual-verification).
 5. **Hold.** Set **Keep until another keyboard**, type on A in TextEdit, and change to French: French stays. Switch to Terminal: the hold ends and U.S. is selected.
 6. **Pause.** Pause switching and switch to Terminal: nothing changes.
 7. **Log.** The Log File names the app on selections it caused, and has no line for switching to an unassigned app.
+
+## Automation
+
+`AutomationCommandTests` covers URL parsing and each action, and `AutomationSelectionTests` checks that a selection is an External Input Source Change. Check the real behavior in the Debug app with `keyameleon-dev://` and keyboard A on U.S.
+
+1. **URLs.** Run `open keyameleon-dev://pause`: the menu heading shows `(Paused)`. `toggle-pause` resumes it, `resume` leaves it running. `open keyameleon-dev://unknown` changes nothing and writes one `warning` line to the Log File.
+2. **Select.** With Switch Back, run `open 'keyameleon-dev://select-input-source?name=Italian'`: Italian is selected, and the next key press on A selects U.S. With Keep until another keyboard, Italian stays while you type on A and the menu shows the hold notice.
+3. **Shortcuts.** In the Shortcuts app, the five Keyameleon actions appear in your language. Select Input Source lists only enabled keyboard layouts. Get Active Keyboard and Input Source returns A's name and the current Input Source after you type on A. Quit Keyameleon and run a Pause shortcut: Keyameleon launches without a window and pauses.

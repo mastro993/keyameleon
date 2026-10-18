@@ -68,7 +68,7 @@ A macOS text-input configuration, such as a language-specific keyboard layout, t
 _Avoid_: Source input, keyboard language
 
 **External Input Source Change**:
-A change of the current Input Source that Keyameleon did not make. It includes changes by the person, by macOS, and by other apps; Keyameleon cannot tell them apart and treats them the same.
+A change of the current Input Source that Activity-Triggered Switching did not make. It includes changes by the person, including through Keyameleon's Shortcuts actions and URL scheme, by macOS, and by other apps; Keyameleon cannot tell them apart and treats them the same.
 _Avoid_: Manual change, user change
 
 **External Change Response**:

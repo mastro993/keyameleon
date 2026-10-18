@@ -1,0 +1,63 @@
+import Foundation
+
+/// One action that Shortcuts or the `keyameleon://` URL scheme asks for.
+enum AutomationCommand: Equatable, Sendable {
+    case pause
+    case resume
+    case togglePause
+    case selectInputSource(InputSourceReference)
+
+    /// How a caller names the Input Source to select.
+    enum InputSourceReference: Equatable, Sendable {
+        case identifier(String)
+        /// The exact name macOS shows, such as `U.S.`.
+        case name(String)
+    }
+
+    /// Reads `keyameleon://pause`, `resume`, `toggle-pause`, and
+    /// `select-input-source?id=…` or `?name=…`. The scheme is not checked:
+    /// macOS only delivers the one this build registers.
+    init?(url: URL) {
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        func value(_ name: String) -> String? {
+            components?.queryItems?.first { $0.name == name }?.value?.nilIfEmpty
+        }
+
+        switch url.host()?.lowercased() {
+        case "pause":
+            self = .pause
+        case "resume":
+            self = .resume
+        case "toggle-pause":
+            self = .togglePause
+        case "select-input-source":
+            if let identifier = value("id") {
+                self = .selectInputSource(.identifier(identifier))
+            } else if let name = value("name") {
+                self = .selectInputSource(.name(name))
+            } else {
+                return nil
+            }
+        default:
+            return nil
+        }
+    }
+
+    @MainActor
+    func perform(on switching: ActivityTriggeredSwitching) throws(AutomationError) {
+        switch self {
+        case .pause:
+            switching.pause()
+        case .resume:
+            switching.resume()
+        case .togglePause:
+            if switching.outcome.hasAction(.pause) {
+                switching.pause()
+            } else {
+                switching.resume()
+            }
+        case let .selectInputSource(reference):
+            try switching.selectInputSource(reference)
+        }
+    }
+}

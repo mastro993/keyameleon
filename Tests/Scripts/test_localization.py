@@ -56,11 +56,19 @@ class LocalizationTests(unittest.TestCase):
                             )
 
     def test_strings_are_generated_symbols_used_by_the_app(self):
-        source = "\n".join(path.read_text(encoding="utf-8") for path in SOURCES.rglob("*.swift"))
+        sources = [path.read_text(encoding="utf-8") for path in SOURCES.rglob("*.swift")]
+        source = "\n".join(sources)
+        # App Intents metadata accepts only string literals, so intent files
+        # name their manual keys as literals instead of generated symbols.
+        intents = "\n".join(text for text in sources if "import AppIntents" in text)
         for key, entry in catalog("Localizable.xcstrings").items():
             with self.subTest(key=key):
                 self.assertEqual(entry.get("extractionState"), "manual")
-                self.assertRegex(source, rf"\.{re.escape(key)}\b")
+                self.assertTrue(
+                    re.search(rf"\.{re.escape(key)}\b", source)
+                    or f'"{key}"' in intents,
+                    f"{key} is not used by the app",
+                )
 
 
 if __name__ == "__main__":
