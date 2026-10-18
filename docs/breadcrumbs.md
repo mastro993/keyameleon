@@ -4,6 +4,23 @@ A chronological work log, newest first: what changed, how it was diagnosed, and
 what was tried. Entries are history and may describe behavior that has since
 been replaced. For current behavior, read [`choices.md`](choices.md).
 
+## 2026-10-18 — Shortcuts actions and URL scheme (#196)
+
+- Five App Intents (Pause, Resume, Pause or Resume, Select Input Source, Get
+  Active Keyboard and Input Source) and a `keyameleon://` URL scheme share
+  `AutomationCommand`. Debug registers `keyameleon-dev://` (ADR 0008).
+  A URL-only `set-external-change-response` sets the External Change Response.
+- `?name=U.S.` failed on an Italian Mac, where macOS names the layout `USA`.
+  `?id=` now also takes the short identifier (`US`), which is the same in every
+  language; one that fits two Input Sources selects none.
+- An automation selection is an External Input Source Change, chosen over an
+  always-on hold so the External Change Response stays the only hold rule.
+- The App Intents metadata processor failed with "'LocalizedStringResource'
+  must be initialized with a call to its initializer or a string literal" for
+  generated string symbols, so intent files use literal manual keys.
+- The Raycast extension and the website integrations section live outside
+  this repository.
+
 ## 2026-10-16 — Encode agent corrections in lint, tests, and types
 
 - Recurring human corrections after agent PRs clustered around Debug/Release

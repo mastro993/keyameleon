@@ -8,9 +8,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 # Debug has its own bundle ID, so macOS keeps a separate Input Monitoring row and
 # defaults domain for it (docs/adr/0008-separate-debug-identity.md).
+# Each also registers its own URL scheme, so a keyameleon:// URL reaches the release.
 IDENTITIES = {
-    "Debug": ("dev.fedemas.keyameleon.debug", "Keyameleon (Dev)"),
-    "Release": ("dev.fedemas.keyameleon", "Keyameleon"),
+    "Debug": ("dev.fedemas.keyameleon.debug", "Keyameleon (Dev)", "keyameleon-dev"),
+    "Release": ("dev.fedemas.keyameleon", "Keyameleon", "keyameleon"),
 }
 
 
@@ -30,12 +31,13 @@ class ProjectIdentityTests(unittest.TestCase):
             return next(objects[key]["buildSettings"] for key in configs
                         if objects[key]["name"] == configuration)
 
-        for configuration, (bundle_id, product_name) in IDENTITIES.items():
+        for configuration, (bundle_id, product_name, url_scheme) in IDENTITIES.items():
             with self.subTest(configuration=configuration):
                 app = settings(root, configuration) | settings(targets["Keyameleon"], configuration)
                 self.assertEqual(app["PRODUCT_BUNDLE_IDENTIFIER"], bundle_id)
                 # The bundle file names the app in System Settings and Finder.
                 self.assertEqual(app["PRODUCT_NAME"], product_name)
+                self.assertEqual(app["KEYAMELEON_URL_SCHEME"], url_scheme)
                 self.assertEqual(app["INFOPLIST_KEY_CFBundleDisplayName"], "$(PRODUCT_NAME)")
                 # The module and executable stay Keyameleon in both.
                 self.assertEqual(app["PRODUCT_MODULE_NAME"], "Keyameleon")
@@ -50,6 +52,10 @@ class ProjectIdentityTests(unittest.TestCase):
         self.assertEqual(info["CFBundleIdentifier"], "$(PRODUCT_BUNDLE_IDENTIFIER)")
         self.assertEqual(info["CFBundleDisplayName"], "$(PRODUCT_NAME)")
         self.assertEqual(info["CFBundleName"], "$(PRODUCT_NAME)")
+        self.assertEqual(
+            [scheme for url_type in info["CFBundleURLTypes"] for scheme in url_type["CFBundleURLSchemes"]],
+            ["$(KEYAMELEON_URL_SCHEME)"],
+        )
 
     def test_run_script_targets_the_project_identities(self):
         result = subprocess.run(

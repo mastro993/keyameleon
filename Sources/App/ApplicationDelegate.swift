@@ -93,6 +93,7 @@ final class ApplicationDelegate: NSObject, NSApplicationDelegate {
             modelContainer: nil,
             singleInstanceLock: singleInstanceLock
         )
+        registerAutomationDependencies()
     }
 
     private init(

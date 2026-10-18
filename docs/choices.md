@@ -21,6 +21,7 @@ When behavior changes, edit the relevant section in place rather than appending 
 - [Persistence](choices/persistence.md)
 - [Guided setup](choices/guided-setup.md)
 - [Menu bar menu](choices/menu-bar-menu.md)
+- [Automation](choices/automation.md)
 - [Settings](choices/settings.md)
 - [Logging](choices/logging.md)
 - [Updates](choices/updates.md)

@@ -4,7 +4,7 @@ import Observation
 /// Deep Activity-Triggered Switching module.
 ///
 /// It selects the Wanted Input Source after Activation Activity or an App
-/// Activation. External callers learn one outcome and nine product operations. Observation,
+/// Activation. External callers learn one outcome and ten product operations. Observation,
 /// exact selection, recovery, lifecycle, and adapter details stay inside this
 /// module.
 @MainActor

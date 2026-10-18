@@ -1,6 +1,6 @@
 # Activity-Triggered Switching
 
-`ActivityTriggeredSwitching` is the single switching module. It selects the **Wanted Input Source** after **Activation Activity** or an **App Activation** ([ADR 0007](../adr/0007-app-assignments-override-keyboard-assignments.md)). It exposes one immutable outcome and nine operations: start, stop, request permission, check again, pause, resume, retry now, set the External Change Response, and switch back now. Its permission actions depend on the Input Monitoring decision: unknown offers Request Permission; denied offers Open System Settings and Relaunch. Discovery, Input Source selection, and record storage stay behind their own modules.
+`ActivityTriggeredSwitching` is the single switching module. It selects the **Wanted Input Source** after **Activation Activity** or an **App Activation** ([ADR 0007](../adr/0007-app-assignments-override-keyboard-assignments.md)). It exposes one immutable outcome and ten operations: start, stop, request permission, check again, pause, resume, retry now, set the External Change Response, switch back now, and select an Input Source for [automation](automation.md), which also lists the Input Sources it may select. Its permission actions depend on the Input Monitoring decision: unknown offers Request Permission; denied offers Open System Settings and Relaunch. Discovery, Input Source selection, and record storage stay behind their own modules.
 
 ## Switching
 
@@ -28,7 +28,7 @@ An **App Assignment** gives one app, recognized by its bundle identifier, an Inp
 
 ## External Input Source Changes
 
-An **External Input Source Change** is any change of the current Input Source that Keyameleon did not make: a keyboard shortcut, the menu bar, the Globe key, macOS per-document switching, an input method toggling modes (Japanese Kana/Eisu, Caps Lock switching to and from ABC), or another app. Keyameleon cannot tell them apart and treats them all the same. Its own selections never count: each one updates the observed Input Source before its change notification arrives.
+An **External Input Source Change** is any change of the current Input Source that Activity-Triggered Switching did not make: a keyboard shortcut, the menu bar, the Globe key, Keyameleon's own [Shortcuts actions and URL scheme](automation.md#selecting-an-input-source), macOS per-document switching, an input method toggling modes (Japanese Kana/Eisu, Caps Lock switching to and from ABC), or another app. Keyameleon cannot tell them apart and treats them all the same. Activity-Triggered Switching's own selections never count: each one updates the observed Input Source before its change notification arrives.
 
 The global **External Change Response** (General settings) decides what happens next:
 
@@ -38,7 +38,7 @@ The global **External Change Response** (General settings) decides what happens 
 
 Further rules:
 
-- No hold starts when the new Input Source already equals the Wanted Input Source, or when Switching Status is not Ready (Paused, Permission Required, during Guided setup).
+- No hold starts when the new Input Source already equals the Wanted Input Source, or when Switching Status is not Ready (Paused, Permission Required, during Guided setup). The change is still recorded, so the outcome names the current Input Source.
 - Another External Input Source Change during a hold does not restart it.
 - Any hold ends on an App Activation, app restart, Pause then Resume, changing the External Change Response, editing or removing the holding keyboard's Keyboard Assignment (for Hold Until Match, the Active Physical Keyboard's) or the Frontmost App's App Assignment, or **Switch Back Now** in the menu, which also applies the Wanted Input Source. Sleep and wake keep the hold.
 - The hold lives in memory only and is never saved. The response is saved in UserDefaults under `keyameleon.activityTriggeredSwitching.externalChangeResponse`.
