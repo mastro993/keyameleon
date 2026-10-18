@@ -9,7 +9,7 @@ HOOK = ROOT / ".githooks" / "pre-commit"
 LIMIT_BYTES = 20_000
 
 
-class PreCommitSizeLimitTests(unittest.TestCase):
+class PreCommitTokenLimitTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
@@ -36,7 +36,7 @@ class PreCommitSizeLimitTests(unittest.TestCase):
         result = self.run_hook()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("Sources/Big.swift: 20,001 bytes", result.stderr)
+        self.assertIn("Sources/Big.swift: 5,001 tokens (20,001 bytes)", result.stderr)
         self.assertIn("Move each group into its own file", result.stderr)
 
     def assertAccepted(self):
