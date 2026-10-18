@@ -32,10 +32,13 @@ class PreviewCoverageTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
     def test_preview_fixtures_are_debug_only(self):
-        path = FEATURES_ROOT / "Shared" / "PreviewFixtures.swift"
-        source = path.read_text()
-        self.assertTrue(source.lstrip().startswith("#if DEBUG"))
-        self.assertTrue(source.rstrip().endswith("#endif"))
+        paths = sorted((FEATURES_ROOT / "Shared").glob("Preview*.swift"))
+        self.assertIn(FEATURES_ROOT / "Shared" / "PreviewFixtures.swift", paths)
+        for path in paths:
+            with self.subTest(path=path.name):
+                source = path.read_text()
+                self.assertTrue(source.lstrip().startswith("#if DEBUG"))
+                self.assertTrue(source.rstrip().endswith("#endif"))
 
 
 if __name__ == "__main__":
