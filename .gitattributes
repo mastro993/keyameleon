@@ -1,2 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Not written by hand: exempt from the pre-commit size limit (.githooks/pre-commit).
+Keyameleon.xcodeproj/** linguist-generated
+*.xcstrings linguist-generated
+*.pen linguist-generated
+Package.resolved linguist-generated
+skills-lock.json linguist-generated
+.agents/skills/** linguist-vendored

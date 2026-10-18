@@ -131,6 +131,18 @@ The audit greps `Sources`, `Tests`, and `project.yml` (`CFArrayGetValueAtIndex` 
 
 Because the pattern is a plain grep, even naming a type such as `CGSize` in `Sources` trips the `CGS*` rule.
 
+## Pre-commit size limit
+
+Turn on the repository hooks once per clone (worktrees share the setting):
+
+```sh
+git config core.hooksPath .githooks
+```
+
+`.githooks/pre-commit` rejects a commit when a staged file is over 20,000 bytes. Its error lists each file and explains how to split it. Only staged files are checked, so an existing large file fails the first time someone commits a change to it.
+
+Binary files and paths marked `linguist-generated` or `linguist-vendored` in [`.gitattributes`](../.gitattributes) are exempt: the Xcode project, string catalogs, the Pencil design file, lockfiles, and vendored agent skills. Mark new generated or vendored paths there rather than splitting them. The hook reads the staged `.gitattributes`, so an exemption counts only once it is staged too. `linguist-generated=false` and `linguist-vendored=false` do not exempt a path. A file is binary when it contains a NUL byte in its first 8,000 bytes or has the `binary` attribute.
+
 ## SwiftLint
 
 Local checks and CI run the same command:
