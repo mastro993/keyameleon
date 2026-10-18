@@ -34,7 +34,7 @@ These rules are hard failures:
 
 The `CI` workflow reports one required check, **Required CI gate**, on every pull request and every push to `main`:
 
-- **Source policy** always runs on Ubuntu: `Tests/Scripts/test_source_policy.py`, `test_ci.py`, and `test_localization.py`. These catch Debug/Release identity merges, a capitalized Sparkle feed path, SwiftUI `Picker` in Settings, and missing translations without a macOS runner.
+- **Source policy** always runs on Ubuntu: `Tests/Scripts/test_source_policy.py`, `test_ci.py`, `test_localization.py`, and `test_pre_commit.py`. These catch Debug/Release identity merges, a capitalized Sparkle feed path, SwiftUI `Picker` in Settings, missing translations, and a broken [pre-commit token limit](development.md#pre-commit-token-limit) without a macOS runner.
 - **Build-affecting changes** also run `./Scripts/run.sh test` on a `macos-26` runner. These include `Sources`, `Resources`, `Keyameleon-icon.icon`, `LICENSE` and `THIRD_PARTY_NOTICES.md` (they are bundled in the app), `Tests`, `Scripts`, `project.yml`, the Xcode project and package files, `.swiftlint.yml`, and both workflow files. The `Check whether code changed` step in [`ci.yml`](../.github/workflows/ci.yml) holds the exact list.
 - **Everything else**, such as documentation, skips the macOS job. The policy job still runs.
 

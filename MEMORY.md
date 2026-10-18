@@ -5,6 +5,7 @@ Quick reference for agents. Native macOS 26 `LSUIElement` menu bar app (Swift 6,
 - Run: `./Scripts/run.sh open` (Development-signed Debug; Input Monitoring persists)
 - Test: `./Scripts/run.sh test` (audit, SwiftLint, script tests, Swift Testing, XCTest; no UI-test target)
 - Audit only: `./Scripts/run.sh audit`
+- Hooks: `git config core.hooksPath .githooks`. The pre-commit hook rejects staged files over 20,000 bytes (5,000 tokens) unless binary or marked `linguist-generated` / `linguist-vendored` in `.gitattributes`.
 - Regenerate after `project.yml` edits: `./Scripts/run.sh generate`
 - Bundle IDs: Release `dev.fedemas.keyameleon`; Debug `dev.fedemas.keyameleon.debug`, built as `Keyameleon (Dev).app` (module and executable still `Keyameleon`), with its own Input Monitoring row, defaults, and `Keyameleon Dev` data and logs folders (ADR 0008). Both share the single-instance lock.
 - Derived data: `./build`; `run.sh test` uses `./build/test`

@@ -70,6 +70,7 @@ jobs:
           python3 -m unittest discover -s Tests/Scripts -p 'test_source_policy.py'
           python3 -m unittest discover -s Tests/Scripts -p 'test_ci.py'
           python3 -m unittest discover -s Tests/Scripts -p 'test_localization.py'
+          python3 -m unittest discover -s Tests/Scripts -p 'test_pre_commit.py'
 
   macos:
     name: Build and test
