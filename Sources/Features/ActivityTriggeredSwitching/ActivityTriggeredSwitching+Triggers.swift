@@ -79,7 +79,7 @@ extension ActivityTriggeredSwitching {
 
     /// Internal seam for deterministic external Input Source changes.
     func handleExternalInputSourceChange() {
-        guard isStarted, persistenceError == nil, outcome.switchingStatus == .ready else {
+        guard isStarted, persistenceError == nil else {
             return
         }
         let currentIdentifier = inputSources.currentInputSourceIdentifier
@@ -93,9 +93,10 @@ extension ActivityTriggeredSwitching {
             verifiedInputSourceIdentifier = nil
         }
 
-        // Keyameleon's own selections update the observed Input Source before their
+        // Activity-Triggered Switching's own selections update the observed Input Source before their
         // notification arrives, so only an External Input Source Change gets here.
-        if currentIdentifier != previousObserved {
+        // The current Input Source is always recorded; only Ready switching holds it.
+        if currentIdentifier != previousObserved, outcome.switchingStatus == .ready {
             inputSourceHold.noteExternalChange(
                 to: currentIdentifier,
                 response: externalChangeResponse,

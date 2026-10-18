@@ -9,8 +9,8 @@ struct InputSourceEntity: AppEntity {
     let name: String
 
     var displayRepresentation: DisplayRepresentation {
-        // macOS already localizes Input Source names.
-        DisplayRepresentation(title: LocalizedStringResource(stringLiteral: name))
+        // macOS already localizes Input Source names; the name fills a placeholder.
+        DisplayRepresentation(title: "\(name)")
     }
 }
 

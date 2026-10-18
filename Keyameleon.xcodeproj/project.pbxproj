@@ -182,6 +182,7 @@
 		966DAEF590DC79731536497E /* GetActivePhysicalKeyboardIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF8C31DF419F53ED7699B29 /* GetActivePhysicalKeyboardIntent.swift */; };
 		9678909195D780246598188C /* PersistenceFailureNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE40AFCED092F5E1AD68F1A4 /* PersistenceFailureNotice.swift */; };
 		99A02E0432C706B27AA974F3 /* ManualPhysicalKeyboardDesignationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BD58202CA21D92931C62863 /* ManualPhysicalKeyboardDesignationStore.swift */; };
+		9A4FA3FCEEDFE3FEF16206CA /* ApplicationAutomationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225E5D122E6F6A357F462361 /* ApplicationAutomationTests.swift */; };
 		9AB1E213BEF41A5D0C91B2E0 /* LogLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47F59345513A7D2BE11A3A5 /* LogLevel.swift */; };
 		9E6E99D1BFA2CDDDAABBFFC8 /* PhysicalKeyboardIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E17DA291496370595D13598 /* PhysicalKeyboardIdentity.swift */; };
 		9FB3B68E9D511A175C6FB8AB /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 298BB05491B5D8B040A6D7A7 /* MainWindowController.swift */; };
@@ -307,6 +308,7 @@
 		1D1883A29573897172890DDD /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		1FF898807224FEB57662CD03 /* PhysicalKeyboardRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardRows.swift; sourceTree = "<group>"; };
 		1FF8C31DF419F53ED7699B29 /* GetActivePhysicalKeyboardIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetActivePhysicalKeyboardIntent.swift; sourceTree = "<group>"; };
+		225E5D122E6F6A357F462361 /* ApplicationAutomationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationAutomationTests.swift; sourceTree = "<group>"; };
 		244BE0B0F93ACAB3F528C9AC /* PhysicalKeyboardHIDRecognition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalKeyboardHIDRecognition.swift; sourceTree = "<group>"; };
 		24B25A3015C71D7DD7BF9B09 /* ApplicationBundleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationBundleTests.swift; sourceTree = "<group>"; };
 		268D771EA6D145AE181ECBBA /* UnsupportedPhysicalKeyboardsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedPhysicalKeyboardsSection.swift; sourceTree = "<group>"; };
@@ -1050,6 +1052,7 @@
 		F37FE37BC3C738A5BFEBE3E4 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				225E5D122E6F6A357F462361 /* ApplicationAutomationTests.swift */,
 				24B25A3015C71D7DD7BF9B09 /* ApplicationBundleTests.swift */,
 				D5C113F5B5921AEF0F0CC787 /* ApplicationLifecycleTests.swift */,
 				C64228C09BFACE3E33E7B9F7 /* ApplicationMenuTests.swift */,
@@ -1416,6 +1419,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A4FA3FCEEDFE3FEF16206CA /* ApplicationAutomationTests.swift in Sources */,
 				89F5DCA76C698DB3EA5AB154 /* ApplicationBundleTests.swift in Sources */,
 				0E243AABA649FA6763B5CC01 /* ApplicationLifecycleTests.swift in Sources */,
 				7C7E19482A7B32E0568EB316 /* ApplicationMenuTests.swift in Sources */,

@@ -5,13 +5,13 @@ struct InputSourceEntityQuery: EntityQuery {
 
     @MainActor
     func entities(for identifiers: [InputSourceEntity.ID]) async throws -> [InputSourceEntity] {
-        switching.automationInputSources()
+        switching.automationInputSources
             .filter { identifiers.contains($0.identifier) }
             .map(InputSourceEntity.init)
     }
 
     @MainActor
     func suggestedEntities() async throws -> [InputSourceEntity] {
-        switching.automationInputSources().map(InputSourceEntity.init)
+        switching.automationInputSources.map(InputSourceEntity.init)
     }
 }

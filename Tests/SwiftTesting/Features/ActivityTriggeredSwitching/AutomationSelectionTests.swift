@@ -66,3 +66,15 @@ func automationSelectionSwitchesBackOnNextActivity() throws {
     fixture.press()
     #expect(fixture.selector.current == us)
 }
+
+@Test("While paused, a selection from automation shows as the current Input Source and starts no hold")
+@MainActor
+func automationSelectionWhilePausedUpdatesCurrentInputSource() throws {
+    let fixture = try AutomationFixture(response: .holdUntilMatch)
+    fixture.switching.pause()
+
+    try fixture.switching.selectInputSource(.identifier(italian))
+
+    #expect(fixture.switching.outcome.currentInputSourceName == "Italian")
+    #expect(fixture.switching.outcome.inputSourceHold == nil)
+}

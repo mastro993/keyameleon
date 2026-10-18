@@ -38,7 +38,7 @@ The global **External Change Response** (General settings) decides what happens 
 
 Further rules:
 
-- No hold starts when the new Input Source already equals the Wanted Input Source, or when Switching Status is not Ready (Paused, Permission Required, during Guided setup).
+- No hold starts when the new Input Source already equals the Wanted Input Source, or when Switching Status is not Ready (Paused, Permission Required, during Guided setup). The change is still recorded, so the outcome names the current Input Source.
 - Another External Input Source Change during a hold does not restart it.
 - Any hold ends on an App Activation, app restart, Pause then Resume, changing the External Change Response, editing or removing the holding keyboard's Keyboard Assignment (for Hold Until Match, the Active Physical Keyboard's) or the Frontmost App's App Assignment, or **Switch Back Now** in the menu, which also applies the Wanted Input Source. Sleep and wake keep the hold.
 - The hold lives in memory only and is never saved. The response is saved in UserDefaults under `keyameleon.activityTriggeredSwitching.externalChangeResponse`.

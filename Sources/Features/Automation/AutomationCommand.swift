@@ -51,10 +51,11 @@ enum AutomationCommand: Equatable, Sendable {
         case .resume:
             switching.resume()
         case .togglePause:
-            if switching.outcome.hasAction(.pause) {
-                switching.pause()
-            } else {
+            // The same choice as the menu's Pause or Resume Switching command.
+            if switching.outcome.hasAction(.resume) {
                 switching.resume()
+            } else {
+                switching.pause()
             }
         case let .selectInputSource(reference):
             try switching.selectInputSource(reference)

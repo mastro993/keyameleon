@@ -1,11 +1,10 @@
 import Foundation
 
 extension ActivityTriggeredSwitching {
-    /// The Input Sources that Shortcuts and the URL scheme may select, read
-    /// fresh from macOS.
-    func automationInputSources() -> [EligibleInputSource] {
-        inputSources.refresh()
-        return inputSources.eligibleInputSources
+    /// The Input Sources that Shortcuts and the URL scheme may select, as of
+    /// the last refresh. Listing them in Shortcuts reads macOS no further.
+    var automationInputSources: [EligibleInputSource] {
+        inputSources.eligibleInputSources
     }
 
     /// Selects one Eligible Input Source for Shortcuts or the URL scheme.
@@ -14,7 +13,8 @@ extension ActivityTriggeredSwitching {
     /// from the macOS menu bar, so the External Change Response decides what
     /// happens next.
     func selectInputSource(_ reference: AutomationCommand.InputSourceReference) throws(AutomationError) {
-        let inputSource = automationInputSources().first {
+        inputSources.refresh()
+        let inputSource = automationInputSources.first {
             switch reference {
             case let .identifier(identifier): $0.identifier == identifier
             case let .name(name): $0.name == name

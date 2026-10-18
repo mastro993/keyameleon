@@ -14,8 +14,8 @@ struct ActivePhysicalKeyboardEntity: TransientAppEntity {
 
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
-            title: keyboard.map { LocalizedStringResource(stringLiteral: $0) } ?? .intentNoActiveKeyboard,
-            subtitle: inputSource.map { LocalizedStringResource(stringLiteral: $0) }
+            title: keyboard.map { "\($0)" } ?? .intentNoActiveKeyboard,
+            subtitle: inputSource.map { "\($0)" }
         )
     }
 }

@@ -10,6 +10,7 @@ func makeApplicationTestDelegate(
     inputMonitoringRecovery: any InputMonitoringRecovering = ApplicationTestInputMonitoringRecovery(),
     updateChecker: any UpdateChecking = ApplicationTestUpdateChecker(),
     physicalKeyboardDiscoverer: any PhysicalKeyboardDiscovering = NoOpPhysicalKeyboardDiscoverer(),
+    inputSources: ApplicationTestInputSources = ApplicationTestInputSources(),
     startsUpdaterOnLaunch: Bool = false,
     startsApplicationSurfaceOnLaunch: Bool = true
 ) -> ApplicationDelegate {
@@ -18,6 +19,8 @@ func makeApplicationTestDelegate(
         setupStore: setupStore,
         inputMonitoringRecovery: inputMonitoringRecovery,
         physicalKeyboardDiscoverer: physicalKeyboardDiscoverer,
+        inputSourceProvider: inputSources,
+        inputSourceSelector: inputSources,
         physicalKeyboardEventObserver: NoOpPhysicalKeyboardEventObserver(),
         inputSourceChangeObserver: NoOpInputSourceChangeObserver(),
         lifecycleObserver: NoOpLifecycleObserver(),
@@ -156,4 +159,25 @@ final class ApplicationTestInputMonitoringRecovery: InputMonitoringRecovering {
     }
 
     func resetStaleGrantAfterRelaunch() async -> Bool { false }
+}
+
+/// Eligible Input Sources whose selection always reads back as requested.
+@MainActor
+final class ApplicationTestInputSources: InputSourceProviding, InputSourceSelecting {
+    let sources: [EligibleInputSource]
+    var current: String?
+
+    init(sources: [EligibleInputSource] = [], current: String? = nil) {
+        self.sources = sources
+        self.current = current
+    }
+
+    func eligibleInputSources() -> [EligibleInputSource] { sources }
+
+    func currentInputSourceIdentifier() -> String? { current }
+
+    func selectAndVerifyInputSource(identifier: String) -> Bool {
+        current = identifier
+        return true
+    }
 }
