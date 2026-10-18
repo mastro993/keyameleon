@@ -131,7 +131,7 @@ The audit greps `Sources`, `Tests`, and `project.yml` (`CFArrayGetValueAtIndex` 
 
 Because the pattern is a plain grep, even naming a type such as `CGSize` in `Sources` trips the `CGS*` rule.
 
-## Pre-commit token limit
+## Pre-commit size limit
 
 Turn on the repository hooks once per clone (worktrees share the setting):
 
@@ -139,7 +139,7 @@ Turn on the repository hooks once per clone (worktrees share the setting):
 git config core.hooksPath .githooks
 ```
 
-`.githooks/pre-commit` rejects a commit when a staged file is over 5,000 tokens, counted as bytes / 4 (20,000 bytes). Its error lists each file and explains how to split it. Only staged files are checked, so an existing large file fails the first time someone commits a change to it.
+`.githooks/pre-commit` rejects a commit when a staged file is over 20,000 bytes. Its error lists each file and explains how to split it. Only staged files are checked, so an existing large file fails the first time someone commits a change to it.
 
 Binary files and paths marked `linguist-generated` or `linguist-vendored` in [`.gitattributes`](../.gitattributes) are exempt: the Xcode project, string catalogs, the Pencil design file, lockfiles, and vendored agent skills. Mark new generated or vendored paths there rather than splitting them.
 

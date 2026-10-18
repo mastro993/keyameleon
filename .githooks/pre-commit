@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reject staged agent-authored files over 5,000 tokens (bytes / 4).
+"""Reject staged agent-authored files over 20,000 bytes.
 
 Binary files and paths marked `linguist-generated` or `linguist-vendored` in
 .gitattributes are exempt. Enable with `git config core.hooksPath .githooks`.
@@ -8,9 +8,7 @@ Binary files and paths marked `linguist-generated` or `linguist-vendored` in
 import subprocess
 import sys
 
-MAX_TOKENS = 5_000
-BYTES_PER_TOKEN = 4
-MAX_BYTES = MAX_TOKENS * BYTES_PER_TOKEN
+MAX_BYTES = 20_000
 EXEMPT_ATTRIBUTES = ("linguist-generated", "linguist-vendored")
 
 SPLIT_INSTRUCTIONS = f"""
@@ -84,9 +82,9 @@ def main() -> int:
     if not oversized:
         return 0
 
-    print(f"pre-commit: staged files over {MAX_TOKENS:,} tokens (bytes / 4):\n", file=sys.stderr)
+    print(f"pre-commit: staged files over {MAX_BYTES:,} bytes:\n", file=sys.stderr)
     for path, size in oversized:
-        print(f"  {path}: {-(-size // BYTES_PER_TOKEN):,} tokens ({size:,} bytes)", file=sys.stderr)
+        print(f"  {path}: {size:,} bytes", file=sys.stderr)
     print(SPLIT_INSTRUCTIONS, file=sys.stderr)
     return 1
 
