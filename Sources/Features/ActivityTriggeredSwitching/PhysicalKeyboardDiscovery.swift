@@ -159,7 +159,7 @@ enum PhysicalKeyboardHIDInspection {
     }
 
     /// Usages that can carry Activation Activity: keyboard, keypad, and
-    /// consumer (media) keys. Deliberately broad; see `docs/choices.md`.
+    /// consumer (media) keys. Deliberately broad; see `docs/choices/physical-keyboards.md`.
     static func isKeyInputUsage(_ usage: HIDUsage) -> Bool {
         switch usage {
         case .genericDesktop(.keyboard), .genericDesktop(.keypad), .keyboardOrKeypad, .consumer:
