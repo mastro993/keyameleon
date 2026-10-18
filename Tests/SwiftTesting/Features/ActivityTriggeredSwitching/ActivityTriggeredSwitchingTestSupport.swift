@@ -28,3 +28,26 @@ func isUnavailableKeyboardAssignment(
         eligibleInputSources: model.eligibleInputSources
     )
 }
+
+@MainActor
+func makeLifecycleModel(
+    recordStore: InMemoryPhysicalKeyboardRecordStore,
+    discoverer: SetupModelTestPhysicalKeyboardDiscoverer,
+    selector: SetupModelTestInputSourceSelector = SetupModelTestInputSourceSelector(),
+    setupStore: any SetupDecisionStoring = SetupModelTestSetupDecisionStore()
+) -> SetupModel {
+    SetupModel(
+        permissionProvider: SetupModelTestListenPermissionProvider(state: .granted),
+        setupStore: setupStore,
+        inputMonitoringRecovery: SetupModelTestInputMonitoringRecovery(),
+        physicalKeyboardDiscoverer: discoverer,
+        inputSourceProvider: SetupModelTestInputSourceProvider(
+            inputSources: [
+                EligibleInputSource(identifier: "com.example.us", name: "U.S."),
+                EligibleInputSource(identifier: "com.example.italian", name: "Italian")
+            ]
+        ),
+        inputSourceSelector: selector,
+        physicalKeyboardRecordStore: recordStore
+    )
+}
