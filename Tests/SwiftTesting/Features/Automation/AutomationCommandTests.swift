@@ -11,6 +11,12 @@ import Testing
         ("keyameleon-dev://Pause", .pause),
         ("keyameleon://select-input-source?id=com.apple.keylayout.US", .selectInputSource(.identifier("com.apple.keylayout.US"))),
         ("keyameleon://select-input-source?name=U.S.", .selectInputSource(.name("U.S."))),
+        ("keyameleon://set-external-change-response?value=switch-back", .setExternalChangeResponse(.switchBack)),
+        ("keyameleon://set-external-change-response?value=hold-until-match", .setExternalChangeResponse(.holdUntilMatch)),
+        (
+            "keyameleon://set-external-change-response?value=hold-until-keyboard-change",
+            .setExternalChangeResponse(.holdUntilKeyboardChange)
+        ),
     ]
 )
 func urlNamesCommand(url: String, command: AutomationCommand) throws {
@@ -24,6 +30,8 @@ func urlNamesCommand(url: String, command: AutomationCommand) throws {
         "keyameleon://",
         "keyameleon://select-input-source",
         "keyameleon://select-input-source?id=",
+        "keyameleon://set-external-change-response",
+        "keyameleon://set-external-change-response?value=holdUntilMatch",
     ]
 )
 func urlWithoutCommandIsRejected(url: String) throws {
@@ -99,4 +107,21 @@ func selectReportsFailedReadback() {
     #expect(throws: AutomationError.selectionFailed("Italian")) {
         try AutomationCommand.selectInputSource(.name("Italian")).perform(on: switching)
     }
+}
+
+@Test("Setting the External Change Response saves it")
+@MainActor
+func setExternalChangeResponseSavesIt() throws {
+    let setupStore = SetupModelTestSetupDecisionStore()
+    let model = makeLifecycleModel(
+        recordStore: InMemoryPhysicalKeyboardRecordStore(),
+        discoverer: SetupModelTestPhysicalKeyboardDiscoverer(),
+        setupStore: setupStore
+    )
+    startAndCheck(model)
+
+    try AutomationCommand.setExternalChangeResponse(.holdUntilKeyboardChange).perform(on: model.activityTriggeredSwitching)
+
+    #expect(model.activityTriggeredSwitching.externalChangeResponse == .holdUntilKeyboardChange)
+    #expect(setupStore.externalChangeResponse == .holdUntilKeyboardChange)
 }

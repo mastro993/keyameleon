@@ -24,8 +24,9 @@ The Release build registers `keyameleon://`; the Debug build registers `keyamele
 | `keyameleon://toggle-pause` | Pause or Resume Switching |
 | `keyameleon://select-input-source?id=com.apple.keylayout.US` | Select Input Source by identifier |
 | `keyameleon://select-input-source?name=U.S.` | Select Input Source by its exact name in Keyameleon's language |
+| `keyameleon://set-external-change-response?value=switch-back` | Set the External Change Response: `switch-back`, `hold-until-match` (Keep until matching keyboard), or `hold-until-keyboard-change` (Keep until another keyboard) |
 
-Actions are case-insensitive; `id` wins over `name`. A name matches only as Keyameleon shows it in its Input Source menus, which follow Keyameleon's language; with a per-app language that differs from macOS, the menu bar can show another name, so scripts that must not depend on language use `id`. A URL cannot return a value, so there is no URL for Get Active Keyboard and Input Source. An unknown action or a failed selection writes one `warning` line to the Log File and shows nothing, because Keyameleon has no notifications.
+Actions are case-insensitive; `id` wins over `name`. A name matches only as Keyameleon shows it in its Input Source menus, which follow Keyameleon's language; with a per-app language that differs from macOS, the menu bar can show another name, so scripts that must not depend on language use `id`. A URL cannot return a value, so there is no URL for Get Active Keyboard and Input Source. Setting the External Change Response is a URL only, with no Shortcuts action yet; it saves the choice exactly like the General settings picker, so changing it ends any Input Source Hold. An unknown action or a failed selection writes one `warning` line to the Log File and shows nothing, because Keyameleon has no notifications.
 
 ## Selecting an Input Source
 
