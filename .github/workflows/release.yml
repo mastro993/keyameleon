@@ -111,61 +111,7 @@ jobs:
           RELEASE_TYPE: ${{ inputs.release_type }}
           SOURCE_SHA: ${{ github.sha }}
           VERSION: ${{ needs.verify.outputs.version }}
-        run: |
-          set -euo pipefail
-          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
-          expected_subject="chore(release): ${VERSION}"
-          git fetch origin "${DEFAULT_BRANCH}"
-          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
-
-          if [[ "${remote_sha}" != "${SOURCE_SHA}" ]]; then
-            remote_parent="$(git log -1 --format=%P "${remote_sha}")"
-            remote_subject="$(git log -1 --format=%s "${remote_sha}")"
-            remote_files="$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)"
-            if [[ "${remote_parent}" == "${SOURCE_SHA}" && \
-                  "${remote_subject}" == "${expected_subject}" && \
-                  "${remote_files}" == "${expected_files}" ]]; then
-              git checkout --detach "${remote_sha}"
-              grep -Fxq "    MARKETING_VERSION: \"${VERSION}\"" project.yml
-              echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
-              echo "reused=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            echo "main changed before the release bump; dispatch again from current main" >&2
-            exit 1
-          fi
-
-          artifact_count="$(gh api --paginate --slurp \
-            "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-            | jq --arg name "official-release-${VERSION}" '[.[].artifacts[] | select(.name == $name)] | length')"
-          test "${artifact_count}" = 0
-          remote_tag="$(git ls-remote --tags origin "refs/tags/${TAG}")"
-          test -z "${remote_tag}"
-          release_id="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" \
-            --jq '.[] | select(.tag_name == "'"${TAG}"'") | .id')"
-          test -z "${release_id}"
-
-          calculated="$(python3 Scripts/release-version.py "${RELEASE_TYPE}" --write)"
-          if [[ "${calculated}" != "${VERSION}" ]]; then
-            echo "release version changed: expected ${VERSION}, got ${calculated}" >&2
-            exit 1
-          fi
-
-          xcodegen generate --spec project.yml
-          git diff --check
-          changed_files="$(git diff --name-only | sort)"
-          if [[ "${changed_files}" != "${expected_files}" ]]; then
-            echo "unexpected release-bump files:" >&2
-            printf '%s\n' "${changed_files}" >&2
-            exit 1
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add project.yml Keyameleon.xcodeproj/project.pbxproj
-          git commit -m "chore(release): ${VERSION}"
-          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "reused=false" >> "$GITHUB_OUTPUT"
+        run: bash Scripts/prepare-release-bump.sh
 
       - name: Push version commit to main
         if: steps.bump.outputs.reused != 'true'
@@ -192,25 +138,7 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           SOURCE_SHA: ${{ github.sha }}
           VERSION: ${{ needs.verify.outputs.version }}
-        run: |
-          set -euo pipefail
-          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
-          for attempt in {1..180}; do
-            git fetch origin "${DEFAULT_BRANCH}"
-            remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
-            if [[ "${remote_sha}" != "${SOURCE_SHA}" ]]; then
-              test "$(git log -1 --format=%P "${remote_sha}")" = "${SOURCE_SHA}"
-              test "$(git log -1 --format=%s "${remote_sha}")" = "chore(release): ${VERSION}"
-              test "$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)" = "${expected_files}"
-              git show "${remote_sha}:project.yml" | grep -Fxq "    MARKETING_VERSION: \"${VERSION}\""
-              echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            echo "attempt ${attempt}: waiting for the release bump on main" >&2
-            sleep 10
-          done
-          echo "timed out waiting for the release bump on main" >&2
-          exit 1
+        run: bash Scripts/wait-for-release-bump.sh
 
       - name: Checkout validated version commit
         env:
@@ -223,26 +151,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.verify.outputs.version }}
           TAG: ${{ needs.verify.outputs.tag }}
-        run: |
-          set -euo pipefail
-          artifact_name="official-release-${VERSION}"
-          artifact_id="$(gh api --paginate --slurp \
-            "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-            | jq -r --arg name "${artifact_name}" '[.[].artifacts[] | select(.name == $name)] |
-              if length == 0 then ""
-              elif length != 1 or .[0].expired then error("saved release artifact is ambiguous or expired")
-              else .[0].id end')"
-          if [[ -n "${artifact_id}" ]]; then
-            gh run download "${GITHUB_RUN_ID}" --name "${artifact_name}" --dir dist
-            echo "restored=true" >> "$GITHUB_OUTPUT"
-          else
-            remote_tag="$(git ls-remote --tags origin "refs/tags/${TAG}")"
-            test -z "${remote_tag}"
-            release_id="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" \
-              --jq '.[] | select(.tag_name == "'"${TAG}"'") | .id')"
-            test -z "${release_id}"
-            echo "restored=false" >> "$GITHUB_OUTPUT"
-          fi
+        run: bash Scripts/restore-release-artifacts.sh
 
       - name: Install XcodeGen
         if: steps.saved.outputs.restored != 'true'
@@ -306,16 +215,7 @@ jobs:
           VERSION: ${{ needs.verify.outputs.version }}
           TAG: ${{ needs.verify.outputs.tag }}
           COMMIT: ${{ steps.bump.outputs.commit }}
-        run: |
-          set -euo pipefail
-          test -s "dist/Keyameleon-${VERSION}.dmg"
-          test -s dist/appcast.xml
-          test -s dist/release-evidence.json
-          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["gitCommit"])')" = "$COMMIT"
-          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["tag"])')" = "$TAG"
-          python3 Scripts/verify-release-appcast.py \
-            --appcast dist/appcast.xml --evidence dist/release-evidence.json \
-            --artifact "dist/Keyameleon-${VERSION}.dmg"
+        run: bash Scripts/verify-release-bundle.sh
 
       - name: Upload workflow artifacts
         if: steps.saved.outputs.restored != 'true'
@@ -348,25 +248,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.verify.outputs.version }}
-        run: |
-          set -euo pipefail
-          artifact_name="official-release-${VERSION}"
-          for attempt in {1..180}; do
-            artifact_id="$(gh api --paginate --slurp \
-              "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-              | jq -r --arg name "${artifact_name}" '[.[].artifacts[] | select(.name == $name)] |
-                if length == 0 then ""
-                elif length != 1 or .[0].expired then error("saved release artifact is ambiguous or expired")
-                else .[0].id end')"
-            if [[ -n "${artifact_id}" ]]; then
-              gh run download "${GITHUB_RUN_ID}" --name "${artifact_name}" --dir dist
-              exit 0
-            fi
-            echo "attempt ${attempt}: waiting for the saved release artifact" >&2
-            sleep 30
-          done
-          echo "timed out waiting for the saved release artifact" >&2
-          exit 1
+        run: bash Scripts/wait-for-release-artifacts.sh
 
       - name: Validate published version commit
         id: bump
@@ -374,32 +256,14 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           SOURCE_SHA: ${{ github.sha }}
           VERSION: ${{ needs.verify.outputs.version }}
-        run: |
-          set -euo pipefail
-          git fetch origin "${DEFAULT_BRANCH}"
-          remote_sha="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
-          test "$(git log -1 --format=%P "${remote_sha}")" = "${SOURCE_SHA}"
-          test "$(git log -1 --format=%s "${remote_sha}")" = "chore(release): ${VERSION}"
-          expected_files="$(printf '%s\n' Keyameleon.xcodeproj/project.pbxproj project.yml | sort)"
-          test "$(git diff-tree --no-commit-id --name-only -r "${remote_sha}" | sort)" = "${expected_files}"
-          git show "${remote_sha}:project.yml" | grep -Fxq "    MARKETING_VERSION: \"${VERSION}\""
-          echo "commit=${remote_sha}" >> "$GITHUB_OUTPUT"
+        run: bash Scripts/verify-release-bump.sh
 
       - name: Require complete artifact bundle
         env:
           VERSION: ${{ needs.verify.outputs.version }}
           TAG: ${{ needs.verify.outputs.tag }}
           COMMIT: ${{ steps.bump.outputs.commit }}
-        run: |
-          set -euo pipefail
-          test -s "dist/Keyameleon-${VERSION}.dmg"
-          test -s dist/appcast.xml
-          test -s dist/release-evidence.json
-          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["gitCommit"])')" = "$COMMIT"
-          test "$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["tag"])')" = "$TAG"
-          python3 Scripts/verify-release-appcast.py \
-            --appcast dist/appcast.xml --evidence dist/release-evidence.json \
-            --artifact "dist/Keyameleon-${VERSION}.dmg"
+        run: bash Scripts/verify-release-bundle.sh
 
       - name: Prepare Official Release tag and notes
         env:
@@ -408,26 +272,8 @@ jobs:
           VERSION: ${{ needs.verify.outputs.version }}
           TAG: ${{ needs.verify.outputs.tag }}
           COMMIT: ${{ steps.bump.outputs.commit }}
-        run: |
-          set -euo pipefail
-          # The notes script excludes TAG if this job is resuming after the tag
-          # was created but before the GitHub Release was published.
-          CHANGES="$(./Scripts/official-release-notes.sh --tag "$TAG" --head "${{ github.sha }}")"
-          printf '%s\n' "$CHANGES" >"$RUNNER_TEMP/release-notes.md"
-          printf '\nPermanent release evidence: https://mastro993.github.io/keyameleon/releases/%s/release-evidence.json\n' "$TAG" >>"$RUNNER_TEMP/release-notes.md"
-
-          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
-            tagged_commit="$(git ls-remote --tags origin "refs/tags/${TAG}^{}" | awk '{print $1}')"
-            if [[ "${tagged_commit}" != "$COMMIT" ]]; then
-              echo "existing tag ${TAG} does not point to the release commit" >&2
-              exit 1
-            fi
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag -a "$TAG" "$COMMIT" -m "Keyameleon ${VERSION}"
-            git push origin "$TAG"
-          fi
+          SOURCE_SHA: ${{ github.sha }}
+        run: bash Scripts/tag-official-release.sh
 
       - name: Publish and verify downloadable DMG
         env:
@@ -455,30 +301,7 @@ jobs:
       - name: Verify published feed and enclosure
         env:
           VERSION: ${{ needs.verify.outputs.version }}
-        run: |
-          set -euo pipefail
-          feed_url="$(python3 -c 'import json; print(json.load(open("dist/release-evidence.json"))["feedURLString"])')"
-          archive="Keyameleon-${VERSION}.dmg"
-          tag="v${VERSION}"
-          evidence_url="https://mastro993.github.io/keyameleon/releases/${tag}/release-evidence.json"
-          for attempt in {1..20}; do
-            if curl -fsSL -o "$RUNNER_TEMP/published-appcast.xml" "$feed_url" 2>/dev/null && \
-              cmp -s "$RUNNER_TEMP/published-appcast.xml" dist/appcast.xml && \
-              curl -fsSL -o "$RUNNER_TEMP/published-evidence.json" "$evidence_url" 2>/dev/null && \
-              cmp -s "$RUNNER_TEMP/published-evidence.json" dist/release-evidence.json && \
-              python3 Scripts/verify-release-appcast.py \
-                --appcast "$RUNNER_TEMP/published-appcast.xml" \
-                --expected-appcast dist/appcast.xml \
-                --evidence "$RUNNER_TEMP/published-evidence.json" \
-                --artifact "$RUNNER_TEMP/release-asset/${archive}"; then
-              echo "feed ${feed_url} and evidence ${evidence_url} serve verified ${VERSION} enclosure"
-              exit 0
-            fi
-            echo "attempt ${attempt}: ${feed_url} does not serve verified ${VERSION} enclosure yet" >&2
-            sleep 6
-          done
-          echo "feed ${feed_url} does not serve verified ${VERSION} enclosure" >&2
-          exit 1
+        run: bash Scripts/verify-published-release.sh
 
       # The tap deploy key can write only to mastro993/homebrew-tap.
       - name: Check out Homebrew tap

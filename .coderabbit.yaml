@@ -90,99 +90,6 @@ reviews:
         If behavior changes, the matching section of docs/choices.md, docs/testing.md, or docs/development.md
         must change in the same PR.
 
-    - path: "Sources/**/*.swift"
-      instructions: |
-        Review against AGENTS.md and the project's strict Swift 6 settings (complete concurrency checking,
-        warnings as errors). Focus on:
-        - Concurrency: `@Observable` types are `@MainActor`; no GCD (`DispatchQueue`), no `Task.sleep(nanoseconds:)`;
-          prefer async/await over callbacks; check cancellation, actor hops, `Sendable` correctness, unstructured
-          `Task` lifetimes, and retain cycles in long-lived tasks or CoreHID streams.
-        - State: shared data uses `@Observable` with `@State`, `@Bindable`, or `@Environment`; flag new
-          `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`.
-        - Safety: no force unwraps or `try!` unless the failure is truly unrecoverable; no `print`, `NSLog`, or
-          `os_log` (use `Log`); no `CFArrayGetValueAtIndex` (bridge CF arrays to Swift arrays).
-        - Modern APIs: Swift-native string methods (`replacing(_:with:)`), `URL.documentsDirectory` and
-          `appending(path:)`, `FormatStyle` instead of `Formatter` subclasses or `String(format:)`,
-          `localizedStandardContains()` for user-input filtering.
-        - Structure: one type per file, files grouped by feature folder, view logic in testable models.
-        - SwiftUI, from AGENTS.md: `foregroundStyle()`, `clipShape(.rect(cornerRadius:))`, two-parameter or
-        zero-parameter `onChange`, `Button` instead of `onTapGesture` unless tap location or count matters,
-        no computed-property subviews (extract a `View` struct), no fixed font sizes (Dynamic Type), no
-        hard-coded padding or stack spacing unless the design requires it, no `AnyView`, no `GeometryReader`
-        when `containerRelativeFrame()` or `visualEffect()` works, no AppKit colors, `ForEach(x.enumerated(), ...)`
-        without `Array(...)`, `.scrollIndicators(.hidden)`, `ScrollPosition` over `ScrollViewReader`,
-        and image buttons with a text label. Settings and Guided setup selectors must use `PopUpPicker`
-        (`NSPopUpButton` + `.flexiblePush`); SwiftUI `Picker` and bordered `Menu` in a grouped `Form` hide
-        the System Settings pop-up box at rest on macOS 26. Check accessibility: VoiceOver labels and values,
-        Reduce Motion, Increase Contrast, and larger text without clipping. Colors and type come from `Theme`;
-        Guided setup and Settings must not drift apart. Each view owns its user-visible strings; domain types
-        expose typed facts, not text.
-        Do not repeat SwiftLint findings (file and function length, naming) unless they hide a real defect.
-
-    - path: "Sources/Features/ActivityTriggeredSwitching/**"
-      instructions: |
-        This is the core of the product. Check against docs/choices.md "Activity-Triggered Switching",
-        "Physical Keyboards", and "Input Monitoring permission":
-        - Only Activation Activity (key press or repeat) makes a Physical Keyboard active; release-only events do
-          not. The Active Physical Keyboard is never persisted.
-        - Switching requests the exact assigned Input Source and reads it back to verify; requests are serialized
-          in observation order and tagged with a generation so stale readbacks are discarded. A failed readback
-          restores the previous Input Source. There is no timed retry loop.
-        - Never fight a manual Input Source change; the next Activation Activity reapplies the assignment.
-        - An Unavailable Keyboard Assignment is kept; nothing is selected in its place.
-        - A Physical Keyboard Exclusion produces no Activation Activity, warnings, or retries, and is a filter,
-          not a deletion. The built-in keyboard can never be excluded.
-        - Physical Keyboard Identity must stay stable and unique; CoreHID software IDs are not identity. A changed
-          identity never moves or deletes saved data, except the one-time built-in migration in ADR 0003.
-        - Switching Status priority: Permission Required, Temporarily Unavailable, Paused, Ready.
-        - Assignments apply only after Guided setup completes (`appliesKeyboardAssignments`).
-        - CoreHID streams resubscribe after non-cancellation exits with a one-second delay.
-        Flag any path where Key Content could be stored, logged, or kept beyond classification.
-
-    - path: "Sources/**/*{Store,Persistence,SavedPhysicalKeyboardChange}*.swift"
-      instructions: |
-        Persistence rules (docs/choices.md "Persistence"): records and designations share one explicit SwiftData
-        transaction with autosave off; a change reports success only after the whole transaction saves; failures
-        roll back and keep the request for an exact Retry. Unreadable data keeps the last good state and shows a
-        Retry notice; never delete, recreate, or substitute an in-memory store at runtime. Any SwiftData model
-        change must come with a migration and tests. Renamed or removed UserDefaults keys and Keychain items need
-        an explicit migration story for installed releases. Debug builds have their own identity and data
-        (docs/adr/0008-separate-debug-identity.md); storage paths must follow the bundle ID, not the display name.
-
-    - path: "Sources/Features/Shared/Log*.swift"
-      instructions: |
-        The Log File never contains Key Content, Physical Keyboard Identity values, file paths, or system error
-        text; keyboard lines use the Physical Keyboard Name. Writing is best effort and must never block or
-        interrupt switching. Check rotation (1 MiB, five files), `O_APPEND` handling, and that nothing is written
-        before `Log.start`.
-
-    - path: "Sources/Features/Menu/**"
-      instructions: |
-        The status item owns a native `NSMenu`; it stays on `NSStatusItem`, not `MenuBarExtra`. The middle region
-        shows either the keyboard list or one notice, never both. Notice buttons must be native `NSButton`s that
-        work during menu tracking and stay keyboard-activatable. Every command closes the menu. Ordinary updates
-        reuse the hosting view to keep the scroll position. Compare with docs/choices.md "Menu bar menu".
-
-    - path: "Sources/Features/Onboarding/**"
-      instructions: |
-        Guided setup has three saved stages (Permissions, Keyboards, Ready). Permission UI follows the real
-        `IOHIDCheckAccess` decision, not a stored flag. Completion is saved first and handled once. Until setup
-        completes, there is no status item and no Input Source is selected. Check docs/choices.md "Guided setup"
-        and "Input Monitoring permission", and that the footer stays reachable with large text.
-
-    - path: "Sources/Features/About/**"
-      instructions: |
-        Updates use Sparkle 2 and must match `UpdatePolicy` and `Info.plist`: checks at most every 24 hours,
-        automatic download and install off, no system profiling. Debug and CI builds never start Sparkle. Flag
-        any change to the appcast URL or `SUPublicEDKey` handling.
-
-    - path: "Sources/App/**"
-      instructions: |
-        Composition root and app shell. Hosted test processes must not start CoreHID observation, the lifecycle
-        observer, the status item, Guided setup, or Sparkle (ADR 0005). Only one Keyameleon process runs per Mac
-        (ADR 0002); do not weaken the single-instance lock. `Info.plist` must keep
-        `NSInputMonitoringUsageDescription`.
-
     - path: "Tests/SwiftTesting/**/*.swift"
       instructions: |
         Swift Testing for domain and model seams (`@Test`, `#expect`, `#require`). Each test protects one
@@ -200,15 +107,6 @@ reviews:
       instructions: |
         Python tests for CI and release tooling. They must not hit the network, real signing identities, or the
         user's home directory. Prefer temporary directories and explicit fixtures.
-
-    - path: "Scripts/**/*.sh"
-      instructions: |
-        Bash under `set -euo pipefail`. Check quoting, failure propagation through pipes and subshells, and that
-        destructive steps (`run.sh reset`, `tccutil`, LaunchServices unregistering, deleting data folders) target
-        only Keyameleon's own bundle IDs and paths, and that the default `run.sh reset` never touches the
-        release identity (docs/adr/0008-separate-debug-identity.md). The safety audit in `run.sh` is a security
-        control; flag any weakening of its patterns. Release scripts must keep releases immutable: an existing version fails and
-        retries reuse the exact signed bytes. Secrets never reach logs or command arguments visible in CI output.
 
     - path: "Scripts/**/*.py"
       instructions: |
@@ -306,7 +204,7 @@ reviews:
         instructions: |
           If the PR changes user-visible behavior, persisted data, permissions, logging, updates, CI, or the
           release process, the section of docs/choices.md, docs/testing.md, docs/development.md, or
-          docs/release/official-release.md that describes it must be updated in the same PR. Pass when no
+          docs/release/ that describes it must be updated in the same PR. Pass when no
           documented behavior changed.
       - name: UI change evidence
         mode: warning
@@ -359,6 +257,27 @@ knowledge_base:
       - docs/testing.md
       - docs/development.md
       - "docs/adr/*.md"
+      - "docs/choices/*.md"
+      - "docs/testing/*.md"
+      # Per-path review guidelines moved out of reviews.path_instructions.
+      - files: docs/review/swift-sources.md
+        applyTo: "Sources/**/*.swift"
+      - files: docs/review/activity-triggered-switching.md
+        applyTo: "Sources/Features/ActivityTriggeredSwitching/**"
+      - files: docs/review/persistence.md
+        applyTo: "Sources/**/*{Store,Persistence,SavedPhysicalKeyboardChange}*.swift"
+      - files: docs/review/logging.md
+        applyTo: "Sources/Features/Shared/Log*.swift"
+      - files: docs/review/menu-bar-menu.md
+        applyTo: "Sources/Features/Menu/**"
+      - files: docs/review/guided-setup.md
+        applyTo: "Sources/Features/Onboarding/**"
+      - files: docs/review/updates.md
+        applyTo: "Sources/Features/About/**"
+      - files: docs/review/app-shell.md
+        applyTo: "Sources/App/**"
+      - files: docs/review/shell-scripts.md
+        applyTo: "Scripts/**/*.sh"
   learnings:
     scope: local
   issues:

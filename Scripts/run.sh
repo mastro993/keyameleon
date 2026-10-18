@@ -33,8 +33,8 @@ audit_sources() {
     )
     local log_call_paths=(
         Sources/App/ApplicationDelegate.swift
-        Sources/Features/ActivityTriggeredSwitching/ActivityTriggeredSwitching.swift
-        Sources/Features/Shared/SetupModel.swift
+        Sources/Features/ActivityTriggeredSwitching/ActivityTriggeredSwitching*.swift
+        Sources/Features/Shared/SetupModel*.swift
         Sources/Features/Shared/GeneralSettingsModel.swift
     )
     local key_content_path='KeyContent|rawReport|interpretedText|modifierState'
@@ -56,7 +56,7 @@ audit_sources() {
         return 1
     fi
 
-    if grep -REn --exclude='*.py' 'CFArrayGetValueAtIndex' Sources Tests; then
+    if grep -REn --exclude='*.py' --exclude-dir=__pycache__ 'CFArrayGetValueAtIndex' Sources Tests; then
         print -u2 "raw CFArray element access found; bridge the array so its elements stay owned"
         return 1
     fi
@@ -127,14 +127,13 @@ kill_leftover_derived_data_keyameleon() {
 
 run_tests() {
     local script test_status=0
-    for script in \
-        Scripts/official-release-notes.sh \
-        Scripts/publish-release-pages.sh \
-        Scripts/verify-official-release-tag.sh \
-        Scripts/write-release-evidence.sh; do
-        bash -n "$script" || return $?
+    for script in Scripts/*.sh; do
+        if [[ "$(head -n 1 "$script")" == *zsh ]]; then
+            zsh -n "$script" || return $?
+        else
+            bash -n "$script" || return $?
+        fi
     done
-    zsh -n Scripts/official-release.sh
     python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
     kill_leftover_derived_data_keyameleon
 

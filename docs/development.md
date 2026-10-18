@@ -109,7 +109,7 @@ Use the glossary in [`CONTEXT.md`](../CONTEXT.md) when naming domain concepts, a
 
 ## Localization
 
-User-visible strings live in [`Resources/Localization/Localizable.xcstrings`](../Resources/Localization/Localizable.xcstrings); `Info.plist` strings live in `InfoPlist.xcstrings` beside it. See [Localization](choices.md#localization) for the languages and rules.
+User-visible strings live in [`Resources/Localization/Localizable.xcstrings`](../Resources/Localization/Localizable.xcstrings); `Info.plist` strings live in `InfoPlist.xcstrings` beside it. See [Localization](choices/localization.md) for the languages and rules.
 
 To add or change a string:
 

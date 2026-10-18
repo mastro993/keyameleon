@@ -336,9 +336,3 @@ final class InMemoryPhysicalKeyboardRecordStore: PhysicalKeyboardRecordStoring {
         onChange?()
     }
 }
-
-private extension String {
-    var nilIfEmpty: String? {
-        isEmpty ? nil : self
-    }
-}

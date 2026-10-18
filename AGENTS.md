@@ -30,7 +30,7 @@ SwiftUI details the linter cannot see still follow the existing screens: extract
 
 1. **Copy matches the UI that exists.** Do not name buttons, notices, or recovery paths that are not on screen. Prefer whole localized strings over fragments. User-facing strings live in `Resources/Localization` with manual keys (`Text(.key)`).
 2. **Persistence fails closed.** Never delete, recreate, or substitute unreadable user data. Never import `Application Support/default.store` into a Debug identity. Leave mixed or foreign SwiftData stores alone.
-3. **Physical Keyboard Identity** follows [`docs/choices.md`](docs/choices.md): serial number, else Bluetooth address, else vendor and product IDs (both nonzero). CoreHID software IDs are not identity. A changed identity never moves saved data, except the one-time built-in migration in ADR 0003.
+3. **Physical Keyboard Identity** follows [`docs/choices/physical-keyboards.md`](docs/choices/physical-keyboards.md#identity): serial number, else Bluetooth address, else vendor and product IDs (both nonzero). CoreHID software IDs are not identity. A changed identity never moves saved data, except the one-time built-in migration in ADR 0003.
 4. **Do not merge Debug and Release identities** (ADR 0008). macOS keeps one Input Monitoring row per bundle ID; a shared ID has wiped grants and user data.
 5. **Settings and Guided setup selectors** use `PopUpPicker` (`NSPopUpButton` + `.flexiblePush`). SwiftUI `Picker` and bordered `Menu` in a grouped `Form` hide the System Settings pop-up box at rest on macOS 26.
 6. **Behavior changes** update `docs/choices.md` and `docs/testing.md` in the same PR, and add a regression that failed before the fix.
