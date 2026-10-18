@@ -39,18 +39,51 @@ class PreCommitSizeLimitTests(unittest.TestCase):
         self.assertIn("Sources/Big.swift: 20,001 bytes", result.stderr)
         self.assertIn("Move each group into its own file", result.stderr)
 
-    def test_allows_limit_binary_exempt_and_unstaged_content(self):
-        self.stage(".gitattributes", b"gen/** linguist-generated\nvendor/** linguist-vendored\n")
+    def assertAccepted(self):
+        result = self.run_hook()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def assertRejected(self, path):
+        result = self.run_hook()
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn(f"{path}: ", result.stderr)
+
+    def test_allows_file_at_limit(self):
         self.stage("Sources/AtLimit.swift", b"a" * LIMIT_BYTES)
+
+        self.assertAccepted()
+
+    def test_allows_binary_content_and_binary_attribute(self):
+        self.stage(".gitattributes", b"*.dat binary\n")
         self.stage("Resources/image.png", b"\0" * (LIMIT_BYTES * 2))
+        self.stage("Resources/blob.dat", b"a" * (LIMIT_BYTES * 2))
+
+        self.assertAccepted()
+
+    def test_allows_generated_and_vendored_paths(self):
+        self.stage(".gitattributes", b"gen/** linguist-generated\nvendor/** linguist-vendored=true\n")
         self.stage("gen/Output.swift", b"a" * (LIMIT_BYTES * 2))
         self.stage("vendor/skill.md", b"a" * (LIMIT_BYTES * 2))
+
+        self.assertAccepted()
+
+    def test_rejects_paths_with_exemption_set_to_false(self):
+        self.stage(".gitattributes", b"Sources/** linguist-generated=false linguist-vendored=false\n")
+        self.stage("Sources/Big.swift", b"a" * (LIMIT_BYTES + 1))
+
+        self.assertRejected("Sources/Big.swift")
+
+    def test_ignores_oversized_unstaged_edits(self):
         self.stage("Sources/Edited.swift", b"small")
         (self.repo / "Sources/Edited.swift").write_bytes(b"a" * (LIMIT_BYTES * 2))
 
-        result = self.run_hook()
+        self.assertAccepted()
 
-        self.assertEqual(result.returncode, 0, result.stderr)
+    def test_ignores_unstaged_gitattributes(self):
+        self.stage("Sources/Big.foo", b"a" * (LIMIT_BYTES + 1))
+        (self.repo / ".gitattributes").write_bytes(b"*.foo binary linguist-generated\n")
+
+        self.assertRejected("Sources/Big.foo")
 
     def test_repository_exempts_codegen_lockfiles_and_vendored_skills(self):
         paths = (

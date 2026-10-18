@@ -42,42 +42,50 @@ def git(*args: str) -> str:
     ).stdout
 
 
-def staged_text_files() -> list[str]:
-    # numstat prints "-\t-\tpath" for binary files.
-    rows = git(
-        "diff", "--cached", "--numstat", "-z", "--no-renames", "--diff-filter=ACMR"
-    ).split("\0")
-    return [
-        path
-        for added, _, path in (row.split("\t", 2) for row in rows if row)
-        if added != "-"
-    ]
+def staged_blob(path: str) -> bytes:
+    return subprocess.run(
+        ("git", "cat-file", "blob", f":{path}"), capture_output=True, check=True
+    ).stdout
+
+
+def staged_files() -> list[str]:
+    output = git(
+        "diff", "--cached", "--name-only", "-z", "--no-renames", "--diff-filter=ACMR"
+    )
+    return [path for path in output.split("\0") if path]
 
 
 def exempt_paths(paths: list[str]) -> set[str]:
+    """Paths the staged .gitattributes mark generated, vendored, or binary."""
     if not paths:
         return set()
-    # -z output: path, attribute, value, repeated.
+    # --cached ignores unstaged .gitattributes edits. -z output: path, attribute, value.
     fields = git(
-        "check-attr", "--cached", "-z", *EXEMPT_ATTRIBUTES, "--", *paths
+        "check-attr", "--cached", "-z", *EXEMPT_ATTRIBUTES, "diff", "--", *paths
     ).split("\0")
     return {
         path
-        for path, _, value in zip(fields[0::3], fields[1::3], fields[2::3])
-        if value not in ("unspecified", "unset")
+        for path, attribute, value in zip(fields[0::3], fields[1::3], fields[2::3])
+        if (attribute == "diff" and value == "unset")
+        or (attribute in EXEMPT_ATTRIBUTES and value in ("set", "true"))
     }
 
 
+def is_binary(blob: bytes) -> bool:
+    # Git's own heuristic: a NUL byte in the first 8,000 bytes.
+    return b"\0" in blob[:8000]
+
+
 def main() -> int:
-    paths = staged_text_files()
+    paths = staged_files()
     exempt = exempt_paths(paths)
     oversized = []
     for path in paths:
         if path in exempt:
             continue
-        size = int(git("cat-file", "-s", f":{path}"))
-        if size > MAX_BYTES:
-            oversized.append((path, size))
+        blob = staged_blob(path)
+        if len(blob) > MAX_BYTES and not is_binary(blob):
+            oversized.append((path, len(blob)))
 
     if not oversized:
         return 0
