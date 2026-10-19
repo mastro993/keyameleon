@@ -6,16 +6,18 @@ struct KeyameleonApp: App {
     private var applicationDelegate
 
     var body: some Scene {
+        // The App protocol needs a scene; ⌘, opens the toolbar Settings window instead.
         Settings {
-            SettingsView(
-                model: applicationDelegate.generalSettingsModel,
-                setupModel: applicationDelegate.setupModel,
-                appAssignmentsModel: applicationDelegate.appAssignmentsModel,
-                selection: applicationDelegate.settingsSelection
-            )
+            EmptyView()
         }
         .commands {
             CommandGroup(replacing: .appInfo) {}
+            CommandGroup(replacing: .appSettings) {
+                Button(.settings) {
+                    applicationDelegate.openSettings(nil)
+                }
+                .keyboardShortcut(",")
+            }
         }
     }
 }

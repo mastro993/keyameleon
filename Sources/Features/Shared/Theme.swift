@@ -12,8 +12,6 @@ enum Theme {
     static let windowBackground = Color("OnboardingBackground")
     /// The Settings content pane behind its groups.
     static let contentBackground = Color("ContentBackground")
-    /// The Settings sidebar the navigation sits on.
-    static let sidebarBackground = Color("SidebarBackground")
     /// The softer surface Guided setup uses behind requirement and preview blocks.
     static let surface = Color("OnboardingSurface")
     static let primary = Color("OnboardingPrimary")
@@ -60,10 +58,6 @@ enum Theme {
         static let body = Font.body
         /// `type-body`, medium: a row title such as a Physical Keyboard Name.
         static let rowTitle = Font.body.weight(.medium)
-        /// `type-body`, medium: the selected sidebar item.
-        static let navigationLabelSelected = Font.body.weight(.medium)
-        /// `type-body`, semibold: the sidebar mark and other emphasised body text.
-        static let bodyStrong = Font.body.weight(.semibold)
         /// `type-callout`, regular: explanations, help, and credits.
         static let caption = Font.callout
         /// `type-subheadline`, regular: connection status and folder paths.
@@ -77,18 +71,11 @@ enum Theme {
     // MARK: Metrics
 
     enum Metrics {
-        /// The smallest Settings window the Pencil design allows.
-        static let settingsWindowMinimumWidth: CGFloat = 840
-        static let settingsWindowMinimumHeight: CGFloat = 560
-        static let sidebarWidth: CGFloat = 220
-        /// The sidebar's top inset, measured from the bottom of the native title bar.
-        static let sidebarTopInset: CGFloat = 24
+        /// The smallest Settings content, below the toolbar.
+        static let settingsWindowMinimumWidth: CGFloat = 620
+        static let settingsWindowMinimumHeight: CGFloat = 500
         /// The spacing between the Settings content pane's blocks.
         static let paneSpacing: CGFloat = 20
-        /// The sidebar navigation item and the Input Source picker.
-        static let controlRadius: CGFloat = 6
-        static let navigationItemHeight: CGFloat = 34
-        static let navigationItemSpacing: CGFloat = 4
         /// Row padding for a Settings keyboard row drawn outside a grouped Form, such as a preview.
         /// Settings lists use the platform's own row insets.
         static let settingsKeyboardRowPadding = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)

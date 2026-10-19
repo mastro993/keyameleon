@@ -34,10 +34,10 @@ Checklists for [Manual verification](../testing.md#manual-verification).
 
 **Window and navigation**
 
-- Open Settings from the menu bar and from the end of Guided setup. Reopening returns to the last pane. Panes are General, Keyboards, Apps, and About, in that order.
-- Select each sidebar row, then move between panes with the arrow keys. Check the blue selection, filled icon, keycap identity, and sidebar surface in active and inactive windows. Sidebar items report their selected state to VoiceOver.
-- The window does not shrink below 840 × 560.
-- All panes share one spacing policy: the same left edge for section headers and rows, native row insets, and the same outer margin. At 840 × 560, the Keyboards empty and persistence-failure states line up with the populated list's header.
+- Open Settings from the menu bar, from the end of Guided setup, and with ⌘, while Keyameleon is active. Every path shows the same single window. Reopening returns to the last pane. Toolbar items are General, Keyboards, Apps, and About, in that order.
+- Select each toolbar item. The item highlights, the pane changes, and the window title becomes the pane name, in active and inactive windows. VoiceOver reads each toolbar item and its selected state.
+- The content does not shrink below 620 × 500.
+- All panes share one spacing policy: the same left edge for section headers and rows, native row insets, and the same outer margin. At 620 × 500, the Keyboards empty and persistence-failure states line up with the populated list's header.
 
 **General**
 
@@ -75,6 +75,6 @@ Checklists for [Manual verification](../testing.md#manual-verification).
 - Shows the app icon, name, tagline, information rows, Sparkle acknowledgement, and creator credit. The identity sits on the pane background and the credit scrolls into view.
 - Version matches the running build.
 - `View on GitHub` and `@fedemas` open the browser. `Open in Finder` creates and opens both folders, whose paths stay selectable. The license rows open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt`. `Check for Updates…` is disabled while Sparkle cannot check.
-- Larger text does not clip sidebar labels or folder paths.
+- Larger text does not clip toolbar labels or folder paths.
 
-**Previews.** The named previews in `Sources/Features/Configuration/SettingsView.swift` cover all three panes and the empty Keyboards state in light and dark, and at 840 × 560 with large text and many keyboards. Compare them with the Pencil frames `Settings / General`, `Settings / Keyboards`, `Settings / About`, and `Settings / Keyboards / Empty` in `design/design.pen`.
+**Previews.** The named previews in `Sources/Features/Configuration/SettingsView.swift` cover all three panes and the empty Keyboards state in light and dark, and at 620 × 500 with large text and many keyboards. The toolbar is native, so previews show only the pane. Compare the panes with the Pencil frames `Settings / General`, `Settings / Keyboards`, `Settings / About`, and `Settings / Keyboards / Empty` in `design/design.pen`.

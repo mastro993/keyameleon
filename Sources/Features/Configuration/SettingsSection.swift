@@ -18,13 +18,13 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
-    /// The symbol the sidebar shows. A selected section takes the filled variant.
-    func systemImage(isSelected: Bool) -> String {
+    /// The symbol the Settings toolbar shows.
+    var systemImage: String {
         switch self {
-        case .general: isSelected ? "gearshape.fill" : "gearshape"
-        case .keyboards: isSelected ? "keyboard.fill" : "keyboard"
-        case .apps: isSelected ? "square.grid.2x2.fill" : "square.grid.2x2"
-        case .about: isSelected ? "info.circle.fill" : "info.circle"
+        case .general: "gearshape"
+        case .keyboards: "keyboard"
+        case .apps: "square.grid.2x2"
+        case .about: "info.circle"
         }
     }
 }

@@ -1,7 +1,7 @@
-import AppKit
 import SwiftUI
 
-/// The Settings window: a fixed navigation sidebar beside the selected pane.
+/// The Settings content: the selected pane under any persistence failure notice.
+/// `SettingsWindowController` supplies the toolbar that changes the selection.
 @MainActor
 struct SettingsView: View {
     private let model: GeneralSettingsModel
@@ -25,21 +25,18 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            SettingsSidebar(selection: selection)
-            VStack(spacing: 0) {
-                PersistenceFailureNotice(model: setupModel)
-                pane
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            // The pane fills under the transparent title bar and supplies its own top inset.
-            .ignoresSafeArea(edges: .top)
-            .background(Theme.contentBackground, ignoresSafeAreaEdges: .all)
+        VStack(spacing: 0) {
+            PersistenceFailureNotice(model: setupModel)
+            pane
         }
         .frame(
             minWidth: Theme.Metrics.settingsWindowMinimumWidth,
-            minHeight: Theme.Metrics.settingsWindowMinimumHeight
+            maxWidth: .infinity,
+            minHeight: Theme.Metrics.settingsWindowMinimumHeight,
+            maxHeight: .infinity,
+            alignment: .topLeading
         )
+        .background(Theme.contentBackground)
         .onAppear(perform: model.refresh)
     }
 

@@ -92,7 +92,7 @@ Sources/
     ActivityTriggeredSwitching/  Keyboard discovery, event observation, Input Source selection, persistence
     Menu/                      Status item menu
     Onboarding/                Guided setup window
-    Configuration/             Settings window (General, Keyboards)
+    Configuration/             Settings window (General, Keyboards, Apps, About)
     About/                     About pane and updates
     Shared/                    Models, theme, logging, and views used by several features
 Tests/
