@@ -71,9 +71,9 @@ enum Theme {
     // MARK: Metrics
 
     enum Metrics {
-        /// The smallest Settings content, below the toolbar.
-        static let settingsWindowMinimumWidth: CGFloat = 620
-        static let settingsWindowMinimumHeight: CGFloat = 500
+        /// The fixed size of the Settings content, below the toolbar.
+        static let settingsWindowWidth: CGFloat = 620
+        static let settingsWindowHeight: CGFloat = 500
         /// The spacing between the Settings content pane's blocks.
         static let paneSpacing: CGFloat = 20
         /// Row padding for a Settings keyboard row drawn outside a grouped Form, such as a preview.

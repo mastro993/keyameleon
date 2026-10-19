@@ -30,10 +30,8 @@ struct SettingsView: View {
             pane
         }
         .frame(
-            minWidth: Theme.Metrics.settingsWindowMinimumWidth,
-            maxWidth: .infinity,
-            minHeight: Theme.Metrics.settingsWindowMinimumHeight,
-            maxHeight: .infinity,
+            width: Theme.Metrics.settingsWindowWidth,
+            height: Theme.Metrics.settingsWindowHeight,
             alignment: .topLeading
         )
         .background(Theme.contentBackground)

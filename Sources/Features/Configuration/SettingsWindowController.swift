@@ -22,10 +22,10 @@ final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
             contentRect: NSRect(
                 x: 0,
                 y: 0,
-                width: Theme.Metrics.settingsWindowMinimumWidth,
-                height: Theme.Metrics.settingsWindowMinimumHeight
+                width: Theme.Metrics.settingsWindowWidth,
+                height: Theme.Metrics.settingsWindowHeight
             ),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
@@ -33,10 +33,6 @@ final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
         window.isRestorable = false
         window.isReleasedWhenClosed = false
         window.toolbarStyle = .preference
-        window.contentMinSize = NSSize(
-            width: Theme.Metrics.settingsWindowMinimumWidth,
-            height: Theme.Metrics.settingsWindowMinimumHeight
-        )
         window.contentView = NSHostingView(
             rootView: SettingsView(
                 model: model,

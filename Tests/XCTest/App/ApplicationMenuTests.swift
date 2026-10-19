@@ -237,11 +237,12 @@ final class ApplicationMenuTests: XCTestCase {
         XCTAssertEqual(toolbar.items.map(\.label), ["General", "Keyboards", "Apps", "About"])
         XCTAssertEqual(toolbar.selectedItemIdentifier?.rawValue, "general")
         XCTAssertEqual(settingsWindow.title, "General")
+        XCTAssertFalse(settingsWindow.styleMask.contains(.resizable))
         XCTAssertEqual(
-            settingsWindow.contentMinSize,
+            settingsWindow.contentRect(forFrameRect: settingsWindow.frame).size,
             NSSize(
-                width: Theme.Metrics.settingsWindowMinimumWidth,
-                height: Theme.Metrics.settingsWindowMinimumHeight
+                width: Theme.Metrics.settingsWindowWidth,
+                height: Theme.Metrics.settingsWindowHeight
             )
         )
         XCTAssertTrue(settingsWindow.contentView is NSHostingView<SettingsView>)
