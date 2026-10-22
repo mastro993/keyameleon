@@ -70,8 +70,9 @@ enum Theme {
 
     enum Metrics {
         /// The fixed size of the Settings content, below the toolbar.
+        /// Tall enough for About without scrolling at the default text size.
         static let settingsWindowWidth: CGFloat = 620
-        static let settingsWindowHeight: CGFloat = 500
+        static let settingsWindowHeight: CGFloat = 540
         /// The spacing between the Settings content pane's blocks.
         static let paneSpacing: CGFloat = 20
         /// Row padding for a Settings keyboard row drawn outside a grouped Form, such as a preview.
