@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// The About pane: app identity, information rows, acknowledgements, and credit.
+/// The About pane: information rows, acknowledgements, and credit.
 @MainActor
 struct AboutSettingsPane: View {
     let model: GeneralSettingsModel
@@ -50,10 +50,7 @@ struct AboutSettingsPane: View {
                     .help(Text(.aboutCheckForUpdatesHelp))
                 }
             } header: {
-                VStack(alignment: .leading, spacing: 16) {
-                    AboutIdentityBlock(info: info)
-                    AboutSectionHeading(title: .aboutInformation)
-                }
+                AboutSectionHeading(title: .aboutInformation)
             }
             Section {
                 AboutInformationRow(label: LocalizedStringResource(stringLiteral: "Sparkle")) {

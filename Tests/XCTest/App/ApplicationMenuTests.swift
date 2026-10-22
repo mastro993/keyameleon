@@ -231,25 +231,32 @@ final class ApplicationMenuTests: XCTestCase {
         XCTAssertEqual(settingsWindow.identifier?.rawValue, "keyameleon.settings-window")
         XCTAssertEqual(delegate.settingsSelection.section, .general)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .general)
-        XCTAssertNil(settingsWindow.toolbar)
-        XCTAssertTrue(settingsWindow.styleMask.contains(.fullSizeContentView))
-        XCTAssertEqual(settingsWindow.titleVisibility, .hidden)
-        XCTAssertTrue(settingsWindow.titlebarAppearsTransparent)
+        let toolbar = try XCTUnwrap(settingsWindow.toolbar)
+        XCTAssertEqual(settingsWindow.toolbarStyle, .preference)
+        XCTAssertEqual(toolbar.items.map(\.itemIdentifier.rawValue), ["general", "keyboards", "apps", "about"])
+        XCTAssertEqual(toolbar.items.map(\.label), ["General", "Keyboards", "Apps", "About"])
+        XCTAssertEqual(toolbar.selectedItemIdentifier?.rawValue, "general")
+        XCTAssertEqual(settingsWindow.title, AppIdentity.current.name)
+        XCTAssertFalse(settingsWindow.styleMask.contains(.resizable))
         XCTAssertEqual(
-            settingsWindow.contentMinSize,
+            settingsWindow.contentRect(forFrameRect: settingsWindow.frame).size,
             NSSize(
-                width: Theme.Metrics.settingsWindowMinimumWidth,
-                height: Theme.Metrics.settingsWindowMinimumHeight
+                width: Theme.Metrics.settingsWindowWidth,
+                height: Theme.Metrics.settingsWindowHeight
             )
         )
         XCTAssertTrue(settingsWindow.contentView is NSHostingView<SettingsView>)
 
-        delegate.settingsSelection.section = .about
+        let aboutItem = try XCTUnwrap(toolbar.items.last)
+        NSApp.sendAction(try XCTUnwrap(aboutItem.action), to: aboutItem.target, from: aboutItem)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
+        XCTAssertEqual(toolbar.selectedItemIdentifier?.rawValue, "about")
+        XCTAssertEqual(settingsWindow.title, AppIdentity.current.name)
         settingsWindow.close()
         delegate.openSettings(nil)
         XCTAssertEqual(delegate.settingsSelection.section, .about)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
+        XCTAssertEqual(toolbar.selectedItemIdentifier?.rawValue, "about")
         XCTAssertTrue(delegate.settingsWindowController?.window === settingsWindow)
     }
 
