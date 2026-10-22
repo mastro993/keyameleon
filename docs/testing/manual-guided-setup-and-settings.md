@@ -35,7 +35,7 @@ Checklists for [Manual verification](../testing.md#manual-verification).
 **Window and navigation**
 
 - Open Settings from the menu bar, from the end of Guided setup, and with ⌘, while Keyameleon is active. Every path shows the same single window. Reopening returns to the last pane. Toolbar items are General, Keyboards, Apps, and About, in that order.
-- Select each toolbar item. The item highlights, the pane changes, and the window title becomes the pane name, in active and inactive windows. VoiceOver reads each toolbar item and its selected state.
+- Select each toolbar item. The item highlights and the pane changes, in active and inactive windows. The window title stays Keyameleon. VoiceOver reads each toolbar item and its selected state.
 - The window cannot be resized; its content stays 620 × 540.
 - All panes share one spacing policy: the same left edge for section headers and rows, native row insets, and the same outer margin. At 620 × 540, the Keyboards empty and persistence-failure states line up with the populated list's header.
 

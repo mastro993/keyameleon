@@ -236,7 +236,7 @@ final class ApplicationMenuTests: XCTestCase {
         XCTAssertEqual(toolbar.items.map(\.itemIdentifier.rawValue), ["general", "keyboards", "apps", "about"])
         XCTAssertEqual(toolbar.items.map(\.label), ["General", "Keyboards", "Apps", "About"])
         XCTAssertEqual(toolbar.selectedItemIdentifier?.rawValue, "general")
-        XCTAssertEqual(settingsWindow.title, "General")
+        XCTAssertEqual(settingsWindow.title, AppIdentity.current.name)
         XCTAssertFalse(settingsWindow.styleMask.contains(.resizable))
         XCTAssertEqual(
             settingsWindow.contentRect(forFrameRect: settingsWindow.frame).size,
@@ -251,7 +251,7 @@ final class ApplicationMenuTests: XCTestCase {
         NSApp.sendAction(try XCTUnwrap(aboutItem.action), to: aboutItem.target, from: aboutItem)
         XCTAssertEqual(delegate.settingsWindowController?.selectedSection, .about)
         XCTAssertEqual(toolbar.selectedItemIdentifier?.rawValue, "about")
-        XCTAssertEqual(settingsWindow.title, "About")
+        XCTAssertEqual(settingsWindow.title, AppIdentity.current.name)
         settingsWindow.close()
         delegate.openSettings(nil)
         XCTAssertEqual(delegate.settingsSelection.section, .about)

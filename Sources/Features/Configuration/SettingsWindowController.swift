@@ -30,6 +30,7 @@ final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
             defer: false
         )
         window.identifier = NSUserInterfaceItemIdentifier("keyameleon.settings-window")
+        window.title = AppIdentity.current.name
         window.isRestorable = false
         window.isReleasedWhenClosed = false
         window.toolbarStyle = .preference
@@ -69,10 +70,8 @@ final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
         window.makeKeyAndOrderFront(sender)
     }
 
-    /// Like System Settings, the window takes the selected pane's name as its title.
     private func showSelectedSection() {
         toolbar.selectedItemIdentifier = NSToolbarItem.Identifier(selection.section.rawValue)
-        window?.title = String(localized: selection.section.title)
     }
 
     @objc
