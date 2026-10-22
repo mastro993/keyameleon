@@ -141,7 +141,6 @@
 		762BF4666C196B18B5920E39 /* Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1FE0FC8CA921079CD4E263 /* Lifecycle.swift */; };
 		764A5D9A0FEE4B0B198EC956 /* OnboardingPermissionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38773298812C5A17D1726C14 /* OnboardingPermissionStep.swift */; };
 		77AC29634BC0AA3E057F2D43 /* PreviewSetupFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77922C7B3C2CE82D1807E4D7 /* PreviewSetupFixture.swift */; };
-		78208410456914D1FB05E171 /* AboutIdentityBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7248E781984B018DF4C5029 /* AboutIdentityBlock.swift */; };
 		78876D4911A7BFD83EBFE0AC /* ApplicationDelegate+Automation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B61ADF853DC047A26B818F0 /* ApplicationDelegate+Automation.swift */; };
 		791D25C0502839151E70ADF2 /* FrontmostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF83773CFE497C754C0EEA38 /* FrontmostApp.swift */; };
 		7A7F3E7D0A8D32461133229C /* LaunchAtLoginFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC2AD41EC08EAAA27F8DBE08 /* LaunchAtLoginFooter.swift */; };
@@ -437,7 +436,6 @@
 		A3AAF2655E81E6DB349BE7EB /* HIDStreamRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDStreamRecovery.swift; sourceTree = "<group>"; };
 		A4307BDDF69C568A2F0E03FF /* MenuBarPanelInputSourceNoticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelInputSourceNoticeTests.swift; sourceTree = "<group>"; };
 		A63721DBC0CB9BE0A68F386D /* OnboardingReadyStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingReadyStep.swift; sourceTree = "<group>"; };
-		A7248E781984B018DF4C5029 /* AboutIdentityBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutIdentityBlock.swift; sourceTree = "<group>"; };
 		A74BB7ABB6D306DFEA6A0CF7 /* OnboardingProgressConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProgressConnector.swift; sourceTree = "<group>"; };
 		A89BADBC3B1629D303A46021 /* TogglePauseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TogglePauseIntent.swift; sourceTree = "<group>"; };
 		A89C4F398956F178B120FAE3 /* InputSourceHoldTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceHoldTracker.swift; sourceTree = "<group>"; };
@@ -992,7 +990,6 @@
 			isa = PBXGroup;
 			children = (
 				3811A0DE17A48D03B23A4E56 /* AboutCreatorCredit.swift */,
-				A7248E781984B018DF4C5029 /* AboutIdentityBlock.swift */,
 				412E59BB6787F50C8DD20569 /* AboutInformationRows.swift */,
 				03147B54B47BE46EFED9F147 /* AboutLinkLabel.swift */,
 				4BDB459A5AF5B9C3ECFD0DDA /* AboutSectionHeading.swift */,
@@ -1221,7 +1218,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				003748663C50BA62B67B1F31 /* AboutCreatorCredit.swift in Sources */,
-				78208410456914D1FB05E171 /* AboutIdentityBlock.swift in Sources */,
 				49F21FE07F838960FD75583B /* AboutInformationRows.swift in Sources */,
 				BED65A54797BAA5C3D4EFE88 /* AboutLinkLabel.swift in Sources */,
 				191052BFCDFA7B2477A785A5 /* AboutSectionHeading.swift in Sources */,

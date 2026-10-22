@@ -62,8 +62,6 @@ enum Theme {
         static let caption = Font.callout
         /// `type-subheadline`, regular: connection status and folder paths.
         static let subheadline = Font.subheadline
-        /// `type-title-2`, medium: the About app name.
-        static let screenTitle = Font.title2.weight(.medium)
         /// Chip and badge labels.
         static let chip = Font.caption2.weight(.bold)
     }

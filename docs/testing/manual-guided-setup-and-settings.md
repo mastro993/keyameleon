@@ -72,7 +72,7 @@ Checklists for [Manual verification](../testing.md#manual-verification).
 
 **About**
 
-- Shows the app icon, name, tagline, information rows, Sparkle acknowledgement, and creator credit. The identity sits on the pane background and the credit scrolls into view.
+- Shows the information rows, Sparkle acknowledgement, and creator credit, with no app icon or name above them. The credit scrolls into view.
 - Version matches the running build.
 - `View on GitHub` and `@fedemas` open the browser. `Open in Finder` creates and opens both folders, whose paths stay selectable. The license rows open the bundled `LICENSE.txt` and `Sparkle-LICENSE.txt`. `Check for Updates…` is disabled while Sparkle cannot check.
 - Larger text does not clip toolbar labels or folder paths.
