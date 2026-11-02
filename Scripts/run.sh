@@ -113,6 +113,9 @@ generate_project() {
 
 kill_leftover_derived_data_keyameleon() {
     local pid command products
+    # Xcode Previews launch the Debug app from DerivedData. The app forbids
+    # multiple instances, so the hosted test runner cannot start beside it.
+    pkill -f '/DerivedData/.*/Previews/.*/Keyameleon \(Dev\).app/Contents/MacOS/Keyameleon' 2>/dev/null || true
     /bin/ps -axww -o pid=,command= | while read -r pid command; do
         for products in "${PRODUCTS_PATH}" "${TEST_PRODUCTS_PATH}"; do
             case "${command}" in
@@ -137,6 +140,9 @@ run_tests() {
     python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
     kill_leftover_derived_data_keyameleon
 
+    # The test host is ad hoc signed. With the hardened runtime on, Xcode 27
+    # makes dyld reject the ad hoc Sparkle framework as a different team.
+    # Tests do not ship, so this ad hoc host is the only build without it.
     xcodebuild build-for-testing \
         -project Keyameleon.xcodeproj \
         -scheme Keyameleon \
@@ -144,7 +150,8 @@ run_tests() {
         -parallel-testing-enabled NO \
         -derivedDataPath "${TEST_DERIVED_DATA_PATH}" \
         CODE_SIGN_IDENTITY="-" \
-        CODE_SIGNING_REQUIRED=NO
+        CODE_SIGNING_REQUIRED=NO \
+        ENABLE_HARDENED_RUNTIME=NO
 
     xcodebuild test-without-building \
         -project Keyameleon.xcodeproj \
@@ -153,7 +160,8 @@ run_tests() {
         -parallel-testing-enabled NO \
         -derivedDataPath "${TEST_DERIVED_DATA_PATH}" \
         CODE_SIGN_IDENTITY="-" \
-        CODE_SIGNING_REQUIRED=NO || test_status=$?
+        CODE_SIGNING_REQUIRED=NO \
+        ENABLE_HARDENED_RUNTIME=NO || test_status=$?
     kill_leftover_derived_data_keyameleon
     # Quit & Reopen picks any registered copy with the bundle ID, so the ad hoc test
     # host must not stay registered beside the signed Debug app.

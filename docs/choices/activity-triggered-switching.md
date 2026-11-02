@@ -33,8 +33,8 @@ An **External Input Source Change** is any change of the current Input Source th
 The global **External Change Response** (General settings) decides what happens next:
 
 - **Switch Back** (default, `Switch back`): no Input Source Hold; the next Activation Activity applies the Keyboard Assignment. Updating users see no behavior change.
-- **Hold Until Match** (`Keep until matching keyboard`): an **Input Source Hold** starts and ends on Activation Activity after which the Wanted Input Source equals the current Input Source, checked at each key press. An unassigned keyboard never ends it, and while an assigned app is frontmost only its App Assignment matches.
-- **Hold Until Keyboard Change** (`Keep until another keyboard`): a hold starts, tied to the Active Physical Keyboard, and ends on Activation Activity from a different Physical Keyboard. An unassigned keyboard ends it without selecting anything; typing on the original keyboard then switches back. With no Active Physical Keyboard at the time of the change (fresh launch, before any typing), the first keyboard typed on becomes the holding keyboard. The holding keyboard disconnecting ends the hold. Ignored devices produce no Activation Activity, so they never end a hold.
+- **Hold Until Match** (`Until matching keyboard`): an **Input Source Hold** starts and ends on Activation Activity after which the Wanted Input Source equals the current Input Source, checked at each key press. An unassigned keyboard never ends it, and while an assigned app is frontmost only its App Assignment matches.
+- **Hold Until Keyboard Change** (`Until another keyboard`): a hold starts, tied to the Active Physical Keyboard, and ends on Activation Activity from a different Physical Keyboard. An unassigned keyboard ends it without selecting anything; typing on the original keyboard then switches back. With no Active Physical Keyboard at the time of the change (fresh launch, before any typing), the first keyboard typed on becomes the holding keyboard. The holding keyboard disconnecting ends the hold. Ignored devices produce no Activation Activity, so they never end a hold.
 
 Further rules:
 

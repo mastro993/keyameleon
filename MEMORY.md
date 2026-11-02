@@ -9,6 +9,7 @@ Quick reference for agents. Native macOS 26 `LSUIElement` menu bar app (Swift 6,
 - Regenerate after `project.yml` edits: `./Scripts/run.sh generate`
 - Bundle IDs: Release `dev.fedemas.keyameleon`; Debug `dev.fedemas.keyameleon.debug`, built as `Keyameleon (Dev).app` (module and executable still `Keyameleon`), with its own Input Monitoring row, defaults, and `Keyameleon Dev` data and logs folders (ADR 0008). Both share the single-instance lock.
 - Derived data: `./build`; `run.sh test` uses `./build/test`
+- Xcode Previews: on Xcode 27 keep **Editor > Canvas > Use Legacy Previews Execution** enabled. JIT previews time out before the canvas connects (`AppLaunchTimeoutError.Inactive`); legacy mode renders the Settings panes and the new External Change choices.
 - `run.sh reset` erases only the Debug identity; `reset --release` erases the installed release's permissions and data.
 - Scheme: `Keyameleon` (app, `KeyameleonSwiftTesting`, `KeyameleonXCTest`)
 - One instance per Mac (ADR 0002). Quit any running Keyameleon, including an installed release, before launching or testing.
