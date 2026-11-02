@@ -21,7 +21,7 @@ Do not restate these as new rules. If they fire, follow the existing `Sources` p
 
 - **Safety audit** (`./Scripts/run.sh audit`): monitor-only input, no telemetry or networking beyond Sparkle, no Key Content in the log pipeline, no `CFArrayGetValueAtIndex`.
 - **SwiftLint** (`./Scripts/run.sh lint`, strict, no baseline): modern Swift/SwiftUI APIs, no `ObservableObject` / GCD / `String(format:)` / SwiftUI `Picker(`, and the other custom rules in [`.swiftlint.yml`](.swiftlint.yml).
-- **Source policy** (`Tests/Scripts/test_source_policy.py`, also the Linux **Source policy** CI job): Debug and Release bundle IDs stay distinct, only Release imports the legacy store, the Sparkle feed path stays lowercase, Settings/setup use `PopUpPicker`, hosted tests skip live surfaces, Input Monitoring relaunch is a process argument.
+- **Source policy** (`Tests/Scripts/test_source_policy.py`, also the Linux **Source policy** CI job): Debug and Release bundle IDs stay distinct, only Release imports the legacy store, the Sparkle feed path stays lowercase, Input Source selectors use `PopUpPicker`, hosted tests skip live surfaces, Input Monitoring relaunch is a process argument.
 - **Compiler**: Swift 6 complete concurrency checking, warnings as errors.
 
 SwiftUI details the linter cannot see still follow the existing screens: extract `View` structs rather than computed-property subviews, prefer Dynamic Type over fixed font sizes, avoid hard-coded padding unless the design requires it, and put view logic in testable models. One type per file, grouped by feature.

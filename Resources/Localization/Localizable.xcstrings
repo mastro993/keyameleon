@@ -3170,7 +3170,7 @@
       }
     },
     "externalChangeDescription" : {
-      "comment" : "Explanation below the external change setting.",
+      "comment" : "Help tooltip for the outside-change rows: what counts as an outside change.",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
@@ -3230,127 +3230,247 @@
       }
     },
     "externalChangeHoldUntilKeyboardChange" : {
-      "comment" : "External change option: keep the new input source until the person types on a different keyboard.",
+      "comment" : "Row title: keep the new input source until the person types on a different keyboard.",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "الإبقاء حتى استخدام لوحة مفاتيح أخرى"
+            "value" : "حتى لوحة مفاتيح أخرى"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep until another keyboard"
+            "value" : "Until another keyboard"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantener hasta usar otro teclado"
+            "value" : "Hasta otro teclado"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conserver jusqu’au changement de clavier"
+            "value" : "Jusqu’à un autre clavier"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantieni fino a un’altra tastiera"
+            "value" : "Fino a un’altra tastiera"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "別のキーボードで入力するまで維持"
+            "value" : "別のキーボードまで"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "다른 키보드를 사용할 때까지 유지"
+            "value" : "다른 키보드까지"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留至换用其他键盘"
+            "value" : "直到另一键盘"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留到使用其他鍵盤"
+            "value" : "直到另一個鍵盤"
+          }
+        }
+      }
+    },
+    "externalChangeHoldUntilKeyboardChangeCaption" : {
+      "comment" : "One-line explanation in the Until another keyboard row.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبقى التخطيط الجديد حتى تكتب على لوحة مفاتيح أخرى."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new layout stays until you type on another keyboard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El nuevo diseño se mantiene hasta que escribas en otro teclado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La nouvelle disposition reste jusqu’à ce que vous tapiez sur un autre clavier."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il nuovo layout resta finché non digiti su un’altra tastiera."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいレイアウトは、別のキーボードで入力するまで維持されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 레이아웃은 다른 키보드로 입력할 때까지 유지됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新布局会保留，直到你在另一键盘上输入。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新佈局會保留，直到你在另一個鍵盤上輸入。"
           }
         }
       }
     },
     "externalChangeHoldUntilMatch" : {
-      "comment" : "External change option: keep the new input source until the person types on a keyboard assigned to it.",
+      "comment" : "Row title: keep the new input source until the person uses the keyboard assigned to it.",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "الإبقاء حتى استخدام لوحة المفاتيح المطابقة"
+            "value" : "حتى لوحة المفاتيح المطابقة"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep until matching keyboard"
+            "value" : "Until matching keyboard"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantener hasta usar su teclado"
+            "value" : "Hasta el teclado correspondiente"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conserver jusqu’au clavier correspondant"
+            "value" : "Jusqu’au clavier correspondant"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantieni fino a una tastiera corrispondente"
+            "value" : "Fino alla tastiera corrispondente"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "対応するキーボードで入力するまで維持"
+            "value" : "対応するキーボードまで"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "지정된 키보드를 사용할 때까지 유지"
+            "value" : "일치하는 키보드까지"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留至使用对应的键盘"
+            "value" : "直到匹配的键盘"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留到使用對應的鍵盤"
+            "value" : "直到符合的鍵盤"
+          }
+        }
+      }
+    },
+    "externalChangeHoldUntilMatchCaption" : {
+      "comment" : "One-line explanation in the Until matching keyboard row.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبقى التخطيط الجديد حتى تستخدم لوحة المفاتيح المعيّنة له."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new layout stays until you use the keyboard set to it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El nuevo diseño se mantiene hasta que uses el teclado configurado para él."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La nouvelle disposition reste jusqu’à ce que vous utilisiez le clavier qui lui est associé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il nuovo layout resta finché non usi la tastiera impostata su di esso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいレイアウトは、それに対応するキーボードを使うまで維持されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 레이아웃은 해당 레이아웃이 지정된 키보드를 사용할 때까지 유지됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新布局会保留，直到你使用设置为该布局的键盘。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新佈局會保留，直到你使用設定為該佈局的鍵盤。"
           }
         }
       }
     },
     "externalChangeSwitchBack" : {
-      "comment" : "External change option: Keyameleon switches back to the keyboard's assigned input source.",
+      "comment" : "Row title: Keyameleon switches back on the next key press.",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
@@ -3409,62 +3529,122 @@
         }
       }
     },
-    "externalChangeTitle" : {
-      "comment" : "Setting label: what Keyameleon does when something other than Keyameleon changes the input source.",
+    "externalChangeSwitchBackCaption" : {
+      "comment" : "One-line explanation in the Switch back row.",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "عند تغيير مصدر الإدخال من خارج التطبيق"
+            "value" : "تعيد الضغطة التالية تخطيط لوحة المفاتيح هذه."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When input source changes externally"
+            "value" : "Your next key press restores this keyboard's layout."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si la fuente de entrada cambia externamente"
+            "value" : "La siguiente pulsación restaura el diseño de este teclado."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si la méthode de saisie change ailleurs"
+            "value" : "La prochaine frappe rétablit la disposition de ce clavier."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quando la sorgente di input cambia dall’esterno"
+            "value" : "Il prossimo tasto ripristina il layout di questa tastiera."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入力ソースがほかの方法で変更されたとき"
+            "value" : "次にキーを押すと、このキーボードのレイアウトに戻ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "입력 소스가 외부에서 변경될 때"
+            "value" : "다음 키를 누르면 이 키보드의 레이아웃으로 돌아갑니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入法被其他方式更改时"
+            "value" : "下一次按键会恢复此键盘的布局。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸入方式從外部更改時"
+            "value" : "下一次按鍵會恢復此鍵盤的佈局。"
+          }
+        }
+      }
+    },
+    "externalChangeTitle" : {
+      "comment" : "Setting label above the External Change Response rows.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بعد تغيير خارجي"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After an outside change"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras un cambio externo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après un changement externe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopo un cambiamento esterno"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外部で変更された後"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외부에서 변경된 후"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外部更改后"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外部變更後"
           }
         }
       }
@@ -3585,66 +3765,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App"
-          }
-        }
-      }
-    },
-    "generalSwitchingSection" : {
-      "comment" : "General settings section header for input source switching behavior.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "التبديل"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Switching"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cambio automático"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changement de méthode"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cambio automatico"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切り替え"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전환"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切换"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切換"
           }
         }
       }

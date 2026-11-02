@@ -144,7 +144,7 @@ class SourcePolicyTests(unittest.TestCase):
                 if GITHUB_PAGES_FEED_HOST in text:
                     self.assertIn(LOWERCASE_FEED_PATH, text)
 
-    def test_settings_and_setup_use_popup_picker_not_swiftui_picker(self):
+    def test_input_source_settings_use_popup_picker_not_swiftui_picker(self):
         hits = []
         for directory in FORM_FEATURE_DIRS:
             for path in swift_sources(directory):
@@ -163,11 +163,7 @@ class SourcePolicyTests(unittest.TestCase):
         input_source_menu = (
             ROOT / "Sources" / "Features" / "Shared" / "InputSourceMenu.swift"
         ).read_text(encoding="utf-8")
-        general = (
-            ROOT / "Sources" / "Features" / "Configuration" / "GeneralSettingsPane.swift"
-        ).read_text(encoding="utf-8")
         self.assertIn("PopUpPicker(", input_source_menu)
-        self.assertIn("PopUpPicker(", general)
 
     def test_hosted_tests_skip_live_surfaces_and_sparkle(self):
         source = (ROOT / "Sources" / "App" / "ApplicationDelegate.swift").read_text(
