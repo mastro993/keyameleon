@@ -117,9 +117,9 @@ Launchers, scripts, and the Terminal can use the same actions through URLs, for 
 | `keyameleon://toggle-pause` | Pauses when switching runs, and resumes when it is paused. |
 | `keyameleon://select-input-source?id=US` | Selects an input source by its identifier, which is the same in every language. Use the full identifier, such as `com.apple.keylayout.US`, or only its last part, such as `US` or `Italian-Pro`. |
 | `keyameleon://select-input-source?name=U.S.` | Selects an input source by its full name as Keyameleon's pickers show it. Names follow your language: the same layout is `U.S.` in English and `USA` in Italian. The two-letter badge in the menu, such as `IT`, is not a name. |
-| `keyameleon://set-external-change-response?value=switch-back` | Sets **When input source changes externally** in **Settings → General**: `switch-back` (Switch back), `hold-until-match` (Keep until matching keyboard), or `hold-until-keyboard-change` (Keep until another keyboard). |
+| `keyameleon://set-external-change-response?value=switch-back` | Sets **After an outside change** in **Settings → General**: `switch-back` (Switch back), `hold-until-match` (Until matching keyboard), or `hold-until-keyboard-change` (Until another keyboard). |
 
-Selecting an input source from a shortcut or a URL counts as a change outside Keyameleon, like picking one from the menu bar. With the default **Switch back**, your next key press on an assigned keyboard switches back; to keep the new input source, choose another option for **When input source changes externally**, or pause switching first. If Keyameleon is not running, a shortcut or URL opens it in the background.
+Selecting an input source from a shortcut or a URL counts as a change outside Keyameleon, like picking one from the menu bar. With the default **Switch back**, your next key press on an assigned keyboard switches back; to keep the new input source, choose another row under **After an outside change**, or pause switching first. If Keyameleon is not running, a shortcut or URL opens it in the background.
 
 ## Privacy
 
@@ -158,7 +158,7 @@ It uses key presses only to tell which keyboard is active. Typed content never r
 
 ### Can I switch to another layout for a few words without Keyameleon switching back?
 
-Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, set **When input source changes externally** to keep the new input source until you type on a keyboard assigned to it, or until you type on another keyboard. Switching apps always ends it. The menu bar menu then shows **Switch Back Now** to return early.
+Yes. By default Keyameleon switches back on your next key press when the input source changes outside it, such as with a shortcut, the menu bar, or an input method. In **Settings → General**, under **After an outside change**, choose **Until matching keyboard** or **Until another keyboard** to keep the new input source until you type on the keyboard assigned to it or on another keyboard. Switching apps always ends it. The menu bar menu then shows **Switch Back Now** to return early.
 
 ### Is Keyameleon free?
 
